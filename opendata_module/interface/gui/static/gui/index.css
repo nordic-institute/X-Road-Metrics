@@ -1,0 +1,17 @@
+
+.panel-heading {
+    cursor: pointer;
+}
+
+.panel-body {
+    display: none;
+}
+
+.btn {
+    margin-left: 2px;
+    margin-right: 2px;
+}
+
+table.dataTable {
+    margin: 0;
+}

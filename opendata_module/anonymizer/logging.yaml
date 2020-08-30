@@ -1,0 +1,58 @@
+version: 1
+disable_existing_loggers: False
+
+formatters:
+    default_formatter:
+        format: "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+        datefmt: "%Y/%m/%d %H:%M:%S"
+
+handlers:
+    default_handler:
+        class: logging.handlers.TimedRotatingFileHandler
+        level: INFO
+        formatter: default_formatter
+        when: D
+        interval: 1
+        backupCount: 7
+        encoding: utf8
+
+    console_handler:
+        class: logging.StreamHandler
+        level: INFO
+        formatter: default_formatter
+        stream: ext://sys.stdout
+
+loggers:
+    anonymize:
+        level: DEBUG
+        handlers: [default_handler, console_handler]
+        qualname: anonymize
+
+    anonymizer:
+        level: DEBUG
+        handlers: [default_handler, console_handler]
+        qualname: anonymizer
+
+    anonymizer_config:
+        level: DEBUG
+        handlers: [default_handler, console_handler]
+        qualname: anonymizer_config
+
+    opendata_writer:
+        level: DEBUG
+        handlers: [default_handler, console_handler]
+        qualname: iio.opendata_writer
+
+    postgresql_manager:
+        level: DEBUG
+        handlers: [default_handler, console_handler]
+        qualname: iio.postgresql_manager
+
+    statistics_reader:
+        level: DEBUG
+        handlers: [default_handler, console_handler]
+        qualname: iio.statistics_reader
+
+root:
+    level: DEBUG
+    handlers:

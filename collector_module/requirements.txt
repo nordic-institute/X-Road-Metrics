@@ -1,0 +1,4 @@
+pymongo==3.4
+requests==2.13
+numpy==1.11
+tqdm==4.14

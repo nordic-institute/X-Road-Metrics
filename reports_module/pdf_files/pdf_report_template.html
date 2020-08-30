@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+</head>
+
+<body>
+
+<div class="image_header">
+    <img src="file:{{ image_header_first }}">
+    <br>
+    <img src="file:{{ image_header_second }}">
+    <br>
+    <img src="file:{{ image_header_third }}">
+</div>
+
+<h3>{{xroadEnv}}: {{xroad_instance}} / {{memberCode}}: {{ memberCode_value }}</h3>
+<h3>{{subsystemCode}}: {{ subsystemCode_value}}</h3>
+<h3>{{member_name_translation}}: {{member_name}}</h3>
+<h3>{{subsystem_name_translation}}: {{ subsystem_name }}</h3>
+<h3>{{time_period_translation}}: {{ time_period }}</h3>
+<h3>{{report_date_translation}}: {{ report_date }}</h3>
+<div class="box">
+    <img src="file:{{ produced_services_succeeded_plot }}">
+</div>
+<div class="box">
+    <img src="file:{{ consumed_services_succeeded_plot }}">
+</div>
+<div class="box">
+    <img src="file:{{ produced_services_mean_plot }}">
+</div>
+<div class="box">
+    <img src="file:{{ consumed_services_mean_plot }}">
+</div>
+<h2>{{produced_services_translation}}</h2> {{ produced_services }}
+<h2>{{produced_metaservices_translation}}</h2> {{ produced_metaservices }}
+<h2>{{consumed_services_translation}}</h2> {{ consumed_services }}
+<h2>{{consumed_metaservices_translation}}</h2> {{ consumed_metaservices }}
+</body>
+
+</html>

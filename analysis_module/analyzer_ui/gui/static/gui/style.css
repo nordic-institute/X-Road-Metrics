@@ -1,0 +1,46 @@
+@media (min-width: 992px) {
+    .modal-lg {
+        width: 90%;
+    }
+}
+
+.btn-save {
+  margin: 10px;
+}
+
+.btn-service-call {
+  margin-bottom: 10px;
+}
+
+.btn-mark-all-incidents {
+  margin-right: 10px;
+}
+
+.btn-mark-all-normal {
+  margin-right: 10px;
+}
+
+.btn-mark-all-viewed {
+  margin-right: 10px;
+}
+
+.btn-unmark-all {
+  margin-right: 10px;
+}
+
+
+.btn-clear-constraints {
+  margin-right: 10px;
+}
+
+.constraint {
+  margin-right: 2px;
+}
+
+.new-constraint-value-div {
+  display: inline-block;
+}
+
+.tab-content {
+width: 99%;
+}

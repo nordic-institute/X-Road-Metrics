@@ -1,0 +1,14 @@
+<thead>
+    <tr>
+    {% for column in columns %}
+        <th title="{{column.desc}}">{{column.name}}</th>
+    {% endfor %}
+    </tr>
+</thead>
+<tfoot>
+    <tr>
+    {% for column in columns %}
+        <th title="{{column.desc}}">{{column_name}}</th>
+    {% endfor %}
+    </tr>
+</tfoot>

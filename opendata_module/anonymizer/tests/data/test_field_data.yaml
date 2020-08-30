@@ -1,0 +1,15 @@
+fields:
+    id:
+        description: Unique identifier of the record
+        type: bigint
+    clientSecurityServerAddress:
+        description: External address of client's security server (IP or name) defined in global configuration
+        type: varchar(255)
+    totalDuration:
+        description: Request duration from sending the request to getting a response from the client's perspective
+        type: integer
+        agent: client
+    producerDurationProducerView:
+        description: The time it takes for a producer to generate a response and send it, once the request has arrived
+        type: integer
+        agent: producer

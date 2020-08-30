@@ -1,0 +1,32 @@
+#------------------------------------------------
+# Bitbucket Pipeline
+#------------------------------------------------
+
+image: ubuntu:16.04
+
+pipelines:
+  default:
+    - step:
+        script:
+          - apt-get update
+          - apt-get install -y python3-pip
+          - apt-get install -y python3-dev python-lxml python-cffi libcairo2 libpango1.0-0 libgdk-pixbuf2.0-0 libffi-dev shared-mime-info libtiff5-dev libjpeg8-dev zlib1g-dev libfreetype6-dev liblcms2-dev libwebp-dev tcl8.6-dev tk8.6-dev python3-tk
+          - pip3 install python-dateutil==2.6.0
+          - pip3 install pyyaml==3.12
+          - pip3 install pytest
+          - pip3 install pytest-pep8
+          - pip3 install pymongo==3.3.0
+          - pip3 install psycopg2==2.7.1
+          - pip3 install django==1.10.5
+          - pip3 install elasticsearch==5.1.0
+          - pip3 install numpy==1.11.3
+          - pip3 install pandas==0.20.3
+          - pip3 install Pillow==4.2.1
+          - pip3 install requests==2.13.0
+          - pip3 install tinycss==0.4
+          - pip3 install tqdm==4.14
+          - pip3 install WeasyPrint==0.39
+          - pip3 install scipy==0.19.1
+          - pip3 install matplotlib==2.0.2
+          - pip3 install jinja2==2.9.6
+          - bash run_tests.sh

@@ -1,0 +1,50 @@
+# Edit this file to introduce tasks to be run by cron.
+#
+# Each task to run has to be defined through a single line
+# indicating with different fields when the task will be run
+# and what command to run for the task
+#
+# To define the time you can provide concrete values for
+# minute (m), hour (h), day of month (dom), month (mon),
+# and day of week (dow) or use '*' in these fields (for 'any').#
+# Notice that tasks will be started based on the cron's system
+# daemon's notion of time and timezones.
+#
+# Output of the crontab jobs (including errors) is sent through
+# email to the user the crontab file belongs to (unless redirected).
+#
+# For example, you can run a backup of all your user accounts
+# at 5 a.m every week with:
+# 0 5 * * 1 tar -zcf /var/backups/home.tgz /home/
+#
+# For more information see the manual pages of crontab(5) and cron(8)
+#
+# m h  dom mon dow   command
+#
+# Collect into file
+#
+5 */6 * * * export APPDIR="/data/collector"; export INSTANCE="ee-dev"; cd ${APPDIR}/${INSTANCE}; ./collector_into_file_cron.sh
+25 */6 * * * export APPDIR="/data/collector"; export INSTANCE="ee-test"; cd ${APPDIR}/${INSTANCE}; ./collector_into_file_cron.sh
+35 */6 * * * export APPDIR="/data/collector"; export INSTANCE="EE"; cd ${APPDIR}/${INSTANCE}; ./collector_into_file_cron.sh
+#
+# Make archive of X-Road logs from yesterday to keep usage of HDD space under control
+# NB! Must match with the overall logic of keeping opmon-collector files
+30 0 * * * /data/backup/tgz.sh >> /data/backup/tgz.log
+#
+# Collect directly into MongoDB
+#
+20 */2 * * * /srv/app/ee-dev/collector_module/cron_collector.sh update
+30 */2 * * * /srv/app/ee-test/collector_module/cron_collector.sh update
+10 */2 * * * /srv/app/EE/collector_module/cron_collector.sh update
+
+#
+# Generation of riha.json files and copied into the reports and networking modules
+# NB! Requires manual authentication with ID card, download of https://www.riha.ee/api/v1/systems?filter=topics,jilike,%25X-tee%20alams%C3%BCsteem%25&fields=owner,short_name,name,contacts,topics&size=1700 and upload of it into Reports and Networking modules beforehand!
+# Therefor commented out at the moment, scripts can executed manually
+#
+# 11 18 4 * * /srv/app/ee-dev/collector_module/external_files/make_riha.sh
+# 12 18 4 * * /srv/app/ee-test/collector_module/external_files/make_riha.sh
+# 13 18 4 * * /srv/app/EE/collector_module/external_files/make_riha.sh
+#
+# Prepare copy of active crontab for views of product manager
+0 8 * * * crontab -l | egrep -v "^#" | egrep "collector" | egrep -v "/tmp" > /tmp/cron_collector.txt
