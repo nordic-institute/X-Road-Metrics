@@ -115,18 +115,24 @@ SMTP_HOST = 'smtp.yourdomain'
 SMTP_PORT = 25
 EMAIL_SUBJECT = '{X_ROAD_INSTANCE}/{MEMBER_CLASS}/{MEMBER_CODE}/{SUBSYSTEM_CODE} kasutusraport {START_DATE} - {END_DATE}'
 EMAIL_BODY = """
-Lugupeetud {EMAIL_NAME}
+Saate selle kirja kuna olete X-tee alamsüsteemi {MEMBER_CODE}/{SUBSYSTEM_CODE} kontaktisik.
 
-Saate selle kirja kuna olete RIHAs alamsüsteemi {MEMBER_CODE}/{SUBSYSTEM_CODE} kontaktisik.
+Teile on koostatud selle alamsüsteemi X-tee keskkonna '{X_ROAD_INSTANCE}' kasutusraport perioodi {START_DATE} - {END_DATE} kohta.
 
-Teile on koostatud selle alamsüsteemi X-tee keskkonna {X_ROAD_INSTANCE} kasutusraport perioodi {START_DATE} - {END_DATE} kohta.
+Raporti leiate aadressilt: https://www.x-tee.ee/reports/{X_ROAD_INSTANCE}/{MEMBER_CLASS}/{MEMBER_CODE}/{REPORT_NAME}
 
-Raporti võite leida aadressilt: https://www.ria.ee/x-tee/reports/{X_ROAD_INSTANCE}/{MEMBER_CLASS}/{MEMBER_CODE}/{REPORT_NAME}
+Raport on koostatud RIA-le kättesaadavate X-tee kasutusstatistika / monitooringu andmete põhjal.
+Raportist arusaamise abitekst - https://github.com/ria-ee/X-Road-opmonitor/blob/master/docs/user_guide/ug_reports_et.md
+X-tee alamsüsteemide kontaktisikuid hallatakse alates 01.09.2020 X-tee iseteenindusportaalis https://www.x-tee.ee/
 
-Raport on koostatud RIA-le kättesaadavate X-tee v6 kasutusstatistika / monitooringu andmete põhjal.
-Raportite abitekst - https://github.com/ria-ee/X-Road-opmonitor/blob/master/docs/user_guide/ug_reports_et.md
+Riigi Infosüsteemi Amet avaldab üldistatud kujul X-tee kasutusstatistikat avaandmetena veebilehel
+https://logs.x-tee.ee/{X_ROAD_INSTANCE}/gui/ ning visualiseeritud kujul https://logs.x-tee.ee/visualizer/{X_ROAD_INSTANCE}/.
+Statistika ei sisalda X-tee päringutega seotud juurdepääsupiiranguga teavet.
+Juhul, kui Teie hinnangul esineb mõnede statistiliste andmete osas asutusesiseseks kasutamiseks tunnistatud teabe avalikustamise oht,
+palume sellest koheselt Riigi Infosüsteemi Ametit informeerida viidates seaduses sätestatud juurdepääsupiirangu alusele.
 
 Lugupidamisega
+X-tee tiim, Andmevahetuse osakond
 Riigi Infosüsteemi Amet
 """
 
