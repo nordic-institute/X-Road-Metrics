@@ -551,8 +551,8 @@ class ReportManager:
                                                       self.x_road_instance, self.language,
                                                       member_subsystem_info)
 
-        member_name_temp = member_name_temp[:55]
-        subsystem_name_temp = subsystem_name_temp[:55]
+        member_name_temp = member_name_temp[:55] if member_name_temp is not None else ""
+        subsystem_name_temp = subsystem_name_temp[:55] if subsystem_name_temp is not None else ""
         subsystem_code = self.subsystem_code[:55] if self.subsystem_code is not None else ""
         member_code = self.member_code[:55] if self.member_code is not None else ""
 
