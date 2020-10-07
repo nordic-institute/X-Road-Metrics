@@ -218,8 +218,6 @@ def process_data(threadName, serverData):
             logger.addHandler(handler)
         for record in records:
             logger.info(json.dumps(record, separators=(',', ':')))
-            # if DEBUG > 1: print (threadName + ": " + host_name + ": " + "  added record: " + record["messageId"])
-            # if DEBUG > 1: print (threadName + ": " + host_name + ": " + "  added record: " + str(record.get("messageId", None)))
             if DEBUG > 1: print (threadName + ": " + host_name + ": " + "  added record: " + \
                 "messageId: " + str(record.get("messageId", None)) + " xRequestId: " + str(record.get("xRequestId", None)))
         # Removing handler to avoid duplicate handlers if query to this host is repeated.
