@@ -31,7 +31,7 @@ def main():
         db_name = 'auth_db'
         user_name = '{}_{}'.format(user, args.xroad)
         role_list = _roles_to_list(roles)
-        password = _generate_password()
+        password = user_name if args.no_passwords else _generate_password()
         
         print(user, role_list)
 
@@ -53,7 +53,7 @@ def _parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("xroad", help="X-Road instance name")
     parser.add_argument("--mongodb-host", "-m", default="localhost:27017", help="MongoDb host:port. Default is localhost:27017")
-    parser.add_argument("--no-passwords", "-np", action="store_true", help="Skip generation of secure passwords for users.")
+    parser.add_argument("--no-passwords", "-np", action="store_true", help="Skip generation of secure passwords for users. Password will be equal to username.")
     args = parser.parse_args()
 
     return args
