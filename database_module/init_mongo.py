@@ -32,8 +32,6 @@ def main():
         user_name = '{}_{}'.format(user, args.xroad)
         role_list = _roles_to_list(roles)
         password = user_name if args.no_passwords else _generate_password()
-        
-        print(user, role_list)
 
         client[db_name].command('createUser', user_name, pwd=password, roles=role_list)
 
@@ -43,10 +41,7 @@ def main():
 
 
 def _roles_to_list(roles):
-    role_list = []
-    for db, role in roles.items():
-        role_list.append({'db': db, 'role': role})
-    return role_list
+    return [{'db': db, 'role': role} for db, role in roles.items()]
 
 
 def _parse_args():
