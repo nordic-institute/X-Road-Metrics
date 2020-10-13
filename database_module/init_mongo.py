@@ -56,10 +56,11 @@ def _parse_args():
 
 def _print_users(passwords):
     width = max([len(k) for k in passwords.keys()]) + 1
+
     print("\nGenerated following users: \n")
-    print("{:<{}}| {:<20}".format('User', width, 'Password'))
-    print("{:<{}}+{:<20}".format('-' * width, width, '-' * 20))
-    [print("{:<{}}| {:<20}".format(key, width, value)) for key, value in passwords.items()]
+    print(f'{"Username":<{width}}| Password')
+    print(f'{width * "-"}+{"-"*20}')
+    [print(f'{user:<{width}}| {password}') for user, password in passwords.items()]
 
 
 def _generate_password():
