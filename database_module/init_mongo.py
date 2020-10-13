@@ -64,7 +64,7 @@ def _print_users(passwords):
 
 
 def _generate_password():
-    special_chars = """@"'!#%&/()[]-_.,^*\\"""
+    special_chars = """!"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"""
     alphabet = string.ascii_letters + string.digits + special_chars
     while True:
         password = ''.join(secrets.choice(alphabet) for i in range(12))
