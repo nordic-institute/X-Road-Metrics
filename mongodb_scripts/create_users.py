@@ -30,11 +30,24 @@ admin_roles = {
 def main():
     passwords = {}
     args = _parse_args()
-    client = MongoClient(args.host)
+    client = _connect_mongo(args)
 
     _create_admin_users(args, client, passwords)
     _create_opmon_users(args, client, passwords)
     _print_users(passwords)
+
+
+def _connect_mongo(args):
+    if args.user is None:
+        return MongoClient(args.host)
+    
+    password = args.password or getpass.getpass()
+    return MongoClient(
+        args.host,
+        username=args.user,
+        password=password,
+        authSource=args.auth
+    )
 
 
 def _create_admin_users(args, client, passwords):
@@ -65,6 +78,7 @@ def _parse_args():
     parser.add_argument("--host", metavar="HOST:PORT", default="localhost:27017", help="MongoDb host:port. Default is localhost:27017")
     parser.add_argument("--user", help='MongoDb username', default=None)
     parser.add_argument("--password", help='MongoDb password', default=None)
+    parser.add_argument('--auth', help='Authorization Database', default='admin')
     parser.add_argument("--dummy-passwords", action="store_true", help="Skip generation of secure passwords for users. Password will be same as username.")
     parser.add_argument("--generate-admins", action="store_true", help="Also generate admin users.")
     args = parser.parse_args()
