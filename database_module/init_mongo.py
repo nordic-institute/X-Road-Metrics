@@ -19,25 +19,39 @@ user_roles = {
     'reports': {'query_db': 'read', 'reports_state': 'readWrite'}
 }
 
+admin_roles = {
+    'root': ['root'],
+    'backup': ['backup'],
+    'superuser': ['root']
+}
+
 
 def main():
+    passwords = {}
     args = _parse_args()
     client = MongoClient(args.mongodb_host)
-    # client.admin.authenticate('siteRootAdmin', 'Test123')
 
-    passwords = {}
+    _create_admin_users(args, client, passwords)
+    _create_opmon_users(args, client, passwords)
+    _print_users(passwords)
 
+
+def _create_admin_users(args, client, passwords):
+    if not args.generate_admins:
+        return
+
+    for user_name, roles in admin_roles.items():
+        passwords[user_name] = user_name if args.no_passwords else _generate_password()
+        client.admin.command('createUser', user_name, pwd=passwords[user_name], roles=roles)
+
+
+def _create_opmon_users(args, client, passwords):
     for user, roles in user_roles.items():
-        db_name = 'auth_db'
         user_name = '{}_{}'.format(user, args.xroad)
         role_list = _roles_to_list(roles)
-        password = user_name if args.no_passwords else _generate_password()
+        passwords[user_name] = user_name if args.no_passwords else _generate_password()
 
-        client[db_name].command('createUser', user_name, pwd=password, roles=role_list)
-
-        passwords[user_name] = password
-    
-    _print_users(passwords)
+        client.auth_db.command('createUser', user_name, pwd=passwords[user_name], roles=role_list)
 
 
 def _roles_to_list(roles):
@@ -49,6 +63,7 @@ def _parse_args():
     parser.add_argument("xroad", help="X-Road instance name")
     parser.add_argument("--mongodb-host", "-m", default="localhost:27017", help="MongoDb host:port. Default is localhost:27017")
     parser.add_argument("--no-passwords", "-np", action="store_true", help="Skip generation of secure passwords for users. Password will be equal to username.")
+    parser.add_argument("--generate-admins", "-a", action="store_true", help="Also generate admin users.")
     args = parser.parse_args()
 
     return args
