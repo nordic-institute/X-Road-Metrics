@@ -7,6 +7,7 @@ Script to create MongoDb users for X-Road OpMon tools.
 from pymongo import MongoClient
 import sys
 import argparse
+import getpass
 import string
 import secrets
 
@@ -29,7 +30,7 @@ admin_roles = {
 def main():
     passwords = {}
     args = _parse_args()
-    client = MongoClient(args.mongodb_host)
+    client = MongoClient(args.host)
 
     _create_admin_users(args, client, passwords)
     _create_opmon_users(args, client, passwords)
@@ -41,7 +42,7 @@ def _create_admin_users(args, client, passwords):
         return
 
     for user_name, roles in admin_roles.items():
-        passwords[user_name] = user_name if args.no_passwords else _generate_password()
+        passwords[user_name] = user_name if args.dummy_passwords else _generate_password()
         client.admin.command('createUser', user_name, pwd=passwords[user_name], roles=roles)
 
 
@@ -49,7 +50,7 @@ def _create_opmon_users(args, client, passwords):
     for user, roles in user_roles.items():
         user_name = '{}_{}'.format(user, args.xroad)
         role_list = _roles_to_list(roles)
-        passwords[user_name] = user_name if args.no_passwords else _generate_password()
+        passwords[user_name] = user_name if args.dummy_passwords else _generate_password()
 
         client.auth_db.command('createUser', user_name, pwd=passwords[user_name], roles=role_list)
 
@@ -60,10 +61,12 @@ def _roles_to_list(roles):
 
 def _parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("xroad", help="X-Road instance name")
-    parser.add_argument("--mongodb-host", "-m", default="localhost:27017", help="MongoDb host:port. Default is localhost:27017")
-    parser.add_argument("--no-passwords", "-np", action="store_true", help="Skip generation of secure passwords for users. Password will be equal to username.")
-    parser.add_argument("--generate-admins", "-a", action="store_true", help="Also generate admin users.")
+    parser.add_argument("xroad", metavar="X-ROAD-INSTANCE", help="X-Road instance name.")
+    parser.add_argument("--host", metavar="HOST:PORT", default="localhost:27017", help="MongoDb host:port. Default is localhost:27017")
+    parser.add_argument("--user", help='MongoDb username', default=None)
+    parser.add_argument("--password", help='MongoDb password', default=None)
+    parser.add_argument("--dummy-passwords", action="store_true", help="Skip generation of secure passwords for users. Password will be same as username.")
+    parser.add_argument("--generate-admins", action="store_true", help="Also generate admin users.")
     args = parser.parse_args()
 
     return args

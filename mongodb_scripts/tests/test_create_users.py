@@ -13,7 +13,7 @@ admin_user_names = ['root', 'backup', 'superuser']
 
 
 def test_admin_user_generation(mocker):
-    args = Namespace(generate_admins=True, no_passwords=False)
+    args = Namespace(generate_admins=True, dummy_passwords=False)
     client = mocker.Mock()
 
     passwords = {}
@@ -28,7 +28,7 @@ def test_admin_user_generation(mocker):
 
 
 def test_skipping_admin_user_generation(mocker):
-    args = Namespace(generate_admins=False, no_passwords=False)
+    args = Namespace(generate_admins=False, dummy_passwords=False)
     client = mocker.Mock()
 
     passwords = {}
@@ -39,7 +39,7 @@ def test_skipping_admin_user_generation(mocker):
 
 
 def test_admin_user_generation_without_passwords(mocker):
-    args = Namespace(generate_admins=True, no_passwords=True)
+    args = Namespace(generate_admins=True, dummy_passwords=True)
     client = mocker.Mock()
 
     passwords = {}
@@ -53,7 +53,7 @@ def test_admin_user_generation_without_passwords(mocker):
 
 
 def test_opmon_user_generation(mocker):
-    args = Namespace(xroad='XRD1', no_passwords=False)
+    args = Namespace(xroad='XRD1', dummy_passwords=False)
     client = mocker.Mock()
 
     passwords = {}
@@ -73,7 +73,7 @@ def test_opmon_user_generation(mocker):
 
 
 def test_opmon_user_generation_without_passwords(mocker):
-    args = Namespace(xroad='XRD2', no_passwords=True)
+    args = Namespace(xroad='XRD2', dummy_passwords=True)
     client = mocker.Mock()
 
     passwords = {}
