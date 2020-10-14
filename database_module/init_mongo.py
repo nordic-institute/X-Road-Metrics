@@ -85,14 +85,13 @@ def _generate_password():
     Password contains lower-case, upper-case, numbers and special characters.
     Based on best-practice recipe from https://docs.python.org/3/library/secrets.html.
     """
-    special_chars = """!"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"""
-    alphabet = string.ascii_letters + string.digits + special_chars
+    alphabet = string.ascii_letters + string.digits + string.punctuation
     while True:
         password = ''.join(secrets.choice(alphabet) for i in range(12))
         if (any(c.islower() for c in password)
                 and any(c.isupper() for c in password)
                 and sum(c.isdigit() for c in password) >= 3
-                and any(c in special_chars for c in password)):
+                and any(c in string.punctuation for c in password)):
             return password
 
 
