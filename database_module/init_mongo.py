@@ -79,6 +79,12 @@ def _print_users(passwords):
 
 
 def _generate_password():
+    """
+    Generate a random 12 character password.
+    
+    Password contains lower-case, upper-case, numbers and special characters.
+    Based on best-practice recipe from https://docs.python.org/3/library/secrets.html.
+    """
     special_chars = """!"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"""
     alphabet = string.ascii_letters + string.digits + special_chars
     while True:
