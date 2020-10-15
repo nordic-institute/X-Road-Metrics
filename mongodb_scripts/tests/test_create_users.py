@@ -12,6 +12,36 @@ opmon_user_names = ['analyzer', 'analyzer_interface', 'anonymizer', 'collector',
 admin_user_names = ['root', 'backup', 'superuser']
 
 
+def test_mongo_client_creation_no_auth(mocker):
+    args = Namespace(host='testhost:1234', user=None)
+
+    mocker.patch('create_users.MongoClient')
+    create_users._connect_mongo(args)
+    create_users.MongoClient.assert_called_once_with(args.host)
+
+
+def test_mongo_client_creation_username_only(mocker):
+    args = Namespace(host='testhost:1234', user='testuser', password=None, auth='admin')
+
+    mocker.patch('create_users.MongoClient')
+    mocker.patch('create_users.getpass.getpass', return_value='testpass')
+    create_users._connect_mongo(args)
+
+    create_users.MongoClient.assert_called_once_with(args.host, username=args.user, password='testpass', authSource=args.auth)
+    create_users.getpass.getpass.assert_called_once()
+
+
+def test_mongo_client_creation_full_auth(mocker):
+    args = Namespace(host='testhost:1234', user='testuser', password='pass', auth='admin')
+
+    mocker.patch('create_users.MongoClient')
+    mocker.patch('create_users.getpass.getpass', return_value='wrongpass')
+    create_users._connect_mongo(args)
+
+    create_users.MongoClient.assert_called_once_with(args.host, username=args.user, password=args.password, authSource=args.auth)
+    create_users.getpass.getpass.assert_not_called()
+
+
 def test_admin_user_generation(mocker):
     args = Namespace(generate_admins=True, dummy_passwords=False)
     client = mocker.Mock()
