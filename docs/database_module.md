@@ -74,156 +74,61 @@ sudo service mongod status
 # Loaded: loaded (/lib/systemd/system/mongod.service; enabled; ...)
 ```
 
-### User Configuration
+### Required Users
 
 The database module requires the creation of the following users: 
 
-* A **root** user to controls the configuration of the database.
-* A backup specific user to backup data collections.
-* A superuser to personalize access to the configuration of the database.
+* Admin users
+    * A **root** user to controls the configuration of the database.
+    * A backup specific user to backup data collections.
+    * A superuser to personalize access to the configuration of the database.
 * Module specific users, to provide access and limit permissions.
-* Optionally, creation of a test user for Integration Tests with the database.
-* Optionally, creation of a read-only user for reviewing the database.
+* Optional users
+    * A test user for Integration Tests with the database.
+    * A read-only user for reviewing the database.
 
-#### Configure root user
+### Create Users by Python script
+The admin and module specific users can be created by a Python script `mongodb_scripts/create_users.py`. 
+The script takes as a parameter the name of the X-Road instance that the OpMon modules are monitoring.
+It is simplest to run the script on the same host where MongoDb is installed.
 
-Enter MongoDB client shell:
+To create the admin users and module users for instance _sample_ run the script with following parameters:
+```bash
+python3 create_useres.py sample --generate-admins
+```
+
+The script will create users and generate passwords for them.
+It will print to stdout a list of generated usernames and passwords. 
+It is recommended to store these in your favorite password manager as they are needed during the configuration of the OpMon modules.
+
+After the admin users are generated make sure you enable the MongoDB authentication as described in chapter ['Enable MongoDB authentication'](#enable-mongodb-authentication)
+
+The admin users need to be created only once. 
+If you want to add module users for another X-Road instance _other_, re-run the script without the --generate-admins flag:
+```
+python3 create_useres.py other
+```
+
+The script has command line arguments for more advanced use cases. For instructions run:
+```
+python3 create_users.py --help
+```
+
+The optional users for integration tests or read-only use need to be created manually. See next chapter.
+
+### Manually Create Optional Users
+This Chapter can be skipped unless you want to install the optional users for integration test or read-only use.
+To manually add users to MongoDB, enter MongoDB client shell:
 
 ```bash
 mongo
 ```
 
-Inside the MongoDB client shell, create the **root** user in the **admin** database. 
-Replace **ROOT_PWD** with the desired root password (keep it in your password safe).
-
-```
-use admin
-db.createUser( { user: "root", pwd: "ROOT_PWD", roles: ["root"] })
-```
-
-#### Configure backup user
-
-Inside the MongoDB client shell, create the **db_backup** user in the **admin** database. 
-Replace **BACKUP_PWD** with the desired password (keep it in your password safe).
-
-```
-use admin
-db.createUser( { user: "db_backup", pwd: "BACKUP_PWD", roles: ["backup"] })
-```
-
-#### Configure superuser
-
-When applicable, create inside the MongoDB client shell one or more personalized **superuser** user in the **admin** database. 
-Replace **superuser** with the personalized user name in your domain. 
-Replace **SUPERUSER_PWD** with the desired password (keep it in your password safe).
-
-```
-use admin
-db.createUser( { user: "superuser", pwd: "SUPERUSER_PWD", roles: ["root"] })
-```
-
-The instructions below describes the creation of module users for **collector**, **corrector**, **reports**, **analyzer**, and **anonymizer** modules.
-
-**Note 1:** The instructions assume `sample` instances. For other instances replace the `sample` suffix appropriately. 
-X-Road instance names in Estonia are case-sensitive (sample: `EE` differs from `ee`).
-
-**Note 2:** MongoDB database names and settings in different modules should follow this case-sensitivity as well to guarantee, that publishing and notification scripts in [Reports module](reports_module.md) can use correct path.
-Please refer to the specific configuration file of every module and set the MongoDB access to match the user and passwords created here, where:
-
-- INSTANCE: is the X-Road v6 instance
-- MONGODB_USER: is the instance-specific module user
-- MONGODB_PWD: is the MONGODB_USER password 
-- MONGODB_SERVER: is the database host (example: `opmon`)
-- MONGODB_SUFFIX: is the database suffix, same as INSTANCE
-
-#### Configure collector module user
-
-Inside the MongoDB client shell, create the **collector_sample** user in the **auth_db** database. 
-Replace **MODULE_PWD** with the desired module password.
-The collector user has "readWrite" permissions to "query_db" and "collector_state" databases (here, **query_db_sample** and **collector_state_sample**).
-
-```
-use auth_db
-db.createUser( { user: "collector_sample", pwd: "MODULE_PWD", roles: []})
-db.grantRolesToUser( "collector_sample", [{ role: "readWrite", db: "query_db_sample"}])
-db.grantRolesToUser( "collector_sample", [{ role: "readWrite", db: "collector_state_sample"}])
-```
-
-#### Configure corrector module user
-
-Inside the MongoDB client shell, create the **corrector_sample** user in the **auth_db** database. 
-Replace **MODULE_PWD** with the desired module password.
-The corrector user has "readWrite" permissions to "query_db" database (here, **query_db_sample**).
-
-```
-use auth_db
-db.createUser( { user: "corrector_sample", pwd: "MODULE_PWD", roles: []})
-db.grantRolesToUser( "corrector_sample", [{ role: "readWrite", db: "query_db_sample"}])
-```
-
-#### Configure reports module user
-
-Inside the MongoDB client shell, create the **reports_sample** user in the **auth_db** database. 
-Replace **MODULE_PWD** with the desired module password.
-The reports user has "read" permissions to "query_db" database and "readWrite" permission to "reports_state" database (here, **query_db_sample** and **reports_state_sample**).
-
-```
-use auth_db
-db.createUser({ user: "reports_sample", pwd: "MODULE_PWD", roles: [] })
-db.grantRolesToUser( "reports_sample", [{ role: "read", db: "query_db_sample" }])
-db.grantRolesToUser( "reports_sample", [{ role: "readWrite", db: "reports_state_sample" }])
-```
-
-#### Configure analyzer module users
-
-Analyzer module has two sub-modules, calculation ('training or updateing historic average models' and 'finding anomalies') and web interface. 
-It is suggested to have separate users for them although the access rights are the same. 
-Web interface user needs access to the query database as well because list of queries, that belong to an anomaly are loaded from there.
-
-##### Configure analyzer module calculation user
-
-Inside the MongoDB client shell, create the **analyzer_sample** user in the **auth_db** database. 
-Replace **MODULE_PWD** with the desired module password.
-The analyzer user has "read" permissions to "query_db" database and "readWrite" permission to "analyzer_database" database (here, **query_db_sample** and **analyzer_database_sample**).
-
-```
-use auth_db
-db.createUser({ user: "analyzer_sample", pwd: "MODULE_PWD", roles: [] })
-db.grantRolesToUser( "analyzer_sample", [{ role: "read", db: "query_db_sample" }])
-db.grantRolesToUser( "analyzer_sample", [{ role: "readWrite", db: "analyzer_database_sample" }])
-```
-
-##### Configure analyzer module interface user
-
-Inside the MongoDB client shell, create the **analyzer_interface_sample** user in the **auth_db** database. 
-Replace **MODULE_PWD** with the desired module password.
-The analyzer interface user has "read" permissions to "query_db" database and "readWrite" permission to "analyzer_database" database (here, **query_db_sample** and **analyzer_database_sample**).
-
-```
-use auth_db
-db.createUser({ user: "analyzer_interface_sample", pwd: "MODULE_PWD", roles: [] })
-db.grantRolesToUser( "analyzer_interface_sample", [{ role: "read", db: "query_db_sample" }])
-db.grantRolesToUser( "analyzer_interface_sample", [{ role: "readWrite", db: "analyzer_database_sample" }])
-```
-
-#### Configure anonymizer module user
-
-Inside the MongoDB client shell, create the **anonymizer_sample** user in the **auth_db** database. 
-Replace **MODULE_PWD** with the desired module password.
-The anonymizer user has "read" permissions to "query_db" database (here, **query_db_sample**) and "readWrite" permissions to "anonymizer_state" database (here **anonymizer_state_sample**).
-
-```
-use auth_db
-db.createUser({ user: "anonymizer_sample", pwd: "MODULE_PWD", roles: [] })
-db.grantRolesToUser( "anonymizer_sample", [{ role: "read", db: "query_db_sample" }])
-db.grantRolesToUser( "anonymizer_sample", [{ role: "readWrite", db: "anonymizer_state_sample" }])
-```
-
-#### Configure ci_test user (optional)
+#### **ci_test user (optional)**
 
 The **ci_test** user is only necessary to run integration tests that uses MongoDB (example, corrector integration tests). The integration tests uses as MONGODB_SUFFIX the value `PY-INTEGRATION-TEST`, and this should not be mixed with any module specific user.
 
-Inside the MongoDB client sehll, create the **ci_test** user in the **auth_db** database. The default password is also "ci_test". The **ci_test** user has permissions ONLY to databases:
+Inside the MongoDB client shell, create the **ci_test** user in the **auth_db** database. The default password is also "ci_test". The **ci_test** user has permissions ONLY to databases:
 
 - CI_query_db
 - CI_collector_state
@@ -241,7 +146,7 @@ db.grantRolesToUser( "ci_test", [{ role: "dbOwner", db: "CI_reports_state" }])
 db.grantRolesToUser( "ci_test", [{ role: "dbOwner", db: "CI_analyzer_database" }])
 ```
 
-#### Configure read-only user (optional)
+#### **read-only user (optional)**
 
 Inside the MongoDB client shell, create the **user_read** user in the **admin** database. 
 Replace **USER_PWD** with the desired password (keep it in your password safe).
@@ -251,10 +156,9 @@ use admin
 db.createUser( { user: "user_read", pwd: "USER_PWD", roles: ["readAnyDatabase"] })
 ```
 
-#### Check user configuration and permissions
+### Check user configuration and permissions
 
 To check if all users and configurations were properly created, list all users and verify their roles using the following commands:
-
 Inside the MongoDB client shell:
 
 ```
@@ -263,6 +167,26 @@ db.getUsers()
 use auth_db
 db.getUsers()
 ```
+
+For X-Road instance `sample` auth_db should have following users and access rights:
+* **analyzer_sample**:
+    * query_db_sample: read
+    * analyzer_database_sample: readWrite
+* **analyzer_interface_sample**: 
+    * query_db_sample: read
+    * analyzer_database_sample: readWrite
+* **anonymizer_sample**: 
+    * query_db_sample: read
+    * anonymizer_state_sample: readWrite
+* **collector_sample**:
+    * query_db_sample: readWrite, 
+    * collcetor_state_sample: readWrite
+* **corrector_sample**: 
+    * query_db_sample: readWrite
+* **reports_sample**: 
+    * query_db_sample: read, 
+    * reports_state_sample: 'readWrite'
+
 
 ### MongoDB Configuration
 
@@ -303,7 +227,7 @@ with content:
 
 MongoDB default install does not enable authentication. The following steps are used to configure MongoDB security authorization.
 
-**NOTE:** The **root** user (database **admin**) needs to exist already. See section ['Configure root user'](#configure-root-user).
+**NOTE:** The **root** user (database **admin**) needs to exist already. See section ['Create Users by Python script'](#create-users-by-python-script).
 
 To enable MongoDB security authorization, edit the **mongod.conf** configuration file using your favorite text editor (here, **vi** is used).
 
