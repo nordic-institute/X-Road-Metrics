@@ -170,7 +170,7 @@ def collector_main(logger_m):
         total_done, total_error, total_time), settings.HEARTBEAT_PATH, settings.HEARTBEAT_FILE, "SUCCEEDED")
 
 
-if __name__ == '__main__':
+def setup_logger():
     logger = logging.getLogger(settings.LOGGER_NAME)
     logger.setLevel(settings.LOGGER_LEVEL)
     log_file_name = settings.LOGGER_FILE
@@ -181,10 +181,20 @@ if __name__ == '__main__':
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
 
-    logger_m = LoggerManager(settings.LOGGER_NAME, settings.MODULE)
+    return LoggerManager(settings.LOGGER_NAME, settings.MODULE)
+
+
+def main():
+    
+    logger_m = setup_logger()
+
     try:
         collector_main(logger_m)
     except Exception as e:
         logger_m.log_error('collector', '{0}'.format(repr(e)))
         logger_m.log_heartbeat("error", settings.HEARTBEAT_PATH, settings.HEARTBEAT_FILE, "FAILED")
         raise e
+
+
+if __name__ == '__main__':
+    main()
