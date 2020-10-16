@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import json
 import logging
 import multiprocessing
@@ -13,12 +11,12 @@ from multiprocessing import Pool
 
 import requests
 
-from . import settings
-from .collectorlib.database_manager import DatabaseManager
-from .collectorlib.logger_manager import LoggerManager
+from collectorlib.database_manager import DatabaseManager
+from collectorlib.logger_manager import LoggerManager
 
 
 def collector_worker(data):
+    settings = data['settings']
     logger_m = data['logger_manager']
     server_m = data['server_manager']
     server_data = data['server_data']
@@ -103,7 +101,7 @@ def collector_worker(data):
     return return_value
 
 
-def collector_main(logger_m):
+def collector_main(logger_m, settings):
     """
     :param logger_m:
     :return:
@@ -130,6 +128,7 @@ def collector_main(logger_m):
         records_from = server_m.get_next_records_timestamp(server_key, records_from_offset)
         records_to = server_m.get_timestamp() - settings.RECORDS_TO_OFFSET
         data = dict()
+        data['settings'] = settings
         data['logger_manager'] = logger_m
         data['server_manager'] = server_m
         data['server_data'] = server
@@ -170,7 +169,7 @@ def collector_main(logger_m):
         total_done, total_error, total_time), settings.HEARTBEAT_PATH, settings.HEARTBEAT_FILE, "SUCCEEDED")
 
 
-def setup_logger():
+def setup_logger(settings):
     logger = logging.getLogger(settings.LOGGER_NAME)
     logger.setLevel(settings.LOGGER_LEVEL)
     log_file_name = settings.LOGGER_FILE
@@ -184,9 +183,10 @@ def setup_logger():
     return LoggerManager(settings.LOGGER_NAME, settings.MODULE)
 
 
-def main():
-    
-    logger_m = setup_logger()
+def main(settings):
+
+    logger_m = setup_logger(settings)
+    settings = import_settings(xroad_instance)
 
     try:
         collector_main(logger_m)
@@ -194,7 +194,3 @@ def main():
         logger_m.log_error('collector', '{0}'.format(repr(e)))
         logger_m.log_heartbeat("error", settings.HEARTBEAT_PATH, settings.HEARTBEAT_FILE, "FAILED")
         raise e
-
-
-if __name__ == '__main__':
-    main()
