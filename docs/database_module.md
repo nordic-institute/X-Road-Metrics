@@ -106,7 +106,7 @@ After the admin users are generated make sure you enable the MongoDB authenticat
 The admin users need to be created only once. 
 If you want to add module users for another X-Road instance _other_, re-run the script without the --generate-admins flag:
 ```
-python3 create_useres.py other
+python3 create_users.py other
 ```
 
 The script has command line arguments for more advanced use cases. For instructions run:
