@@ -94,7 +94,7 @@ It is simplest to run the script on the same host where MongoDb is installed.
 
 To create the admin users and module users for instance _sample_ run the script with following parameters:
 ```bash
-python3 create_useres.py sample --generate-admins
+python3 create_users.py sample --generate-admins
 ```
 
 The script will create users and generate passwords for them.
