@@ -21,8 +21,10 @@ if [[ $# -eq 0 ]] ; then
 fi
 
 XROAD_INSTANCE=${1}
-LOGGER_PATH=$(python3 ../get_settings.py LOGGER_PATH)
-HEARTBEAT_PATH=$(python3 ../get_settings.py LOGGER_PATH)
+LOGGER_PATH=$(opmon-collector --xroad $XROAD_INSTANCE settings get logger.log-path)
+HEARTBEAT_PATH=$(opmon-collector --xroad $XROAD_INSTANCE settings get logger.heartbeat-path)
+
+echo Logger path: $LOGGER_PATH
 
 # Prepare ${LOG} and ${LOCK}
 # Please note, that they depend of command ${0}
@@ -30,8 +32,11 @@ PID=$$
 filename=$(basename -- "${0}")
 extension="${filename##*.}"
 filename="${filename%.*}"
-LOG=${LOGGER_PATH}/logs/${filename}.log
-LOCK=${HEARTBEAT_PATH}/heartbeat/${filename}.lock
+LOG=${LOGGER_PATH}/${filename}.log
+LOCK=${HEARTBEAT_PATH}/${filename}.lock
+
+echo Logging to $LOG
+echo Lockfile at $LOCK
 
 # Begin
 echo "${PID}: Start of ${0}"  2>&1 | awk '{ print strftime("%Y-%m-%dT%H:%M:%S\t"), $0; fflush(); }' | tee -a ${LOG}
@@ -52,11 +57,11 @@ fi
 cd ${APPDIR}/${INSTANCE}
 
 if [[ $# -eq 2 ]] ; then
-    collector update_servers $XROAD_INSTANCE 2>&1 | awk '{ print strftime("%Y-%m-%dT%H:%M:%S\t"), $0; fflush(); }' | tee -a ${LOG}
+    opmon-collector --xroad $XROAD_INSTANCE update 2>&1 | awk '{ print strftime("%Y-%m-%dT%H:%M:%S\t"), $0; fflush(); }' | tee -a ${LOG}
 fi
 
 # Run collector
-collector collect $XROAD_INSTANCE 2>&1 | awk '{ print strftime("%Y-%m-%dT%H:%M:%S\t"), $0; fflush(); }' | tee -a ${LOG}
+opmon-collector --xroad $XROAD_INSTANCE collect 2>&1 | awk '{ print strftime("%Y-%m-%dT%H:%M:%S\t"), $0; fflush(); }' | tee -a ${LOG}
 
 # Remove ${LOCK}
 /bin/rm ${LOCK} 2>&1 | awk '{ print strftime("%Y-%m-%dT%H:%M:%S\t"), $0; fflush(); }' | tee -a ${LOG}
