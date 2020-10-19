@@ -173,7 +173,7 @@ def collector_main(logger_m, settings):
         total_done, total_error, total_time), "SUCCEEDED")
 
 
-def main(settings):
+def main(settings, args=None):
 
     logger_m = LoggerManager(settings)
 

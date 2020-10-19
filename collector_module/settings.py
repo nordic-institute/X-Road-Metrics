@@ -19,10 +19,6 @@ class OpmonSettings:
 
     def __init__(self, xroad_instance=None):
         filename = self._find_settings_file(xroad_instance)
-        print(filename)
-
-        yaml.add_path_resolver('!xroad', ['xroad'], dict)
-
         self.settings = self._parse_settings(filename)
 
     def _parse_settings(self, filename):
