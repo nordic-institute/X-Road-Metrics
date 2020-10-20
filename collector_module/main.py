@@ -13,7 +13,7 @@ import update_servers
 
 def main():
     args = parse_args()
-    settings_manager = OpmonSettingsManager(args.xroad)
+    settings_manager = OpmonSettingsManager(args.profile)
     settings = settings_manager.settings
 
     actions = {
@@ -41,13 +41,14 @@ def parse_args():
                         default='',
                         help='Arguments for action.')
 
-    parser.add_argument("--xroad",
-                        metavar="X-ROAD-INSTANCE",
+    parser.add_argument("--profile",
+                        metavar="PROFILE",
                         default=None,
                         help="""
-                            Optional X-Road instance name.
-                            If set to VALUE, X-Road settings from settings_VALUE.py will be used.
-                            If not set, default settings file will be used.
+                            Optional settings file profile.
+                            For example with '--profile PROD' settings_PROD.yaml will be used as settings file.
+                            If no profile is defined, settings.yaml will be used by default.
+                            Settings file is searched from current working directory and /etc/opmon/collector_module/
                         """.strip()
                         )
     args = parser.parse_args()

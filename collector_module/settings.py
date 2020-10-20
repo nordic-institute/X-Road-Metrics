@@ -14,12 +14,12 @@ class OpmonSettingsManager:
     Can parse settings from a YAML file.
     Settings file is searched from the current working directory and /etc/opmon/collector_module/.
     Settings file must have extension .yaml or .yml.
-    If xroad_instance is set, settings file name must be settings_{xroad_instance}.yaml (or .yml).
-    If no instance is defined, settings are fetched from a file named settings.yaml (or .yml).
+    If profile argument is set, settings are fetched from settings_{profile}.yaml.
+    If no profile is defined, settings are fetched from settings.yaml.
     """
 
-    def __init__(self, xroad_instance=None):
-        filename = self._find_settings_file(xroad_instance)
+    def __init__(self, profile=None):
+        filename = self._find_settings_file(profile)
         self.settings = self._parse_settings(filename)
 
     def print_setting(self, keystring):
@@ -38,13 +38,13 @@ class OpmonSettingsManager:
             except yaml.YAMLError as e:
                 print(e)
 
-    def _find_settings_file(self, xroad_instance):
+    def _find_settings_file(self, profile):
         search_paths = ['./', '/etc/opmon/collector_module/']
         files = []
         for p in search_paths:
             files.extend(self._get_all_files(p))
 
-        settings_files = self._get_settings_files(files, xroad_instance)
+        settings_files = self._get_settings_files(files, profile)
         return settings_files[0]
 
     def _get_all_files(self, path):
@@ -53,8 +53,8 @@ class OpmonSettingsManager:
         except FileNotFoundError:
             pass
 
-    def _get_settings_files(self, file_list, xroad_instance):
-        instance_suffix = '' if xroad_instance is None else f'_{xroad_instance}'
+    def _get_settings_files(self, file_list, profile):
+        instance_suffix = '' if profile is None else f'_{profile}'
         pattern = r'.+/settings' + instance_suffix + r'\.(yaml|yml)'
 
         settings_files = [f for f in file_list if re.match(pattern, f)]
