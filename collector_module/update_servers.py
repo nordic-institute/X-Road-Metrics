@@ -16,7 +16,7 @@ def _get_server_list(settings):
 
     central_server = settings['xroad']['central-server']
     return server_m.get_list_from_central_server(
-        central_server['url'],
+        central_server['host'],
         central_server['timeout']
     )
 
