@@ -22,21 +22,18 @@ class OpmonSettingsManager:
         filename = self._find_settings_file(profile)
         self.settings = self._parse_settings(filename)
 
-    def print_setting(self, keystring):
-        """Print settings specified by the keystring, like 'xroad.instance'"""
+    def get(self, keystring):
+        """Get settings specified by the keystring, like 'xroad.instance'"""
         keys = list(filter(None, re.split(r'\.|\[|\]', keystring)))
         value = deepcopy(self.settings)
         for k in keys:
             value = value[k if not k.isdigit() else int(k)]
 
-        print(value)
+        return value
 
     def _parse_settings(self, filename):
         with open(filename, 'r') as stream:
-            try:
-                return yaml.safe_load(stream)
-            except yaml.YAMLError as e:
-                print(e)
+            return yaml.safe_load(stream)
 
     def _find_settings_file(self, profile):
         search_paths = ['./', '/etc/opmon/collector_module/']

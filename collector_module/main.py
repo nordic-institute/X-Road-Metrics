@@ -66,7 +66,8 @@ def parse_setting_action_args(args):
 
 def settings_action_handler(settings_manager, args):
     settings_args = parse_setting_action_args(args)
-    settings_manager.print_setting(settings_args.setting)
+    setting = settings_manager.get(settings_args.setting)
+    print(setting)
 
 
 if __name__ == '__main__':
