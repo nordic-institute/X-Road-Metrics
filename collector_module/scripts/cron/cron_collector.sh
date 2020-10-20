@@ -21,8 +21,8 @@ if [[ $# -eq 0 ]] ; then
 fi
 
 XROAD_INSTANCE=${1}
-LOGGER_PATH=$(opmon-collector --xroad $XROAD_INSTANCE settings get logger.log-path)
-HEARTBEAT_PATH=$(opmon-collector --xroad $XROAD_INSTANCE settings get logger.heartbeat-path)
+LOGGER_PATH=$(/usr/local/bin/opmon-collector --xroad $XROAD_INSTANCE settings get logger.log-path)
+HEARTBEAT_PATH=$(/usr/local/bin/opmon-collector --xroad $XROAD_INSTANCE settings get logger.heartbeat-path)
 
 echo Logger path: $LOGGER_PATH
 
@@ -57,11 +57,11 @@ fi
 cd ${APPDIR}/${INSTANCE}
 
 if [[ $# -eq 2 ]] ; then
-    opmon-collector --xroad $XROAD_INSTANCE update 2>&1 | awk '{ print strftime("%Y-%m-%dT%H:%M:%S\t"), $0; fflush(); }' | tee -a ${LOG}
+    /usr/local/bin/opmon-collector --xroad $XROAD_INSTANCE update 2>&1 | awk '{ print strftime("%Y-%m-%dT%H:%M:%S\t"), $0; fflush(); }' | tee -a ${LOG}
 fi
 
 # Run collector
-opmon-collector --xroad $XROAD_INSTANCE collect 2>&1 | awk '{ print strftime("%Y-%m-%dT%H:%M:%S\t"), $0; fflush(); }' | tee -a ${LOG}
+/usr/local/bin/opmon-collector --xroad $XROAD_INSTANCE collect 2>&1 | awk '{ print strftime("%Y-%m-%dT%H:%M:%S\t"), $0; fflush(); }' | tee -a ${LOG}
 
 # Remove ${LOCK}
 /bin/rm ${LOCK} 2>&1 | awk '{ print strftime("%Y-%m-%dT%H:%M:%S\t"), $0; fflush(); }' | tee -a ${LOG}
