@@ -2,11 +2,12 @@ from os import listdir
 from os.path import isfile, join
 from types import SimpleNamespace
 import re
+from copy import deepcopy
 
 import yaml
 
 
-class OpmonSettings:
+class OpmonSettingsManager:
     """
     Class to hold OpMon user settings.
 
@@ -20,6 +21,15 @@ class OpmonSettings:
     def __init__(self, xroad_instance=None):
         filename = self._find_settings_file(xroad_instance)
         self.settings = self._parse_settings(filename)
+
+    def print_setting(self, keystring):
+        """Print settings specified by the keystring, like 'xroad.instance'"""
+        keys = list(filter(None, re.split(r'\.|\[|\]', keystring)))
+        value = deepcopy(self.settings)
+        for k in keys:
+            value = value[k if not k.isdigit() else int(k)]
+
+        print(value)
 
     def _parse_settings(self, filename):
         with open(filename, 'r') as stream:

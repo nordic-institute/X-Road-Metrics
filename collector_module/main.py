@@ -5,20 +5,22 @@ import collector_worker
 import os
 import importlib.util
 import re
+import sys
 
-from settings import OpmonSettings
+from settings import OpmonSettingsManager
 import update_servers
 
 
 def main():
     args = parse_args()
-    settings = OpmonSettings(args.xroad).settings
+    settings_manager = OpmonSettingsManager(args.xroad)
+    settings = settings_manager.settings
 
     actions = {
         'collect': (collector_worker.main, [settings]),
         'update': (update_servers.update_database_server_list, [settings]),
         'list': (update_servers.print_server_list, [settings]),
-        'settings': (settings_action_handler, [settings, args])
+        'settings': (settings_action_handler, [settings_manager, args])
     }
 
     action = actions[args.action]
@@ -54,21 +56,15 @@ def parse_args():
 
 
 def parse_setting_action_args(args):
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(prog=f'{sys.argv[0]} settings')
     parser.add_argument("action", metavar="ACTION", choices=['get'], help="Settings action to execute. Currently only option is 'get'.")
     parser.add_argument("setting", metavar="SETTING", help="Name of the setting, e.g. 'mongodb.user'")
     return parser.parse_args(args.extra)
 
 
-def settings_action_handler(settings, args):
+def settings_action_handler(settings_manager, args):
     settings_args = parse_setting_action_args(args)
-
-    keys = list(filter(None, re.split(r'\.|\[|\]', settings_args.setting)))
-    value = settings
-    for k in keys:
-        value = value[k if not k.isdigit() else int(k)]
-
-    print(value)
+    settings_manager.print_setting(settings_args.setting)
 
 
 if __name__ == '__main__':
