@@ -7,21 +7,22 @@ import importlib.util
 import re
 
 from settings import OpmonSettings
-# import update_servers
+import update_servers
 # import list_servers
 
 
 def main():
     args = parse_args()
-    commands = {
+        
+    actions = {
         'collect': collector_worker.main,
-        # 'update': update_servers.main,
+        'update': update_servers.main,
         # 'list': list_servers.main,
         'settings': settings_action_handler
     }
 
     settings = OpmonSettings(args.xroad).settings
-    commands[args.action](settings, args)
+    actions[args.action](settings, args)
 
 
 def parse_args():
