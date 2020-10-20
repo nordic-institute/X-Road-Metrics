@@ -173,7 +173,7 @@ def collector_main(logger_m, settings):
         total_done, total_error, total_time), "SUCCEEDED")
 
 
-def main(settings, args=None):
+def main(settings):
 
     logger_m = LoggerManager(settings['logger'], settings['xroad']['instance'])
 

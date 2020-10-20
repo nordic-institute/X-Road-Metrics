@@ -8,33 +8,46 @@ import re
 
 from settings import OpmonSettings
 import update_servers
-# import list_servers
 
 
 def main():
     args = parse_args()
-        
+    settings = OpmonSettings(args.xroad).settings
+
     actions = {
-        'collect': collector_worker.main,
-        'update': update_servers.main,
-        # 'list': list_servers.main,
-        'settings': settings_action_handler
+        'collect': (collector_worker.main, [settings]),
+        'update': (update_servers.update_database_server_list, [settings]),
+        'list': (update_servers.print_server_list, [settings]),
+        'settings': (settings_action_handler, [settings, args])
     }
 
-    settings = OpmonSettings(args.xroad).settings
-    actions[args.action](settings, args)
+    action = actions[args.action]
+    action[0](*action[1])
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("action", metavar="ACTION", choices=['collect', 'list', 'update', 'settings'], help="OpMon collector action to execute.")
-    parser.add_argument('extra', metavar="ARGS", nargs=argparse.REMAINDER, default='', help='Arguments for action.')
-    parser.add_argument("--xroad", metavar="X-ROAD-INSTANCE", default=None, help="""
-            Optional X-Road instance name.
-            If set to VALUE, X-Road settings from settings_VALUE.py will be used.
-            If not set, default settings file will be used.
-        """.strip()
-    )
+
+    parser.add_argument("action",
+                        metavar="ACTION",
+                        choices=['collect', 'update', 'list', 'settings'],
+                        help="OpMon collector action to execute.")
+
+    parser.add_argument('extra',
+                        metavar="ARGS",
+                        nargs=argparse.REMAINDER,
+                        default='',
+                        help='Arguments for action.')
+
+    parser.add_argument("--xroad",
+                        metavar="X-ROAD-INSTANCE",
+                        default=None,
+                        help="""
+                            Optional X-Road instance name.
+                            If set to VALUE, X-Road settings from settings_VALUE.py will be used.
+                            If not set, default settings file will be used.
+                        """.strip()
+                        )
     args = parser.parse_args()
 
     return args
