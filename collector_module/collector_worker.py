@@ -175,7 +175,7 @@ def collector_main(logger_m, settings):
 
 def main(settings, args=None):
 
-    logger_m = LoggerManager(settings)
+    logger_m = LoggerManager(settings['logger'], settings['xroad']['instance'])
 
     try:
         collector_main(logger_m, settings)

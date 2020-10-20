@@ -19,17 +19,16 @@ def get_local_timestamp():
 class LoggerManager:
     __version__ = 'v1.6'
 
-    def __init__(self, settings):
-        self.xroad_instance = settings['xroad']['instance']
-        self.name = settings['logger']['name']
-        self.module = settings['logger']['module']
-        self.level = settings['logger']['level']
+    def __init__(self, logger_settings, xroad_instance):
+        self.name = logger_settings['name']
+        self.module = logger_settings['module']
+        self.level = logger_settings['level']
 
-        self.log_path = settings['logger']['log-path']
-        self.log_filename = f'log_{self.name}_{self.xroad_instance}.json'
+        self.log_path = logger_settings['log-path']
+        self.log_filename = f'log_{self.name}_{xroad_instance}.json'
         
-        self.heartbeat_path = settings['logger']['heartbeat-path']
-        self.heartbeat_filename = f'heartbeat_{self.name}_{self.xroad_instance}.json'
+        self.heartbeat_path = logger_settings['heartbeat-path']
+        self.heartbeat_filename = f'heartbeat_{self.name}_{xroad_instance}.json'
 
         self._setup_logger()
 
