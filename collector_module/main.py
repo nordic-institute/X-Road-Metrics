@@ -30,10 +30,11 @@ def main():
 def parse_args():
     parser = argparse.ArgumentParser()
 
+    actions = ['collect', 'update', 'list', 'settings']
     parser.add_argument("action",
                         metavar="ACTION",
-                        choices=['collect', 'update', 'list', 'settings'],
-                        help="OpMon collector action to execute.")
+                        choices=actions,
+                        help=f"OpMon collector action to execute. Supported actions are {actions}")
 
     parser.add_argument('extra',
                         metavar="ARGS",
