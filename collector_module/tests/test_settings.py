@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-Unit tests for collector main.py
+Unit tests for collector settings.py
 """
 import os
 import pathlib

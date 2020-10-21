@@ -60,13 +60,13 @@ def parse_args():
 def parse_setting_action_args(args):
     parser = argparse.ArgumentParser(prog=f'{sys.argv[0]} settings')
     parser.add_argument("action", metavar="ACTION", choices=['get'], help="Settings action to execute. Currently only option is 'get'.")
-    parser.add_argument("setting", metavar="SETTING", help="Name of the setting, e.g. 'mongodb.user'")
+    parser.add_argument("keystring", metavar="SETTING", help="Name of the setting, e.g. 'mongodb.user'")
     return parser.parse_args(args.extra)
 
 
 def settings_action_handler(settings_manager, args):
     settings_args = parse_setting_action_args(args)
-    setting = settings_manager.get(settings_args.setting)
+    setting = settings_manager.get(settings_args.keystring)
     print(setting)
 
 

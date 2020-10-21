@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-Unit tests for create_users.py
+Unit tests for database_manager.py
 """
 import pytest
 from pytest_mock import mocker
