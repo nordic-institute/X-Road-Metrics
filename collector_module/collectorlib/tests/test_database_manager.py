@@ -12,6 +12,23 @@ import xml.etree.ElementTree as ET
 from collectorlib.database_manager import DatabaseManager
 
 
+def test_DatabaseManager_init():
+    mongo_settings = {
+        'host': 'unittesthost',
+        'user': 'unittestuser',
+        'password': 'unittestpwd'
+    }
+    
+    d = DatabaseManager(mongo_settings, 'TESTINSTANCE', 'testlogmanager')
+    assert d.mdb_server == mongo_settings['host']
+    assert d.mdb_user == mongo_settings['user']
+    assert d.mdb_pwd == mongo_settings['password']
+    assert d.db_name == 'query_db_TESTINSTANCE'
+    assert d.db_collector_state == 'collector_state_TESTINSTANCE'
+    assert d.collector_id == 'collector_TESTINSTANCE'
+    assert d.logger_m == 'testlogmanager'
+
+
 def test_get_soap_body():
     xroad_settings = {
         'instance': 'DEV',
