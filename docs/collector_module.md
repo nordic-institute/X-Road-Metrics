@@ -18,6 +18,7 @@ Overall system is also designed in a way, that allows to monitor data from diffe
 
 Overall system is also designed in a way, that can be used by X-Road Centre for all X-Road members as well as for Member own monitoring (includes possibilities to monitor also members data exchange partners).
 
+## Source Code Acquisition
 The module source code can be found at:
 
 ```
@@ -42,7 +43,7 @@ fi
 
 ## Installation
 
-This sections describes the necessary steps to install the **collector module** in a Linux Ubuntu 16.04. To a complete overview of different modules and machines, please refer to the ==> [System Architecture](system_architecture.md) <== documentation.
+This sections describes the necessary steps to install the **collector module** in a Linux Ubuntu 18.04. To a complete overview of different modules and machines, please refer to the ==> [System Architecture](system_architecture.md) <== documentation.
 
 ## Networking
 
@@ -63,95 +64,154 @@ To install the necessary packages, execute the following commands:
 ```bash
 sudo apt-get update
 sudo apt-get install python3-pip
-sudo pip3 install pymongo==3.4
-sudo pip3 install requests==2.13
-sudo pip3 install numpy==1.11
-sudo pip3 install tqdm==4.14
+sudo pip3 install -r $SOURCE/collector_module/requirements.txt
 ```
 
 ## Install collector module
+In the follwoing instructions it is assumed that OpMon source code is cloned into path **${SOURCE}** as instructed in [Source Code Acquisition](#Source-Code-Acquisition)
 
+### Create users and groups
 The collector module uses the system user **collector** and group **opmon**. To create them, execute:
 
 ```bash
-sudo useradd --base-dir /opt --create-home --system --shell /bin/bash --gid collector collector
-sudo groupadd --force opmon
-sudo usermod --append --groups opmon collector
+  sudo groupadd --force opmon
+  sudo groupadd --force collector
+  sudo useradd --base-dir /opt --create-home --system --shell /bin/bash --gid collector collector
+  sudo usermod --append --groups opmon collector
 ```
 
-The module files should be installed in the APPDIR directory, within a sub-folder named after the desired X-Road instance. 
-In this manual, `/srv/app` is used as APPDIR and the `sample` is used as INSTANCE (please change `sample` to map your desired instance).
+### Create log and heartbeat folders
+Default log file path is _/var/log/opmon/collector_module_
 
 ```bash
-export APPDIR="/srv/app"
-export INSTANCE="sample"
-# Create log and heartbeat directories with group 'opmon' write permission
-sudo mkdir --parents ${APPDIR}/${INSTANCE}
-sudo mkdir --parents ${APPDIR}/${INSTANCE}/logs
-sudo mkdir --parents ${APPDIR}/${INSTANCE}/heartbeat
-sudo chown root:opmon ${APPDIR}/${INSTANCE} ${APPDIR}/${INSTANCE}/logs ${APPDIR}/${INSTANCE}/heartbeat
-sudo chmod g+w ${APPDIR}/${INSTANCE} ${APPDIR}/${INSTANCE}/logs ${APPDIR}/${INSTANCE}/heartbeat
+export COLLECTOR_LOGS=/var/log/opmon/collector_module
+sudo mkdir --parent $COLLECTOR_LOGS
+cd $COLLECTOR_LOGS
+sudo mkdir logs
+sudo mkdir heartbeat
+sudo chown --recursive root:opmon ./ ./logs ./heartbeat
+sudo chmod --recursive g+w  ./ ./logs ./heartbeat
 ```
 
-Copy the **collector** code to the install folder and fix the file permissions:
-
+### Create settings folder
+Default settings file path is _/etc/opmon/collector_module_
 ```bash
-# export APPDIR="/srv/app"; export INSTANCE="sample"
-sudo cp --recursive --preserve ${SOURCE}/collector_module ${APPDIR}/${INSTANCE}
+export COLLECTOR_SETTINGS=/etc/opmon/collector_module
+sudo mkdir --parent $COLLECTOR_SETTINGS
+cd $COLLECTOR_SETTINGS
+
+sudo cp $SOURCE/collector_module/settings/ ./
+sudo chown --recursive root:opmon ./
+sudo chmod --recursive g+w  ./
 ```
 
-Settings for different X-Road instances have been prepared and can be used:
+To use collector you need to fill in your X-Road and MongoDB configuration into the settings file.
+Refer to section [Collector Configuration](#collector-configuration)
+
+### Install the Python package
+Default Python package installation location is _/usr/local/lib/python3/site-packages/opmon/collector_module_
 
 ```bash
-# export APPDIR="/srv/app"; export INSTANCE="sample"
-sudo rm ${APPDIR}/${INSTANCE}/collector_module/settings.py
-sudo ln --symbolic \
-    ${APPDIR}/${INSTANCE}/collector_module/settings_${INSTANCE}.py \
-	${APPDIR}/${INSTANCE}/collector_module/settings.py
+export COLLECTOR_PYPKG=/usr/local/lib/python3/site-packages/opmon/collector_module
+sudo mkdir --parent $COLLECTOR_PYPKG
+cd COLLECTOR_PYPKG
+sudo cp $SOURCE/collector_module/*.py ./
+sudo cp -r $SOURCE/collector_module/collectorlib ./collectorlib
+sudo chown --recursive root:opmon ./
+sudo chmod --recursive -x+X ./main.py
+sudo chmod g+x ./main.py
+sudo ln -s $(pwd)/main.py /usr/local/bin/opmon-collector
 ```
 
-If needed, edit necessary modifications to the settings file using your favorite text editor (here, **vi** is used):
-
+### Install utility scripts
+Default utility script installation location is _/usr/local/opmon/collector_module/scripts_
 ```bash
-# export APPDIR="/srv/app"; export INSTANCE="sample"
-sudo vi ${APPDIR}/${INSTANCE}/collector_module/settings.py
+EXPORT COLLECTOR_UTILITY=/usr/local/opmon/collector_module/scripts
+sudo mkdir --parent $COLLECTOR_UTILITY
+cd $COLLECTOR_UTILITY
+sudo cp -r $SOURCE/collector_module/scripts ./
+sudo chown --recursive collector:collector ./
+sudo chmod --recursive -x+X ./
+sudo find  ./ -name '*.sh' -type f | xargs chmod u+x
 ```
 
-Correct necessary permissions
-
+### Cleanup
+Now all collector files are installed to correct paths.
+The temporary source code download folder can be deleted:
 ```bash
-# export APPDIR="/srv/app"; export INSTANCE="sample"
-sudo chown --recursive collector:collector ${APPDIR}/${INSTANCE}/collector_module
-sudo chmod --recursive -x+X ${APPDIR}/${INSTANCE}/collector_module
-find  ${APPDIR}/${INSTANCE}/collector_module/ -name '*.sh' -type f | sudo xargs chmod u+x
+rm -rf $SOURCE
 ```
 
 ## Usage
-### Manual usage
 
-To check collector manually as collector user, execute:
+### Collector Configuration
+
+To use collector you need to fill in your X-Road and MongoDB configuration into the settings file.
+(here, **vi** is used):
 
 ```bash
-# export APPDIR="/srv/app"; export INSTANCE="sample"
-cd ${APPDIR}/${INSTANCE}
-sudo --user collector ./collector_module/cron_collector.sh update
+sudo vi /etc/opmon/collector_module/settings.yaml
+```
+
+Settings that the user must fill in:
+* X-Road instance name
+* central- and security server hosts
+* X-Road client used to collect the monitoring data
+* username and password for the collector module MongoDB user
+
+To run collector for multiple X-Road instances, a settings profile for each instance can be created. For example to have profiles DEV, TEST and PROD create three copies of `setting.yaml` 
+file named `settings_DEV.yaml`, `settings_TEST.yaml` and `settings_PROD.yaml`.
+Then fill the profile specific settings to each file and use the --profile
+flag when running opmon-collector. For example to run using the TEST profile:
+```
+opmon-collector --profile TEST collect
+```
+
+`opmon-collector` command searches the settings file first in current working direcrtory, then in
+_/etc/opmon/collector_module/_
+
+### Manual usage
+
+All collector module actions can be executed by calling the `opmon-collector` command.
+Command should be executed as user `collector` so change to that user:
+```bash
+sudo su collector
+```
+
+Some example commands:
+```bash
+opmon-collector list                       # Print available security servers to stdout.
+opmon-collector update                     # Update security server list to MongoDB.
+opmon-collector collect                    # Collect monitoring data from security server.
+opmon-collector settings get mongodb.host  # Read a value from settings file and print to stdout
+```
+
+Above examples use the default settings file. To use another settings profile, you can use --profile flag:
+```bash
+opmon-collector --profile TEST update
+opmon-collector --profile TEST collect
 ```
 
 ### CRON usage
+A cronjob can be set up to run collector periodically.
+This chapter has short instructions for setting up cronjob for a single X-Road instance.
+File /usr/local/opmon/collector_module/scripts/cron/crontab contains a more complex example of cronjobs for multiple X-Road instances.
 
-Add **collector module** as a **cron job** to the **collector** user.
+
+Start editing crontab for user collector:
 
 ```bash
 sudo crontab -e -u collector
 ```
 
-The **cron job** entry (execute every 3 hours, note that a different value might be needed in production)
+Add a  **cron job** entry that executes every 3 hours. 
+Note that a different value might be needed in production.
 
 ```
-0 */3 * * * export APPDIR="/srv/app"; export INSTANCE="sample"; cd ${APPDIR}/${INSTANCE}; ./collector_module/cron_collector.sh update >> logs/cron_collector.log
+0 */3 * * * /usr/local/opmon/collector_module/scripts/cron/cron_collector.sh DEV update >> /var/log/opmon/collector_module/cron_collector.log
 ```
 
-To check if the collector module is properly installed in the collector user, execute:
+To check if the collector module is properly installed for the collector user, execute:
 
 ```bash
 sudo crontab -l -u collector
@@ -168,24 +228,28 @@ Please review the need of active Collector module while running long-running que
 
 The settings for the log file in the settings file are the following:
 
-```python
-# --------------------------------------------------------
-# General settings
-# --------------------------------------------------------
-MODULE = "collector"
-APPDIR = "/srv/app"
-INSTANCE = "sample"
-# ...
-# --------------------------------------------------------
-# Configure logger
-# --------------------------------------------------------
-# Ensure match with external logrotate settings
-LOGGER_NAME = '{0}'.format(MODULE)
-LOGGER_PATH = '{0}/{1}/logs/'.format(APPDIR, INSTANCE)
-LOGGER_FILE = 'log_{0}_{1}.json'.format(MODULE, INSTANCE)
+```yaml
+xroad:
+  instance: EXAMPLE
+
+#  ...
+
+logger:
+  name: collector
+  module: collector
+  
+  # Possible logging levels from least to most verbose are:
+  # CRITICAL, FATAL, ERROR, WARNING, INFO, DEBUG
+  level: INFO
+
+  # Logs and heartbeat files are stored under these paths.
+  # Also configure external log rotation and app monitoring accordingly.
+  log-path: /var/log/opmon/collector_module/logs
+
 ```
 
-The log file is written to `LOGGER_PATH/LOGGER_FILE`, id est to `${APPDIR}/${INSTANCE}/logs/log_collector_${INSTANCE}.json`.
+The log file is written to `log-path` and log file name contains the X-Road instance name. 
+The above example configuration would write logs to `/var/log/opmon/collector_module/logs/log_collector_EXAMPLE.json`.
 
 Every log line includes:
 
@@ -203,18 +267,15 @@ In case of "activity": "collector_end", the "msg" includes values separated by c
 - Total error: number of Member's Security server from where the logs were not collected due to error
 - Total time: durations in the collection process in time format HH:MM:SS
 
-The **collector module** log handler is compatible with the logrotate utility. To configure log rotation, create the file:
+The **collector module** log handler is compatible with the logrotate utility. To configure log rotation for the example setup above, create the file:
 
 ```
 sudo vi /etc/logrotate.d/collector_module
 ```
 
-and add the following content (replace ${APPDIR} `/srv/app` to map your desired application directory and ${INSTANCE} `sample` to map your desired instance; 
-check that ${APPDIR}/${INSTANCE}/logs/ matches to `LOGGER_PATH` and 
-that ${log_file_name} matches to the name and format of `log_file_name = 'log_{0}_{1}.json'.format(MODULE, INSTANCE)` in `settings.py`):
-
+and add the following content :
 ```
-${APPDIR}/${INSTANCE}/logs/${log_file_name} {
+/var/log/opmon/collector_module/logs/log_collector_EXAMPLE.json {
     rotate 10
     size 2M
 }
@@ -230,22 +291,20 @@ man logrotate
 
 The settings for the heartbeat file in the settings file are the following:
 
-```python
-# --------------------------------------------------------
-# General settings
-# --------------------------------------------------------
-MODULE = "collector"
-APPDIR = "/srv/app"
-INSTANCE = "sample"
-# ...
-# --------------------------------------------------------
-# Heartbeat settings
-# --------------------------------------------------------
-HEARTBEAT_LOGGER_PATH = '{0}/{1}/heartbeat/'.format(APPDIR, INSTANCE)
-HEARTBEAT_FILE = 'heartbeat_{0}_{1}.json'.format(MODULE, INSTANCE)
+```yaml
+xroad:
+  instance: EXAMPLE
+
+#  ...
+
+logger:
+  #  ...
+  heartbeat-path: /var/log/opmon/collector_module/heartbeat
+
 ```
 
-The heartbeat file is written to `HEARTBEAT_LOGGER_PATH/HEARTBEAT_NAME`, id est to `${APPDIR}/${INSTANCE}/heartbeat/heartbeat_collector_${INSTANCE}.json`.
+The heartbeat file is written to `heartbeat-path` and hearbeat file name contains the X-Road instance name. 
+The above example configuration would write logs to `/var/log/opmon/collector_module/heartbeat/heartbeat_collector_EXAMPLE.json`.
 
 The heartbeat file consists last message of log file and status
 
@@ -253,7 +312,7 @@ The heartbeat file consists last message of log file and status
 
 ## The external files and additional scripts required for reports and networking modules
 
-External file in subdirectory `${APPDIR}/${INSTANCE}/collector_module/external_files/riha.json` is required for reports generation in [Reports module](reports_module.md) and networking generation on [Networking module](networking_module.md).
+External file in subdirectory `/usr/local/opmon/collector_module/scripts/external_files/riha.json` is required for reports generation in [Reports module](reports_module.md) and networking generation on [Networking module](networking_module.md).
 
 Generation of `riha.json` and its availability for other modules is Estonia / RIA / RIHA -specific and is not available in public.
 
@@ -287,7 +346,7 @@ NB! Mentioned appendixes below are separate products and do not log their work a
 
 ### Collecting JSON queries and store into HDD
 
-Collecting JSON queries and store into HDD was not part of the project scope. Nevertheless, sample scripts can be found from directory `${APPDIR}/${INSTANCE}/collector_module/external_files`, files `collector_into_file_cron.sh`, `collector_into_file_list_servers.py` and `collector_into_file_get_opmon.py`. 
+Collecting JSON queries and store into HDD was not part of the project scope. Nevertheless, sample scripts can be found from directory `/usr/local/opmon/collector_module/scripts/external_files`, files `collector_into_file_cron.sh`, `collector_into_file_list_servers.py` and `collector_into_file_get_opmon.py`. 
 
 Important configuration to set up before usage:
 

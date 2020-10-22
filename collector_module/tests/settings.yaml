@@ -1,3 +1,5 @@
+# NOTE! THIS SETTINGS FILE IS FOR UNIT-TEST PURPOSES!
+
 collector:
   thread-count: 2
   records-from-offset: 3600
