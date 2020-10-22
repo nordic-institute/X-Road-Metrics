@@ -41,8 +41,9 @@ def collector_worker(data):
                                   serverCode, req_id, records_from, records_to)
 
     try:
-        url = settings['xroad']['security-server']['url']
-        timeout = settings['xroad']['security-server']['timeout']
+        sec_server_settings = settings['xroad']['security-server']
+        url = sec_server_settings['protocol'] + sec_server_settings['host']
+        timeout = sec_server_settings['timeout']
         response = requests.post(url, data=body, headers=headers, timeout=timeout)
         response.raise_for_status()
     except Exception as e:
