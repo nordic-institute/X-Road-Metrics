@@ -1,0 +1,42 @@
+# Example crontab for OpMon collector module
+# 
+# Examples below show how to periodically run collector into file and MongoDB for three X-Road instances.
+# Here the Estonian X-Road instances ee-dev, ee-test and EE are used as an example.
+#
+# For more information about cron see the manual pages of crontab(5) and cron(8)
+
+
+#
+# Collect into file
+#
+# m   h  dom mon dow command
+  5  */6 *    *   *  /usr/share/opmon/collector_module/scripts/external_files/collector_into_file_cron.sh ee-dev
+  25 */6 *    *   *  /usr/share/opmon/scripts/collector_module/external_files/collector_into_file_cron.sh ee-test
+  35 */6 *    *   *  /usr/share/opmon/scripts/collector_module/external_files/collector_into_file_cron.sh EE
+
+
+#
+# Collect directly into MongoDB
+#
+# m   h  dom mon dow command
+  20 */2  *   *   *  /usr/share/opmon/collector_module/scripts/cron/cron_collector.sh ee-dev update
+  30 */2  *   *   *  /usr/share/opmon/collector_module/scripts/cron/cron_collector.sh ee-test update
+  10 */2  *   *   *  /usr/share/opmon/collector_module/scripts/cron/cron_collector.sh EE update
+
+
+# Make archive of X-Road logs from yesterday to keep usage of HDD space under control
+# NB! Must match with the overall logic of keeping opmon-collector files
+30 0 * * * /data/backup/tgz.sh >> /data/backup/tgz.log
+
+
+#
+# Generation of riha.json files and copied into the reports and networking modules
+# NB! Requires manual authentication with ID card, download of https://www.riha.ee/api/v1/systems?filter=topics,jilike,%25X-tee%20alams%C3%BCsteem%25&fields=owner,short_name,name,contacts,topics&size=1700 and upload of it into Reports and Networking modules beforehand!
+# Therefor commented out at the moment, scripts can executed manually
+#
+# 11 18 4 * * /usr/share/opmon/collector_module/scripts/external_files/make_riha.sh ee-dev
+# 12 18 4 * * /usr/share/opmon/collector_module/scripts/external_files/make_riha.sh ee-test
+# 13 18 4 * * /usr/share/opmon/collector_module/scripts/external_files/make_riha.sh EE
+#
+# Prepare copy of active crontab for views of product manager
+0 8 * * * crontab -l | egrep -v "^#" | egrep "collector" | egrep -v "/tmp" > /tmp/cron_collector.txt

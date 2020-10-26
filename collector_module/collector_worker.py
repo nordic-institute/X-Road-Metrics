@@ -6,17 +6,16 @@ import re
 import time
 import uuid
 import zlib
-from logging.handlers import WatchedFileHandler
 from multiprocessing import Pool
 
 import requests
 
-from . import settings
-from .collectorlib.database_manager import DatabaseManager
-from .collectorlib.logger_manager import LoggerManager
+from collectorlib.database_manager import DatabaseManager
+from collectorlib.logger_manager import LoggerManager
 
 
 def collector_worker(data):
+    settings = data['settings']
     logger_m = data['logger_manager']
     server_m = data['server_manager']
     server_data = data['server_data']
@@ -37,12 +36,15 @@ def collector_worker(data):
     logger_m.log_info('collector_worker', msg)
 
     headers = {"Content-type": "text/xml;charset=UTF-8"}
-    monitoring_client = settings.MONITORING_CLIENT
+    monitoring_client = server_m.get_soap_monitoring_client(settings['xroad'])
     body = server_m.get_soap_body(monitoring_client, xRoadInstance, memberClass, memberCode,
                                   serverCode, req_id, records_from, records_to)
 
     try:
-        response = requests.post(settings.SECURITY_SERVER_URL, data=body, headers=headers, timeout=settings.SECURITY_SERVER_TIMEOUT)
+        sec_server_settings = settings['xroad']['security-server']
+        url = sec_server_settings['protocol'] + sec_server_settings['host']
+        timeout = sec_server_settings['timeout']
+        response = requests.post(url, data=body, headers=headers, timeout=timeout)
         response.raise_for_status()
     except Exception as e:
         msg = "[{0}] Cannot get response for: {1} Cause: {2} \n".format(worker_name, server, repr(e))
@@ -83,7 +85,7 @@ def collector_worker(data):
     if resp_search:
         next_records_from = int(resp_search.group(1))
         # Deciding if we should repeat query and fetch additional data
-        if len(records) < settings.REPEAT_MIN_RECORDS:
+        if len(records) < settings['collector']['repeat-min-records']:
             msg = "[{0}] Not enough data received ({1}) to repeat query to server {2}".format(worker_name, len(records),
                                                                                               server)
             logger_m.log_info('collector_worker', msg)
@@ -101,37 +103,41 @@ def collector_worker(data):
     return return_value
 
 
-def collector_main(logger_m):
+def collector_main(logger_m, settings):
     """
     :param logger_m:
     :return:
     """
-    server_m = DatabaseManager(settings.MONGODB_SUFFIX,
-                               settings.MONGODB_SERVER,
-                               settings.MONGODB_USER,
-                               settings.MONGODB_PWD,
-                               logger_m)
+    server_m = DatabaseManager(
+        settings['mongodb'],
+        settings['xroad']['instance'],
+        logger_m
+    )
+
+    records_from_offset = settings['collector']['records-from-offset']
+    records_to_offset = settings['collector']['records-to-offset']
+    repeat_limit = settings['collector']['repeat-limit']
 
     logger_m.log_info('collector_start', 'Starting collector - Version {0}'.format(LoggerManager.__version__))
 
     start_processing_time = time.time()
-    pool = Pool(processes=settings.THREAD_COUNT)
+    pool = Pool(processes=settings['collector']['thread-count'])
     data = server_m.get_server_list_database()[0]
     server_list = data['server_list']
     print('- Using server list updated at: {0}'.format(data['timestamp']))
 
     list_to_process = []
-    records_from_offset = settings.RECORDS_FROM_OFFSET
 
     for server in server_list:
         server_key = server['server']
         records_from = server_m.get_next_records_timestamp(server_key, records_from_offset)
-        records_to = server_m.get_timestamp() - settings.RECORDS_TO_OFFSET
+        records_to = server_m.get_timestamp() - records_to_offset
         data = dict()
+        data['settings'] = settings
         data['logger_manager'] = logger_m
         data['server_manager'] = server_m
         data['server_data'] = server
-        data['repeat'] = settings.REPEAT_LIMIT
+        data['repeat'] = repeat_limit
         data['next_records_from'] = records_from
         data['next_records_to'] = records_to
         list_to_process.append(data)
@@ -152,7 +158,7 @@ def collector_main(logger_m):
                 data = list_to_process[i]
                 server_key = data['server_data']['server']
                 records_from = server_m.get_next_records_timestamp(server_key, records_from_offset)
-                records_to = server_m.get_timestamp() - settings.RECORDS_TO_OFFSET
+                records_to = server_m.get_timestamp() - records_to_offset
                 data['repeat'] = p
                 data['next_records_from'] = records_from
                 data['next_records_to'] = records_to
@@ -165,24 +171,16 @@ def collector_main(logger_m):
         'collector_end', 'Total collected: {0}, Total error: {1}, Total time: {2}'.format(
             total_done, total_error, total_time))
     logger_m.log_heartbeat('Total collected: {0}, Total error: {1}, Total time: {2}'.format(
-        total_done, total_error, total_time), settings.HEARTBEAT_PATH, settings.HEARTBEAT_FILE, "SUCCEEDED")
+        total_done, total_error, total_time), "SUCCEEDED")
 
 
-if __name__ == '__main__':
-    logger = logging.getLogger(settings.LOGGER_NAME)
-    logger.setLevel(settings.LOGGER_LEVEL)
-    log_file_name = settings.LOGGER_FILE
+def main(settings):
 
-    formatter = logging.Formatter("%(message)s")
-    log_file = os.path.join(settings.LOGGER_PATH, log_file_name)
-    file_handler = WatchedFileHandler(log_file)
-    file_handler.setFormatter(formatter)
-    logger.addHandler(file_handler)
+    logger_m = LoggerManager(settings['logger'], settings['xroad']['instance'])
 
-    logger_m = LoggerManager(settings.LOGGER_NAME, settings.MODULE)
     try:
-        collector_main(logger_m)
+        collector_main(logger_m, settings)
     except Exception as e:
         logger_m.log_error('collector', '{0}'.format(repr(e)))
-        logger_m.log_heartbeat("error", settings.HEARTBEAT_PATH, settings.HEARTBEAT_FILE, "FAILED")
+        logger_m.log_heartbeat("error", "FAILED")
         raise e

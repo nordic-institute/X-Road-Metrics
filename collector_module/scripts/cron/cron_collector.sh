@@ -15,10 +15,16 @@ CWD=$(pwd)
 dirname=$(dirname ${0})
 cd ${dirname}
 
-# APPDIR="/srv/app"
-APPDIR=$(python3 get_settings.py APPDIR)
-# Change INSTANCE if needed!
-INSTANCE=$(python3 get_settings.py INSTANCE)
+if [[ $# -eq 0 ]] ; then
+    echo 'Usage: cron_collector.sh XROAD_INSTANCE [update]'
+    exit 0
+fi
+
+XROAD_INSTANCE=${1}
+LOGGER_PATH=$(/usr/local/bin/opmon-collector --profile $XROAD_INSTANCE settings get logger.log-path)
+HEARTBEAT_PATH=$(/usr/local/bin/opmon-collector --profile $XROAD_INSTANCE settings get logger.heartbeat-path)
+
+echo Logger path: $LOGGER_PATH
 
 # Prepare ${LOG} and ${LOCK}
 # Please note, that they depend of command ${0}
@@ -26,8 +32,11 @@ PID=$$
 filename=$(basename -- "${0}")
 extension="${filename##*.}"
 filename="${filename%.*}"
-LOG=${APPDIR}/${INSTANCE}/logs/${filename}.log
-LOCK=${APPDIR}/${INSTANCE}/heartbeat/${filename}.lock
+LOG=${LOGGER_PATH}/${filename}.log
+LOCK=${HEARTBEAT_PATH}/${filename}.lock
+
+echo Logging to $LOG
+echo Lockfile at $LOCK
 
 # Begin
 echo "${PID}: Start of ${0}"  2>&1 | awk '{ print strftime("%Y-%m-%dT%H:%M:%S\t"), $0; fflush(); }' | tee -a ${LOG}
@@ -47,12 +56,12 @@ fi
 # Check if server list update is necessary
 cd ${APPDIR}/${INSTANCE}
 
-if [[ $# -eq 1 ]] ; then
-    python3 -m collector_module.update_servers 2>&1 | awk '{ print strftime("%Y-%m-%dT%H:%M:%S\t"), $0; fflush(); }' | tee -a ${LOG}
+if [[ $# -eq 2 ]] ; then
+    /usr/local/bin/opmon-collector --profile $XROAD_INSTANCE update 2>&1 | awk '{ print strftime("%Y-%m-%dT%H:%M:%S\t"), $0; fflush(); }' | tee -a ${LOG}
 fi
 
 # Run collector
-python3 -m collector_module.collector 2>&1 | awk '{ print strftime("%Y-%m-%dT%H:%M:%S\t"), $0; fflush(); }' | tee -a ${LOG}
+/usr/local/bin/opmon-collector --profile $XROAD_INSTANCE collect 2>&1 | awk '{ print strftime("%Y-%m-%dT%H:%M:%S\t"), $0; fflush(); }' | tee -a ${LOG}
 
 # Remove ${LOCK}
 /bin/rm ${LOCK} 2>&1 | awk '{ print strftime("%Y-%m-%dT%H:%M:%S\t"), $0; fflush(); }' | tee -a ${LOG}

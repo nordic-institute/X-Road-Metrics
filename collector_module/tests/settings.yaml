@@ -1,0 +1,35 @@
+# NOTE! THIS SETTINGS FILE IS FOR UNIT-TEST PURPOSES!
+
+collector:
+  thread-count: 2
+  records-from-offset: 3600
+  records-to-offset: 100
+  repeat-min-records: 50
+  repeat-limit: 500
+
+xroad:
+  instance: DEFAULT
+  central-server:
+    protocol: http://
+    host: x-road-cs
+    timeout: 1
+  security-server:
+    url: http://x-road-ss
+    timeout: 1.0
+  monitoring-client:
+    memberclass: AA
+    membercode: BB
+    subsystemcode: CC
+
+mongodb:
+  host: defaultmongodb
+  user: defaultuser
+  password: defaultpass
+
+logger:
+  name: defaultlog
+  module: default
+  level: DEBUG
+  log-path: /var/log/opmon/collector_module/logs
+  heartbeat-path: /var/log/opmon/collector_module/logs
+

@@ -1,0 +1,76 @@
+# Default settings file for X-Road OpMon collector-module.
+# Fill in your MongoDB and X-Road configuration.
+# 
+# To run collector for many different X-Road instances, you can create settings
+# profiles. For example to have profiles DEV, TEST and PROD copy this file to
+# settings_DEV.yaml, settings_TEST.yaml and settings_PROD.yaml.
+# Then fill the profile specific settings to each file and use the --profile
+# flag when running opmon-collector. For example to run using the TEST profile:
+#    opmon-collector --profile TEST collect
+
+collector:
+  # Match thread-count with number of cores * CPUs available to ensure best performance
+  thread-count: 10
+
+  # Collector collects entries that are:
+  #    timestamped AFTER (NOW - records-from-offset)
+  #      AND
+  #    timestamped BEFORE (NOW - records-to-offset)
+  #
+  # records-from-offset must be bigger than records-to-offset.
+  # Offset times are in seconds, for example:
+  #   1h = 3600
+  #   1d = 86400
+  #   1 week = 604800
+  #   1 month = 2678400
+  #   1 year = 31536000
+  records-from-offset: 31536000
+  records-to-offset: 100
+  
+  # Repeat query to fetch additional data only if server has returned at least as much records.
+  # By default servers should return 10000 records, so this value should be smaller.
+  repeat-min-records: 50
+  
+  # How many times to repeat query if server has more records ("nextRecordsFrom" is returned by previous query).
+  # Set to 0 to disable query repeating.
+  # If this value is too low and script is executed rarely then some data may be lost.
+  repeat-limit: 500
+
+xroad:
+  instance: <FILL>
+
+  # Central server used to get list of security servers to monitor.
+  central-server:
+    protocol: http://
+    host: <FILL>
+    timeout: 10
+  
+  # Security server used to send the opmon requests to other security servers.
+  security-server:
+    protocol: http://
+    host: <FILL>
+    timeout: 60.0
+  
+  # Client configuration used for opmon requests.
+  monitoring-client:
+    memberclass: <FILL>
+    membercode: <FILL>
+    subsystemcode: <FILL>
+
+mongodb:
+  host: localhost
+  user: <FILL>
+  password: <FILL>
+
+logger:
+  name: collector
+  module: collector
+  
+  # Possible logging levels from least to most verbose are:
+  # CRITICAL, FATAL, ERROR, WARNING, INFO, DEBUG
+  level: INFO
+
+  # Logs and heartbeat files are stored under these paths.
+  # Also configure external log rotation and app monitoring accordingly.
+  log-path: /var/log/opmon/collector_module/logs
+  heartbeat-path: /var/log/opmon/collector_module/heartbeat

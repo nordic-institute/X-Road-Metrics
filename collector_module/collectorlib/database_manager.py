@@ -14,13 +14,13 @@ RAW_DATA_COLLECTION = 'raw_messages'
 
 class DatabaseManager:
 
-    def __init__(self, mdb_suffix, mongodb_server, mongodb_user, mongodb_pwd, logger_manager):
-        self.mdb_server = mongodb_server
-        self.mdb_user = mongodb_user
-        self.mdb_pwd = mongodb_pwd
-        self.db_name = 'query_db_{0}'.format(mdb_suffix)
-        self.db_collector_state = 'collector_state_{0}'.format(mdb_suffix)
-        self.collector_id = 'collector_{0}'.format(mdb_suffix)
+    def __init__(self, mongo_settings, xroad_instance, logger_manager):
+        self.mdb_server = mongo_settings['host']
+        self.mdb_user = mongo_settings['user']
+        self.mdb_pwd = mongo_settings['password']
+        self.db_name = f'query_db_{xroad_instance}'
+        self.db_collector_state = f'collector_state_{xroad_instance}'
+        self.collector_id = f'collector_{xroad_instance}'
         self.logger_m = logger_manager
 
     @staticmethod
@@ -191,3 +191,15 @@ class DatabaseManager:
         </SOAP-ENV:Envelope>
         """
         return body
+
+    @staticmethod
+    def get_soap_monitoring_client(xroad_settings):
+        client = xroad_settings['monitoring-client']
+        return f"""
+        <xrd:client id:objectType="SUBSYSTEM">
+            <id:xRoadInstance>{xroad_settings['instance']}</id:xRoadInstance>
+            <id:memberClass>{client['memberclass']}</id:memberClass>
+            <id:memberCode>{client['membercode']}</id:memberCode>
+            <id:subsystemCode>{client['subsystemcode']}</id:subsystemCode>
+        </xrd:client>
+        """
