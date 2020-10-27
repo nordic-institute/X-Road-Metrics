@@ -10,18 +10,18 @@
 # Collect into file
 #
 # m   h  dom mon dow command
-  5  */6 *    *   *  /usr/share/opmon/collector_module/scripts/external_files/collector_into_file_cron.sh ee-dev
-  25 */6 *    *   *  /usr/share/opmon/scripts/collector_module/external_files/collector_into_file_cron.sh ee-test
-  35 */6 *    *   *  /usr/share/opmon/scripts/collector_module/external_files/collector_into_file_cron.sh EE
+  5  */6 *    *   *  /usr/share/opmon/collector/scripts/external_files/collector_into_file_cron.sh ee-dev
+  25 */6 *    *   *  /usr/share/opmon/collector/scripts/external_files/collector_into_file_cron.sh ee-test
+  35 */6 *    *   *  /usr/share/opmon/collector/scripts/external_files/collector_into_file_cron.sh EE
 
 
 #
 # Collect directly into MongoDB
 #
 # m   h  dom mon dow command
-  20 */2  *   *   *  /usr/share/opmon/collector_module/scripts/cron/cron_collector.sh ee-dev update
-  30 */2  *   *   *  /usr/share/opmon/collector_module/scripts/cron/cron_collector.sh ee-test update
-  10 */2  *   *   *  /usr/share/opmon/collector_module/scripts/cron/cron_collector.sh EE update
+  20 */2  *   *   *  /usr/share/opmon/collector/scripts/cron/cron_collector.sh ee-dev update
+  30 */2  *   *   *  /usr/share/opmon/collector/scripts/cron/cron_collector.sh ee-test update
+  10 */2  *   *   *  /usr/share/opmon/collector/scripts/cron/cron_collector.sh EE update
 
 
 # Make archive of X-Road logs from yesterday to keep usage of HDD space under control
@@ -34,9 +34,9 @@
 # NB! Requires manual authentication with ID card, download of https://www.riha.ee/api/v1/systems?filter=topics,jilike,%25X-tee%20alams%C3%BCsteem%25&fields=owner,short_name,name,contacts,topics&size=1700 and upload of it into Reports and Networking modules beforehand!
 # Therefor commented out at the moment, scripts can executed manually
 #
-# 11 18 4 * * /usr/share/opmon/collector_module/scripts/external_files/make_riha.sh ee-dev
-# 12 18 4 * * /usr/share/opmon/collector_module/scripts/external_files/make_riha.sh ee-test
-# 13 18 4 * * /usr/share/opmon/collector_module/scripts/external_files/make_riha.sh EE
+# 11 18 4 * * /usr/share/opmon/collector/scripts/external_files/make_riha.sh ee-dev
+# 12 18 4 * * /usr/share/opmon/collector/scripts/external_files/make_riha.sh ee-test
+# 13 18 4 * * /usr/share/opmon/collector/scripts/external_files/make_riha.sh EE
 #
 # Prepare copy of active crontab for views of product manager
 0 8 * * * crontab -l | egrep -v "^#" | egrep "collector" | egrep -v "/tmp" > /tmp/cron_collector.txt

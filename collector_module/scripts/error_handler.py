@@ -1,7 +1,7 @@
 import sys
 
 import settings
-from collectorlib.logger_manager import LoggerManager
+from logger_manager import LoggerManager
 
 if __name__ == '__main__':
     """

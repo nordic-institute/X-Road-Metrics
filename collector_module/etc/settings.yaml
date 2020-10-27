@@ -72,5 +72,5 @@ logger:
 
   # Logs and heartbeat files are stored under these paths.
   # Also configure external log rotation and app monitoring accordingly.
-  log-path: /var/log/opmon/collector_module/logs
-  heartbeat-path: /var/log/opmon/collector_module/heartbeat
+  log-path: /var/log/opmon/collector/logs
+  heartbeat-path: /var/log/opmon/collector/heartbeat

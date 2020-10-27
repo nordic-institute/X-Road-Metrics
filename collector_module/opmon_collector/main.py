@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 
 import argparse
-import collector_worker
 import os
 import importlib.util
 import re
 import sys
 
-from settings import OpmonSettingsManager
-import update_servers
+from opmon_collector.collector_worker import collector_main
+from opmon_collector.update_servers import update_database_server_list, print_server_list
+from opmon_collector.settings import OpmonSettingsManager
 
 
 def main():
@@ -17,9 +17,9 @@ def main():
     settings = settings_manager.settings
 
     actions = {
-        'collect': (collector_worker.main, [settings]),
-        'update': (update_servers.update_database_server_list, [settings]),
-        'list': (update_servers.print_server_list, [settings]),
+        'collect': (collector_main, [settings]),
+        'update': (update_database_server_list, [settings]),
+        'list': (print_server_list, [settings]),
         'settings': (settings_action_handler, [settings_manager, args])
     }
 
@@ -49,7 +49,7 @@ def parse_args():
                             Optional settings file profile.
                             For example with '--profile PROD' settings_PROD.yaml will be used as settings file.
                             If no profile is defined, settings.yaml will be used by default.
-                            Settings file is searched from current working directory and /etc/opmon/collector_module/
+                            Settings file is searched from current working directory and /etc/opmon/collector/
                         """.strip()
                         )
     args = parser.parse_args()
@@ -68,7 +68,3 @@ def settings_action_handler(settings_manager, args):
     settings_args = parse_setting_action_args(args)
     setting = settings_manager.get(settings_args.keystring)
     print(setting)
-
-
-if __name__ == '__main__':
-    main()
