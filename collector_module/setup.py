@@ -10,6 +10,13 @@ setup(name='opmon-collector',
       packages=['opmon_collector'],
       package_dir={'opmon_collector': 'opmon_collector'},
       scripts=['bin/opmon-collector'],
+      install_requires=[
+          "pymongo>=3.4,<4",
+          "requests>=2.13,<3",
+          "numpy>=1.19,<2",
+          "tqdm>=4.14<5",
+          "pyaml>=20.4.0"
+      ],
       classifiers=['Development Status :: 3 - Alpha',
                    'Environment :: Console',
                    'Intended Audience :: System Administrators',
