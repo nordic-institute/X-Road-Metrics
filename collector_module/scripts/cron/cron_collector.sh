@@ -15,14 +15,19 @@ CWD=$(pwd)
 dirname=$(dirname ${0})
 cd ${dirname}
 
-if [[ $# -eq 0 ]] ; then
-    echo 'Usage: cron_collector.sh XROAD_INSTANCE [update]'
+if [[ ${1} == "--help" || ${1} == "-h" ]] ; then
+    echo 'Usage: cron_collector.sh [SETTINGS_PROFILE]'
     exit 0
 fi
 
-XROAD_INSTANCE=${1}
-LOGGER_PATH=$(/usr/local/bin/opmon-collector --profile $XROAD_INSTANCE settings get logger.log-path)
-HEARTBEAT_PATH=$(/usr/local/bin/opmon-collector --profile $XROAD_INSTANCE settings get logger.heartbeat-path)
+if [[ $# -eq 0 ]] ; then
+    PROFILE_FLAG=''
+else
+    PROFILE_FLAG="--profile ${1}"
+fi
+
+LOGGER_PATH=$(opmon-collector $PROFILE_FLAG settings get logger.log-path)
+HEARTBEAT_PATH=$(opmon-collector $PROFILE_FLAG settings get logger.heartbeat-path)
 
 echo Logger path: $LOGGER_PATH
 
@@ -53,18 +58,16 @@ fi
 #
 # Actual stuff
 #
-# Check if server list update is necessary
 cd ${APPDIR}/${INSTANCE}
 
-if [[ $# -eq 2 ]] ; then
-    /usr/local/bin/opmon-collector --profile $XROAD_INSTANCE update 2>&1 | awk '{ print strftime("%Y-%m-%dT%H:%M:%S\t"), $0; fflush(); }' | tee -a ${LOG}
-fi
+# Update server list
+opmon-collector $PROFILE_FLAG update 2>&1 | awk '{ print strftime("%Y-%m-%dT%H:%M:%S\t"), $0; fflush(); }' | tee -a ${LOG}
 
 # Run collector
-/usr/local/bin/opmon-collector --profile $XROAD_INSTANCE collect 2>&1 | awk '{ print strftime("%Y-%m-%dT%H:%M:%S\t"), $0; fflush(); }' | tee -a ${LOG}
+opmon-collector $PROFILE_FLAG collect 2>&1 | awk '{ print strftime("%Y-%m-%dT%H:%M:%S\t"), $0; fflush(); }' | tee -a ${LOG}
 
 # Remove ${LOCK}
-/bin/rm ${LOCK} 2>&1 | awk '{ print strftime("%Y-%m-%dT%H:%M:%S\t"), $0; fflush(); }' | tee -a ${LOG}
+rm ${LOCK} 2>&1 | awk '{ print strftime("%Y-%m-%dT%H:%M:%S\t"), $0; fflush(); }' | tee -a ${LOG}
 
 # The End
 echo "${PID}: End of ${0}"  2>&1 | awk '{ print strftime("%Y-%m-%dT%H:%M:%S\t"), $0; fflush(); }' | tee -a ${LOG}
