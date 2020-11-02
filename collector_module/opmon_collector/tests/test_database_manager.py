@@ -3,9 +3,6 @@
 """
 Unit tests for database_manager.py
 """
-import pytest
-from pytest_mock import mocker
-from argparse import Namespace
 from io import StringIO
 import xml.etree.ElementTree as ET
 
@@ -25,9 +22,9 @@ def test_DatabaseManager_init():
     }
     
     d = DatabaseManager(mongo_settings, xroad_settings, 'testlogmanager')
-    assert d.mdb_server == mongo_settings['host']
-    assert d.mdb_user == mongo_settings['user']
-    assert d.mdb_pwd == mongo_settings['password']
+    assert d.mongo_uri == \
+        f"mongodb://{mongo_settings['user']}:{mongo_settings['password']}@{mongo_settings['host']}/auth_db"
+
     assert d.db_name == 'query_db_TESTINSTANCE'
     assert d.db_collector_state == 'collector_state_TESTINSTANCE'
     assert d.collector_id == 'collector_TESTINSTANCE'
@@ -45,9 +42,10 @@ def test_get_soap_body():
     }
 
     serverdata = {
-        'memberclass': 'targetclass',
-        'membercode': 'targetcode',
-        'servercode': 'targetserver'
+        'instance': 'DEV',
+        'memberClass': 'targetclass',
+        'memberCode': 'targetcode',
+        'serverCode': 'targetserver'
     }
 
     reqid = '123'
@@ -57,10 +55,7 @@ def test_get_soap_body():
     client_xml = DatabaseManager.get_soap_monitoring_client(xroad_settings)
     full_xml = DatabaseManager.get_soap_body(
         client_xml,
-        xroad_settings['instance'],
-        serverdata['memberclass'],
-        serverdata['membercode'],
-        serverdata['servercode'],
+        serverdata,
         reqid,
         recordsfrom,
         recordsto
@@ -85,16 +80,16 @@ def _assert_client_tag(client, xroad_settings):
 def _assert_service_tag(service, xroad_settings, serverdata):
     assert service.tag == 'service'
     assert service.find('xRoadInstance').text == xroad_settings['instance']
-    assert service.find('memberClass').text == serverdata['memberclass']
-    assert service.find('memberCode').text == serverdata['membercode']
+    assert service.find('memberClass').text == serverdata['memberClass']
+    assert service.find('memberCode').text == serverdata['memberCode']
 
 
 def _assert_server_tag(server, xroad_settings, serverdata):
     assert server.tag == 'securityServer'
     assert server.find('xRoadInstance').text == xroad_settings['instance']
-    assert server.find('memberClass').text == serverdata['memberclass']
-    assert server.find('memberCode').text == serverdata['membercode']
-    assert server.find('serverCode').text == serverdata['servercode']
+    assert server.find('memberClass').text == serverdata['memberClass']
+    assert server.find('memberCode').text == serverdata['memberCode']
+    assert server.find('serverCode').text == serverdata['serverCode']
 
 
 def _assert_id_tag(id_tag, reqid):

@@ -17,9 +17,8 @@ class DatabaseManager:
     def __init__(self, mongo_settings, xroad_settings, logger_manager):
         xroad_instance = xroad_settings['instance']
         self.xroad_cs = xroad_settings['central-server']
-        self.mdb_server = mongo_settings['host']
-        self.mdb_user = mongo_settings['user']
-        self.mdb_pwd = mongo_settings['password']
+        self.mongo_uri = \
+            f"mongodb://{mongo_settings['user']}:{mongo_settings['password']}@{mongo_settings['host']}/auth_db"
         self.db_name = f'query_db_{xroad_instance}'
         self.db_collector_state = f'collector_state_{xroad_instance}'
         self.collector_id = f'collector_{xroad_instance}'
@@ -77,8 +76,7 @@ class DatabaseManager:
 
     def save_server_list_to_database(self, server_list):
         try:
-            uri = "mongodb://{0}:{1}@{2}/auth_db".format(self.mdb_user, self.mdb_pwd, self.mdb_server)
-            client = pymongo.MongoClient(uri)
+            client = pymongo.MongoClient(self.mongo_uri)
             db = client[self.db_collector_state]
             collection = db['server_list']
             data = dict()
@@ -90,26 +88,24 @@ class DatabaseManager:
             self.logger_m.log_error('ServerManager.get_server_list_database', '{0}'.format(repr(e)))
             raise e
 
-    def get_server_list_database(self, n=1):
-        """ Returns the top n most recent server list
+    def get_server_list_from_database(self):
+        """
+        Get the most recent server list from MongoDB
         """
         try:
-            uri = "mongodb://{0}:{1}@{2}/auth_db".format(self.mdb_user, self.mdb_pwd, self.mdb_server)
-            client = pymongo.MongoClient(uri)
+            client = pymongo.MongoClient(self.mongo_uri)
             db = client[self.db_collector_state]
-            collection = db['server_list']
-            cur = collection.find({'collector_id': self.collector_id}).sort([('timestamp', -1)]).limit(n)
+            data = db['server_list'].find({'collector_id': self.collector_id}).sort([('timestamp', -1)]).limit(1)[0]
+            return data['server_list'], data['timestamp']
         except Exception as e:
             self.logger_m.log_error('ServerManager.get_server_list_database', '{0}'.format(repr(e)))
             raise e
-        return list(cur)
 
     def get_next_records_timestamp(self, server_key, records_from_offset):
         """ Returns next records_from pointer for the given server
         """
         try:
-            uri = "mongodb://{0}:{1}@{2}/auth_db".format(self.mdb_user, self.mdb_pwd, self.mdb_server)
-            client = pymongo.MongoClient(uri)
+            client = pymongo.MongoClient(self.mongo_uri)
             db = client[self.db_collector_state]
             collection = db['collector_pointer']
             cur = collection.find_one({'server': server_key})
@@ -129,9 +125,8 @@ class DatabaseManager:
         return records_from
 
     def set_next_records_timestamp(self, server_key, records_from):
-        uri = "mongodb://{0}:{1}@{2}/auth_db".format(self.mdb_user, self.mdb_pwd, self.mdb_server)
         try:
-            client = pymongo.MongoClient(uri)
+            client = pymongo.MongoClient(self.mongo_uri)
             db = client[self.db_collector_state]
             collection = db['collector_pointer']
             data = dict()
@@ -145,8 +140,7 @@ class DatabaseManager:
 
     def insert_data_to_raw_messages(self, data_list):
         try:
-            uri = "mongodb://{0}:{1}@{2}/auth_db".format(self.mdb_user, self.mdb_pwd, self.mdb_server)
-            client = pymongo.MongoClient(uri)
+            client = pymongo.MongoClient(self.mongo_uri)
             db = client[self.db_name]
             raw_msg = db[RAW_DATA_COLLECTION]
             # Add timestamp to data list
@@ -160,7 +154,7 @@ class DatabaseManager:
             raise e
 
     @staticmethod
-    def get_soap_body(monitoring_client, xRoadInstance, memberClass, memberCode, serverCode, req_id, recordsFrom, recordsTo):
+    def get_soap_body(client_xml, server_settings, req_id, records_from, records_to):
         body = """<SOAP-ENV:Envelope
                xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
                xmlns:id="http://x-road.eu/xsd/identifiers"
@@ -168,18 +162,18 @@ class DatabaseManager:
                xmlns:om="http://x-road.eu/xsd/op-monitoring.xsd">
             <SOAP-ENV:Header>
         """
-        body += monitoring_client
+        body += client_xml
         body += """<xrd:service id:objectType="SERVICE">
-                    <id:xRoadInstance>""" + xRoadInstance + """</id:xRoadInstance>
-                    <id:memberClass>""" + memberClass + """</id:memberClass>
-                    <id:memberCode>""" + memberCode + """</id:memberCode>
+                    <id:xRoadInstance>""" + server_settings['instance'] + """</id:xRoadInstance>
+                    <id:memberClass>""" + server_settings['memberClass'] + """</id:memberClass>
+                    <id:memberCode>""" + server_settings['memberCode'] + """</id:memberCode>
                     <id:serviceCode>getSecurityServerOperationalData</id:serviceCode>
                 </xrd:service>
                 <xrd:securityServer id:objectType="SERVER">
-                    <id:xRoadInstance>""" + xRoadInstance + """</id:xRoadInstance>
-                    <id:memberClass>""" + memberClass + """</id:memberClass>
-                    <id:memberCode>""" + memberCode + """</id:memberCode>
-                    <id:serverCode>""" + serverCode + """</id:serverCode>
+                    <id:xRoadInstance>""" + server_settings['instance'] + """</id:xRoadInstance>
+                    <id:memberClass>""" + server_settings['memberClass'] + """</id:memberClass>
+                    <id:memberCode>""" + server_settings['memberCode'] + """</id:memberCode>
+                    <id:serverCode>""" + server_settings['serverCode'] + """</id:serverCode>
                 </xrd:securityServer>
                 <xrd:id>""" + req_id + """</xrd:id>
                 <xrd:protocolVersion>4.0</xrd:protocolVersion>
@@ -187,8 +181,8 @@ class DatabaseManager:
             <SOAP-ENV:Body>
                 <om:getSecurityServerOperationalData>
                     <om:searchCriteria>
-                        <om:recordsFrom>""" + str(recordsFrom) + """</om:recordsFrom>
-                        <om:recordsTo>""" + str(recordsTo) + """</om:recordsTo>
+                        <om:recordsFrom>""" + str(records_from) + """</om:recordsFrom>
+                        <om:recordsTo>""" + str(records_to) + """</om:recordsTo>
                     </om:searchCriteria>
                 </om:getSecurityServerOperationalData>
             </SOAP-ENV:Body>

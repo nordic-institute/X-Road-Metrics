@@ -2,7 +2,6 @@
 Unit tests for main.py
 """
 import pytest
-from pytest_mock import mocker
 
 import opmon_collector.main as main
 
