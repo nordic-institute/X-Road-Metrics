@@ -110,7 +110,7 @@ def run_threaded_collector(logger_m, settings):
     """
     server_m = DatabaseManager(
         settings['mongodb'],
-        settings['xroad']['instance'],
+        settings['xroad'],
         logger_m
     )
 

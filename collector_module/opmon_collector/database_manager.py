@@ -14,7 +14,9 @@ RAW_DATA_COLLECTION = 'raw_messages'
 
 class DatabaseManager:
 
-    def __init__(self, mongo_settings, xroad_instance, logger_manager):
+    def __init__(self, mongo_settings, xroad_settings, logger_manager):
+        xroad_instance = xroad_settings['instance']
+        self.xroad_cs = xroad_settings['central-server']
         self.mdb_server = mongo_settings['host']
         self.mdb_user = mongo_settings['user']
         self.mdb_pwd = mongo_settings['password']
@@ -27,21 +29,23 @@ class DatabaseManager:
     def get_timestamp():
         return float(time.time())
 
-    def get_list_from_central_server(self, central_server, timeout):
+    def get_list_from_central_server(self):
         server_list = []
+        cs_url = f"{self.xroad_cs['protocol']}{self.xroad_cs['host']}"
+        timeout = self.xroad_cs['timeout']
         # Downloading shared-params.xml
         try:
-            url_str = "http://{0}/internalconf".format(central_server)
-            globalConf = requests.get(url_str, timeout=timeout)
+            internal_conf_url = f"{cs_url}/internalconf"
+            globalConf = requests.get(internal_conf_url, timeout=timeout)
             globalConf.raise_for_status()
             #  NB! re.search global configuration regex might be changed
             # according version naming or other future naming conventions
             data = globalConf.content.decode("utf-8")
             s = re.search(r"Content-location: (/V\d+/\d+/shared-params.xml)", data)
-            sharedParams = requests.get("http://{0}{1}".format(central_server, s.group(1)), timeout=timeout)
+            sharedParams = requests.get(f"{cs_url}{s.group(1)}", timeout=timeout)
             sharedParams.raise_for_status()
         except Exception as e:
-            self.logger_m.log_warning('ServerManager.get_list_from_central_server', '{0}'.format(repr(e)))
+            self.logger_m.log_warning('ServerManager.get_list_from_central_server', f'{repr(e)}')
             return []
 
         try:
@@ -71,7 +75,7 @@ class DatabaseManager:
 
         return server_list
 
-    def stores_server_list_database(self, server_list):
+    def save_server_list_to_database(self, server_list):
         try:
             uri = "mongodb://{0}:{1}@{2}/auth_db".format(self.mdb_user, self.mdb_pwd, self.mdb_server)
             client = pymongo.MongoClient(uri)

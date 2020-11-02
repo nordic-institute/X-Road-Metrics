@@ -18,8 +18,13 @@ def test_DatabaseManager_init():
         'user': 'unittestuser',
         'password': 'unittestpwd'
     }
+
+    xroad_settings = {
+        'instance': 'TESTINSTANCE',
+        'central-server': 'testcs'
+    }
     
-    d = DatabaseManager(mongo_settings, 'TESTINSTANCE', 'testlogmanager')
+    d = DatabaseManager(mongo_settings, xroad_settings, 'testlogmanager')
     assert d.mdb_server == mongo_settings['host']
     assert d.mdb_user == mongo_settings['user']
     assert d.mdb_pwd == mongo_settings['password']
