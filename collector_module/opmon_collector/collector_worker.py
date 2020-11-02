@@ -10,8 +10,8 @@ from multiprocessing import Pool
 
 import requests
 
-from collectorlib.database_manager import DatabaseManager
-from collectorlib.logger_manager import LoggerManager
+from opmon_collector.database_manager import DatabaseManager
+from opmon_collector.logger_manager import LoggerManager
 
 
 def collector_worker(data):
@@ -103,7 +103,7 @@ def collector_worker(data):
     return return_value
 
 
-def collector_main(logger_m, settings):
+def run_threaded_collector(logger_m, settings):
     """
     :param logger_m:
     :return:
@@ -174,12 +174,12 @@ def collector_main(logger_m, settings):
         total_done, total_error, total_time), "SUCCEEDED")
 
 
-def main(settings):
+def collector_main(settings):
 
     logger_m = LoggerManager(settings['logger'], settings['xroad']['instance'])
 
     try:
-        collector_main(logger_m, settings)
+        run_threaded_collector(logger_m, settings)
     except Exception as e:
         logger_m.log_error('collector', '{0}'.format(repr(e)))
         logger_m.log_heartbeat("error", "FAILED")

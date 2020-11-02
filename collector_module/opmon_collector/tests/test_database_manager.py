@@ -9,7 +9,7 @@ from argparse import Namespace
 from io import StringIO
 import xml.etree.ElementTree as ET
 
-from collectorlib.database_manager import DatabaseManager
+from opmon_collector.database_manager import DatabaseManager
 
 
 def test_DatabaseManager_init():

@@ -1,0 +1,10 @@
+# Default cronjob for OpMon collector module
+# Updates server list and runs collector every three hours.
+# Uses default collector settings file /etc/opmon/collector/settings.yaml
+
+
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# m   h  dom mon dow  user       command
+  20 */3  *   *   *   collector  /usr/share/opmon/collector/scripts/cron/cron_collector.sh

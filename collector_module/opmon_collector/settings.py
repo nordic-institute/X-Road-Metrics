@@ -12,7 +12,7 @@ class OpmonSettingsManager:
     Class to hold OpMon user settings.
 
     Can parse settings from a YAML file.
-    Settings file is searched from the current working directory and /etc/opmon/collector_module/.
+    Settings file is searched from the current working directory and /etc/opmon/collector/.
     Settings file must have extension .yaml or .yml.
     If profile argument is set, settings are fetched from settings_{profile}.yaml.
     If no profile is defined, settings are fetched from settings.yaml.
@@ -36,7 +36,7 @@ class OpmonSettingsManager:
             return yaml.safe_load(stream)
 
     def _find_settings_file(self, profile):
-        search_paths = ['./', '/etc/opmon/collector_module/']
+        search_paths = ['./', '/etc/opmon/collector/']
         files = []
         for p in search_paths:
             files.extend(self._get_all_files(p))

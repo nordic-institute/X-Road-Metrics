@@ -8,7 +8,7 @@ import pathlib
 import pytest
 from yaml import YAMLError
 
-from settings import OpmonSettingsManager
+from opmon_collector.settings import OpmonSettingsManager
 
 
 @pytest.fixture

@@ -30,6 +30,6 @@ logger:
   name: defaultlog
   module: default
   level: DEBUG
-  log-path: /var/log/opmon/collector_module/logs
-  heartbeat-path: /var/log/opmon/collector_module/logs
+  log-path: /var/log/opmon/collector/logs
+  heartbeat-path: /var/log/opmon/collector/logs
 

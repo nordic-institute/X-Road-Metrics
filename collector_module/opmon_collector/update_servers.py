@@ -2,8 +2,8 @@
     Stores updated list into collector_state.server_list
 """
 
-from collectorlib.database_manager import DatabaseManager
-from collectorlib.logger_manager import LoggerManager
+from opmon_collector.database_manager import DatabaseManager
+from opmon_collector.logger_manager import LoggerManager
 
 
 def _get_server_list(settings):

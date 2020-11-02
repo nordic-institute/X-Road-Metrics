@@ -18,32 +18,10 @@ Overall system is also designed in a way, that allows to monitor data from diffe
 
 Overall system is also designed in a way, that can be used by X-Road Centre for all X-Road members as well as for Member own monitoring (includes possibilities to monitor also members data exchange partners).
 
-## Source Code Acquisition
-The module source code can be found at:
-
+The collector module source code is available at:
 ```
 https://github.com/ria-ee/X-Road-opmonitor
 ```
-
-and can be downloaded into server:
-
-```bash
-sudo su - collector
-# If HOME not set, set it to /tmp default.
-export TMP_DIR=${HOME:=/tmp}
-export PROJECT="X-Road-opmonitor"
-export PROJECT_URL="https://github.com/ria-ee/${PROJECT}.git"
-export SOURCE="${TMP_DIR}/${PROJECT}"
-if [ ! -d "${TMP_DIR}/${PROJECT}" ]; then \
-    cd ${TMP_DIR}; git clone ${PROJECT_URL}; \
-else \
-  cd ${SOURCE}; git pull ${PROJECT_URL}; \
-fi
-```
-
-## Installation
-
-This sections describes the necessary steps to install the **collector module** in a Linux Ubuntu 18.04. To a complete overview of different modules and machines, please refer to the ==> [System Architecture](system_architecture.md) <== documentation.
 
 ## Networking
 
@@ -57,90 +35,34 @@ This sections describes the necessary steps to install the **collector module** 
 
 No incoming connection is needed in the collector module.
 
-## Install required packages
+## Installation
 
-To install the necessary packages, execute the following commands:
+This sections describes the necessary steps to install the **collector module** on a Ubuntu 20.04 Linux host. For a complete overview of different modules and machines, please refer to the ==> [System Architecture](system_architecture.md) <== documentation.
+
+
+### Add X-Road OpMon Package Repository for Ubuntu
+TODO
+
+### Install Collector Package
+To install opmon-collector and all dependencies execute the commands below:
 
 ```bash
 sudo apt-get update
-sudo apt-get install python3-pip
-sudo pip3 install -r $SOURCE/collector_module/requirements.txt
+sudo apt-get install opmon-collector
 ```
 
-## Install collector module
-In the follwoing instructions it is assumed that OpMon source code is cloned into path **${SOURCE}** as instructed in [Source Code Acquisition](#Source-Code-Acquisition)
+The installation package automatically installs following items:
+ * opmon-collector command to run the collector manually
+ * Linux user named _collector_ and groups _collector_ and _opmon_
+ * settings file _/etc/opmon/collector/settings.yaml_
+ * cronjob in _/etc/cron.d/opmon-collector-cron_ to run collector automatically every three hours
+ * log folders to _/var/log/opmon/collector/_
 
-### Create users and groups
-The collector module uses the system user **collector** and group **opmon**. To create them, execute:
-
-```bash
-  sudo groupadd --force opmon
-  sudo groupadd --force collector
-  sudo useradd --base-dir /opt --create-home --system --shell /bin/bash --gid collector collector
-  sudo usermod --append --groups opmon collector
-```
-
-### Create log and heartbeat folders
-Default log file path is _/var/log/opmon/collector_module_
-
-```bash
-export COLLECTOR_LOGS=/var/log/opmon/collector_module
-sudo mkdir --parent $COLLECTOR_LOGS
-cd $COLLECTOR_LOGS
-sudo mkdir logs
-sudo mkdir heartbeat
-sudo chown --recursive root:opmon ./ ./logs ./heartbeat
-sudo chmod --recursive g+w  ./ ./logs ./heartbeat
-```
-
-### Create settings folder
-Default settings file path is _/etc/opmon/collector_module_
-```bash
-export COLLECTOR_SETTINGS=/etc/opmon/collector_module
-sudo mkdir --parent $COLLECTOR_SETTINGS
-cd $COLLECTOR_SETTINGS
-
-sudo cp $SOURCE/collector_module/settings/ ./
-sudo chown --recursive root:opmon ./
-sudo chmod --recursive g+w  ./
-```
+Only _collector_ user can access the settings files and run opmon-collector command.
 
 To use collector you need to fill in your X-Road and MongoDB configuration into the settings file.
 Refer to section [Collector Configuration](#collector-configuration)
 
-### Install the Python package
-Default Python package installation location is _/usr/local/lib/python3/site-packages/opmon/collector_module_
-
-```bash
-export COLLECTOR_PYPKG=/usr/local/lib/python3/site-packages/opmon/collector_module
-sudo mkdir --parent $COLLECTOR_PYPKG
-cd COLLECTOR_PYPKG
-sudo cp $SOURCE/collector_module/*.py ./
-sudo cp -r $SOURCE/collector_module/collectorlib ./collectorlib
-sudo chown --recursive root:opmon ./
-sudo chmod --recursive -x+X ./main.py
-sudo chmod g+x ./main.py
-sudo ln -s $(pwd)/main.py /usr/local/bin/opmon-collector
-```
-
-### Install utility scripts
-Default utility script installation location is _/usr/local/opmon/collector_module/scripts_
-```bash
-EXPORT COLLECTOR_UTILITY=/usr/local/opmon/collector_module/scripts
-sudo mkdir --parent $COLLECTOR_UTILITY
-cd $COLLECTOR_UTILITY
-sudo cp -r $SOURCE/collector_module/scripts ./
-sudo chown --recursive collector:collector ./
-sudo chmod --recursive -x+X ./
-sudo find  ./ -name '*.sh' -type f | xargs chmod u+x
-```
-
-### Cleanup
-Now all collector files are installed to correct paths.
-The temporary source code download folder can be deleted:
-```bash
-rm -rf $SOURCE
-```
 
 ## Usage
 
@@ -150,7 +72,7 @@ To use collector you need to fill in your X-Road and MongoDB configuration into 
 (here, **vi** is used):
 
 ```bash
-sudo vi /etc/opmon/collector_module/settings.yaml
+sudo vi /etc/opmon/collector/settings.yaml
 ```
 
 Settings that the user must fill in:
@@ -168,7 +90,7 @@ opmon-collector --profile TEST collect
 ```
 
 `opmon-collector` command searches the settings file first in current working direcrtory, then in
-_/etc/opmon/collector_module/_
+_/etc/opmon/collector/_
 
 ### Manual usage
 
@@ -192,29 +114,27 @@ opmon-collector --profile TEST update
 opmon-collector --profile TEST collect
 ```
 
-### CRON usage
-A cronjob can be set up to run collector periodically.
-This chapter has short instructions for setting up cronjob for a single X-Road instance.
-File /usr/local/opmon/collector_module/scripts/cron/crontab contains a more complex example of cronjobs for multiple X-Road instances.
+### Cron settings
+Default installation includes a cronjob in _/etc/cron.d/opmon-collector-cron_ that runs collector every three hours. This job runs collector using default settings profile (_/etc/opmon/collector/settings.yaml_)
 
-
-Start editing crontab for user collector:
-
+If you want to change the collector cronjob scheduling or settings profiles, edit the file e.g. with vi
+```
+vi /etc/cron.d/opmon-collector-cron
+```
+and make your changes. For example to run collector every six hours using settings profiles PROD and TEST:
 ```bash
-sudo crontab -e -u collector
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# m   h  dom mon dow  user       command
+  15 */6  *   *   *   collector  /usr/share/opmon/collector/scripts/cron/cron_collector.sh PROD
+  30 */6  *   *   *   collector  /usr/share/opmon/collector/scripts/cron/cron_collector.sh TEST
+
 ```
 
-Add a  **cron job** entry that executes every 3 hours. 
-Note that a different value might be needed in production.
-
-```
-0 */3 * * * /usr/local/opmon/collector_module/scripts/cron/cron_collector.sh DEV update >> /var/log/opmon/collector_module/cron_collector.log
-```
-
-To check if the collector module is properly installed for the collector user, execute:
-
+If collector is to be run only manually, comment out the default cron task:
 ```bash
-sudo crontab -l -u collector
+# 15 */6 * * * collector /usr/share/opmon/collector/scripts/cron/cron_collector.sh 
 ```
 
 ### Note about Indexing
@@ -244,12 +164,12 @@ logger:
 
   # Logs and heartbeat files are stored under these paths.
   # Also configure external log rotation and app monitoring accordingly.
-  log-path: /var/log/opmon/collector_module/logs
+  log-path: /var/log/opmon/collector/logs
 
 ```
 
 The log file is written to `log-path` and log file name contains the X-Road instance name. 
-The above example configuration would write logs to `/var/log/opmon/collector_module/logs/log_collector_EXAMPLE.json`.
+The above example configuration would write logs to `/var/log/opmon/collector/logs/log_collector_EXAMPLE.json`.
 
 Every log line includes:
 
@@ -270,12 +190,12 @@ In case of "activity": "collector_end", the "msg" includes values separated by c
 The **collector module** log handler is compatible with the logrotate utility. To configure log rotation for the example setup above, create the file:
 
 ```
-sudo vi /etc/logrotate.d/collector_module
+sudo vi /etc/logrotate.d/opmon-collector
 ```
 
 and add the following content :
 ```
-/var/log/opmon/collector_module/logs/log_collector_EXAMPLE.json {
+/var/log/opmon/collector/logs/log_collector_EXAMPLE.json {
     rotate 10
     size 2M
 }
@@ -299,12 +219,12 @@ xroad:
 
 logger:
   #  ...
-  heartbeat-path: /var/log/opmon/collector_module/heartbeat
+  heartbeat-path: /var/log/opmon/collector/heartbeat
 
 ```
 
 The heartbeat file is written to `heartbeat-path` and hearbeat file name contains the X-Road instance name. 
-The above example configuration would write logs to `/var/log/opmon/collector_module/heartbeat/heartbeat_collector_EXAMPLE.json`.
+The above example configuration would write logs to `/var/log/opmon/collector/heartbeat/heartbeat_collector_EXAMPLE.json`.
 
 The heartbeat file consists last message of log file and status
 
@@ -312,7 +232,7 @@ The heartbeat file consists last message of log file and status
 
 ## The external files and additional scripts required for reports and networking modules
 
-External file in subdirectory `/usr/local/opmon/collector_module/scripts/external_files/riha.json` is required for reports generation in [Reports module](reports_module.md) and networking generation on [Networking module](networking_module.md).
+External file in subdirectory `/usr/share/opmon/collector/scripts/external_files/riha.json` is required for reports generation in [Reports module](reports_module.md) and networking generation on [Networking module](networking_module.md).
 
 Generation of `riha.json` and its availability for other modules is Estonia / RIA / RIHA -specific and is not available in public.
 
