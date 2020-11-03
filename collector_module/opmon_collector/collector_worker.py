@@ -28,11 +28,11 @@ class CollectorWorker:
                 self.server_m.set_next_records_timestamp(self.server_key, next_records_from)
             except Exception as e:
                 self.log_warn("Collector caught exception.", repr(e))
-                return False
+                return False, e
 
             self._update_repeat(next_records_from, len(records))
 
-        return True
+        return True, None
 
     def log_warn(self, message, cause):
         self.logger_m.log_warning(
