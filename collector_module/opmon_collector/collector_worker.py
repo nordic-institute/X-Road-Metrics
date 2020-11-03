@@ -110,10 +110,12 @@ class CollectorWorker:
         if next_records_from >= self.records_to:
             self.log_info(f'Records collected until {self.records_to}.')
             self.repeat = 0
+            return
 
         if record_size < self.settings['collector']['repeat-min-records']:
             self.log_info(f'Not enough data received ({record_size}) to repeat query.')
             self.repeat = 0
+            return
 
         self.repeat -= 1
         if self.repeat <= 0:
