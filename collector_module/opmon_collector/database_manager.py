@@ -9,9 +9,6 @@ import xml.etree.ElementTree as ET
 import pymongo
 
 
-RAW_DATA_COLLECTION = 'raw_messages'
-
-
 class DatabaseManager:
 
     def __init__(self, mongo_settings, xroad_settings, logger_manager):
@@ -142,7 +139,7 @@ class DatabaseManager:
         try:
             client = pymongo.MongoClient(self.mongo_uri)
             db = client[self.db_name]
-            raw_msg = db[RAW_DATA_COLLECTION]
+            raw_msg = db['raw_messages']
             # Add timestamp to data list
             for data in data_list:
                 timestamp = self.get_timestamp()
