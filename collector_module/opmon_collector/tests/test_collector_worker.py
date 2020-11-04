@@ -31,7 +31,6 @@ def basic_settings():
 
 @pytest.fixture()
 def basic_data(mocker, mock_server_manager, basic_settings):
-
     server = {
         'server': '--testservername--',
         'instance': 'DEFAULT',
@@ -85,3 +84,55 @@ def test_collector_worker_work(mock_server_manager, basic_data, mock_response_co
     records_in_response1 = 5230
     assert len(records) == records_in_response1
 
+    assert worker.status == CollectorWorker.Status.ALL_COLLECTED
+
+
+@responses.activate
+def test_collector_worker_work_max_repeats(mock_server_manager, basic_data, mock_response_contents):
+    responses.add(responses.POST, 'http://x-road-ss', body=mock_response_contents[0], status=200)
+
+    basic_data['settings']['collector']['repeat-limit'] = 1
+
+    worker = CollectorWorker(basic_data)
+    result, error = worker.work()
+
+    if error is not None:
+        raise error
+
+    assert mock_server_manager.set_next_records_timestamp.call_count == 1
+    next_time_in_response = 1604420300
+    mock_server_manager.set_next_records_timestamp.assert_called_once_with('--testservername--', next_time_in_response)
+
+    assert mock_server_manager.insert_data_to_raw_messages.call_count == 1
+    mock_server_manager.insert_data_to_raw_messages.assert_called_once()
+    records = mock_server_manager.insert_data_to_raw_messages.call_args_list[0][0][0]
+    records_in_response1 = 5230
+    assert len(records) == records_in_response1
+
+    assert worker.status == CollectorWorker.Status.DATA_AVAILABLE
+
+
+def test_worker_status(mock_server_manager, basic_data):
+    worker = CollectorWorker(basic_data)
+
+    assert worker.batch_start < worker.batch_end
+    assert worker.batch_start > 3
+    assert worker.status == CollectorWorker.Status.DATA_AVAILABLE
+
+    worker.records = [i for i in range(1000)]
+    assert worker.status == CollectorWorker.Status.DATA_AVAILABLE
+
+    worker.records = [1, 2, 3]
+    worker.update_status()
+    assert worker.status == CollectorWorker.Status.TOO_SMALL_BATCH
+
+    worker.status = CollectorWorker.Status.DATA_AVAILABLE
+    worker.batch_start = worker.batch_end + 1
+    worker.records = [i for i in range(1000)]
+    worker.update_status()
+    assert worker.status == CollectorWorker.Status.ALL_COLLECTED
+
+    worker.status = CollectorWorker.Status.DATA_AVAILABLE
+    worker.batch_start = worker.batch_end
+    worker.update_status()
+    assert worker.status == CollectorWorker.Status.ALL_COLLECTED

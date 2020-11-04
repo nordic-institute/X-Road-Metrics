@@ -4,35 +4,52 @@ import re
 import uuid
 import zlib
 import requests
+from enum import Enum
 
 
 class CollectorWorker:
+
+    class Status(Enum):
+        DATA_AVAILABLE = 0
+        ALL_COLLECTED = 1
+        TOO_SMALL_BATCH = 2
+
     def __init__(self, data):
         self.settings = data['settings']
         self.server_data = data['server_data']
         self.server_key = self.server_data['server']
         self.logger_m = data['logger_manager']
         self.server_m = data['server_manager']
-        self.repeat = self.settings['collector']['repeat-limit']
         self.thread_name = multiprocessing.current_process().name
 
-        self.records_from, self.records_to = self._get_record_limits()
+        self.batch_start, self.batch_end = self._get_record_limits()
+        self.status = CollectorWorker.Status.DATA_AVAILABLE
+        self.records = []
 
     def work(self):
-        while self.repeat:
+        for _ in range(self.settings['collector']['repeat-limit']):
             try:
                 response = self._request_opmon_data()
-                records = self._parse_attachment(response)
-                self._store_records_to_database(records)
-                next_records_from = self._parse_next_records_from_response(response) or self.records_to
-                self.server_m.set_next_records_timestamp(self.server_key, next_records_from)
+                self.records = self._parse_attachment(response)
+                self._store_records_to_database()
+                self.batch_start = self._parse_next_records_from_response(response) or self.batch_end
+                self.server_m.set_next_records_timestamp(self.server_key, self.batch_start)
             except Exception as e:
                 self.log_warn("Collector caught exception.", repr(e))
                 return False, e
 
-            self._update_repeat(next_records_from, len(records))
+            self.update_status()
+            if self.status != CollectorWorker.Status.DATA_AVAILABLE:
+                break
 
+        self._log_status()
         return True, None
+
+    def update_status(self):
+        if self.batch_start >= self.batch_end:
+            self.status = CollectorWorker.Status.ALL_COLLECTED
+        elif len(self.records) < self.settings['collector']['repeat-min-records']:
+            self.status = CollectorWorker.Status.TOO_SMALL_BATCH
 
     def log_warn(self, message, cause):
         self.logger_m.log_warning(
@@ -44,6 +61,14 @@ class CollectorWorker:
             'collector_worker',
             f"[{self.thread_name}] Message: {message} Server: {self.server_key} \n")
 
+    def _log_status(self):
+        if self.status == CollectorWorker.Status.ALL_COLLECTED:
+            self.log_info(f'Records collected until {self.batch_end}.')
+        elif self.status == CollectorWorker.Status.TOO_SMALL_BATCH:
+            self.log_info(f'Not enough data received to repeat query.')
+        else:
+            self.log_warn("Maximum repeats reached.", "")
+
     def _get_record_limits(self):
         records_from_offset = self.settings['collector']['records-from-offset']
         records_to_offset = self.settings['collector']['records-to-offset']
@@ -53,7 +78,7 @@ class CollectorWorker:
         return records_from, records_to
 
     def _request_opmon_data(self):
-        self.log_info(f'Collecting from {self.records_from} to {self.records_to}')
+        self.log_info(f'Collecting from {self.batch_start} to {self.batch_end}')
 
         req_id = str(uuid.uuid4())
         headers = {"Content-type": "text/xml;charset=UTF-8"}
@@ -62,8 +87,8 @@ class CollectorWorker:
             client_xml,
             self.server_data,
             req_id,
-            self.records_from,
-            self.records_to)
+            self.batch_start,
+            self.batch_end)
 
         try:
             sec_server_settings = self.settings['xroad']['security-server']
@@ -90,11 +115,11 @@ class CollectorWorker:
             self.log_warn("Cannot parse response attachment.", '')
             raise e
 
-    def _store_records_to_database(self, records):
-        if len(records):
-            self.log_info(f"Adding {len(records)} documents.")
+    def _store_records_to_database(self):
+        if len(self.records):
+            self.log_info(f"Adding {len(self.records)} documents.")
             try:
-                self.server_m.insert_data_to_raw_messages(records)
+                self.server_m.insert_data_to_raw_messages(self.records)
             except Exception as e:
                 self.log_warn("Failed to save records.", '')
                 raise e
@@ -105,22 +130,6 @@ class CollectorWorker:
     def _parse_next_records_from_response(response):
         result = re.search(b"<om:nextRecordsFrom>(\d+)</om:nextRecordsFrom>", response.content)
         return None if result is None else int(result.group(1))
-
-    def _update_repeat(self, next_records_from, record_size):
-        if next_records_from >= self.records_to:
-            self.log_info(f'Records collected until {self.records_to}.')
-            self.repeat = 0
-            return
-
-        if record_size < self.settings['collector']['repeat-min-records']:
-            self.log_info(f'Not enough data received ({record_size}) to repeat query.')
-            self.repeat = 0
-            return
-
-        self.repeat -= 1
-        if self.repeat <= 0:
-            self.log_warn("Maximum repeats reached.", "")
-            self.repeat = 0
 
 
 def run_collector_thread(data):
