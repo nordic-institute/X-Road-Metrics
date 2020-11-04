@@ -23,25 +23,23 @@ def prepare_thread_inputs(settings, server_list, server_m, logger_m):
 def process_thread_pool(settings, inputs):
     pool = Pool(processes=settings['collector']['thread-count'])
     results = pool.map(run_collector_thread, inputs)
-    done = results.count(True)
+    done = len([result[0] for result in results if result[0]])
     error = len(results) - done
     return done, error
 
 
 def run_threaded_collector(logger_m, settings):
-    server_m = DatabaseManager(settings['mongodb'], settings['xroad'], logger_m)
-
     logger_m.log_info('collector_start', f'Starting collector - Version {LoggerManager.__version__}')
 
-    start_processing_time = time.time()
+    start_time_time = time.time()
+    server_m = DatabaseManager(settings['mongodb'], settings['xroad'], logger_m)
     server_list, timestamp = server_m.get_server_list_from_database()
     print(f'- Using server list updated at: {timestamp}')
 
     inputs = prepare_thread_inputs(settings, server_list, server_m, logger_m)
     done, error = process_thread_pool(settings, inputs)
 
-    end_processing_time = time.time()
-    total_time = time.strftime("%H:%M:%S", time.gmtime(end_processing_time - start_processing_time))
+    total_time = time.strftime("%H:%M:%S", time.gmtime(time.time() - start_time_time))
     logger_m.log_info('collector_end', f'Total collected: {done}, Total error: {error}, Total time: {total_time}')
     logger_m.log_heartbeat(f'Total collected: {done}, Total error: {error}, Total time: {total_time}', "SUCCEEDED")
 
