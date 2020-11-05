@@ -4,8 +4,8 @@ import pathlib
 import responses
 
 from opmon_collector.collector_worker import CollectorWorker
-from opmon_collector.database_manager import DatabaseManager
 from opmon_collector.settings import OpmonSettingsManager
+from opmon_collector.security_server_client import SecurityServerClient
 
 NOW = 1605000000.123
 
@@ -15,8 +15,8 @@ def mock_server_manager(mocker):
     manager = mocker.Mock()
 
     manager.insert_data_to_raw_messages = mocker.Mock()
-    manager.get_soap_body = DatabaseManager.get_soap_body
-    manager.get_soap_monitoring_client = DatabaseManager.get_soap_monitoring_client
+    manager.get_soap_body = SecurityServerClient.get_soap_body
+    manager.get_soap_monitoring_client = SecurityServerClient.get_soap_monitoring_client
     manager.get_timestamp = mocker.Mock(return_value=NOW)
     manager.get_next_records_timestamp = mocker.Mock(return_value=1604000000.456)
     manager.set_next_records_timestamp = mocker.Mock()

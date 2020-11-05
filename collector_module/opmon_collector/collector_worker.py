@@ -6,6 +6,8 @@ import zlib
 import requests
 from enum import Enum
 
+from opmon_collector.security_server_client import SecurityServerClient
+
 
 class CollectorWorker:
 
@@ -82,8 +84,8 @@ class CollectorWorker:
 
         req_id = str(uuid.uuid4())
         headers = {"Content-type": "text/xml;charset=UTF-8"}
-        client_xml = self.server_m.get_soap_monitoring_client(self.settings['xroad'])
-        body = self.server_m.get_soap_body(
+        client_xml = SecurityServerClient.get_soap_monitoring_client(self.settings['xroad'])
+        body = SecurityServerClient.get_soap_body(
             client_xml,
             self.server_data,
             req_id,
