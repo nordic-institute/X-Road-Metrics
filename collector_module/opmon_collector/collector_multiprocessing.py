@@ -32,7 +32,7 @@ def run_threaded_collector(logger_m, settings):
     logger_m.log_info('collector_start', f'Starting collector - Version {LoggerManager.__version__}')
 
     start_time_time = time.time()
-    server_m = DatabaseManager(settings['mongodb'], settings['xroad'], logger_m)
+    server_m = DatabaseManager(settings['mongodb'], settings['xroad']['instance'], logger_m)
     server_list, timestamp = server_m.get_server_list_from_database()
     print(f'- Using server list updated at: {timestamp}')
 
