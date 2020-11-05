@@ -53,6 +53,8 @@ def basic_data(mocker, mock_server_manager, basic_settings):
 
 @pytest.fixture()
 def mock_response_contents():
+    os.chdir(pathlib.Path(__file__).parent.absolute())
+    os.chdir('./responses')
     data = []
     filenames = ["opmon_response1.dat", "opmon_response2.dat"]
     for name in filenames:
