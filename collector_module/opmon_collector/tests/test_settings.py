@@ -16,6 +16,16 @@ def set_dir():
     os.chdir(pathlib.Path(__file__).parent.absolute())
 
 
+def test_list_files_in_non_existing_dir(set_dir):
+    files = OpmonSettingsManager._get_all_files('/testing/opmon/__notfound__/1234')
+    assert len(files) == 0
+
+
+def test_finding_settings_file(set_dir):
+    file = OpmonSettingsManager._find_settings_file("UNITTEST")
+    assert file == './settings_UNITTEST.yaml'
+
+
 def test_loading_default_settings_file(set_dir):
     settings = OpmonSettingsManager().settings
 

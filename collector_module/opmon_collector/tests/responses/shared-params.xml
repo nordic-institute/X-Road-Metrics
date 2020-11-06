@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns3:conf xmlns:ns2="http://x-road.eu/xsd/identifiers" xmlns:ns3="http://x-road.eu/xsd/xroad.xsd">
+    <instanceIdentifier>DEV</instanceIdentifier>
+    <approvedCA>
+        <name>Customized Test CA CN</name>
+        <topCA>
+            <cert>MIIFtDCCA5ygAwIBAgIJAIDuKcKTRP6yMA0GCSqGSIb3DQEBCwUAMGcxCzAJBgNVBAYTAkZJMRgwFgYDVQQKDA9DdXN0b21pemVkIFRlc3QxHjAcBgNVBAsMFUN1c3RvbWl6ZWQgVGVzdCBDQSBPVTEeMBwGA1UEAwwVQ3VzdG9taXplZCBUZXN0IENBIENOMB4XDTIwMTAxMjE0MDQ0MloXDTQwMTAwNzE0MDQ0MlowZzELMAkGA1UEBhMCRkkxGDAWBgNVBAoMD0N1c3RvbWl6ZWQgVGVzdDEeMBwGA1UECwwVQ3VzdG9taXplZCBUZXN0IENBIE9VMR4wHAYDVQQDDBVDdXN0b21pemVkIFRlc3QgQ0EgQ04wggIiMA0GCSqGSIb3DQEBAQUAA4ICDwAwggIKAoICAQDC4cBjTfuPp1GwURTAK/o2rMi3BdopIOsJaVY3qAmWGNYnMo532iTEwLTxMuK25r6LONzafp6bYAO50fPexLCfJ07E0jCLY0kOubGExQFDx/qSKqdTWg803NyGOBFPJMjWY3oYhpP5ko4MU+Rjf7SIm3dg0vejNxFcDyHhsUeqyPPFAtgxtNUU7gFPhLfLlQPibE4CwAnwNHUQ4AXuO7G+VYJ/T/bGpOUVzyAFLCUvFORhYLOCLo2Wq14XN52z74n33KBea6j9YLy5f5MbEVggXno4NctdMDTD0sAJP8v+ZxIyin7k1rXI6OVtwwx1zi3zWIyujYbH9vdCVor4WPZHN8J/PZ12VnruBGK6NqMm1KgpkTyxLprquLPa9vpeIwMHgmdrDSsKqjyV8I3cX9DEnxHUPjLKsgMYTMNGAw4W+AQIis8wG0j59Lel+c9f8xi3bAHqkYfYjLKKULobJxnqqYh/QkjlKxachHUgaV4/IkPprfokJjdW//r6L+WErAEUx6Tr0ToP59YiNoPSAc0lUrqVroYNl8PEol/QkzI41y4AvUF5eKPUCH34NeuArLVMFVEKosDtvI34adidPsWumhU9hP0xxyP/oUcUmY/lVsWb7WAOYVFa7x+DC4QGqn3Ic3RE0GsOqapatrXhhXJrqSPi+UJVauoQtQnpVgpu4QIDAQABo2MwYTAdBgNVHQ4EFgQUtTwkb1IQEboE46OrTY5IgAgTA+AwHwYDVR0jBBgwFoAUtTwkb1IQEboE46OrTY5IgAgTA+AwDwYDVR0TAQH/BAUwAwEB/zAOBgNVHQ8BAf8EBAMCAYYwDQYJKoZIhvcNAQELBQADggIBADrNgmQ7LT0ucHWfIdMplG0cD3DIgVtnWNe0MlSuuycTStOMMaTdtmSUfaUEaq0ywbvcH+RYF3ftivhZ/nxpICtdS5IgHIedFxqn1Xn3OKduioW1D0CkGF2/6gFGEfQrjfFjZkSm24Zqd0Gaff2Hy50/iu6DowpAbho0bg+ut+wtDq0xyo+fbarGLsaVq1McsWqkzq6LK3lVemo/YZAt1HLwZr0s7fqCVpDyhXaafIMC1r38v71HhzBqlTpwUpNPgQFLcOdypVKID+DDt6RCm6pc/7CQUIeL1pB/+gCEy8AZTwTHPJ4C9vMeUjD1fUzwBb3W9m3X5SIT770wx1zZrHdqF5PkYnS3agtOnSejW0NYNny/T9ulzjBc3T2da/khuPUWbknSNnR+VDvw9vS4TZ+WfeI4r50mjGiqgN8n4ZC4cKWJqisNjESTem6xUO+gNk9G8lGEQOrosvPuU01vdgki55c9RJl7TIhvNlHz2OYkQK0U83RCkgTr+k7sM83Tx9G+ttLONwUVq4OmLFFef1v/htqjm6Qgtnc3KpR9EN5vfSv4CHbGLRsUadd9Ir8dTJB/iWKb+PyUykAj1c0sksUc+jxAxGBvtOSd15reM7gVzyhnTF8QVoAnX6Vgew4knm2AQgNHPb8odh3MNIYclWQnS85vLYFoLSyEsvbdwW7j</cert>
+            <ocsp>
+                <url>http://x-road-cs:8888</url>
+                <cert>MIIFwjCCA6qgAwIBAgIBATANBgkqhkiG9w0BAQsFADBnMQswCQYDVQQGEwJGSTEYMBYGA1UECgwPQ3VzdG9taXplZCBUZXN0MR4wHAYDVQQLDBVDdXN0b21pemVkIFRlc3QgQ0EgT1UxHjAcBgNVBAMMFUN1c3RvbWl6ZWQgVGVzdCBDQSBDTjAeFw0yMDEwMTIxNDA0NDJaFw00MDEwMDcxNDA0NDJaMGsxCzAJBgNVBAYTAkZJMRgwFgYDVQQKDA9DdXN0b21pemVkIFRlc3QxIDAeBgNVBAsMF0N1c3RvbWl6ZWQgVGVzdCBPQ1NQIE9VMSAwHgYDVQQDDBdDdXN0b21pemVkIFRlc3QgT0NTUCBDTjCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIBALg+QCZ8RWS56pqdEvOocQWInzbMLv8mPpp9iyMI8PLW0hI93DjgEhYdAXrMJZOJ+VSsQp9lAesG7/WWfc67wc6bwSttxUzckCPCEtJJJ3qCz00bSJl8aso+rrmcs+JpXGm4khm0u1C48aZqRY1cZG1bF7h1bglBrt9H42+ZU3isBUyf7+qh03IwcPXKddKi9KK+LNdfgHHFkIhNMUCLX24nrXMP+ihEW/3lzJ6mUCptb7o74rg/EhGc5nUqV2EFGgGYnlrOmYy4pvv48ZxURdDCpmpXbAAMPGGvgBKNyY7Id9f4QbQu2gLPUH3QbxJRBrs1ZNyUJNN6qhQdU33Aa0hMgz2coNZbXfomdZrPzCmqs8FzbFxXJz/beEk/XiYg1lnDV9jrTVSBuauCDZ8Mtb0Yyq+RT9CvbLoF+EzUmGwJfd0osmY/k+3wqbTcvv39DQ0WgXCwm/139eTEcKme7RZd/NHXlj2XjfomeDg68rWFGZtGOXkb0zYNbHS8erNOJDpQYPAvN9SqHV+oAlvFhPdd+BYJC+v803xkyFd+DSFpH1bmtb5Ta3rxmRWhlai5uZVzhFD4T86vQi/gFgmR14VsPtLNDPzhlyauoPeUxetZ/HkJnaEWsRxsb9yeFftGDhhl1fPZFZej/oLiHLd3Z93FErmqT8h+C1xT4bUu3oaPAgMBAAGjdTBzMAkGA1UdEwQCMAAwHQYDVR0OBBYEFIezu6qvm2fXfyrtyjzYU836P0J3MB8GA1UdIwQYMBaAFLU8JG9SEBG6BOOjq02OSIAIEwPgMA4GA1UdDwEB/wQEAwIHgDAWBgNVHSUBAf8EDDAKBggrBgEFBQcDCTANBgkqhkiG9w0BAQsFAAOCAgEAsssJWj6pY+figDwWxntJ1h/IHWLsXLnA6GTukZAbEsLDqyITWsu9y+TETvXUdEwaKjixOdnLeixX58ao7Go5L2LC3N7DAiKuQT82k9Gmz52A3KCIfZwm0TAgzB21ZrJeYMhJD4IG2n4xU305/m8AmGdLJ+hdgHFWX0vzVTkSwl0xv8YLOufZSD1fS92hPh2opj6N3zXQ+BT/oV9cXMn5/akdvxyVuqwxwicu6e8qod0cxvRHlhgSXTit1cDvJzbXiGH48e4t2x3yer+4tei+XOUATFrZLEcnkg3FQ0Bo0ihigZH42JThGyRv+wvOnkYo0jec3vtZ5uAvbgUfvqaaMshdzy7QDDKRThGAkd15Dg35XCWnT9QbL8O/2DgndlkiUrnAMlRiPB+OblraawmwgKrBBTnU3j9si3sq/nNzSJIfBV/yYjp1aWhq0Jhc0hiclOOEGooq+JptxFhtnUYluLUUjJhaZ/lBzb2sbG4VgWYM9fWYuUMHw7ClLbV/RZNqvPy4v2NzOyPlhHIc8x5uRz/54Vl8LHRMCrV1BcKs/y61GV9VVFnlM+90/1sjY/UEnFuemPdVYac2ewUrXs0Ohf94+eqqJBAwcS7+8FQDS8SD0YH/HQ3bWBb9xQBqYSCnJCN5IuFQ+2Rp3BtK8P745seepTexGzmTzuki3QrzvWs=</cert>
+            </ocsp>
+        </topCA>
+        <certificateProfileInfo>ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider</certificateProfileInfo>
+    </approvedCA>
+    <approvedTSA>
+        <name>Customized Test TSA CN</name>
+        <url>http://x-road-cs:8899</url>
+        <cert>MIIFdTCCA12gAwIBAgIBAjANBgkqhkiG9w0BAQsFADBnMQswCQYDVQQGEwJGSTEYMBYGA1UECgwPQ3VzdG9taXplZCBUZXN0MR4wHAYDVQQLDBVDdXN0b21pemVkIFRlc3QgQ0EgT1UxHjAcBgNVBAMMFUN1c3RvbWl6ZWQgVGVzdCBDQSBDTjAeFw0yMDEwMTIxNDA0NDNaFw00MDEwMDcxNDA0NDNaMGkxCzAJBgNVBAYTAkZJMRgwFgYDVQQKDA9DdXN0b21pemVkIFRlc3QxHzAdBgNVBAsMFkN1c3RvbWl6ZWQgVGVzdCBUU0EgT1UxHzAdBgNVBAMMFkN1c3RvbWl6ZWQgVGVzdCBUU0EgQ04wggIiMA0GCSqGSIb3DQEBAQUAA4ICDwAwggIKAoICAQCjbyMd8Wuw8QUAApbrlcbnZKqXg42EC/kaXmOShyjmwm5DdwtnM67koHOdQctoEHtC8c8Hg9ZxxZ/vhRdDNeePeI/UA4uNw4JqpsPiWMuNuSWMbXHBoJfk4Fw1khzBrwAc1xOXt/EYI2sWPWhNmrhFri9eJ9fe+izZuE7HyG+tnsi83jVd0WDPBne1EczGrVKE5vClIH4YLjK8S4foJ8NTma7HR5tKHQ2yOaXAq8+/gSu1H0Q1744WIE8vhZ426k+9qd6WFC3pkPGW1B49EF5vqpqT2W5MGS8MOgWPGq7A9p3B83mm8CqDGO1DfDUVdfRhSEv6RsMVAlQ4xtCEQvnaxUyjO2dSFZV7I0tuh3jGFxv8zF/K3U8rBtrjIf2XbUEsq17IrMnfyU/zbw5gxRQKWNBw0PpWh7iaB1DAS24016XXDjJtMf9VKFI43Ukwl8uE/UoQdr8TAhrIRoLNyqmKIhuXc03Bckgj529Vq+qc3TCUgCiyUVfH1P2N01TxTYraId7Y2oGlt+mOv0JO0WN8cEm4TDFZ6YjIcx+tirF3Ogya6DcE35nwEeYb6ECGKSFOWA+Y436u49rvfGZYyYqPP0IHxMKhf5Xycyqf22tIWPc4gtS+NInF1YMOgCRD8UEjzfHPugGONEpG+s9HKEQdhk21BtFM2igPsOZ60ojMBQIDAQABoyowKDAWBgNVHSUBAf8EDDAKBggrBgEFBQcDCDAOBgNVHQ8BAf8EBAMCBkAwDQYJKoZIhvcNAQELBQADggIBAAAkXE0eXI7e6WNr0h+aQ5rkFfNzx3gCHeDPHHqU9A8UtojMjIeqQNdNdyYPLatjgJga0ytwnSXOHZbjA901d0mT74hhuRRaZ9EYdMqdVOIsqf2ZwmYumRIw4baSQgK63ME+cNQYVt9Jij2YhTus1+mTlCLRwe5FxIpTltvHgqPWUCck4ET64CQNtTDUbxuyex+NCh7LgyHG+Fjq23LXRR7ay4Ewdu/t9f0WrgwWeyu4j2DaVeRGvq/lvH8TutWJNhzmmiAu934eiW3IN4GtModGXHPhlIuHpHJyuiTld1w45saHcMTg5RnN+qEGsg3RJagwFKKjRjJ6+P1UgVbeQukdIs26fmxKiiC4V+3Okihmxhs8G/ppjAiWKjnppKJQr6SVhEnUP3ih596A/mOhGT3S3+HpISjROJxCS2ESjj3nYn+/LadO8z0UDbE+yHEDoGROPdOGXKXp0ZWBc4RjrPNoO2SNtD0gxwkxAakkDXnME/7gFfjeujFiDRl2BfX5vq7ferfVG+vDWppRD+R0W5ws6NcfPuGHVNTthJEvY90koolKq/b0tnhelz6RIn2bJ1L1sK+l8wCHAIBy2FODHkotL7a8Y1hDGVh6oef0qlSbC7S+m4zGYbOdVmXwXh/lY6XsWkz/ahSlRHbU4n1BxJxGrbbAhMgg1mWvl5XYvjsk</cert>
+    </approvedTSA>
+    <member id="id0">
+        <memberClass>
+            <code>ORG</code>
+            <description>TestOrg</description>
+        </memberClass>
+        <memberCode>1234567-8</memberCode>
+        <name>TEST</name>
+        <subsystem id="id1">
+            <subsystemCode>MANAGEMENT</subsystemCode>
+        </subsystem>
+        <subsystem id="id2">
+            <subsystemCode>TEST</subsystemCode>
+        </subsystem>
+    </member>
+    <member id="id3">
+        <memberClass>
+            <code>ORG</code>
+            <description>TestOrg2</description>
+        </memberClass>
+        <memberCode>1111111-1</memberCode>
+        <name>TEST2</name>
+        <subsystem id="id4">
+            <subsystemCode>BLAH</subsystemCode>
+        </subsystem>
+    </member>
+    <securityServer>
+        <owner>id0</owner>
+        <serverCode>ss1</serverCode>
+        <address>x-road-ss</address>
+        <authCertHash>rdc626hc53eSrnA/9mBcA5G2RCY=</authCertHash>
+        <client>id1</client>
+        <client>id2</client>
+    </securityServer>
+    <securityServer>
+        <owner>id3</owner>
+        <serverCode>ss2</serverCode>
+        <address>x-road-ss-test</address>
+        <authCertHash>1234</authCertHash>
+        <client>id4</client>
+    </securityServer>
+    <globalGroup>
+        <groupCode>security-server-owners</groupCode>
+        <description>Security server owners</description>
+        <groupMember ns2:objectType="MEMBER">
+            <ns2:xRoadInstance>DEV</ns2:xRoadInstance>
+            <ns2:memberClass>ORG</ns2:memberClass>
+            <ns2:memberCode>1234567-8</ns2:memberCode>
+        </groupMember>
+    </globalGroup>
+    <globalSettings>
+        <memberClass>
+            <code>ORG</code>
+            <description>TestOrg</description>
+        </memberClass>
+        <ocspFreshnessSeconds>3600</ocspFreshnessSeconds>
+    </globalSettings>
+</ns3:conf>

@@ -2,35 +2,30 @@
     Stores updated list into collector_state.server_list
 """
 
+from opmon_collector.central_server_client import CentralServerClient
 from opmon_collector.database_manager import DatabaseManager
 from opmon_collector.logger_manager import LoggerManager
 
 
-def _get_server_list(settings):
+def _init_clients(settings):
     logger_m = LoggerManager(settings['logger'], settings['xroad']['instance'])
-    server_m = DatabaseManager(
-        settings['mongodb'],
-        settings['xroad']['instance'],
-        logger_m
-    )
-
-    central_server = settings['xroad']['central-server']
-    return server_m.get_list_from_central_server(
-        central_server['host'],
-        central_server['timeout']
-    )
+    cs_client = CentralServerClient(settings['xroad'], logger_m)
+    db_client = DatabaseManager(settings['mongodb'], settings['xroad']['instance'], logger_m)
+    return cs_client, db_client
 
 
 def update_database_server_list(settings):
-    server_list = _get_server_list(settings)
+    cs_client, db_client = _init_clients(settings)
+    server_list = cs_client.get_security_servers()
     if len(server_list):
-        server_m.stores_server_list_database(server_list)
+        db_client.save_server_list_to_database(server_list)
         print('- Total of {0} inserted into server_list collection.'.format(len(server_list)))
     else:
         print('- No servers found')
 
 
 def print_server_list(settings):
-    server_list = _get_server_list(settings)
+    cs_client, _ = _init_clients(settings)
+    server_list = cs_client.get_security_servers()
     for s in server_list:
         print(s)

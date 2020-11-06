@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
 
 import argparse
-import os
-import importlib.util
-import re
 import sys
 
-from opmon_collector.collector_worker import collector_main
+from opmon_collector.collector_multiprocessing import collector_main
 from opmon_collector.update_servers import update_database_server_list, print_server_list
 from opmon_collector.settings import OpmonSettingsManager
 

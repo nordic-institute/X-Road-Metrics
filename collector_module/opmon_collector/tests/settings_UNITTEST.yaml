@@ -12,7 +12,8 @@ xroad:
     host: x-road-cs
     timeout: 1
   security-server:
-    url: http://x-road-ss
+    protocol: http://
+    host: x-road-ss
     timeout: 1.0
   monitoring-client:
     memberclass: A

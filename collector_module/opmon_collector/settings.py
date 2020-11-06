@@ -1,6 +1,5 @@
 from os import listdir
 from os.path import isfile, join
-from types import SimpleNamespace
 import re
 from copy import deepcopy
 
@@ -35,22 +34,25 @@ class OpmonSettingsManager:
         with open(filename, 'r') as stream:
             return yaml.safe_load(stream)
 
-    def _find_settings_file(self, profile):
+    @staticmethod
+    def _find_settings_file(profile):
         search_paths = ['./', '/etc/opmon/collector/']
         files = []
         for p in search_paths:
-            files.extend(self._get_all_files(p))
+            files.extend(OpmonSettingsManager._get_all_files(p))
 
-        settings_files = self._get_settings_files(files, profile)
+        settings_files = OpmonSettingsManager._get_settings_files(files, profile)
         return settings_files[0]
 
-    def _get_all_files(self, path):
+    @staticmethod
+    def _get_all_files(path):
         try:
             return [join(path, f) for f in listdir(path) if isfile(join(path, f))]
         except FileNotFoundError:
-            pass
+            return []
 
-    def _get_settings_files(self, file_list, profile):
+    @staticmethod
+    def _get_settings_files(file_list, profile):
         instance_suffix = '' if profile is None else f'_{profile}'
         pattern = r'.+/settings' + instance_suffix + r'\.(yaml|yml)'
 

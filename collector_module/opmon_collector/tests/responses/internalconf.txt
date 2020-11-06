@@ -1,0 +1,6 @@
+--0WMAOPQVOUBBq6pIOxXIDZjE9Rc=
+Content-type: application/octet-stream
+Content-transfer-encoding: base64
+Content-identifier: SHARED-PARAMETERS; instance='DEV'
+Content-location: /V2/20201105104801222890000/shared-params.xml
+Hash-algorithm-id: http://www.w3.org/2001/04/xmlenc#sha512
