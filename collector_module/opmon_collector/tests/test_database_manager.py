@@ -97,6 +97,3 @@ def test_get_next_records_timestamp_non_existent_key(basic_settings, mocker):
 
     t = d.get_next_records_timestamp('newkey', 0)
     assert t == pytest.approx(float(time.time()), 1)
-
-
-

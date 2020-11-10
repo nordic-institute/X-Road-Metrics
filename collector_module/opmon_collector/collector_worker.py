@@ -10,7 +10,6 @@ from opmon_collector.security_server_client import SecurityServerClient
 
 
 class CollectorWorker:
-
     class Status(Enum):
         DATA_AVAILABLE = 0
         ALL_COLLECTED = 1
@@ -130,11 +129,10 @@ class CollectorWorker:
 
     @staticmethod
     def _parse_next_records_from_response(response):
-        result = re.search(b"<om:nextRecordsFrom>(\d+)</om:nextRecordsFrom>", response.content)
+        result = re.search(b"<om:nextRecordsFrom>(\\d+)</om:nextRecordsFrom>", response.content)
         return None if result is None else int(result.group(1))
 
 
 def run_collector_thread(data):
     worker = CollectorWorker(data)
     return worker.work()
-

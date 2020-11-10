@@ -8,7 +8,6 @@ from opmon_collector.logger_manager import LoggerManager
 
 @pytest.fixture()
 def log_path():
-
     log_path = '/tmp/opmon-tests/logs'
     shutil.rmtree(log_path, ignore_errors=True)
     os.makedirs(log_path)
@@ -68,7 +67,7 @@ def test_logging_without_limits(log_path, logger_settings):
     log_on_every_level(logger)
 
     rows = read_log_rows(log_path, instance)
-    assert(len(rows) == 3)
+    assert (len(rows) == 3)
     assert_levels(rows, ['INFO', 'WARNING', 'ERROR'])
     assert_log_fields(rows)
 
@@ -80,7 +79,7 @@ def test_logging_with_warning_limit(log_path, logger_settings):
     log_on_every_level(logger)
 
     rows = read_log_rows(log_path, instance)
-    assert(len(rows) == 2)
+    assert (len(rows) == 2)
     assert_levels(rows, ['WARNING', 'ERROR'])
     assert_messages(rows, ['test-warn-message', 'test-error-message'])
     assert_log_fields(rows)
@@ -93,7 +92,7 @@ def test_logging_with_error_limit(log_path, logger_settings):
     log_on_every_level(logger)
 
     rows = read_log_rows(log_path, instance)
-    assert(len(rows) == 1)
+    assert (len(rows) == 1)
     assert_levels(rows, ['ERROR'])
     assert_messages(rows, ['test-error-message'])
     assert_log_fields(rows)
@@ -109,4 +108,3 @@ def test_heartbeat(logger_settings, log_path):
     assert_heartbeat_fields(rows)
 
     assert rows[0]['msg'] == 'hb-test-msg2'
-

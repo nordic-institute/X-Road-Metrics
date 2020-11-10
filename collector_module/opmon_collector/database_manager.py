@@ -97,4 +97,3 @@ class DatabaseManager:
         except Exception as e:
             self.logger_m.log_error('ServerManager.insert_data_to_raw_messages', '{0}'.format(repr(e)))
             raise e
-

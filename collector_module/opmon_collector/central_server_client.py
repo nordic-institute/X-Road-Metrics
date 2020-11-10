@@ -16,7 +16,6 @@ class CentralServerClient:
         except Exception as e:
             self.logger_m.log_warning('CentralServerClient.get_security_servers', f'{repr(e)}')
             raise e
-            #return []
 
     def _get_shared_params(self):
         internal_conf_url = f"{self.url}/internalconf"
@@ -38,7 +37,6 @@ class CentralServerClient:
         root = ET.fromstring(shared_params.content)
         instance = root.find("./instanceIdentifier").text
         for server in root.findall("./securityServer"):
-
             owner_id = server.find("./owner").text
             owner = root.find("./member[@id='{0}']".format(owner_id))
             member_class = owner.find("./memberClass/code").text
