@@ -1,6 +1,6 @@
 coverage
 pytest
 pytest-mock
-pycodestyle
+pytest-pycodestyle
 responses
 mongomock
