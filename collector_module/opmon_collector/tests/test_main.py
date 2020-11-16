@@ -79,5 +79,3 @@ def test_invalid_action(mocker, mock_collector, mock_settings_manager):
 
 def test_failure():
     assert False
-
-a = 'longlonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglong'
