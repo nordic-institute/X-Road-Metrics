@@ -75,7 +75,3 @@ def test_invalid_action(mocker, mock_collector, mock_settings_manager):
     main.collector_main.assert_not_called()
     main.update_database_server_list.assert_not_called()
     main.print_server_list.assert_not_called()
-
-
-def test_failure():
-    assert False
