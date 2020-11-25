@@ -3,7 +3,7 @@
 """
 Unit tests for create_users.py
 """
-import create_users
+import opmon_mongodb_maintenance.create_users as create_users
 import pytest
 from pytest_mock import mocker
 from argparse import Namespace
@@ -15,7 +15,7 @@ admin_user_names = ['root', 'backup', 'superuser']
 def test_mongo_client_creation_no_auth(mocker):
     args = Namespace(host='testhost:1234', user=None)
 
-    mocker.patch('create_users.MongoClient')
+    mocker.patch('opmon_mongodb_maintenance.create_users.MongoClient')
     create_users._connect_mongo(args)
     create_users.MongoClient.assert_called_once_with(args.host)
 
@@ -23,8 +23,8 @@ def test_mongo_client_creation_no_auth(mocker):
 def test_mongo_client_creation_username_only(mocker):
     args = Namespace(host='testhost:1234', user='testuser', password=None, auth='admin')
 
-    mocker.patch('create_users.MongoClient')
-    mocker.patch('create_users.getpass.getpass', return_value='testpass')
+    mocker.patch('opmon_mongodb_maintenance.create_users.MongoClient')
+    mocker.patch('opmon_mongodb_maintenance.create_users.getpass.getpass', return_value='testpass')
     create_users._connect_mongo(args)
 
     create_users.MongoClient.assert_called_once_with(args.host, username=args.user, password='testpass', authSource=args.auth)
@@ -34,8 +34,8 @@ def test_mongo_client_creation_username_only(mocker):
 def test_mongo_client_creation_full_auth(mocker):
     args = Namespace(host='testhost:1234', user='testuser', password='pass', auth='admin')
 
-    mocker.patch('create_users.MongoClient')
-    mocker.patch('create_users.getpass.getpass', return_value='wrongpass')
+    mocker.patch('opmon_mongodb_maintenance.create_users.MongoClient')
+    mocker.patch('opmon_mongodb_maintenance.create_users.getpass.getpass', return_value='wrongpass')
     create_users._connect_mongo(args)
 
     create_users.MongoClient.assert_called_once_with(args.host, username=args.user, password=args.password, authSource=args.auth)

@@ -1,0 +1,6 @@
+#!/usr/bin/env python3
+
+from opmon_mongodb_maintenance.create_users import main
+
+if __name__ == "__main__":
+    main()

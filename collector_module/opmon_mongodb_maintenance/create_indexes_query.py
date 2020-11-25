@@ -115,10 +115,23 @@ def main():
     mdb_indexes.append(('clean_data', [('producer.clientMemberCode', 1), ('producer.clientSubsystemCode', 1), ('producer.requestInTs', 1)]))
     mdb_indexes.append(('clean_data', [('producer.serviceMemberCode', 1), ('producer.serviceSubsystemCode', 1), ('producer.requestInTs', 1)]))
     # namespace name generated from index name "..."  is too long (127 byte max)
-	# Probably these indexes are not required, please review speed of reports
-    # mdb_indexes.append(('clean_data', [('client.clientMemberCode', 1), ('producer.serviceMemberCode', 1), ('client.clientSubsystemCode', 1), ('producer.serviceSubsystemCode', 1), ('client.requestInTs', 1), ('producer.requestInTs', 1)]))
-    # mdb_indexes.append(('clean_data', [('client.serviceMemberCode', 1), ('producer.clientMemberCode', 1), ('client.serviceSubsystemCode', 1), ('producer.clientSubsystemCode', 1), ('client.requestInTs', 1), ('producer.requestInTs', 1)]))
-	
+    # Probably these indexes are not required, please review speed of reports
+    # mdb_indexes.append(('clean_data', [
+    #    ('client.clientMemberCode', 1),
+    #    ('producer.serviceMemberCode', 1),
+    #    ('client.clientSubsystemCode', 1),
+    #    ('producer.serviceSubsystemCode', 1), ('client.requestInTs', 1),
+    #    ('producer.requestInTs', 1)
+    # ]))
+    # mdb_indexes.append(('clean_data', [
+    #    ('client.serviceMemberCode', 1),
+    #    ('producer.clientMemberCode', 1),
+    #    ('client.serviceSubsystemCode', 1),
+    #    ('producer.clientSubsystemCode', 1),
+    #    ('client.requestInTs', 1),
+    #    ('producer.requestInTs', 1)
+    # ]))
+
     print('* Creating Query MongoDB indexes:')
     i_list = []
     for db_ind in tqdm(mdb_indexes):
