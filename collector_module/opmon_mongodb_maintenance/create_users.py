@@ -15,7 +15,7 @@ user_roles = {
     'analyzer': {'query_db': 'read', 'analyzer_database': 'readWrite'},
     'analyzer_interface': {'query_db': 'read', 'analyzer_database': 'readWrite'},
     'anonymizer': {'query_db': 'read', 'anonymizer_state': 'readWrite'},
-    'collector': {'query_db': 'readWrite', 'collcetor_state': 'readWrite'},
+    'collector': {'query_db': 'readWrite', 'collector_state': 'readWrite'},
     'corrector': {'query_db': 'readWrite'},
     'reports': {'query_db': 'read', 'reports_state': 'readWrite'}
 }
