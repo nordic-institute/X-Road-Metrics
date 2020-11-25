@@ -2,11 +2,10 @@
 from setuptools import setup
 
 requirements = [
-    "pymongo>=3.4,<4",
-    "requests>=2.24,<3",
-    "numpy>=1.19,<2",
-    "tqdm>=4.14<5",
-    "pyaml>=20.4.0"
+    "pymongo==3.10.1",
+    "requests==2.22.0",
+    "tqdm==4.30.0",
+    "pyyaml==5.3.1"
 ]
 
 classifiers = [
