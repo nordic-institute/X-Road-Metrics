@@ -1,8 +1,8 @@
 import subprocess
+import time
 
 import pytest
 import pymongo
-import time
 
 
 def get_parameter(parameter_name):
