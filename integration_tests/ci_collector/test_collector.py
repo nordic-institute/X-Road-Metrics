@@ -11,7 +11,7 @@ def test_update_server_list():
 
     data = mongo.find({'collector_id': f"collector_{xroad}"})
     data = data.sort([('timestamp', -1)]).limit(1)[0]
-    server_list_0, timestamp_0 = data['server_list'], data['timestamp']
+    _, timestamp_0 = data['server_list'], data['timestamp']
     assert timestamp_0 < time.time()
 
     command = f"opmon-collector update".split(' ')
@@ -42,11 +42,12 @@ def test_collect():
     assert proc.stderr == b''
     assert proc.returncode == 0
 
-    new_messages = list(mongo.find(
-        {"insertTime": {"$gte": start_time}}).limit(400))
+    time_filter = {"insertTime": {"$gte": start_time}}
+    new_message_ips = mongo.distinct('securityServerInternalIp', time_filter)
+    assert len(new_message_ips) == 2
+
+    new_messages = list(mongo.find(time_filter).limit(500))
     assert len(new_messages) > 2
-    ss_ips = set([msg["securityServerInternalIp"] for msg in new_messages])
-    assert len(ss_ips) == 2
 
     required_keys = {
         "securityServerInternalIp",
