@@ -20,15 +20,15 @@ Overall system is also designed in a way, that can be used by X-Road Centre for 
 
 The database is implemented with the MongoDB technology: a non-SQL database with replication and sharding capabilities.
 
-This document describes the installation steps for Ubuntu 16.04. For other Linux distribution, please refer to: [MongoDB 3.4 documentation](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/)
+This document describes the installation steps for Ubuntu 20.04. For other Linux distribution, please refer to: [MongoDB 4.4 documentation](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/)
 
 Add the MongoDB repository key and location:
 
 ```bash
-# Key 4096R/A15703C6 2016-01-11 [expires: 2020-01-05]
-sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6
-echo "deb [ arch=amd64,arm64 ] http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.4 multiverse" \
-    | sudo tee /etc/apt/sources.list.d/mongodb-org-3.4.list
+# Key rsa4096/20691eec35216c63caf66ce1656408e390cfb1f5 [expires: 2024-05-26]
+sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 656408e390cfb1f5
+echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/4.4 multiverse" \
+    | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
 ```
 
 Install MongoDB server and client tools (shell)
