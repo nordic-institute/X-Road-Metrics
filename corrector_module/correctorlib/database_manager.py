@@ -35,20 +35,19 @@ def get_timestamp():
 
 class DatabaseManager:
 
-    def __init__(self, settings):
-        """ Initializes the DatabaseManager object.
-        :param settings: The Corrector settings.
-        """
+    def __init__(self, settings, logger_manager):
         self.settings = settings
-        # self.logger_m = LoggerManager(self.settings.LOGGER_NAME, self.settings.MODULE)
-        self.logger_m = LoggerManager(settings.LOGGER_NAME, settings.MODULE)
-        self.TIME_WINDOW = settings.TIME_WINDOW
-        mdb_user = settings.MONGODB_USER
-        mdb_pwd = settings.MONGODB_PWD
-        mdb_server = settings.MONGODB_SERVER
-        self.mdb_database = settings.MONGODB_DATABASE
-        uri = "mongodb://{0}:{1}@{2}/auth_db".format(mdb_user, mdb_pwd, mdb_server)
-        self.client = pymongo.MongoClient(uri)
+        self.logger_m = logger_manager
+
+        self.client = pymongo.MongoClient(self.get_mongo_uri(settings))
+        self.mdb_database = f"query_db_{settings['xroad']['instance']}"
+
+    @staticmethod
+    def get_mongo_uri(settings):
+        user = settings['mongodb']['user']
+        password = settings['mongodb']['password']
+        host = settings['mongodb']['host']
+        return f"mongodb://{user}:{password}@{host}/auth_db"
 
     def get_query_db(self):
         """
@@ -115,7 +114,8 @@ class DatabaseManager:
             db = self.get_query_db()
             clean_data = db[CLEAN_DATA_COLLECTION]
             ref_time = 1000 * (get_timestamp() - (timeout_days * 24 * 60 * 60))
-            q = {"correctorStatus": "processing", "client.requestInTs": {"$exists": False}, "producer.requestInTs": {"$lt": ref_time}}
+            q = {"correctorStatus": "processing", "client.requestInTs": {"$exists": False},
+                 "producer.requestInTs": {"$lt": ref_time}}
             cursor = clean_data.find(q).limit(limit)
             return list(cursor)
         except Exception as e:
@@ -136,8 +136,9 @@ class DatabaseManager:
         request_in_ts = current_doc.get('requestInTs', 0)
 
         # Time window
-        start_q_time = request_in_ts - self.TIME_WINDOW
-        end_q_time = request_in_ts + self.TIME_WINDOW
+        time_window = self.settings['corrector']['time-window']
+        start_q_time = request_in_ts - time_window
+        end_q_time = request_in_ts + time_window
 
         # Build query
         q = {"messageId": message_id, "correctorStatus": "processing"}
