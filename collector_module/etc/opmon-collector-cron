@@ -7,4 +7,4 @@ SHELL=/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 # m   h  dom mon dow  user       command
-  20 */3  *   *   *   collector  /usr/share/opmon/collector/scripts/cron/cron_collector.sh
+  20 */3  *   *   *   opmon  /usr/share/opmon/collector/scripts/cron/cron_collector.sh

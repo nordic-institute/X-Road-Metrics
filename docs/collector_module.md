@@ -12,7 +12,7 @@ The **Collector module** is responsible to retrieve data from X-Road v6 security
 
 It is important to note that it can take up to 7 days for the Collector module to receive X-Road v6 operational data from (all available) security server(s).
 
-Overall system, its users and rights, processes and directories are designed in a way, that all modules can reside in one server (different users but in same group 'opmon') but also in separate servers. 
+Overall system, its users and rights, processes and directories are designed in a way, that all modules can reside in one server, but also in separate servers. Opmon modules are controlled by unix user 'opmon' in group 'opmon'.
 
 Overall system is also designed in a way, that allows to monitor data from different X-Road v6 instances (in Estonia `ee-dev`, `ee-test`, `EE`, see also [X-Road v6 environments](https://moodle.ria.ee/mod/page/view.php?id=700).
 
@@ -53,12 +53,12 @@ sudo apt-get install opmon-collector
 
 The installation package automatically installs following items:
  * opmon-collector command to run the collector manually
- * Linux user named _collector_ and groups _collector_ and _opmon_
+ * Linux user named _opmon_ and group _opmon_
  * settings file _/etc/opmon/collector/settings.yaml_
  * cronjob in _/etc/cron.d/opmon-collector-cron_ to run collector automatically every three hours
  * log folders to _/var/log/opmon/collector/_
 
-Only _collector_ user can access the settings files and run opmon-collector command.
+Only _opmon_ user can access the settings files and run opmon-collector command.
 
 To use collector you need to fill in your X-Road and MongoDB configuration into the settings file.
 Refer to section [Collector Configuration](#collector-configuration)
@@ -95,7 +95,7 @@ _/etc/opmon/collector/_
 ### Manual usage
 
 All collector module actions can be executed by calling the `opmon-collector` command.
-Command should be executed as user `collector` so change to that user:
+Command should be executed as user `opmon` so change to that user:
 ```bash
 sudo su collector
 ```
@@ -127,14 +127,14 @@ SHELL=/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 # m   h  dom mon dow  user       command
-  15 */6  *   *   *   collector  /usr/share/opmon/collector/scripts/cron/cron_collector.sh PROD
-  30 */6  *   *   *   collector  /usr/share/opmon/collector/scripts/cron/cron_collector.sh TEST
+  15 */6  *   *   *   opmon  /usr/share/opmon/collector/scripts/cron/cron_collector.sh PROD
+  30 */6  *   *   *   opmon  /usr/share/opmon/collector/scripts/cron/cron_collector.sh TEST
 
 ```
 
 If collector is to be run only manually, comment out the default cron task:
 ```bash
-# 15 */6 * * * collector /usr/share/opmon/collector/scripts/cron/cron_collector.sh 
+# 15 */6 * * * opmon /usr/share/opmon/collector/scripts/cron/cron_collector.sh 
 ```
 
 ### Note about Indexing
@@ -361,7 +361,7 @@ export MONGODB_SERVER=`grep "^MONGODB_SERVER = " ${APPDIR}/${INSTANCE}/collector
 export PASSWORD=`grep "^MONGODB_PWD = " ${APPDIR}/${INSTANCE}/collector_module/settings.py | cut -d'=' -f2 | sed -e "s/ //g" | sed -e "s/\"//g"`
 #
 for file in `ls ${LOG_PATH}/${INSTANCE}.*.*.log*` ; do \
-    sudo --user collector /usr/bin/python3 ${APPDIR}/${INSTANCE}/collector_module/external_files/collector_from_file.py \
+    sudo --user opmon /usr/bin/python3 ${APPDIR}/${INSTANCE}/collector_module/external_files/collector_from_file.py \
 	query_db_${INSTANCE} collector_${INSTANCE} $file \
 	--password ${PASSWORD} --auth auth_db --host ${MONGODB_SERVER}:27017 --confirm True ; done
 ```
