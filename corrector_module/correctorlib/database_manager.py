@@ -35,12 +35,13 @@ def get_timestamp():
 
 class DatabaseManager:
 
-    def __init__(self, settings, logger_manager):
+    def __init__(self, settings):
         self.settings = settings
-        self.logger_m = logger_manager
+        xroad = settings['xroad']['instance']
+        self.logger_m = LoggerManager(settings['logger'], xroad)
 
         self.client = pymongo.MongoClient(self.get_mongo_uri(settings))
-        self.mdb_database = f"query_db_{settings['xroad']['instance']}"
+        self.mdb_database = f"query_db_{xroad}"
 
     @staticmethod
     def get_mongo_uri(settings):

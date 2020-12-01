@@ -12,6 +12,8 @@ from .logger_manager import LoggerManager
 class CorrectorBatch:
     def __init__(self, settings):
         self.settings = settings
+        xroad = settings['xroad']['instance']
+        self.logger_m = LoggerManager(settings['logger'], xroad)
 
     def run(self, process_dict):
         """
@@ -23,9 +25,8 @@ class CorrectorBatch:
             self._batch_run(process_dict)
         except Exception as e:
             # Catch internal exceptions to log
-            logger_m = LoggerManager(self.settings.LOGGER_NAME, self.settings.MODULE)
             msg = "Error: {0} {1}".format(repr(e), traceback.format_exc()).replace("\n", "")
-            logger_m.log_error('corrector_batch_run', msg)
+            self.logger_m.log_error('corrector_batch_run', msg)
             # Raise exception again
             raise e
 
@@ -39,19 +40,17 @@ class CorrectorBatch:
 
         doc_len = 0
         start_processing_time = time.time()
-        logger_m = LoggerManager(self.settings.LOGGER_NAME, self.settings.MODULE)
-        logger_m.log_heartbeat(
-            "processing", self.settings.HEARTBEAT_LOGGER_PATH, self.settings.HEARTBEAT_FILE, "SUCCEEDED")
-        logger_m.log_info('corrector_batch_start', 'Starting corrector - Version {0}'.format(LoggerManager.__version__))
+        self.logger_m.log_heartbeat(
+            "processing", "SUCCEEDED")
+        self.logger_m.log_info('corrector_batch_start',
+                               'Starting corrector - Version {0}'.format(LoggerManager.__version__))
 
-        # Start Database Manager
         db_m = database_manager.DatabaseManager(self.settings)
-        # Start Document Manager
         doc_m = document_manager.DocumentManager(self.settings)
 
-        # Get documents from raw collection
-        cursor = db_m.get_raw_documents(limit=self.settings.CORRECTOR_DOCUMENTS_LIMIT)
-        logger_m.log_info('corrector_batch_raw', 'Processing {0} raw documents'.format(len(cursor)))
+        limit = self.settings["corrector"]["documents-max"]
+        cursor = db_m.get_raw_documents(limit=limit)
+        self.logger_m.log_info('corrector_batch_raw', 'Processing {0} raw documents'.format(len(cursor)))
 
         # Aggregate documents by message id
         # Correct missing fields
@@ -73,7 +72,7 @@ class CorrectorBatch:
         for message_id in doc_map:
             documents = doc_map[message_id]
             data = dict()
-            data['logger_manager'] = logger_m
+            data['logger_manager'] = self.logger_m
             data['document_manager'] = doc_m
             data['message_id'] = message_id
             data['documents'] = documents
@@ -86,7 +85,7 @@ class CorrectorBatch:
 
         # Create pool of workers
         pool = []
-        for i in range(self.settings.THREAD_COUNT):
+        for i in range(self.settings["corrector"]["thread-count"]):
             # Configure worker
             worker = CorrectorWorker(self.settings, 'worker_{0}'.format(i))
             p = multiprocessing.Process(target=worker.run, args=(list_to_process, duplicates))
@@ -99,36 +98,37 @@ class CorrectorBatch:
         for p in pool:
             p.join()
 
-        logger_m.log_info('corrector_batch_update_timeout',
-                          "Updating timed out [{0} days] orphans to done.".format(self.settings.CORRECTOR_TIMEOUT_DAYS))
+        timeout = self.settings['corrector']['timeout-days']
+        self.logger_m.log_info('corrector_batch_update_timeout',
+                               f"Updating timed out [{timeout} days] orphans to done.")
 
         # Update Status of older documents according to client.requestInTs
-        cursor = db_m.get_timeout_documents_client(self.settings.CORRECTOR_TIMEOUT_DAYS,
-                                            limit=self.settings.CORRECTOR_DOCUMENTS_LIMIT)
+        cursor = db_m.get_timeout_documents_client(timeout, limit=limit)
         list_of_docs = list(cursor)
         number_of_updated_docs = db_m.update_old_to_done(list_of_docs)
 
         if number_of_updated_docs > 0:
-            logger_m.log_info('corrector_batch_update_client_old_to_done',
-                              "Total of {0} orphans from Client updated to status 'done'.".format(number_of_updated_docs))
+            self.logger_m.log_info('corrector_batch_update_client_old_to_done',
+                                   "Total of {0} orphans from Client updated to status 'done'.".format(
+                                       number_of_updated_docs))
         else:
-            logger_m.log_info('corrector_batch_update_client_old_to_done',
-                              "No orphans updated to done.")
+            self.logger_m.log_info('corrector_batch_update_client_old_to_done',
+                                   "No orphans updated to done.")
 
         doc_len += number_of_updated_docs
 
         # Update Status of older documents according to producer.requestInTs
-        cursor = db_m.get_timeout_documents_producer(self.settings.CORRECTOR_TIMEOUT_DAYS,
-                                            limit=self.settings.CORRECTOR_DOCUMENTS_LIMIT)
+        cursor = db_m.get_timeout_documents_producer(timeout, limit=limit)
         list_of_docs = list(cursor)
         number_of_updated_docs = db_m.update_old_to_done(list_of_docs)
 
         if number_of_updated_docs > 0:
-            logger_m.log_info('corrector_batch_update_producer_old_to_done',
-                              "Total of {0} orphans from Producer updated to status 'done'.".format(number_of_updated_docs))
+            self.logger_m.log_info('corrector_batch_update_producer_old_to_done',
+                                   "Total of {0} orphans from Producer updated to status 'done'.".format(
+                                       number_of_updated_docs))
         else:
-            logger_m.log_info('corrector_batch_update_producer_old_to_done',
-                              "No orphans updated to done.")
+            self.logger_m.log_info('corrector_batch_update_producer_old_to_done',
+                                   "No orphans updated to done.")
 
         doc_len += number_of_updated_docs
 
@@ -144,11 +144,12 @@ class CorrectorBatch:
                 element_in_queue = False
 
         if total_raw_removed > 0:
-            logger_m.log_info('corrector_batch_remove_duplicates_from_raw',
-                              "Total of {0} duplicate documents removed from raw messages.".format(total_raw_removed))
+            self.logger_m.log_info('corrector_batch_remove_duplicates_from_raw',
+                                   "Total of {0} duplicate documents removed from raw messages.".format(
+                                       total_raw_removed))
         else:
-            logger_m.log_info('corrector_batch_remove_duplicates_from_raw',
-                              "No raw documents marked to removal.")
+            self.logger_m.log_info('corrector_batch_remove_duplicates_from_raw',
+                                   "No raw documents marked to removal.")
 
         doc_len += total_raw_removed
 
@@ -158,7 +159,7 @@ class CorrectorBatch:
                "Documents processed: " + str(doc_len),
                "Processing time: {0}".format(total_time)]
 
-        logger_m.log_info('corrector_batch_end', ' | '.join(msg))
-        logger_m.log_heartbeat(
-            "finished", self.settings.HEARTBEAT_LOGGER_PATH, self.settings.HEARTBEAT_FILE, "SUCCEEDED")
+        self.logger_m.log_info('corrector_batch_end', ' | '.join(msg))
+        self.logger_m.log_heartbeat(
+            "finished", "SUCCEEDED")
         process_dict['doc_len'] = doc_len
