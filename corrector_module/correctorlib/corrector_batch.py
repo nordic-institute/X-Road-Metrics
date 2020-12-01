@@ -87,7 +87,7 @@ class CorrectorBatch:
         pool = []
         for i in range(self.settings["corrector"]["thread-count"]):
             # Configure worker
-            worker = CorrectorWorker(self.settings, 'worker_{0}'.format(i))
+            worker = CorrectorWorker(self.settings, f'worker_{i}')
             p = multiprocessing.Process(target=worker.run, args=(list_to_process, duplicates))
             pool.append(p)
 

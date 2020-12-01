@@ -10,25 +10,11 @@ from .logger_manager import LoggerManager
 class DocumentManager:
     def __init__(self, settings):
 
-        self.settings = settings
-
-        self.logger_m = LoggerManager(self.settings.LOGGER_NAME, self.settings.MODULE)
-
-        self.TIME_WINDOW = self.settings.TIME_WINDOW
-        self.CALC_TOTAL_DURATION = self.settings.CALC_TOTAL_DURATION
-        self.CALC_CLIENT_SS_REQUEST_DURATION = self.settings.CALC_CLIENT_SS_REQUEST_DURATION
-        self.CALC_CLIENT_SS_RESPONSE_DURATION = self.settings.CALC_CLIENT_SS_RESPONSE_DURATION
-        self.CALC_PRODUCER_DURATION_CLIENT_VIEW = self.settings.CALC_PRODUCER_DURATION_CLIENT_VIEW
-        self.CALC_PRODUCER_DURATION_PRODUCER_VIEW = self.settings.CALC_PRODUCER_DURATION_PRODUCER_VIEW
-        self.CALC_PRODUCER_SS_REQUEST_DURATION = self.settings.CALC_PRODUCER_SS_REQUEST_DURATION
-        self.CALC_PRODUCER_SS_RESPONSE_DURATION = self.settings.CALC_PRODUCER_SS_RESPONSE_DURATION
-        self.CALC_PRODUCER_IS_DURATION = self.settings.CALC_PRODUCER_IS_DURATION
-        self.CALC_REQUEST_NW_DURATION = self.settings.CALC_REQUEST_NW_DURATION
-        self.CALC_RESPONSE_NW_DURATION = self.settings.CALC_RESPONSE_NW_DURATION
-        self.CALC_REQUEST_SIZE = self.settings.CALC_REQUEST_SIZE
-        self.CALC_RESPONSE_SIZE = self.settings.CALC_RESPONSE_SIZE
-        self.COMPARISON_LIST = self.settings.COMPARISON_LIST
-        self.orphan_comparison_list = self.settings.comparison_list_orphan
+        self.calc = settings['corrector']['calc']
+        self.logger_m = LoggerManager(settings['logger'], settings['xroad']['instance'])
+        self.TIME_WINDOW = settings['collector']['time-window']
+        self.COMPARISON_LIST = settings['collector']['comparison-list']
+        self.orphan_comparison_list = settings['collector']['comparison_list_orphan']
 
         self.must_fields = (
             'monitoringDataTs', 'securityServerInternalIp', 'securityServerType', 'requestInTs', 'requestOutTs',
@@ -47,26 +33,26 @@ class DocumentManager:
         :param in_doc: The input document.
         :return: Returns the document with applied calculations.
         """
-        if self.CALC_TOTAL_DURATION:
+        if self.calc['total-duration']:
             try:
                 in_doc['totalDuration'] = in_doc['client']['responseOutTs'] - in_doc['client']['requestInTs']
             except (TypeError, ValueError, KeyError):
                 in_doc['totalDuration'] = None
 
-        if self.CALC_CLIENT_SS_REQUEST_DURATION:
+        if self.calc['client-request-duration']:
             try:
                 in_doc['clientSsRequestDuration'] = in_doc['client']['requestOutTs'] - in_doc['client']['requestInTs']
             except (TypeError, ValueError, KeyError):
                 in_doc['clientSsRequestDuration'] = None
 
-        if self.CALC_CLIENT_SS_RESPONSE_DURATION:
+        if self.calc['client-response-duration']:
             try:
                 in_doc['clientSsResponseDuration'] = in_doc['client']['responseOutTs'] - in_doc['client'][
                     'responseInTs']
             except (TypeError, ValueError, KeyError):
                 in_doc['clientSsResponseDuration'] = None
 
-        if self.CALC_PRODUCER_DURATION_CLIENT_VIEW:
+        if self.calc['producer-duration-client-view']:
             try:
                 in_doc['producerDurationClientView'] = in_doc['client']['responseInTs'] - in_doc['client'][
                     'requestOutTs']
@@ -80,28 +66,28 @@ class DocumentManager:
         :param in_doc: The input document.
         :return: Returns the document with applied calculations.
         """
-        if self.CALC_PRODUCER_DURATION_PRODUCER_VIEW:
+        if self.calc['producer-duration-producer-view']:
             try:
                 in_doc['producerDurationProducerView'] = in_doc['producer']['responseOutTs'] - in_doc['producer'][
                     'requestInTs']
             except (TypeError, ValueError, KeyError):
                 in_doc['producerDurationProducerView'] = None
 
-        if self.CALC_PRODUCER_SS_REQUEST_DURATION:
+        if self.calc['producer-request-duration']:
             try:
                 in_doc['producerSsRequestDuration'] = in_doc['producer']['requestOutTs'] - in_doc['producer'][
                     'requestInTs']
             except (TypeError, ValueError, KeyError):
                 in_doc['producerSsRequestDuration'] = None
 
-        if self.CALC_PRODUCER_SS_RESPONSE_DURATION:
+        if self.calc['producer-response-duration']:
             try:
                 in_doc['producerSsResponseDuration'] = in_doc['producer']['responseOutTs'] - in_doc['producer'][
                     'responseInTs']
             except (TypeError, ValueError, KeyError):
                 in_doc['producerSsResponseDuration'] = None
 
-        if self.CALC_PRODUCER_IS_DURATION:
+        if self.calc['producer-is-duration']:
             try:
                 in_doc['producerIsDuration'] = in_doc['producer']['responseInTs'] - in_doc['producer']['requestOutTs']
             except (TypeError, ValueError, KeyError):
@@ -114,19 +100,19 @@ class DocumentManager:
         :param in_doc: The input document.
         :return: Returns the document with applied calculations.
         """
-        if self.CALC_REQUEST_NW_DURATION:
+        if self.calc['request-nw-duration']:
             try:
                 in_doc['requestNwDuration'] = in_doc['producer']['requestInTs'] - in_doc['client']['requestOutTs']
             except (TypeError, ValueError, KeyError):
                 in_doc['requestNwDuration'] = None
 
-        if self.CALC_RESPONSE_NW_DURATION:
+        if self.calc['response-nw-duration']:
             try:
                 in_doc['responseNwDuration'] = in_doc['client']['responseInTs'] - in_doc['producer']['responseOutTs']
             except (TypeError, ValueError, KeyError):
                 in_doc['responseNwDuration'] = None
 
-        if self.CALC_REQUEST_SIZE:
+        if self.calc['request-size']:
             try:
                 # Calculate clientRequestSize
                 if in_doc['client'] is not None:
@@ -157,7 +143,7 @@ class DocumentManager:
             except (TypeError, ValueError, KeyError):
                 in_doc['producerRequestSize'] = None
 
-        if self.CALC_RESPONSE_SIZE:
+        if self.calc['response-size']:
             try:
                 # Calculate clientResponseSize
                 if in_doc['client'] is not None:
