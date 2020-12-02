@@ -2,9 +2,9 @@ import argparse
 import time
 from multiprocessing import Manager, Process
 
-from correctorlib.corrector_batch import CorrectorBatch
-from correctorlib.logger_manager import LoggerManager
-from correctorlib.settings_parser import OpmonSettingsManager
+from opmon_corrector.corrector_batch import CorrectorBatch
+from opmon_corrector.logger_manager import LoggerManager
+from opmon_corrector.settings_parser import OpmonSettingsManager
 
 
 def main():

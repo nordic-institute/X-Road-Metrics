@@ -5,7 +5,7 @@ import random
 from integration_tests.helpers import ci_helper
 from integration_tests.helpers import cl_db_handler
 from integration_tests.ci_corrector.ci_corrector_settings import Settings
-from corrector_module.correctorlib.corrector_batch import CorrectorBatch
+from corrector_module.opmon_corrector.corrector_batch import CorrectorBatch
 
 random.seed(42)
 
