@@ -40,10 +40,11 @@ class CorrectorBatch:
 
         doc_len = 0
         start_processing_time = time.time()
-        self.logger_m.log_heartbeat(
-            "processing", "SUCCEEDED")
-        self.logger_m.log_info('corrector_batch_start',
-                               'Starting corrector - Version {0}'.format(LoggerManager.__version__))
+        self.logger_m.log_heartbeat("processing", "SUCCEEDED")
+        self.logger_m.log_info(
+            'corrector_batch_start',
+            f'Starting corrector - Version {LoggerManager.__version__}'
+        )
 
         db_m = database_manager.DatabaseManager(self.settings)
         doc_m = document_manager.DocumentManager(self.settings)
