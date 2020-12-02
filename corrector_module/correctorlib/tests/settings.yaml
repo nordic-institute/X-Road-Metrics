@@ -1,12 +1,4 @@
-# Default settings file for X-Road OpMon corrector-module.
-# Fill in your MongoDB and X-Road configuration.
-# 
-# To run corrector for many different X-Road instances, you can create settings
-# profiles. For example to have profiles DEV, TEST and PROD copy this file to
-# settings_DEV.yaml, settings_TEST.yaml and settings_PROD.yaml.
-# Then fill the profile specific settings to each file and use the --profile
-# flag when starting opmon-corrector. For example to run using the TEST profile:
-#    opmon-correctord --profile TEST
+# Settings file for corrector unit tests
 
 corrector:
   thread-count: 8
@@ -91,12 +83,12 @@ corrector:
 
 
 xroad:
-  instance: <FILL>
+  instance: DEFAULT
 
 mongodb:
-  host: localhost
-  user: <FILL>
-  password: <FILL>
+  host: defaultmongodb
+  user: defaultuser
+  password: defaultpass
 
 logger:
   name: corrector

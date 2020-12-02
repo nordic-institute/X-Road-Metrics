@@ -4,7 +4,7 @@ import random
 import time
 import uuid
 
-from corrector_module.tests.unit_settings import Settings
+from corrector_module.old_tests.unit_settings import Settings
 
 # From RIA
 string_fields = [

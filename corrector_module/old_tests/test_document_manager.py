@@ -1,8 +1,8 @@
 import unittest
 
 from corrector_module.correctorlib.document_manager import DocumentManager
-from corrector_module.tests import unit_helper
-from corrector_module.tests.unit_settings import Settings
+from corrector_module.old_tests import unit_helper
+from corrector_module.old_tests.unit_settings import Settings
 
 
 class TestDocumentManager(unittest.TestCase):
