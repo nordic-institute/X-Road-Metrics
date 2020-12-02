@@ -12,9 +12,9 @@ class DocumentManager:
 
         self.calc = settings['corrector']['calc']
         self.logger_m = LoggerManager(settings['logger'], settings['xroad']['instance'])
-        self.TIME_WINDOW = settings['collector']['time-window']
-        self.COMPARISON_LIST = settings['collector']['comparison-list']
-        self.orphan_comparison_list = settings['collector']['comparison_list_orphan']
+        self.TIME_WINDOW = settings['corrector']['time-window']
+        self.COMPARISON_LIST = settings['corrector']['comparison-list']
+        self.orphan_comparison_list = settings['corrector']['comparison_list_orphan']
 
         self.must_fields = (
             'monitoringDataTs', 'securityServerInternalIp', 'securityServerType', 'requestInTs', 'requestOutTs',
