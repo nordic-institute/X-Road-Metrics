@@ -1,6 +1,6 @@
 import unittest
 
-from corrector_module.correctorlib.document_manager import DocumentManager
+from corrector_module.opmon_corrector.document_manager import DocumentManager
 from corrector_module.old_tests import unit_helper
 from corrector_module.old_tests.unit_settings import Settings
 
