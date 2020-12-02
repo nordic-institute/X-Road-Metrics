@@ -24,18 +24,18 @@ corrector:
   time-window: 600000 # 10 minutes
 
   calc:
-    total-duration: True
-    client-request-duration: True
-    client-response-duration: True
-    producer-request-duration: True
-    producer-response-duration: True
-    producer-duration-client-view: True
-    producer-duration-producer-view: True
-    producer-is-duration: True
-    request-nw-duration: True
-    response-nw-duration: True
-    request-size: True
-    response-size: True
+    total-duration: true
+    client-request-duration: true
+    client-response-duration: true
+    producer-request-duration: true
+    producer-response-duration: true
+    producer-duration-client-view: true
+    producer-duration-producer-view: true
+    producer-is-duration: true
+    request-nw-duration: true
+    response-nw-duration: true
+    request-size: true
+    response-size: true
 
   comparison-list:
     - 'clientMemberClass'
