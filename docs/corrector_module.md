@@ -20,25 +20,6 @@ Overall system is also designed in a way, that can be used by X-Road Centre for 
 
 The module source code can be found at:
 
-```
-https://github.com/ria-ee/X-Road-opmonitor
-```
-
-and can be downloaded into server:
-
-```bash
-sudo su - corrector
-# If HOME not set, set it to /tmp default.
-export TMP_DIR=${HOME:=/tmp}
-export PROJECT="X-Road-opmonitor"
-export PROJECT_URL="https://github.com/ria-ee/${PROJECT}.git"
-export SOURCE="${TMP_DIR}/${PROJECT}"
-if [ ! -d "${TMP_DIR}/${PROJECT}" ]; then \
-    cd ${TMP_DIR}; git clone ${PROJECT_URL}; \
-else \
-  cd ${SOURCE}; git pull ${PROJECT_URL}; \
-fi
-```
 
 ## Diagram
 
@@ -130,165 +111,119 @@ No **incoming** connection is needed in the corrector module.
 
 ## Installation
 
-This sections describes the necessary steps to install the **corrector module** in a Linux Ubuntu 16.04. 
-To a complete overview of different modules and machines, please refer to the ==> [System Architecture](system_architecture.md) <== documentation.
+This sections describes the necessary steps to install the **corrector module** on a Ubuntu 20.04 Linux host. For a complete overview of different modules and machines, please refer to the ==> [System Architecture](system_architecture.md) <== documentation.
 
-### Install required packages
 
-To install the necessary packages, execute the following commands:
+### Add X-Road OpMon Package Repository for Ubuntu
+TODO
+
+### Install Corrector Package
+To install opmon-corrector and all dependencies execute the commands below:
 
 ```bash
 sudo apt-get update
-sudo apt-get install python3-pip
-sudo pip3 install pymongo==3.4.0
-```
-Most libraries follow the "MAJOR.MINOR.PATCH" schema, so the guideline is to review and update PATCH versions always (they mostly contain bug fixes). MINOR updates can be applied,  as they should keep compatibility, but there is no guarantee for some libraries. A suggestion would be to check if tests are working after MINOR updates and rollback if they stop working. MAJOR updates should not be applied.
-
-### Install corrector module
-
-The corrector module uses the system user **corrector** and group **opmon**. To create them, execute:
-
-```bash
-sudo useradd --base-dir /opt --create-home --system --shell /bin/bash --gid corrector corrector
-sudo groupadd --force opmon
-sudo usermod --append --groups opmon corrector
+sudo apt-get install opmon-corrector
 ```
 
-The module files should be installed in the APPDIR directory, within a sub-folder named after the desired X-Road instance. 
-In this manual, `/srv/app` is used as APPDIR and the `sample` is used as INSTANCE (please change `sample` to map your desired instance).
+The installation package automatically installs following items:
+ * opmon-correctord daemon
+ * Linux user named _opmon_ and group _opmon_
+ * settings file _/etc/opmon/corrector/settings.yaml_
+ * systemd service unit configuration _/lib/systemd/system/opmon-corrector.service_
+ * log folders to _/var/log/opmon/corrector/_
 
-```bash
-export APPDIR="/srv/app"
-export INSTANCE="sample"
-# Create log and heartbeat directories with group 'opmon' write permission
-sudo mkdir --parents ${APPDIR}/${INSTANCE}
-sudo mkdir --parents ${APPDIR}/${INSTANCE}/logs
-sudo mkdir --parents ${APPDIR}/${INSTANCE}/heartbeat
-sudo chown root:opmon ${APPDIR}/${INSTANCE} ${APPDIR}/${INSTANCE}/logs ${APPDIR}/${INSTANCE}/heartbeat
-sudo chmod g+w ${APPDIR}/${INSTANCE} ${APPDIR}/${INSTANCE}/logs ${APPDIR}/${INSTANCE}/heartbeat
-```
+Only _opmon_ user can access the settings files and run opmon-correctord command.
 
-Copy the **corrector** code to the install folder and fix the file permissions:
-
-```bash
-# export APPDIR="/srv/app"; export INSTANCE="sample"
-sudo cp --recursive --preserve ${SOURCE}/corrector_module ${APPDIR}/${INSTANCE}
-```
-
-Settings for different X-Road instances have been prepared and can be used:
-
-```bash
-# export APPDIR="/srv/app"; export INSTANCE="sample"
-sudo rm ${APPDIR}/${INSTANCE}/corrector_module/settings.py
-sudo ln --symbolic \
-    ${APPDIR}/${INSTANCE}/corrector_module/settings_${INSTANCE}.py  \
-	${APPDIR}/${INSTANCE}/corrector_module/settings.py
-```
-
-If needed, edit necessary modifications to the settings file using your favorite text editor (here, **vi** is used):
-
-```bash
-# export APPDIR="/srv/app"; export INSTANCE="sample"
-sudo vi ${APPDIR}/${INSTANCE}/corrector_module/settings.py
-```
-
-Correct necessary permissions
-
-```bash
-# export APPDIR="/srv/app"; export INSTANCE="sample"
-sudo chown --recursive corrector:corrector ${APPDIR}/${INSTANCE}/corrector_module
-sudo chmod --recursive -x+X ${APPDIR}/${INSTANCE}/corrector_module
-find  ${APPDIR}/${INSTANCE}/corrector_module/ -name '*.sh' -type f | sudo xargs chmod u+x
-```
-
-Prepare system service to run corrector module with:
-
-```bash
-# export INSTANCE="sample"
-sudo vi /lib/systemd/system/corrector_${INSTANCE}.service
-```
-
-Add the following content (replace APPDIR `/srv/app` to map your desired application directory and INSTANCE `sample` to map your desired instance):
-
-```
-[Unit]
-Description=Corrector Service sample
-After=multi-user.target
-
-[Service]
-User=corrector
-Group=opmon
-WorkingDirectory=/srv/app/sample/
-ExecStart=/usr/bin/python3 /srv/app/sample/corrector_module/correctord.py
-
-[Install]
-WantedBy=multi-user.target
-```
-
-Change the permission of the service file with:
-
-```bash
-# export INSTANCE="sample"
-sudo chmod 644 /lib/systemd/system/corrector_${INSTANCE}.service
-```
-
-And execute the following commands to have the service enabled:
-
-```bash
-# export INSTANCE="sample"
-sudo systemctl daemon-reload
-sudo systemctl enable corrector_${INSTANCE}.service
-sudo service corrector_${INSTANCE} start
-```
-
-If necessary, the service can be stopped with:
-
-```bash
-# export INSTANCE="sample"
-sudo service corrector_${INSTANCE} stop
-```
-
-The status of the service can be monitored via:
-
-```bash
-# export INSTANCE="sample"
-sudo service corrector_${INSTANCE} status
-```
-
-
-Note: If the corrector code is updated, the service needs to be restarted with:
-
-```
-sudo service corrector_${INSTANCE} stop
-sudo service corrector_${INSTANCE} start
-```
-
-or with:
-
-```
-sudo service corrector_${INSTANCE} restart
-```
+To use corrector you need to fill in your X-Road and MongoDB configuration into the settings file.
+Then you corrector daemon can be run manually or as a systemd service. Next chapter provides detailed instructions about corrector configuration and usage.
 
 ## Usage
 
+### Corrector Configuration
+
+To use corrector you need to fill in your X-Road and MongoDB configuration into the settings file.
+(here, **vi** is used):
+
+```bash
+sudo vi /etc/opmon/corrector/settings.yaml
+```
+
+Settings that the user must fill in:
+* X-Road instance name
+* mongodb host
+* username and password for the corrector module MongoDB user
+
+
 ### Manual usage
 
-Make sure the corrector is not running as a service with:
+Corrector operation can be tested by running the corrector daemon manually. For production use it is recommended to set up a systemd service (see next chapter).
+
+Make sure the corrector is not running as a systemd service with:
 
 ```bash
-# export INSTANCE="sample"
-sudo service corrector_${INSTANCE} stop
-sudo service corrector_${INSTANCE} status
+sudo systemctl stop opmon-corrector
+systemctl status opmon-corrector
 ```
 
-To check commands manually as corrector user, execute:
+To run corrector manually in the foreground as opmon user, just execute:
 
 ```bash
-# export APPDIR="/srv/app"; export INSTANCE="sample"
-cd ${APPDIR}/${INSTANCE}/corrector_module; sudo --user corrector ./service_corrector.sh
+opmon-correctord
 ```
 
-**Note**: Corrector module has current limit of documents controlled by **CORRECTOR_DOCUMENTS_LIMIT** (by default set to CORRECTOR_DOCUMENTS_LIMIT = 20000) to ensure RAM and CPU is not overloaded during calculations. The CORRECTOR_DOCUMENTS_LIMIT defines the processing batch size, and is executed continuously until the total of documents left is smaller than **CORRECTOR_DOCUMENTS_MIN** documents (default set to CORRECTOR_DOCUMENTS_MIN = 1). The estimated amount of memory per processing batch is indicated at [System Architecture](system_architecture.md) documentation.
+**Note**: Corrector module has a current limit of documents controlled by **CORRECTOR_DOCUMENTS_LIMIT** (by default set to CORRECTOR_DOCUMENTS_LIMIT = 20000) to ensure RAM and CPU is not overloaded during calculations. The CORRECTOR_DOCUMENTS_LIMIT defines the processing batch size, and is executed continuously until the total of documents left is smaller than **CORRECTOR_DOCUMENTS_MIN** documents (default set to CORRECTOR_DOCUMENTS_MIN = 1). The estimated amount of memory per processing batch is indicated at [System Architecture](system_architecture.md) documentation.
+
+### sysetmd Service
+To run the corrector as a continuous background service under systemd execute the following commands:
+```
+sudo systemctl enable opmon-corrector
+sudo systemctl start opmon-corrector
+```
+
+To check the service status:
+```
+systemctl status opmon-corrector
+```
+
+### Settings Profiles
+To run corrector for multiple X-Road instances, a settings profile for each instance can be created. For example to have profiles DEV, TEST and PROD create three copies of `setting.yaml` 
+file named `settings_DEV.yaml`, `settings_TEST.yaml` and `settings_PROD.yaml`.
+Then fill the profile specific settings to each file and use the --profile
+flag when running opmon-correctord. For example to run corrector manually using the TEST profile:
+```
+opmon-correctord --profile TEST
+```
+
+`opmon-corrector` command searches the settings file first in current working direcrtory, then in
+_/etc/opmon/corrector/_
+
+To run corrector as a systemd service using a specific settings profile you need to create a service configuration.
+For example to create a service using "PROD" profile, the default service configuration can be used as a starting point:
+```
+sudo cp  /lib/systemd/system/opmon-corrector.service /lib/systemd/system/opmon-corrector-PROD.service
+```
+
+Then edit the config file e.g. with vi
+```
+sudo vi /lib/systemd/system/opmon-corrector-PROD.service
+```
+
+Modify the ExecStart line in the config file to use the wanted settings profile (PROD in this example):
+```
+ExecStart=/usr/bin/opmon-correctord --profile PROD
+```
+
+Enable and start the new service:
+```
+sudo systemctl enable opmon-corrector-PROD
+sudo systemctl start opmon-corrector-PROD
+```
+
+To check the service status:
+```
+systemctl status opmon-corrector-PROD
+```
+
 
 ### Note about Indexing
 
@@ -301,23 +236,28 @@ Please review the need of active Corrector module while running long-running que
 
 The settings for the log file in the settings file are the following:
 
-```python
-    # --------------------------------------------------------
-    # General settings
-    # --------------------------------------------------------
-    MODULE = "corrector"
-    APPDIR = "/srv/app"
-    INSTANCE = "sample"
-    # --------------------------------------------------------
-    # Logger settings
-    # --------------------------------------------------------
-    LOGGER_PATH = '{0}/{1}/logs/'.format(APPDIR, INSTANCE)
-    # ...
-	log_file_name = 'log_{0}_{1}.json'.format(MODULE, INSTANCE)
-    log_file = os.path.join(LOGGER_PATH, log_file_name)
+```yaml
+xroad:
+  instance: EXAMPLE
+
+#  ...
+
+logger:
+  name: corrector
+  module: corrector
+  
+  # Possible logging levels from least to most verbose are:
+  # CRITICAL, FATAL, ERROR, WARNING, INFO, DEBUG
+  level: INFO
+
+  # Logs and heartbeat files are stored under these paths.
+  # Also configure external log rotation and app monitoring accordingly.
+  log-path: /var/log/opmon/corrector/logs
+
 ```
 
-The log file is written to `log_file`, id est to `${APPDIR}/${INSTANCE}/logs/log_corrector_${INSTANCE}.json`.
+The log file is written to `log-path` and log file name contains the X-Road instance name. 
+The above example configuration would write logs to `/var/log/opmon/collector/logs/log_corrector_EXAMPLE.json`.
 
 Every log line includes:
 
@@ -335,18 +275,15 @@ In case of "activity": "corrector_batch_end", the "msg" includes values separate
 - Documents processed
 - Processing time: durations in the collection process in time format HH:MM:SS
 
-The **corrector module** log handler is compatible with the logrotate utility. To configure log rotation, create the file:
+The **corrector module** log handler is compatible with the logrotate utility. To configure log rotation for the example setup above, create the file:
 
 ```
-sudo vi /etc/logrotate.d/corrector_module
+sudo vi /etc/logrotate.d/opmon-corrector
 ```
 
-and add the following content (replace ${APPDIR} `/srv/app` to map your desired application directory and ${INSTANCE} `sample` to map your desired instance; 
-check that ${APPDIR}/${INSTANCE}/logs/ matches to `LOGGER_PATH` and 
-that ${log_file_name} matches to the name and format of `log_file_name = 'log_{0}_{1}.json'.format(MODULE, INSTANCE)` in `settings.py`):
-
+and add the following content :
 ```
-${APPDIR}/${INSTANCE}/logs/${log_file_name} {
+/var/log/opmon/corrector/logs/log_corrector_EXAMPLE.json {
     rotate 10
     size 2M
 }
@@ -362,22 +299,20 @@ man logrotate
 
 The settings for the heartbeat file in the settings file are the following:
 
-```python
-    # --------------------------------------------------------
-    # General settings
-    # --------------------------------------------------------
-    MODULE = "corrector"
-    APPDIR = "/srv/app"
-    INSTANCE = "sample"
-    # ...
-    # --------------------------------------------------------
-    # Heartbeat settings
-    # --------------------------------------------------------
-    HEARTBEAT_LOGGER_PATH = '{0}/{1}/heartbeat/'.format(APPDIR, INSTANCE)
-    HEARTBEAT_FILE = 'heartbeat_{0}_{1}.json'.format(MODULE, INSTANCE)
+```yaml
+xroad:
+  instance: EXAMPLE
+
+#  ...
+
+logger:
+  #  ...
+  heartbeat-path: /var/log/opmon/corrector/heartbeat
+
 ```
 
-The heartbeat file is written to `HEARTBEAT_LOGGER_PATH/HEARTBEAT_NAME`, id est to `${APPDIR}/${INSTANCE}/heartbeat/heartbeat_corrector_${INSTANCE}.json`.
+The heartbeat file is written to `heartbeat-path` and hearbeat file name contains the X-Road instance name. 
+The above example configuration would write logs to `/var/log/opmon/corrector/heartbeat/heartbeat_corrector_EXAMPLE.json`.
 
 The heartbeat file consists last message of log file and status
 
