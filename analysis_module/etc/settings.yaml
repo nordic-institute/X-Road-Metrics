@@ -1,0 +1,33 @@
+# Default settings file for X-Road OpMon analyzer-module.
+# Fill in your MongoDB and X-Road configuration.
+# 
+# To run analyzer for many different X-Road instances, you can create settings
+# profiles. For example to have profiles DEV, TEST and PROD copy this file to
+# settings_DEV.yaml, settings_TEST.yaml and settings_PROD.yaml.
+# Then fill the profile specific settings to each file and use the --profile
+# flag when running opmon-analyzer. For example to run anomaly detection using the TEST profile:
+#    opmon-analyzer --profile TEST find
+
+analyzer:
+  something: something
+
+xroad:
+  instance: <FILL>
+
+mongodb:
+  host: localhost
+  user: <FILL>
+  password: <FILL>
+
+logger:
+  name: analyzer
+  module: analyzer
+
+  # Possible logging levels from least to most verbose are:
+  # CRITICAL, FATAL, ERROR, WARNING, INFO, DEBUG
+  level: INFO
+
+  # Logs and heartbeat files are stored under these paths.
+  # Also configure external log rotation and app monitoring accordingly.
+  log-path: /var/log/opmon/analyzer/logs
+  heartbeat-path: /var/log/opmon/analyzer/heartbeat
