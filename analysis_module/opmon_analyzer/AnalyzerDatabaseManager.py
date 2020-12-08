@@ -1,8 +1,5 @@
 from pymongo import MongoClient
-import pymongo
 import pandas as pd
-import numpy as np
-import sys
 
 pd.options.mode.chained_assignment = None
 
