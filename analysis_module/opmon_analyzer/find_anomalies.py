@@ -148,7 +148,7 @@ def find_anomalies(settings):
             logger_m.log_heartbeat("Loading the %s model" % time_window['timeunit_name'], 'SUCCEEDED')
             dt_model = db_manager.load_model(model_name=time_window['timeunit_name'], version=None)
             dt_model = dt_model.groupby(analyzer_conf.service_call_fields + ["similar_periods"]).first()
-            averages_by_time_period_model = AveragesByTimeperiodModel(time_window, analyzer_conf, dt_model)
+            averages_by_time_period_model = AveragesByTimeperiodModel(time_window, settings, analyzer_conf, dt_model)
 
             logger_m.log_info('_tmp_find_anomalies_3', "Finding anomalies (model %s)" % time_window['timeunit_name'])
             logger_m.log_heartbeat("Finding anomalies (model %s)" % time_window['timeunit_name'], 'SUCCEEDED')

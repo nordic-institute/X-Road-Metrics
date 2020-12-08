@@ -93,7 +93,7 @@ def update_model(settings):
 
             # Fit the model
             start = time.time()
-            averages_by_time_period_model = AveragesByTimeperiodModel(time_window, analyzer_conf)
+            averages_by_time_period_model = AveragesByTimeperiodModel(time_window, settings, analyzer_conf)
             averages_by_time_period_model.fit(data)
 
             t0 = np.round(time.time() - start, 2)
@@ -130,6 +130,7 @@ def update_model(settings):
             dt_model = dt_model.groupby(analyzer_conf.service_call_fields + ["similar_periods"]).first()
             averages_by_time_period_model = AveragesByTimeperiodModel(
                 time_window,
+                settings,
                 analyzer_conf,
                 dt_model,
                 version=model_version,
