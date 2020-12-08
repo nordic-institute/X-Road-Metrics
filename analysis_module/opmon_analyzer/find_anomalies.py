@@ -20,7 +20,7 @@ import numpy as np
 
 def find_anomalies(settings):
     db_manager = AnalyzerDatabaseManager(settings, analyzer_conf)
-    logger_m = LoggerManager(settings.LOGGER_NAME, 'analyzer')
+    logger_m = LoggerManager(settings['logger'], settings['xroad']['instance'])
 
     logger_m.log_info('_tmp_find_anomalies_start', "Process started ...")
 
@@ -28,18 +28,17 @@ def find_anomalies(settings):
 
     # add first request timestamps for service calls that have appeared
     logger_m.log_info('_tmp_find_anomalies_1', "Add first request timestamps for service calls that have appeared ...")
-    logger_m.log_heartbeat("Checking if completely new service calls have appeared", settings.HEARTBEAT_PATH,
-                           settings.HEARTBEAT_FILE, 'SUCCEEDED')
+    logger_m.log_heartbeat("Checking if completely new service calls have appeared", 'SUCCEEDED')
+
     db_manager.add_first_request_timestamps_from_clean_data()
-    logger_m.log_info('_tmp_find_anomalies_1', "Add first request timestamps for service calls that have appeared ... Done!")
 
-    # Anomaly types 4.3.1-4.3.3
+    logger_m.log_info('_tmp_find_anomalies_1',
+                      "Add first request timestamps for service calls that have appeared ... Done!")
+
     logger_m.log_info('_tmp_find_anomalies_2', "Anomaly types 4.3.1-4.3.3 ...")
-
     for model_type, time_window in analyzer_conf.time_windows.items():
-        logger_m.log_info('_tmp_find_anomalies_2', "Finding %s anomalies, aggregating by %s ..." % (model_type, time_window))
-        logger_m.log_heartbeat("Finding %s anomalies, aggregating by %s" % (model_type, time_window),
-                               settings.HEARTBEAT_PATH, settings.HEARTBEAT_FILE, 'SUCCEEDED')
+        logger_m.log_info('_tmp_find_anomalies_2', f"Finding {model_type} anomalies, aggregating by {time_window}...")
+        logger_m.log_heartbeat(f"Finding {model_type} anomalies, aggregating by {time_window}", 'SUCCEEDED')
 
         start = time.time()
         last_transform_date = db_manager.get_timestamp(ts_type="last_transform_timestamp", model_type=model_type)
@@ -90,33 +89,36 @@ def find_anomalies(settings):
                     db_manager.insert_incidents(anomalies)
                 n_anomalies += len(anomalies)
 
-        logger_m.log_info('find_anomalies', "%s anomalies time: %s seconds." % (model_type, np.round(time.time() - start, 2)))
+        t0 = np.round(time.time() - start, 2)
+        logger_m.log_info('find_anomalies', f"{model_type} anomalies time: {t0} seconds.")
 
         if last_transform_date is not None:
-            logger_m.log_info('find_anomalies', "Used data between %s and %s." % (last_transform_date, current_transform_date))
+            logger_m.log_info('find_anomalies',
+                              f"Used data between {last_transform_date} and {current_transform_date}.")
         else:
-            logger_m.log_info('find_anomalies', "Used data until %s." % (current_transform_date))
-        logger_m.log_info('find_anomalies', "Found %s anomalies." % n_anomalies)
+            logger_m.log_info('find_anomalies', f"Used data until {current_transform_date}")
+        logger_m.log_info('find_anomalies', f"Found {n_anomalies} anomalies.")
 
         db_manager.set_timestamp(ts_type="last_transform_timestamp",
                                  model_type=model_type,
                                  value=datetime.datetime.fromtimestamp(current_transform_timestamp / 1000.0))
+
     logger_m.log_info('_tmp_find_anomalies_2', "Anomaly types 4.3.1-4.3.3 ... Done!")
 
-    # Anomaly types 4.3.5 - 4.3.9. Comparison with historic averages for:
-    # request count, response size, request size, response duration, request duration
-
     logger_m.log_info('_tmp_find_anomalies_3', "Anomaly types 4.3.5 - 4.3.9. Comparison with historic averages ...")
-    logger_m.log_heartbeat("Determining service call stages", settings.HEARTBEAT_PATH,
-                           settings.HEARTBEAT_FILE, 'SUCCEEDED')
+    logger_m.log_heartbeat("Determining service call stages", 'SUCCEEDED')
     sc_regular, sc_first_incidents = db_manager.get_service_calls_for_transform_stages()
-    logger_m.log_info('find_anomalies', "Number of service calls that have passed the training period for the first time: %s" % len(sc_first_incidents))
-    logger_m.log_info('find_anomalies', "Number of service calls in regular mode: %s" % len(sc_regular))
+    logger_m.log_info(
+        'find_anomalies',
+        f"No. service calls that have passed the training period for the first time: {len(sc_first_incidents)}"
+    )
+
+    logger_m.log_info('find_anomalies', f"Number of service calls in regular mode: {len(sc_regular)}")
 
     for time_window, _ in analyzer_conf.historic_averages_time_windows:
         last_transform_date = db_manager.get_timestamp(ts_type="last_transform_timestamp",
                                                        model_type=time_window['timeunit_name'])
-        logger_m.log_info('_tmp_find_anomalies_3', "Model type: %s" % time_window['timeunit_name'])
+        logger_m.log_info('_tmp_find_anomalies_3', f"Model type: {time_window['timeunit_name']}")
 
         if last_transform_date is not None:
             last_transform_timestamp = last_transform_date.timestamp() * 1000
@@ -128,45 +130,57 @@ def find_anomalies(settings):
                                        (60 * time_window["agg_window"]["agg_minutes"])) * 1000
 
         start = time.time()
-        logger_m.log_info('_tmp_find_anomalies_3', "Reading data and aggregating (model %s)" % time_window['timeunit_name'])
-        logger_m.log_heartbeat("Reading data and aggregating (model %s)" % time_window['timeunit_name'],
-                               settings.HEARTBEAT_PATH, settings.HEARTBEAT_FILE, 'SUCCEEDED')
-        data = db_manager.get_data_for_transform_stages(time_window["agg_window"]["agg_minutes"], last_transform_timestamp,
-                                                        current_transform_timestamp, sc_regular, sc_first_incidents)
+        logger_m.log_info('_tmp_find_anomalies_3',
+                          f"Reading data and aggregating (model {time_window['timeunit_name']})")
+
+        logger_m.log_heartbeat("Reading data and aggregating (model {time_window['timeunit_name']})", 'SUCCEEDED')
+
+        data = db_manager.get_data_for_transform_stages(
+            time_window["agg_window"]["agg_minutes"],
+            last_transform_timestamp,
+            current_transform_timestamp,
+            sc_regular,
+            sc_first_incidents
+        )
 
         if len(data) > 0:
             logger_m.log_info('_tmp_find_anomalies_3', "Loading the %s model" % time_window['timeunit_name'])
-            logger_m.log_heartbeat("Loading the %s model" % time_window['timeunit_name'], settings.HEARTBEAT_PATH,
-                                   settings.HEARTBEAT_FILE, 'SUCCEEDED')
+            logger_m.log_heartbeat("Loading the %s model" % time_window['timeunit_name'], 'SUCCEEDED')
             dt_model = db_manager.load_model(model_name=time_window['timeunit_name'], version=None)
             dt_model = dt_model.groupby(analyzer_conf.service_call_fields + ["similar_periods"]).first()
             averages_by_time_period_model = AveragesByTimeperiodModel(time_window, analyzer_conf, dt_model)
 
             logger_m.log_info('_tmp_find_anomalies_3', "Finding anomalies (model %s)" % time_window['timeunit_name'])
-            logger_m.log_heartbeat("Finding anomalies (model %s)" % time_window['timeunit_name'], settings.HEARTBEAT_PATH,
-                                   settings.HEARTBEAT_FILE, 'SUCCEEDED')
+            logger_m.log_heartbeat("Finding anomalies (model %s)" % time_window['timeunit_name'], 'SUCCEEDED')
             anomalies = averages_by_time_period_model.transform(data)
+
+            t0 = np.round(time.time() - start, 2)
+            logger_m.log_info(
+                'find_anomalies',
+                f"Averages by timeperiod ({time_window['timeunit_name']}) anomaly finding time: {t0} seconds."
+            )
+
             logger_m.log_info('find_anomalies',
-                              "Averages by timeperiod (%s) anomaly finding time: %s seconds." % (time_window['timeunit_name'],
-                              np.round(time.time() - start, 2)))
-            logger_m.log_info('find_anomalies', "Used data between %s and %s." % (last_transform_date, current_transform_date))
-            logger_m.log_info('find_anomalies', "Found %s anomalies." % len(anomalies))
+                              f"Used data between {last_transform_date} and {current_transform_date}.")
+            logger_m.log_info('find_anomalies', f"Found {len(anomalies)} anomalies.")
 
             if len(anomalies) > 0:
                 db_manager.insert_incidents(anomalies)
 
-        logger_m.log_info('_tmp_find_anomalies_3', "Updating last anomaly finding timestamp (model %s)" % time_window['timeunit_name'])
-        logger_m.log_heartbeat("Updating last anomaly finding timestamp (model %s)" % time_window['timeunit_name'],
-                               settings.HEARTBEAT_PATH, settings.HEARTBEAT_FILE, 'SUCCEEDED')
+        logger_m.log_info('_tmp_find_anomalies_3',
+                          f"Updating last anomaly finding timestamp (model {time_window['timeunit_name']})")
+        logger_m.log_heartbeat(f"Updating last anomaly finding timestamp (model {time_window['timeunit_name']})",
+                               'SUCCEEDED')
+
         db_manager.set_timestamp(ts_type="last_transform_timestamp", model_type=time_window['timeunit_name'],
                                  value=datetime.datetime.fromtimestamp(current_transform_timestamp / 1000.0))
 
-    logger_m.log_info('_tmp_find_anomalies_3', "Anomaly types 4.3.5 - 4.3.9. Comparison with historic averages ... Done!")
-
+    logger_m.log_info('_tmp_find_anomalies_3',
+                      "Anomaly types 4.3.5 - 4.3.9. Comparison with historic averages ... Done!")
     logger_m.log_info('_tmp_find_anomalies_4', "Incident timestamps ...")
+
     if len(sc_first_incidents) > 0:
-        logger_m.log_heartbeat("Updating first incident timestamps", settings.HEARTBEAT_PATH,
-                               settings.HEARTBEAT_FILE, 'SUCCEEDED')
+        logger_m.log_heartbeat("Updating first incident timestamps", 'SUCCEEDED')
         db_manager.update_first_timestamps(field="first_incident_timestamp",
                                            value=current_time,
                                            service_calls=sc_first_incidents[analyzer_conf.service_call_fields])
