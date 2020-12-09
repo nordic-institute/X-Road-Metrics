@@ -4,7 +4,7 @@ from unittest.mock import Mock
 from integration_tests.helpers import cl_db_handler, ci_analyzer_db_handler
 from integration_tests.ci_analyzer.ci_analyzer_settings import Settings
 
-from analysis_module.analyzer.AnalyzerDatabaseManager import AnalyzerDatabaseManager
+from analysis_module.opmon_analyzer.AnalyzerDatabaseManager import AnalyzerDatabaseManager
 
 import datetime
 from dateutil.relativedelta import relativedelta
