@@ -1,20 +1,21 @@
 # some specific relevant fields
 timestamp_field = 'requestInTs'
-service_call_fields = ["clientMemberClass", "clientMemberCode", "clientXRoadInstance", "clientSubsystemCode", "serviceCode",
-                       "serviceVersion", "serviceMemberClass", "serviceMemberCode", "serviceXRoadInstance",
-                       "serviceSubsystemCode"]
+service_call_fields = ["clientMemberClass", "clientMemberCode", "clientXRoadInstance", "clientSubsystemCode",
+                       "serviceCode", "serviceVersion", "serviceMemberClass", "serviceMemberCode",
+                       "serviceXRoadInstance", "serviceSubsystemCode"]
 
 # Fields to query from the database
 
 # 'relevant_cols_general' are fields that are present on the top level
-relevant_cols_general = ["_id", 'totalDuration', 'producerDurationProducerView', 'requestNwDuration', 'responseNwDuration',
-                         'correctorStatus']
+relevant_cols_general = ["_id", 'totalDuration', 'producerDurationProducerView', 'requestNwDuration',
+                         'responseNwDuration', 'correctorStatus']
 
 # 'relevant_cols_nested' are fields that are nested inside 'client' and 'producer'.
 # If 'client' is present, values for these fields will be taken from there, otherwise from 'producer'.
 relevant_cols_nested = service_call_fields + ["succeeded", "messageId", timestamp_field]
 
-# 'relevant_cols_general_alternative' are fields that are present on the top level, but exist for both client and producer.
+# 'relevant_cols_general_alternative' are fields that are present on the top level, but exist for both
+# client and producer.
 # The value will be taken from the field assigned in the second position in the triplet if it exists,
 # otherwise from the third field. The first value in the triplet is the name that will be used.
 # Example: metric 'requestSize' will be assigned value from database field 'clientRequestSize' if it exists,
@@ -29,10 +30,13 @@ day_aggregation_time_window = {'agg_window_name': 'day', 'agg_minutes': 1440, 'p
 # for historic averages model, we also need to determine which are the "similar" periods
 hour_weekday_similarity_time_window = {'timeunit_name': 'hour_weekday', 'agg_window': hour_aggregation_time_window,
                                        'similar_periods': ['hour', 'weekday']}
+
 weekday_similarity_time_window = {'timeunit_name': 'weekday', 'agg_window': day_aggregation_time_window,
                                   'similar_periods': ['weekday']}
+
 hour_monthday_similarity_time_window = {'timeunit_name': 'hour_monthday', 'agg_window': hour_aggregation_time_window,
                                         'similar_periods': ['hour', 'day']}
+
 monthday_similarity_time_window = {'timeunit_name': 'monthday', 'agg_window': day_aggregation_time_window,
                                    'similar_periods': ['day']}
 

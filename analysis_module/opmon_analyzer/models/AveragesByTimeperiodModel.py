@@ -5,19 +5,17 @@ import scipy.stats
 import time
 from datetime import datetime
 import calendar
-import sys
-sys.path.append("..")
-from AnalyzerDatabaseManager import AnalyzerDatabaseManager
-import settings as db_conf
+
+from ..AnalyzerDatabaseManager import AnalyzerDatabaseManager
 
 
 class AveragesByTimeperiodModel(object):
     
-    def __init__(self, time_window, config, dt_avgs=None, version=0, model_creation_timestamp=0):
+    def __init__(self, time_window, settings, config, dt_avgs=None, version=0, model_creation_timestamp=0):
         
         self.time_window = time_window
         self._config = config
-        self.dataset_manager = AnalyzerDatabaseManager(db_conf, config)
+        self.dataset_manager = AnalyzerDatabaseManager(settings, config)
         
         self.dt_avgs = dt_avgs
         self.version = version
