@@ -1,18 +1,21 @@
-from django.shortcuts import render
-from django.http import HttpResponse, HttpResponseNotFound
-from .db_manager import IncidentDatabaseManager
-from .logger_manager import LoggerManager
-from django.template.defaulttags import register
-from django.views.decorators.csrf import ensure_csrf_cookie
+import datetime
 import json
 from bson import ObjectId
+
+from django.shortcuts import render
+from django.http import HttpResponse, HttpResponseNotFound
+from django.template.defaulttags import register
+from django.views.decorators.csrf import ensure_csrf_cookie
 import numpy as np
-import gui.gui_conf as gui_conf
-import analyzer_ui.settings as settings
-import datetime
+
+from .settings_parser import OpmonSettingsManager
+from .db_manager import IncidentDatabaseManager
+from .logger_manager import LoggerManager
+from . import gui_conf as gui_conf
 
 
-logger_m = LoggerManager(settings.LOGGER_NAME, 'analyzer_interface')
+settings = OpmonSettingsManager().settings
+logger_m = LoggerManager(settings['logger'], settings['xroad']['instance'])
 
 
 # Create your views here.
@@ -46,7 +49,7 @@ def get_historic_incident_data_serverside(request):
 
 
 def _process_incident_data_request(request, incident_status, relevant_cols, update_status_shown):
-    db_manager = IncidentDatabaseManager()
+    db_manager = IncidentDatabaseManager(settings)
     order_col = int(request.POST["order[0][column]"])
     order_col_name = request.POST["columns[%s][name]" % order_col]
     if order_col_name in ["service_call", "mark_as", "actions"]:
@@ -100,7 +103,7 @@ def _process_incident_data_request(request, incident_status, relevant_cols, upda
 
 
 def get_incident_table_initialization_data(request):
-    db_manager = IncidentDatabaseManager()
+    db_manager = IncidentDatabaseManager(settings)
     
     table_id = json.loads(request.GET["table_id"])
     
@@ -179,7 +182,7 @@ def get_incident_table_initialization_data(request):
 
 def get_request_list(request):
     n_updated = 0
-    db_manager = IncidentDatabaseManager()
+    db_manager = IncidentDatabaseManager(settings)
 
     incident_id = json.loads(request.GET["incident_id"])
     requests = db_manager.get_request_list(ObjectId(incident_id), limit=gui_conf.example_request_limit)
@@ -194,8 +197,8 @@ def get_request_list(request):
             current_request_relevant_data = [req["producer"][col] for col in
                                              gui_conf.relevant_fields_for_example_requests_nested]
         # extract alternative fields
-        current_request_relevant_data += [req[f1] if req[f1] is not None else
-                                          req[f2] for _, f1, f2 in gui_conf.relevant_fields_for_example_requests_alternative]
+        current_request_relevant_data += [req[f1] if req[f1] is not None else req[f2]
+                                          for _, f1, f2 in gui_conf.relevant_fields_for_example_requests_alternative]
                                           
         # extract general fields
         current_request_relevant_data += [req[col] for col in
@@ -215,7 +218,7 @@ def update_incident_status(request):
     if request.is_ajax():
         n_updated_status = 0
         n_updated_comments = 0
-        db_manager = IncidentDatabaseManager()
+        db_manager = IncidentDatabaseManager(settings)
 
         for status in ['normal', 'incident', 'viewed']:
             ids = [ObjectId(val) for val in json.loads(request.POST[status])]
@@ -225,9 +228,9 @@ def update_incident_status(request):
         updated_comments = json.loads(request.POST["updated_comments"])
         for idd, comment in zip(updated_comment_ids, updated_comments):
             n_updated_comments += db_manager.update_incidents(ids=[ObjectId(idd)], field="comments", value=comment)
-        
-        logger_m.log_info('analyzer_interface', "Successfully updated %s incident status and %s incident comments." % (n_updated_status, n_updated_comments))
-        message = "Successfully updated %s incident status and %s incident comments." % (n_updated_status, n_updated_comments)
+
+        message = f"Successfully updated {n_updated_status} incident status and {n_updated_comments} incident comments."
+        logger_m.log_info('analyzer_interface', message)
     else:
         message = "Not Ajax"
     return HttpResponse(message)

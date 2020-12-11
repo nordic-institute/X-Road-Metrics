@@ -1,0 +1,23 @@
+# Default settings file for X-Road OpMon Analyzer UI module.
+# Fill in your MongoDB and X-Road configuration.
+
+xroad:
+  instance: <FILL>
+
+mongodb:
+  host: localhost
+  user: <FILL>
+  password: <FILL>
+
+logger:
+  name: analyzer_ui
+  module: analyzer_ui
+
+  # Possible logging levels from least to most verbose are:
+  # CRITICAL, FATAL, ERROR, WARNING, INFO, DEBUG
+  level: INFO
+
+  # Logs and heartbeat files are stored under these paths.
+  # Also configure external log rotation and app monitoring accordingly.
+  log-path: /var/log/opmon/analyzer_ui/logs
+  heartbeat-path: /var/log/opmon/analyzer_ui/heartbeat

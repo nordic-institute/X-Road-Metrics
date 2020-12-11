@@ -3,8 +3,8 @@ from setuptools import setup, find_packages
 
 requirements = [
     "dill==0.3.1.1",
-    "django==1.11.11",
     "pymongo==3.10.1",
+    "pyyaml==5.3.1",
     "numpy",
     "pandas",
     "scipy"

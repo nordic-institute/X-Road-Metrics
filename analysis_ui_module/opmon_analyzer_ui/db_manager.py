@@ -1,9 +1,7 @@
 from pymongo import MongoClient
 import pymongo
 from datetime import datetime, timedelta
-import gui.gui_conf as gui_conf
-
-import analyzer_ui.settings as db_conf
+from . import gui_conf
 
 operator_map = {"=": "$eq",
                 "!=": "$ne",
@@ -16,12 +14,23 @@ FLOAT_PRECISION = 0.001
 
 
 class IncidentDatabaseManager(object):
+    def __init__(self, settings):
+        xroad = settings['xroad']['instance']
+
+        self.client = MongoClient(self.get_mongo_uri(settings))
+        self.query_db = self.client[f"query_db_{xroad}"]
+        self.analyzer_db = self.client[f"analyzer_db_{xroad}"]
+
+    @staticmethod
+    def get_mongo_uri(settings):
+        user = settings['mongodb']['user']
+        password = settings['mongodb']['password']
+        host = settings['mongodb']['host']
+        return f"mongodb://{user}:{password}@{host}/auth_db"
     
     def load_incident_data(self, start=0, length=25, order_col_name='request_count',
                            order_col_dir="asc", incident_status=["new", "showed"], start_time=None, filter_constraints=None):
-        # create connection
-        incident_collection = self._get_incident_collection()
-        
+
         filter_dict = {"incident_status": {"$in": incident_status}}
         if start_time is not None:
             filter_dict["incident_creation_timestamp"] = {"$gte": start_time}
@@ -61,7 +70,7 @@ class IncidentDatabaseManager(object):
                 else:
                     filter_dict[field][operator_map[op]] = value
                     
-        result = incident_collection.find(filter_dict)
+        result = self.analyzer_db.incident.find(filter_dict)
         filtered_count = result.count()
         total_count = result.count()  # total count should show the count of incidents after filtering by status
         
@@ -71,18 +80,13 @@ class IncidentDatabaseManager(object):
     
     def get_distinct_values(self, field, start_time=None, incident_status=["new", "showed"]):
         # create connection
-        incident_collection = self._get_incident_collection()
         filter_dict = {"incident_status": {"$in": incident_status}}
         if start_time is not None:
             filter_dict["incident_creation_timestamp"] = {"$gte": start_time}
-        return sorted(incident_collection.distinct(field, filter_dict))
+        return sorted(self.analyzer_db.incident.distinct(field, filter_dict))
     
     def update_incidents(self, ids, field, value):
-
-        # create connection
-        incident_collection = self._get_incident_collection()
-        
-        result = incident_collection.update(
+        result = self.analyzer_db.incident.update(
             {"_id": {"$in": ids}},
             {"$set": {field: value, 'incident_update_timestamp': datetime.now()}},
             multi=True)
@@ -91,23 +95,9 @@ class IncidentDatabaseManager(object):
     
     def get_request_list(self, incident_id, limit=0):
 
-        # create connection
-        incident_collection = self._get_incident_collection()
-        
-        result = incident_collection.find({"_id": {"$eq": incident_id}})
+        result = self.analyzer_db.incident.find({"_id": {"$eq": incident_id}})
         request_ids = result[0]["request_ids"]
-        
-        clean_data = self._get_clean_data_collection()
-        result = clean_data.find({"_id": {"$in": request_ids}}).limit(limit)
+
+        result = self.query_db.clean_data.find({"_id": {"$in": request_ids}}).limit(limit)
         
         return list(result)
-    
-    def _get_clean_data_collection(self):
-        db_client = MongoClient(db_conf.MONGODB_URI)
-        db = db_client[db_conf.MONGODB_QD]
-        return db.clean_data
-    
-    def _get_incident_collection(self):
-        db_client = MongoClient(db_conf.MONGODB_URI)
-        db = db_client[db_conf.MONGODB_AD]
-        return db.incident

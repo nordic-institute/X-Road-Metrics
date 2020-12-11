@@ -17,5 +17,5 @@ from django.conf.urls import url, include
 from django.contrib import admin
 
 urlpatterns = [
-    url(r'^', include("gui.urls")),
+    url(r'^', include("opmon_analyzer_ui.urls")),
 ]
