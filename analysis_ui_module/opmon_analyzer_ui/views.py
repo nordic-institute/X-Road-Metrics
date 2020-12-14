@@ -3,7 +3,7 @@ import json
 from bson import ObjectId
 
 from django.shortcuts import render
-from django.http import HttpResponse, HttpResponseNotFound
+from django.http import HttpResponse, HttpResponseNotFound, HttpResponseServerError
 from django.template.defaulttags import register
 from django.views.decorators.csrf import ensure_csrf_cookie
 import numpy as np
@@ -14,14 +14,23 @@ from .logger_manager import LoggerManager
 from . import constants
 
 
-# Create your views here.
-def index(request):
-    return render(request, "gui/index.html")
+def index(request, profile=None):
+    try:
+        settings = _get_settings(profile)
+    except (FileNotFoundError, PermissionError):
+        return HttpResponseNotFound("Settings profile not found.")
+    logger = _get_logger(settings)
+    logger.log_info("_process_incident_data_request", "Fetching incident data.")
+    return render(
+        request, "gui/index.html",
+        context={'xroad_instance': settings['xroad']['instance'], 'settings_profile': profile}
+    )
 
 
 @ensure_csrf_cookie
-def get_incident_data_serverside(request):
+def get_incident_data_serverside(request, profile=None):
     data = _process_incident_data_request(request,
+                                          profile,
                                           incident_status=["new", "showed"],
                                           relevant_cols=constants.new_incident_columns,
                                           update_status_shown=True)
@@ -32,8 +41,9 @@ def get_incident_data_serverside(request):
 
 
 @ensure_csrf_cookie
-def get_historic_incident_data_serverside(request):
+def get_historic_incident_data_serverside(request, profile=None):
     data = _process_incident_data_request(request,
+                                          profile,
                                           incident_status=["normal", "incident", "viewed"],
                                           relevant_cols=constants.historical_incident_columns,
                                           update_status_shown=False)
@@ -44,8 +54,8 @@ def get_historic_incident_data_serverside(request):
     return HttpResponse(json.dumps(data))
 
 
-def _process_incident_data_request(request, incident_status, relevant_cols, update_status_shown):
-    settings = _get_settings(request)
+def _process_incident_data_request(request, profile, incident_status, relevant_cols, update_status_shown):
+    settings = _get_settings(profile)
     logger = _get_logger(settings)
     logger.log_info("_process_incident_data_request", "Fetching incident data.")
     db_manager = IncidentDatabaseManager(settings)
@@ -101,8 +111,8 @@ def _process_incident_data_request(request, incident_status, relevant_cols, upda
     return data
 
 
-def get_incident_table_initialization_data(request):
-    settings = _get_settings(request)
+def get_incident_table_initialization_data(request, profile=None):
+    settings = _get_settings(profile)
     logger = _get_logger(settings)
     logger.log_info("get_incident_table_initialization_data", "Initializing incident table view.")
     db_manager = IncidentDatabaseManager(settings)
@@ -182,8 +192,8 @@ def get_incident_table_initialization_data(request):
     return HttpResponse(json.dumps(data))
 
 
-def get_request_list(request):
-    settings = _get_settings(request)
+def get_request_list(request, profile=None):
+    settings = _get_settings(profile)
     logger = _get_logger(settings)
     db_manager = IncidentDatabaseManager(settings)
 
@@ -218,8 +228,8 @@ def get_request_list(request):
 
 
 @ensure_csrf_cookie
-def update_incident_status(request):
-    settings = _get_settings(request)
+def update_incident_status(request, profile=None):
+    settings = _get_settings(profile)
     logger = _get_logger(settings)
     logger.log_info("update_incident_status", "Incident status update started.")
     if request.is_ajax():
@@ -258,10 +268,8 @@ def get_id(value):
     return value['_id']
 
 
-def _get_settings(request):
-    try:
-        profile = request.GET["settings_profile"]
-    except KeyError:
+def _get_settings(profile=None):
+    if profile == "":
         profile = None
     return OpmonSettingsManager(profile).settings
 

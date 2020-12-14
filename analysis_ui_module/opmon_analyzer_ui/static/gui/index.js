@@ -1,4 +1,5 @@
-const incident_table = initialize_incident_table('#incident_table', 'get_incident_data_serverside', '#toggle-service-call-incident', "#incident-add-constraint-column", "#incident-alert")
+const incident_table = initialize_incident_table('#incident_table', '/get_incident_data_serverside', '#toggle-service-call-incident', "#incident-add-constraint-column", "#incident-alert")
+const historySelector = $("#history-selector")
 
 $("#new-selector").click(function () {
     $('#incident_table').DataTable().draw();
@@ -8,7 +9,6 @@ $("#new-selector").click(function () {
     incidentAlert.html("")
 });
 
-const historySelector = $("#history-selector")
 historySelector.click(function () {
 
     const historyAlert = $("#history-alert")
@@ -19,14 +19,15 @@ historySelector.click(function () {
     if (clicks) {
         $('#history_table').DataTable().draw();
     } else {
-       initialize_incident_table('#history_table', 'get_historic_incident_data_serverside', '#toggle-service-call-history', "#history-add-constraint-column", "#history-alert")
+       initialize_incident_table('#history_table', '/get_historic_incident_data_serverside', '#toggle-service-call-history', "#history-add-constraint-column", "#history-alert")
     }
     historySelector.data("clicks", true);
 });
 
 function initialize_incident_table(table_id, serverside_url, service_call_toggle_id, new_constraint_column_id, alert_id) {
+    const profile = "/" + $('#settings-profile').text();
     $.ajax({
-        url: "get_incident_table_initialization_data",
+        url: "/get_incident_table_initialization_data" + profile,
         method: 'GET',
         data: {table_id: JSON.stringify(table_id)},
         dataType: 'json',
@@ -43,7 +44,7 @@ function initialize_incident_table(table_id, serverside_url, service_call_toggle
                 searching: false,
                 cache: false,
                 ajax: {
-                    url: serverside_url,
+                    url: serverside_url + profile,
                     type: "POST",
                     headers: {
                         'X-CSRFToken': getCookie('csrftoken')
@@ -140,9 +141,10 @@ $(document).on('click', '.btn-status', function(){
 
 $(document).on('click', '.btn-examples', function(){
     const incident_id = $(this).closest('tr').attr('id');
+    const profile = "/" + $('#settings-profile').text();
     
     $.ajax({
-        url: "get_request_list",
+        url: "/get_request_list" + profile,
         method: 'GET',
         data: {incident_id: JSON.stringify(incident_id)},
         dataType: 'json',
@@ -238,8 +240,9 @@ $('.btn-save').click(function(){
     });
 
     const cookie = getCookie('csrftoken');
+    const profile = "/" + $('#settings-profile').text()
     $.ajax({
-        url: "update_incident_status",
+        url: "/update_incident_status" + profile,
         method: 'POST',
         data: {
             normal: JSON.stringify(normal_ids),

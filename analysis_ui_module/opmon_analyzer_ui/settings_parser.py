@@ -1,3 +1,4 @@
+import errno
 from os import listdir
 from os.path import isfile, join
 import re
@@ -58,6 +59,6 @@ class OpmonSettingsManager:
 
         settings_files = [f for f in file_list if re.match(pattern, f)]
         if len(settings_files) == 0:
-            raise FileNotFoundError('Valid settings file not found.')
+            raise FileNotFoundError(errno.ENOENT, "Settings file not found", f'settings{instance_suffix}.yaml')
 
         return settings_files
