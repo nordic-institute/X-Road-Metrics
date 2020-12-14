@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 import pymongo
 from datetime import datetime, timedelta
-from . import gui_conf
+from . import constants
 
 operator_map = {"=": "$eq",
                 "!=": "$ne",
@@ -51,7 +51,7 @@ class IncidentDatabaseManager(object):
                     
                 elif data_type == 'date':
                     value = value.strip()
-                    for date_format in gui_conf.accepted_date_formats:
+                    for date_format in constants.accepted_date_formats:
                         try:
                             value = datetime.strptime(value, date_format)
                         except ValueError:
@@ -59,7 +59,7 @@ class IncidentDatabaseManager(object):
                         else:
                             break
                     else:
-                        return {"error_message": "<b>%s:</b> Accepted date formats are %s" % (field, gui_conf.accepted_date_formats)}
+                        return {"error_message": "<b>%s:</b> Accepted date formats are %s" % (field, constants.accepted_date_formats)}
                     if "%M" in date_format:
                         end_date = value + timedelta(minutes=1)
                     else:
@@ -79,7 +79,6 @@ class IncidentDatabaseManager(object):
         return {"data": list(result), "total_count": total_count, "filtered_count": filtered_count}
     
     def get_distinct_values(self, field, start_time=None, incident_status=["new", "showed"]):
-        # create connection
         filter_dict = {"incident_status": {"$in": incident_status}}
         if start_time is not None:
             filter_dict["incident_creation_timestamp"] = {"$gte": start_time}

@@ -11,7 +11,7 @@ import numpy as np
 from .settings_parser import OpmonSettingsManager
 from .db_manager import IncidentDatabaseManager
 from .logger_manager import LoggerManager
-from . import gui_conf as gui_conf
+from . import constants
 
 
 settings = OpmonSettingsManager().settings
@@ -27,7 +27,7 @@ def index(request):
 def get_incident_data_serverside(request):
     data = _process_incident_data_request(request,
                                           incident_status=["new", "showed"],
-                                          relevant_cols=gui_conf.new_incident_columns,
+                                          relevant_cols=constants.new_incident_columns,
                                           update_status_shown=True)
     if "error_message" in data:
         return HttpResponseNotFound(data["error_message"])
@@ -39,7 +39,7 @@ def get_incident_data_serverside(request):
 def get_historic_incident_data_serverside(request):
     data = _process_incident_data_request(request,
                                           incident_status=["normal", "incident", "viewed"],
-                                          relevant_cols=gui_conf.historical_incident_columns,
+                                          relevant_cols=constants.historical_incident_columns,
                                           update_status_shown=False)
     
     if "error_message" in data:
@@ -55,7 +55,7 @@ def _process_incident_data_request(request, incident_status, relevant_cols, upda
     if order_col_name in ["service_call", "mark_as", "actions"]:
         order_col_name = "clientMemberCode"
         
-    start_time = datetime.datetime.now() - datetime.timedelta(minutes=gui_conf.incident_expiration_time)
+    start_time = datetime.datetime.now() - datetime.timedelta(minutes=constants.incident_expiration_time)
     incident_data = db_manager.load_incident_data(start=int(request.POST["start"]),
                                                   length=int(request.POST["length"]),
                                                   order_col_name=order_col_name,
@@ -78,7 +78,7 @@ def _process_incident_data_request(request, incident_status, relevant_cols, upda
     for incident in incident_data["data"]:
 
         # add concatenated service call
-        incident_data_dict = {"0": " ".join([incident[field] for field in gui_conf.service_call_fields])}
+        incident_data_dict = {"0": " ".join([incident[field] for field in constants.service_call_fields])}
         
         # add relevant fields
         for idx, (col_name, field, data_type, round_prec, date_format) in enumerate(relevant_cols):
@@ -107,16 +107,16 @@ def get_incident_table_initialization_data(request):
     
     table_id = json.loads(request.GET["table_id"])
     
-    n_service_call_field_cols = len(gui_conf.service_call_fields) + 1
+    n_service_call_field_cols = len(constants.service_call_fields) + 1
     
     # create column names data
     if table_id == "#incident_table":
-        relevant_cols = gui_conf.new_incident_columns
-        order = gui_conf.new_incident_order
+        relevant_cols = constants.new_incident_columns
+        order = constants.new_incident_order
         incident_status = ["new", "showed"]
     else:
-        relevant_cols = gui_conf.historical_incident_columns
-        order = gui_conf.historical_incident_order
+        relevant_cols = constants.historical_incident_columns
+        order = constants.historical_incident_order
         incident_status = ["normal", "incident", "viewed"]
     
     cols = [{"name": "service_call", "title": "Service call", "data_type": "categorical"}]
@@ -156,7 +156,7 @@ def get_incident_table_initialization_data(request):
                    html_header,
                    html_header)
     
-    start_time = datetime.datetime.now() - datetime.timedelta(minutes=gui_conf.incident_expiration_time)
+    start_time = datetime.datetime.now() - datetime.timedelta(minutes=constants.incident_expiration_time)
     filter_selector_html = []
     for _, field, data_type, _, _ in relevant_cols:
         if data_type == 'categorical':
@@ -173,7 +173,7 @@ def get_incident_table_initialization_data(request):
             "order": idx_order,
             "service_call_field_idxs": list(range(1, n_service_call_field_cols)),
             "filter_selector_html": filter_selector_html,
-            "historic_averages_anomaly_types": gui_conf.historic_averages_anomaly_types,
+            "historic_averages_anomaly_types": constants.historic_averages_anomaly_types,
             "anomaly_type_idx": anomaly_type_idx,
             "comment_field_idx": comment_field_idx}
                                             
@@ -185,30 +185,30 @@ def get_request_list(request):
     db_manager = IncidentDatabaseManager(settings)
 
     incident_id = json.loads(request.GET["incident_id"])
-    requests = db_manager.get_request_list(ObjectId(incident_id), limit=gui_conf.example_request_limit)
+    requests = db_manager.get_request_list(ObjectId(incident_id), limit=constants.example_request_limit)
 
     requests_relevant_data = []
     for req in requests:
         # extract nested fields
         if req["client"] is not None:
             current_request_relevant_data = [req["client"][col] for col in
-                                             gui_conf.relevant_fields_for_example_requests_nested]
+                                             constants.relevant_fields_for_example_requests_nested]
         else:
             current_request_relevant_data = [req["producer"][col] for col in
-                                             gui_conf.relevant_fields_for_example_requests_nested]
+                                             constants.relevant_fields_for_example_requests_nested]
         # extract alternative fields
         current_request_relevant_data += [req[f1] if req[f1] is not None else req[f2]
-                                          for _, f1, f2 in gui_conf.relevant_fields_for_example_requests_alternative]
+                                          for _, f1, f2 in constants.relevant_fields_for_example_requests_alternative]
                                           
         # extract general fields
         current_request_relevant_data += [req[col] for col in
-                                          gui_conf.relevant_fields_for_example_requests_general]
+                                          constants.relevant_fields_for_example_requests_general]
         
         requests_relevant_data.append(current_request_relevant_data)
             
-    relevant_cols = (gui_conf.relevant_fields_for_example_requests_nested +
-                     [col for col, _, _ in gui_conf.relevant_fields_for_example_requests_alternative] +
-                     gui_conf.relevant_fields_for_example_requests_general)
+    relevant_cols = (constants.relevant_fields_for_example_requests_nested +
+                     [col for col, _, _ in constants.relevant_fields_for_example_requests_alternative] +
+                     constants.relevant_fields_for_example_requests_general)
     data = {"requests": requests_relevant_data, "columns": [{"title": col} for col in relevant_cols]}
     return HttpResponse(json.dumps(data))
 
