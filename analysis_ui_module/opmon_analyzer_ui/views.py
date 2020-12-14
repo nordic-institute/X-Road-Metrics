@@ -14,10 +14,6 @@ from .logger_manager import LoggerManager
 from . import constants
 
 
-settings = OpmonSettingsManager().settings
-logger_m = LoggerManager(settings['logger'], settings['xroad']['instance'])
-
-
 # Create your views here.
 def index(request):
     return render(request, "gui/index.html")
@@ -49,6 +45,9 @@ def get_historic_incident_data_serverside(request):
 
 
 def _process_incident_data_request(request, incident_status, relevant_cols, update_status_shown):
+    settings = _get_settings(request)
+    logger = _get_logger(settings)
+    logger.log_info("_process_incident_data_request", "Fetching incident data.")
     db_manager = IncidentDatabaseManager(settings)
     order_col = int(request.POST["order[0][column]"])
     order_col_name = request.POST["columns[%s][name]" % order_col]
@@ -103,6 +102,9 @@ def _process_incident_data_request(request, incident_status, relevant_cols, upda
 
 
 def get_incident_table_initialization_data(request):
+    settings = _get_settings(request)
+    logger = _get_logger(settings)
+    logger.log_info("get_incident_table_initialization_data", "Initializing incident table view.")
     db_manager = IncidentDatabaseManager(settings)
     
     table_id = json.loads(request.GET["table_id"])
@@ -181,10 +183,12 @@ def get_incident_table_initialization_data(request):
 
 
 def get_request_list(request):
-    n_updated = 0
+    settings = _get_settings(request)
+    logger = _get_logger(settings)
     db_manager = IncidentDatabaseManager(settings)
 
     incident_id = json.loads(request.GET["incident_id"])
+    logger.log_info("get_request_list", f"Getting request list for incident {incident_id}.")
     requests = db_manager.get_request_list(ObjectId(incident_id), limit=constants.example_request_limit)
 
     requests_relevant_data = []
@@ -215,6 +219,9 @@ def get_request_list(request):
 
 @ensure_csrf_cookie
 def update_incident_status(request):
+    settings = _get_settings(request)
+    logger = _get_logger(settings)
+    logger.log_info("update_incident_status", "Incident status update started.")
     if request.is_ajax():
         n_updated_status = 0
         n_updated_comments = 0
@@ -230,7 +237,7 @@ def update_incident_status(request):
             n_updated_comments += db_manager.update_incidents(ids=[ObjectId(idd)], field="comments", value=comment)
 
         message = f"Successfully updated {n_updated_status} incident status and {n_updated_comments} incident comments."
-        logger_m.log_info('analyzer_interface', message)
+        logger.log_info('analyzer_interface', message)
     else:
         message = "Not Ajax"
     return HttpResponse(message)
@@ -249,3 +256,15 @@ def get_type(value):
 @register.filter
 def get_id(value):
     return value['_id']
+
+
+def _get_settings(request):
+    try:
+        profile = request.GET["settings_profile"]
+    except KeyError:
+        profile = None
+    return OpmonSettingsManager(profile).settings
+
+
+def _get_logger(settings):
+    return LoggerManager(settings['logger'], settings['xroad']['instance'])
