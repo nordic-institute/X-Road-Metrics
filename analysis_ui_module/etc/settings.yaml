@@ -21,3 +21,9 @@ logger:
   # Also configure external log rotation and app monitoring accordingly.
   log-path: /var/log/opmon/analyzer_ui/logs
   heartbeat-path: /var/log/opmon/analyzer_ui/heartbeat
+
+django:
+  secret-key: <FILL>
+  allowed-hosts:
+    - 'localhost'
+    - '127.0.0.1'
