@@ -102,7 +102,17 @@
                     
                     <div class="alert fade in" id="history-alert">
                     </div>
-                    
+
+                    <div class="panel panel-info">
+                        <div class="panel-heading">
+                            <b>System Information</b>
+                        </div>
+                        <div class="panel-body">
+                            <p>Settings profile {{ settings_profile|default_if_none:"" }}</p>
+                            <p>Target X-Road instance: {{ xroad_instance }}</p>
+                        </div>
+                    </div>
+
                     <form method="get" class="filter-form">
 
                         <div class="panel panel-info">
