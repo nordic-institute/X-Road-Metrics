@@ -1,12 +1,16 @@
-from django.conf.urls import url
+from django.urls import include, path
 from . import views
 
+base_urlpatterns = [
+    path('', views.index),
+    path('update_incident_status/', views.update_incident_status),
+    path('get_historic_incident_data_serverside/', views.get_historic_incident_data_serverside),
+    path('get_incident_data_serverside/', views.get_incident_data_serverside),
+    path('get_request_list/', views.get_request_list),
+    path('get_incident_table_initialization_data/', views.get_incident_table_initialization_data),
+]
+
 urlpatterns = [
-    url(r'^$', views.index),
-    url(r'index/?([a-zA-Z0-9]{0,10})/?', views.index),
-    url(r'^update_incident_status/?([a-zA-Z0-9]{0,10})/?', views.update_incident_status),
-    url(r'^get_historic_incident_data_serverside/?([a-zA-Z0-9]{0,10})/?', views.get_historic_incident_data_serverside),
-    url(r'^get_incident_data_serverside/?([a-zA-Z0-9]{0,10})/?', views.get_incident_data_serverside),
-    url(r'^get_request_list/?([a-zA-Z0-9]{0,10})/?', views.get_request_list),
-    url(r'^get_incident_table_initialization_data/?([a-zA-Z0-9]{0,10})/?', views.get_incident_table_initialization_data),
+    path('', include(base_urlpatterns)),
+    path('<slug:profile>/', include(base_urlpatterns))
 ]
