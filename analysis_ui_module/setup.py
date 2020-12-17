@@ -27,7 +27,7 @@ setup(
     long_description='',
     author='NIIS',
     author_email='info@niis.org',
-    packages=find_packages(exclude=("tests",)),
+    packages=find_packages(),
     include_package_data=True,
     install_requires=requirements,
     classifiers=classifiers,
