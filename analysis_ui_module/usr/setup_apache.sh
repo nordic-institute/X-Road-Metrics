@@ -24,6 +24,6 @@ sudo --user www-data  python3 ./manage.py migrate
 sudo --user www-data  python3 ./manage.py collectstatic --no-input
 
 # Start serving opmon-analyzer-ui
-mod_wsgi-express install-module | head --lines 1 > /etc/apache2/mods-available/wsgi.load
+a2enconf javascript-common
 a2ensite opmon-analyzer-ui.conf
-apachectl start
+apache2ctl start
