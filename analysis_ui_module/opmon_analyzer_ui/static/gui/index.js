@@ -215,7 +215,7 @@ $('.btn-unmark-all').click(function(){
 $('.btn-save').click(function(){
 
     const table_id = getSelectedIncidentsTable()
-    const alert_id = table_id === '#incident_table' ? '#incident_alert' : '#history_alert'
+    const alert_id = table_id === '#incident_table' ? '#incident-alert' : '#history-alert'
     
     const normal_ids = []
     $(table_id).find('.btn-normal.selected').each(function () {
