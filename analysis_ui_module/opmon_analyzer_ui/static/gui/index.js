@@ -1,29 +1,33 @@
-var incident_table = initialize_incident_table('#incident_table', 'get_incident_data_serverside', '#toggle-service-call-incident', "#incident-add-constraint-column", "#incident-alert")
+const incident_table = initialize_incident_table('#incident_table', '/get_incident_data_serverside', '#toggle-service-call-incident', "#incident-add-constraint-column", "#incident-alert")
+const historySelector = $("#history-selector")
 
 $("#new-selector").click(function () {
     $('#incident_table').DataTable().draw();
-    
-    $("#incident-alert").removeClass('alert-success')
-    $("#incident-alert").html("")
+
+    const incidentAlert = $("#incident-alert")
+    incidentAlert.removeClass('alert-success')
+    incidentAlert.html("")
 });
 
-$("#history-selector").click(function () {
+historySelector.click(function () {
+
+    const historyAlert = $("#history-alert")
+    historyAlert.removeClass('alert-success')
+    historyAlert.html("")
     
-    $("#history-alert").removeClass('alert-success')
-    $("#history-alert").html("")
-    
-    var clicks = $("#history-selector").data('clicks');
+    const clicks = $("#history-selector").data('clicks');
     if (clicks) {
         $('#history_table').DataTable().draw();
     } else {
-       var history_table = initialize_incident_table('#history_table', 'get_historic_incident_data_serverside', '#toggle-service-call-history', "#history-add-constraint-column", "#history-alert")
+       initialize_incident_table('#history_table', '/get_historic_incident_data_serverside', '#toggle-service-call-history', "#history-add-constraint-column", "#history-alert")
     }
-    $("#history-selector").data("clicks", true);
+    historySelector.data("clicks", true);
 });
 
 function initialize_incident_table(table_id, serverside_url, service_call_toggle_id, new_constraint_column_id, alert_id) {
+    const profile = "/" + $('#settings-profile').text();
     $.ajax({
-        url: "get_incident_table_initialization_data",
+        url: "/get_incident_table_initialization_data" + profile,
         method: 'GET',
         data: {table_id: JSON.stringify(table_id)},
         dataType: 'json',
@@ -31,7 +35,7 @@ function initialize_incident_table(table_id, serverside_url, service_call_toggle
             
             $(table_id).html(response.html)
             
-            var table = $(table_id).DataTable( {
+            const table = $(table_id).DataTable( {
                 scrollX: true,
                 order: response.order,
                 serverSide: true,
@@ -40,7 +44,7 @@ function initialize_incident_table(table_id, serverside_url, service_call_toggle
                 searching: false,
                 cache: false,
                 ajax: {
-                    url: serverside_url,
+                    url: serverside_url + profile,
                     type: "POST",
                     headers: {
                         'X-CSRFToken': getCookie('csrftoken')
@@ -48,7 +52,7 @@ function initialize_incident_table(table_id, serverside_url, service_call_toggle
                     data: function ( d ) {
                         d.filterConstraints = JSON.stringify(getConstraints($(new_constraint_column_id).parent().parent().find('.constraints')))
                     },
-                    error: function (xhr, error, thrown) {
+                    error: function (xhr) {
                         $(alert_id).html(xhr.responseText);
                         $(alert_id).addClass('alert-danger')
                     }
@@ -67,7 +71,7 @@ function initialize_incident_table(table_id, serverside_url, service_call_toggle
                     {
                     "targets": -1,
                     "data": null,
-                    "render": function(data, type, full, meta){
+                    "render": function(data, type, full){
                         
                        if(response.historic_averages_anomaly_types.indexOf(full[response.anomaly_type_idx]) >= 0) {
                            data = '<button type="button" class="btn btn-default btn-status btn-incident">Incident</button><button type="button" class="btn btn-default btn-status btn-viewed">Viewed</button><button type="button" class="btn btn-default btn-status btn-normal">Normal</button>';
@@ -83,8 +87,8 @@ function initialize_incident_table(table_id, serverside_url, service_call_toggle
             $(service_call_toggle_id).on( 'click', function (e) {
                 e.preventDefault();
 
-                for (i = 0; i < response.service_call_field_idxs.length + 1; i++) { 
-                    var column = table.column( i );
+                for (let i = 0; i < response.service_call_field_idxs.length + 1; i++) {
+                    const column = table.column( i );
                     column.visible( ! column.visible() );
                 }
             } );
@@ -98,12 +102,13 @@ function initialize_incident_table(table_id, serverside_url, service_call_toggle
 }
 
 $(document).on('click', '.comment-cell', function(){
-   $('#comments-modal').modal('toggle');
-    var cell = $(this)
+   const commentsModal = $('#comments-modal')
+   commentsModal.modal('toggle');
+    const cell = $(this)
     $(this).addClass("comment-updated")
     $("#comments-textarea").val($(this).html())
-    $('#comments-modal').off('hidden.bs.modal');
-    $('#comments-modal').on('hidden.bs.modal', function () {
+    commentsModal.off('hidden.bs.modal');
+    commentsModal.on('hidden.bs.modal', function () {
        cell.html($("#comments-textarea").val())
     });
 });
@@ -135,10 +140,11 @@ $(document).on('click', '.btn-status', function(){
 
 
 $(document).on('click', '.btn-examples', function(){
-    var incident_id = $(this).closest('tr').attr('id');
+    const incident_id = $(this).closest('tr').attr('id');
+    const profile = "/" + $('#settings-profile').text();
     
     $.ajax({
-        url: "get_request_list",
+        url: "/get_request_list" + profile,
         method: 'GET',
         data: {incident_id: JSON.stringify(incident_id)},
         dataType: 'json',
@@ -156,15 +162,15 @@ $(document).on('click', '.btn-examples', function(){
 
 $(document).on('click', '.btn-filter-similar', function(){
     
-    var table = $(this).closest('table').DataTable()
-    var data = table.row( $(this).parents('tr') ).data();
-    var columns = table.settings().init().columns;
+    const table = $(this).closest('table').DataTable()
+    const data = table.row( $(this).parents('tr') ).data();
+    const columns = table.settings().init().columns;
     
-    for (i = 1; i < columns.length-2; i++) { 
-        var column = columns[i].name;
-        var operator = "="
-        var value = data[i];
-        var data_type = columns[i].data_type
+    for (let i = 1; i < columns.length-2; i++) {
+        const column = columns[i].name;
+        const operator = "="
+        const value = data[i];
+        const data_type = columns[i].data_type
         
         $('<button>', {
             text: column + ' ' + operator + ' ' + value,
@@ -174,112 +180,77 @@ $(document).on('click', '.btn-filter-similar', function(){
     
 });
 
-$('.btn-mark-all-incidents').click(function(){
-    
+function getSelectedIncidentsTable(){
     if ($("ul#new-vs-history-selector li.active").attr('id') === "new-selector") {
-        table_id = '#incident_table'
+        return '#incident_table'
     } else {
-        table_id = '#history_table'
+        return '#history_table'
     }
-    
-    $(table_id).find('.btn-status').css('border-color','#ccc');
+}
+
+function unmarkIncidents(table_id){
+    $(table_id).find('.btn-status').css('border-color','#cccccc');
     $(table_id).find('.btn-status').css('border-width','1px');
     $(table_id).find('.btn-status').removeClass( "selected" );
+}
 
-    $(table_id).find('.btn-incident').css('border-color','red');
-    $(table_id).find('.btn-incident').css('border-width','3px');
-    $(table_id).find('.btn-incident').addClass( "selected" )
+function markIncidents(color){
+    return function(){
+        const table_id = getSelectedIncidentsTable()
+        unmarkIncidents(table_id)
+        $(table_id).find('.btn-incident').css('border-color', color);
+        $(table_id).find('.btn-incident').css('border-width','3px');
+        $(table_id).find('.btn-incident').addClass( "selected" )
+    };
+}
 
-});
-
-$('.btn-mark-all-viewed').click(function(){
-    
-    if ($("ul#new-vs-history-selector li.active").attr('id') === "new-selector") {
-        table_id = '#incident_table'
-    } else {
-        table_id = '#history_table'
-    }
-    
-    $(table_id).find('.btn-status').css('border-color','#ccc');
-    $(table_id).find('.btn-status').css('border-width','1px');
-    $(table_id).find('.btn-status').removeClass( "selected" );
-    
-    $(table_id).find('.btn-viewed').css('border-color','yellow');
-    $(table_id).find('.btn-viewed').css('border-width','3px');
-    $(table_id).find('.btn-viewed').addClass( "selected" )
-
-});
-
-$('.btn-mark-all-normal').click(function(){
-    
-    if ($("ul#new-vs-history-selector li.active").attr('id') === "new-selector") {
-        table_id = '#incident_table'
-    } else {
-        table_id = '#history_table'
-    }
-    
-    $(table_id).find('.btn-status').css('border-color','#ccc');
-    $(table_id).find('.btn-status').css('border-width','1px');
-    $(table_id).find('.btn-status').removeClass( "selected" );
-    
-    $(table_id).find('.btn-normal').css('border-color','green');
-    $(table_id).find('.btn-normal').css('border-width','3px');
-    $(table_id).find('.btn-normal').addClass( "selected" )
-
-});
-
+$('.btn-mark-all-incidents').click(markIncidents('red'));
+$('.btn-mark-all-viewed').click(markIncidents('yellow'));
+$('.btn-mark-all-normal').click(markIncidents('green'));
 $('.btn-unmark-all').click(function(){
-    
-    if ($("ul#new-vs-history-selector li.active").attr('id') === "new-selector") {
-        table_id = '#incident_table'
-    } else {
-        table_id = '#history_table'
-    }
-    
-    $(table_id).find('.btn-status').css('border-color','#ccc');
-    $(table_id).find('.btn-status').css('border-width','1px');
-    $(table_id).find('.btn-status').removeClass( "selected" );
-
+    const table_id = getSelectedIncidentsTable()
+    unmarkIncidents(table_id)
 });
 
 $('.btn-save').click(function(){
+
+    const table_id = getSelectedIncidentsTable()
+    const alert_id = table_id === '#incident_table' ? '#incident_alert' : '#history_alert'
     
-    if ($("ul#new-vs-history-selector li.active").attr('id') === "new-selector") {
-        table_id = '#incident_table'
-        alert_id = '#incident-alert'
-    } else {
-        table_id = '#history_table'
-        alert_id = '#history-alert'
-    }
-    
-    var normal_ids = []
+    const normal_ids = []
     $(table_id).find('.btn-normal.selected').each(function () {
       normal_ids.push($(this).closest('tr').attr('id'));
     });
     
-    var incident_ids = []
+    const incident_ids = []
     $(table_id).find('.btn-incident.selected').each(function () {
       incident_ids.push($(this).closest('tr').attr('id'));
     });
     
-    var viewed_ids = []
+    const viewed_ids = []
     $(table_id).find('.btn-viewed.selected').each(function () {
       viewed_ids.push($(this).closest('tr').attr('id'));
     });
     
-    var updated_comment_ids = []
-    var updated_comments = []
+    const updated_comment_ids = []
+    const updated_comments = []
     $(table_id).find('.comment-updated').each(function () {
       updated_comment_ids.push($(this).closest('tr').attr('id'));
       updated_comments.push($(this).html());
     });
 
-    var cookie = getCookie('csrftoken');
+    const cookie = getCookie('csrftoken');
+    const profile = "/" + $('#settings-profile').text()
     $.ajax({
-        url: "update_incident_status",
+        url: "/update_incident_status" + profile,
         method: 'POST',
-        data: {normal: JSON.stringify(normal_ids), incident: JSON.stringify(incident_ids), viewed: JSON.stringify(viewed_ids),
-              updated_comment_ids: JSON.stringify(updated_comment_ids), updated_comments: JSON.stringify(updated_comments)},
+        data: {
+            normal: JSON.stringify(normal_ids),
+            incident: JSON.stringify(incident_ids),
+            viewed: JSON.stringify(viewed_ids),
+            updated_comment_ids: JSON.stringify(updated_comment_ids),
+            updated_comments: JSON.stringify(updated_comments)
+        },
         headers: {'X-CSRFToken': cookie},
         success: function(response){
             $(alert_id).addClass('alert-success')
@@ -292,11 +263,11 @@ $('.btn-save').click(function(){
 });
 
 function getCookie(name) {
-    var cookieValue = null;
+    let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
-        var cookies = document.cookie.split(';');
-        for (var i = 0; i < cookies.length; i++) {
-            var cookie = jQuery.trim(cookies[i]);
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = jQuery.trim(cookies[i]);
             // Does this cookie string begin with the name we want?
             if (cookie.substring(0, name.length + 1) === (name + '=')) {
                 cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
@@ -309,15 +280,15 @@ function getCookie(name) {
 
 
 $('.new-constraint-column').change(function() {
-    var type = $(this).find(":selected").data('type');
-    var new_constraint_operator = $(this).parent().find('.new-constraint-operator')
-    var new_constraint_value_div = $(this).parent().find('.new-constraint-value-div')
+    const type = $(this).find(":selected").data('type');
+    const new_constraint_operator = $(this).parent().find('.new-constraint-operator')
+    const new_constraint_value_div = $(this).parent().find('.new-constraint-value-div')
     populateConstraintOperators(type, new_constraint_operator)
 
-    if (type == 'categorical') {
+    if (type === 'categorical') {
         new_constraint_value_div.html('<select class="form-control new-constraint-value"></select>')
-        var new_constraint_value_input = new_constraint_value_div.find(".new-constraint-value")
-        var distinct_values = $(this).find(":selected").data('distinct_values').split(',');
+        const new_constraint_value_input = new_constraint_value_div.find(".new-constraint-value")
+        const distinct_values = $(this).find(":selected").data('distinct_values').split(',');
         populateValueSelector(distinct_values, new_constraint_value_input)
     } else {
         new_constraint_value_div.html('<input type="text" class="form-control new-constraint-value" placeholder="Value">')
@@ -337,14 +308,13 @@ $('.panel-heading').click(function() {
 $('.add-constraint-btn').click(function(event) {
     event.preventDefault();
 
-    var column = $(this).parent().find('.new-constraint-column').find(':selected').val()
-    var operator = $(this).parent().find('.new-constraint-operator').find(':selected').val()
-    var data_type = $(this).parent().find('.new-constraint-column').find(':selected').data('type')
-    if (data_type == "categorical") {
-        var value = $(this).parent().find('.new-constraint-value').find(':selected').val()
-    } else {
-        var value = $(this).parent().find('.new-constraint-value').val()
-    }
+    const column = $(this).parent().find('.new-constraint-column').find(':selected').val()
+    const operator = $(this).parent().find('.new-constraint-operator').find(':selected').val()
+    const data_type = $(this).parent().find('.new-constraint-column').find(':selected').data('type')
+
+    const value = data_type === "categorical"
+        ? $(this).parent().find('.new-constraint-value').find(':selected').val()
+        : $(this).parent().find('.new-constraint-value').val()
 
     if (column && operator && value) {
         $('<button>', {
@@ -364,14 +334,9 @@ $('.btn-clear-constraints').click(function(event) {
 
 $('.filter-btn').click(function(event) {
     event.preventDefault();
-    
-    if ($("ul#new-vs-history-selector li.active").attr('id') === "new-selector") {
-        table_id = '#incident_table'
-        alert_id = '#incident-alert'
-    } else {
-        table_id = '#history_table'
-        alert_id = '#history-alert'
-    }
+
+    const table_id = getSelectedIncidentsTable()
+    const alert_id = table_id === '#incident_table' ? '#incident_alert' : '#history_alert'
     
     $(alert_id).html("");
     $(alert_id).removeClass('alert-danger')
@@ -380,16 +345,17 @@ $('.filter-btn').click(function(event) {
 })
 
 function populateConstraintOperators(constraintType, new_constraint_operator) {
-    var operators = [{'name': 'equal', 'value': '='}, {'name': 'not equal', 'value': '!='}];
+    const operators = [{'name': 'equal', 'value': '='}, {'name': 'not equal', 'value': '!='}];
 
-    if (constraintType == 'numeric' || constraintType == 'date') {
+    if (constraintType === 'numeric' || constraintType === 'date') {
         operators.push({'name': 'less than', 'value': '<'});
         operators.push({'name': 'greater than', 'value': '>'});
         operators.push({'name': 'less than or equal to', 'value': '<='});
         operators.push({'name': 'greater than or equal to', 'value': '>='});
     }
-    var operatorSelection = new_constraint_operator.html("");
-    for (var i = 0; i < operators.length; i++) {
+
+    const operatorSelection = new_constraint_operator.html("");
+    for (let i = 0; i < operators.length; i++) {
         operatorSelection.append($('<option>', {
             value: operators[i].value,
             text: operators[i].name
@@ -400,13 +366,13 @@ function populateConstraintOperators(constraintType, new_constraint_operator) {
 
 function populateValueSelector(distinct_values, new_constraint_value_input) {
    
-    var values = [];
-    for (var i = 0; i < distinct_values.length; i++) {
+    const values = [];
+    for (let i = 0; i < distinct_values.length; i++) {
         values.push({'name': distinct_values[i], 'value': distinct_values[i]});
     }
     
-    var new_constraint_selector = new_constraint_value_input.html("");
-    for (var i = 0; i < values.length; i++) {
+    const new_constraint_selector = new_constraint_value_input.html("");
+    for (let i = 0; i < values.length; i++) {
         new_constraint_selector.append($('<option>', {
             value: values[i].value,
             text: values[i].name
@@ -416,10 +382,15 @@ function populateValueSelector(distinct_values, new_constraint_value_input) {
 }
 
 function getConstraints(constraints_div) {
-    var constraints = []
+    const constraints = []
     constraints_div.find('button').each(function(i, button) {
-        var button = $(button)
-        constraints.push([button.data('column'), button.data('operator'), button.data('value'), button.data('data-type')])
+        const constraint_button = $(button)
+        constraints.push([
+            constraint_button.data('column'),
+            constraint_button.data('operator'),
+            constraint_button.data('value'),
+            constraint_button.data('data-type')
+        ])
     });
     return constraints;
 }
