@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 requirements = [
     "dill==0.3.1.1",
-    "django==1.11.17",
+    "django==2.2.12",
     "pymongo==3.10.1",
     "pyyaml==5.3.1",
     "numpy"
