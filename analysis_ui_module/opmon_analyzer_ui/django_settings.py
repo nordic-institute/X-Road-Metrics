@@ -77,7 +77,7 @@ TEMPLATES = [
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join('/var/www/opmon-analyzer-ui', 'database', 'db.sqlite3'),
+        'NAME': os.path.join('/var/lib/opmon/analyzer_ui', 'database', 'db.sqlite3'),
     }
 }
 
@@ -103,4 +103,4 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join('/var/www/opmon-analyzer-ui', 'static')
+STATIC_ROOT = os.path.join('/usr/share/opmon/analyzer_ui/www', 'static')
