@@ -2,275 +2,139 @@
 | [![Republic of Estonia Information System Authority](../img/ria_100_en.png)](https://www.ria.ee/en.html) [![X-ROAD](../img/xroad_100_en.png)](https://www.ria.ee/en/state-information-system/x-tee.html) | ![European Union / European Regional Development Fund / Investing in your future](../img/eu_rdf_100_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.11.2022. If it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
 | :-------------------------------------------------- | -------------------------: |
 
-# Analysis Module
 
-## Download
 
-The module source code can be found at:
+# Analyzer Module
 
-```
-https://github.com/ria-ee/X-Road-opmonitor
-```
+## Installation
 
-and can be downloaded into server:
+This sections describes the necessary steps to install the **analyzer module** on an Ubuntu 20.04 Linux host. For a complete overview of different modules and machines, please refer to the ==> [System Architecture](../system_architecture.md) <== documentation.
 
-```bash
-# If HOME not set, set it to /tmp default.
-export TMP_DIR=${HOME:=/tmp}
-export PROJECT="X-Road-opmonitor"
-export PROJECT_URL="https://github.com/ria-ee/${PROJECT}.git"
-export SOURCE="${TMP_DIR}/${PROJECT}"
-if [ ! -d "${TMP_DIR}/${PROJECT}" ]; then \
-    cd ${TMP_DIR}; git clone ${PROJECT_URL}; \
-else \
-  cd ${SOURCE}; git pull ${PROJECT_URL}; \
-fi
-```
+### Firewall Setup
+Opmon Analyzer User Interface is hosted on an Apache web server.
+To access the web app, you need to allow incoming HTTP (or HTTPS) requests in the host machine's firewall.
 
-## Networking
+**IMPORTANT:** The instructions below can be applied on a host machine that is used only to run Opmon Analyzer.
+On a shared host contact the system administrator and follow your networking environment's security policies.
 
-### Outgoing
+**WARNING:** Although ufw is convenient, enabling it overrules/wipes the iptables, **INCLUDING PORT 22 FOR SSH.** 
+If you need SSH access to the server make sure to allow port 22 in ufw settings. 
 
-- The analysis module needs access to the [Database_Module](../database_module.md).
 
-### Incoming
-
-- The Analysis module's Interface accepts incoming access from the local network on http port 80 (and, if configured, also https port 443).
-
-## 1. Installing Apache
-
-Install Apache and relevant libraries in order to serve Interface.
+**TODO: Verify these instructions**
 
 ```bash
-sudo apt-get --yes update
-sudo apt-get install --yes apache2 apache2-utils libexpat1 ssl-cert apache2-dev
-```
-
-**Note:** Apache installation creates user **www-data**. Django application, which serves Analyzer's Interface, is run with same permissions.
-
-Open 80 (http) [and 443 (https) for Apache, if using SSL].
-
-**WARNING:** **Although ufw is convenient, enabling it overrules/wipes the iptables, INCLUDING ACCESS TO 22 FOR SSH.** 
-**Always allow 22 after enabling.** 
-
-
-```bash
-sudo apt-get install ufw
-sudo ufw enable
-sudo ufw allow 22
+sudo apt install ufw
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+sudo ufw allow 22/tcp
 sudo ufw allow http
 sudo ufw allow https
+sudo ufw enable
 ```
 
-To verify that the ports are open, run
+To list the open ports, run
 
 ```bash
 sudo ufw status
 ```
 
-This should output something similar to
+
+### Add X-Road OpMon Package Repository for Ubuntu
+TODO
+
+### Install Analyzer Package
+To install opmon-analyzer and all dependencies execute the commands below:
 
 ```bash
-Status: active
-
-To                         Action      From
---                         ------      ----
-22                         ALLOW       Anywhere
-80                         ALLOW       Anywhere
-443                        ALLOW       Anywhere
-22 (v6)                    ALLOW       Anywhere (v6)
-80 (v6)                    ALLOW       Anywhere (v6)
-443 (v6)                   ALLOW       Anywhere (v6)
+sudo apt-get update
+sudo apt-get install opmon-analyzer-ui
 ```
 
-To test whether Apache works, the next command should output a web page source:
+The installation package automatically installs following items:
+ * Linux users _opmon_ and _www-data_
+ * opmon-analyzer-ui Django web-application package
+ * Apache web server and dependencies
+ * Apache configuration file for the web-app _/etc/apache2/opmon-analyzer-ui.conf_
+ * web-app static content under _/usr/share/opmon/analyzer_ui_
+ * web-app dynamic content under _/var/lib/opmon/analyzer_ui_
+ * settings file _/etc/opmon/analyzer_ui/settings.yaml_
+ * log folders to _/var/log/opmon/analyzer_ui/_
+
+Only users in _opmon_ group can access the settings files.
+
+You have to fill in some environment specific settings to the settings file to make the Analyzer User Interface work properly.
+Refer to section [Analyzer User Interface Configuration](#analyzer-user-interface-configuration)
+
+## Usage
+### Analyzer User Interface Configuration
+
+To use analyzer user interface you need to fill in your X-Road, MongoDB and Django configuration into the settings file.
+(here, **vi** is used):
 
 ```bash
-sudo apt-get install --assume-yes curl
-curl localhost
+sudo vi /etc/opmon/analyzer/settings.yaml
 ```
 
-## 2. Installing Python and libraries
+Settings that the user must fill in:
+* X-Road instance name
+* username and password for the analyzer-interface MongoDB user
+* secret key for the Django web-app
+* allowed hostname(s) for the web-app server
 
-Analysis module has been written with Python 3.5.2 in mind, which is the default preinstalled _python3_ version for Ubuntu 16.04.3 LTS.
-Although not tested, it should work with any modern Python 3.x version.
+### Hostname configuration
+To prevent Cross Site Scripting attacks a list of allowed host header values must be defined in Django and Apache settings.
+The default configuration allows only requests targeting 'localhost'.
+External clients call the server using the server's IP address or DNS name. These must be added to the list of allowed hostnames.
+The simplest way is to add the server's local IP address.
+If your server has a DNS name configured, you can also use that.
 
-Most libraries follow the "MAJOR.MINOR.PATCH" schema, so the guideline is to review and update PATCH versions always (they mostly contain bug fixes). MINOR updates can be applied,  as they should keep compatibility, but there is no guarantee for some libraries. A suggestion would be to check if tests are working after MINOR updates and rollback if they stop working. MAJOR updates should not be applied.
+For example to add allowed hostnames 10.1.2.3 (example local IP) and myhost.mydomain.org (example DNS name) follow these steps:
+Set the allowed-hosts section in settings.yaml like this:
+```
+django:
+  secret-key: *******************
+  allowed-hosts:
+    - 'localhost'
+    - '127.0.0.1'
+    - '10.1.2.3'
+    - 'myhost.mydomain.org'
 
-Get _pip3_ tool for downloading 3rd party Python libraries for _python3_ along with system dependencies.
-
-```bash
-sudo apt-get --yes upgrade
-sudo apt-get install --yes python3-pip libpq-dev libyaml-dev
-pip3 install --upgrade pip
 ```
 
-Install dependencies:
-
-```bash
-sudo pip3 install -r ${SOURCE}/analysis_module/requirements.txt
+Then edit the Apache config file /etc/apache2/opmon-analyzer-ui.conf and set the ServerName and ServerAlias fields:
+```
+<VirtualHost *:80>
+        ServerName myhost.mydomain.org
+        ServerAlias 10.1.2.3
+        ServerAlias localhost
+        ServerAlias 127.0.0.1
+        ServerAdmin me@mydomain.org
+        ...
 ```
 
-We also need our Python version specific *mod_wsgi* build to serve Python applications through WSGI and Apache.
-
+After these changes you must restart Apache:
 ```bash
-sudo pip3 install mod_wsgi
+sudo apache2ctl restart
 ```
 
-This builds us a *mod_wsgi* for our *python3* version.
+And then you can test accessing the Opmon Analyzer UI by pointing your browser to `http://10.1.2.3/` or
+`http://myhost.mydomain.org/`
 
-## 3. Configuring system users
+**NOTE:** Django returns HTTP status 400 BAD REQUEST if the allowed host check fails.
 
-The Interface uses the system user **www-data** (apache).
-The Analyzer uses **analyzer** user.
-Both of them share the same logs and heartbeat directory under group **opmon**
-To create groups, users etc, execute:
+### Settings profiles
+The analyzer UI can show data for multiple X-Road instances using settings profiles. 
+For example to have profiles DEV, TEST and PROD create three copies of the `setting.yaml` 
+file named `settings_DEV.yaml`, `settings_TEST.yaml` and `settings_PROD.yaml` and 
+change the xroad-instance setting in the files.
 
-```bash
-sudo useradd --base-dir /opt --create-home --system --shell /bin/bash --gid analyzer analyzer
-sudo groupadd --force opmon
-sudo usermod --append --groups opmon www-data
-sudo usermod --append --groups opmon analyzer
+Then you can access different X-road instances data by selecting the settings profile in the url:
 ```
-
-## 4. Create relevant X-Road instances
-
-Each X-Road instance needs its own instance of Analyzer and Interface.
-
-In this manual, `sample` is used as INSTANCE. 
-To repeat for another instance, please change `sample` to map your desired instance.
-
-```bash
-# By default, Analyzer component will be installed to ${APPDIR}/${INSTANCE}
-# By default, Interface component will be installed to ${WEBDIR}/${INSTANCE}
-export APPDIR="/srv/app"
-export WEBDIR="/var/www"
-export INSTANCE="sample"
-```
-
-Logs and heartbeats for Analyzer and Interface share common directories in `${APPDIR}/${INSTANCE}`, therefor we set them as owned by `root:opmon` and writable for group `opmon`.
-
-```bash
-# Create log and heartbeat directories with group 'opmon' write permission
-# export APPDIR="/srv/app"; export INSTANCE="sample"
-sudo mkdir --parents ${APPDIR}/${INSTANCE}
-sudo mkdir --parents ${APPDIR}/${INSTANCE}/logs
-sudo mkdir --parents ${APPDIR}/${INSTANCE}/heartbeat
-sudo chown root:opmon ${APPDIR}/${INSTANCE} ${APPDIR}/${INSTANCE}/logs ${APPDIR}/${INSTANCE}/heartbeat
-sudo chmod g+w ${APPDIR}/${INSTANCE} ${APPDIR}/${INSTANCE}/logs ${APPDIR}/${INSTANCE}/heartbeat
-```
-
-Set up Analyzer computations codebase for the instance's scheduled computations:
-
-```bash
-# export APPDIR="/srv/app"; export INSTANCE="sample"
-sudo mkdir --parents ${APPDIR}/${INSTANCE}/analysis_module
-
-# Copy the Analyzer code from repository to the ${APPDIR}/${INSTANCE}.
-sudo cp --recursive --preserve \
-    ${SOURCE}/analysis_module/analyzer \
-    ${APPDIR}/${INSTANCE}/analysis_module
-```
-
-Settings for Analyzer computations of different X-Road instances have been prepared and can be used:
-
-```bash
-# export APPDIR="/srv/app"; export INSTANCE="sample"
-sudo rm --force ${APPDIR}/${INSTANCE}/analysis_module/analyzer/settings.py
-sudo ln --symbolic \
-    ${APPDIR}/${INSTANCE}/analysis_module/analyzer/instance_configurations/settings_${INSTANCE}.py \
-    ${APPDIR}/${INSTANCE}/analysis_module/analyzer/settings.py
-```
-
-Correct necessary permissions for Analyzer computations:
-
-```bash
-# export APPDIR="/srv/app"; export INSTANCE="sample"
-sudo chown --recursive analyzer:analyzer ${APPDIR}/${INSTANCE}/analysis_module
-sudo chmod --recursive -x+X ${APPDIR}/${INSTANCE}/analysis_module
-```
-
-Set up Analyzer codebase for the instance's user interface (UI), web application:
-
-```bash
-# export WEBDIR="/var/www"; export INSTANCE="sample"
-sudo mkdir --parents ${WEBDIR}/${INSTANCE}/analysis_module
-
-# Copy the UI code from repository to the default Apache directory ($WEBDIR)
-sudo cp --recursive --preserve \
-    ${SOURCE}/analysis_module/analyzer_ui \
-    ${WEBDIR}/${INSTANCE}/analysis_module
-```
-
-Set up database directory to store Django's internal SQLite database for UI.
-
-```bash
-# export WEBDIR="/var/www"; export INSTANCE="sample"
-# sudo mkdir --parents ${WEBDIR}
-# sudo mkdir --parents ${WEBDIR}/${INSTANCE}
-# sudo mkdir --parents ${WEBDIR}/${INSTANCE}/analysis_module
-# sudo mkdir --parents ${WEBDIR}/${INSTANCE}/analysis_module/analyzer_ui
-sudo mkdir --parents ${WEBDIR}/${INSTANCE}/analysis_module/analyzer_ui/database
-sudo chown www-data:www-data ${WEBDIR}/${INSTANCE}/analysis_module/analyzer_ui/database
-```
-
-Settings for Analyzer Interface (Analyzer UI) of different X-Road instances have been prepared and can be used:
-
-```bash
-# export WEBDIR="/var/www"; export INSTANCE="sample"
-sudo rm --force ${WEBDIR}/${INSTANCE}/analysis_module/analyzer_ui/analyzer_ui/settings.py
-sudo ln --symbolic \
-    ${WEBDIR}/${INSTANCE}/analysis_module/analyzer_ui/instance_configurations/settings_${INSTANCE}.py \
-    ${WEBDIR}/${INSTANCE}/analysis_module/analyzer_ui/analyzer_ui/settings.py
-```
-
-Correct necessary permissions for Analyzer Interface:
-
-```bash
-# export WEBDIR="/var/www"; export INSTANCE="sample"
-sudo chown --recursive www-data:www-data ${WEBDIR}/${INSTANCE}/analysis_module
-sudo chmod --recursive -x+X ${WEBDIR}/${INSTANCE}/analysis_module
-```
-
-## 5. Setting up Django SQLite databases for Interface
-
-Interface (Analyzer UI) runs on Django.
-
-In order for Django application to work, the internal SQLite database must be set up. For that, create schemas and then create corresponding tables:
-
-```bash
-# export WEBDIR="/var/www"; export INSTANCE="sample"
-sudo --user www-data python3 ${WEBDIR}/${INSTANCE}/analysis_module/analyzer_ui/manage.py makemigrations
-sudo --user www-data python3 ${WEBDIR}/${INSTANCE}/analysis_module/analyzer_ui/manage.py migrate
-```
-
-### Collecting static files for Apache
-
-Static files are scattered during the development in Django. 
-To allow Apache to serve the static files from one location, they have to be collected (copied to a single directory). 
-Collect static files for relevant instances to `${WEBDIR}/${INSTANCE}/analysis_module/analyzer_ui/static` by default (`STATIC_ROOT` value in `settings.py`):
-
-```bash
-# export WEBDIR="/var/www"; export INSTANCE="sample"
-sudo --user www-data python3 ${WEBDIR}/${INSTANCE}/analysis_module/analyzer_ui/manage.py collectstatic <<<yes
-```
-
-Make the _root:root_ static directory explicitly read-only for others (including _www-data_):
-
-```bash
-# export WEBDIR="/var/www"; export INSTANCE="sample"
-sudo chown --recursive root:root ${WEBDIR}/${INSTANCE}/analysis_module/analyzer_ui/static
-sudo chmod --recursive o-w ${WEBDIR}/${INSTANCE}/analysis_module/analyzer_ui/static
-sudo chmod --recursive g-w ${WEBDIR}/${INSTANCE}/analysis_module/analyzer_ui/static
-```
-
-## 6. Configuring Django
-
-Configuration file is located at and can be modified:
-
-```bash
-# export WEBDIR="/var/www"; export INSTANCE="sample"
-sudo vi ${WEBDIR}/${INSTANCE}/analysis_module/analyzer_ui/analyzer_ui/settings.py 
+http://myhost.mydomain.org/       # settings from settings.yaml
+http://myhost.mydomain.org/DEV/   # settings from settings_DEV.yaml
+http://myhost.mydomain.org/TEST/  # settings from settings_TEST.yaml
+http://myhost.mydomain.org/PROD/  # settings from settings_PROD.yaml
 ```
 
 ### Allowed hosts

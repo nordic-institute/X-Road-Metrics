@@ -97,7 +97,7 @@ _/etc/opmon/collector/_
 All collector module actions can be executed by calling the `opmon-collector` command.
 Command should be executed as user `opmon` so change to that user:
 ```bash
-sudo su collector
+sudo su opmon
 ```
 
 Some example commands:
