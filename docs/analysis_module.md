@@ -21,22 +21,33 @@ Overall system is also designed in a way, that can be used by X-Road Centre for 
 The Analysis module consists of two parts:
 
 - **Analyzer:** the back-end of the analysis module, responsible for detecting anomalies based on requests made via the X-road platform.
-- **Interface:** the front-end of the analysis module, responsible for presenting the found anomalies to the user and recording user feedback.
+- **User Interface:** the front-end of the analysis module, responsible for presenting the found anomalies to the user and recording user feedback.
+
+## Networking
+
+### Outgoing
+- The Analyzer sub-module needs access to the [Database_Module](../database_module.md).
+
+### Incoming
+- The User Interface runs an Apache webserver. Default Apache configuration accepts incoming HTTP requests on port 80. 
 
 ## Process
-
 ![analysis module diagram](img/analysis_module/x_road_analyzer.png "Analysis module diagram")
 
-As mentioned on the diagram, service calls can be in different phases which determines how the data for a given service call is retrieved
+The analyzer program has two stages of operation, *"train and update"* and *"find anomalies"*. 
 
-1. In script ``train_or_update_historic_averages_models.py``, a service call can be in one of the following phases:
+*TODO: Add a short definition for **service call**.*
+
+As mentioned on the diagram, service calls can be in different *phases*. The phase determines how the analyzer fetches the service call data from the database.
+
+During the train/update stage a service call can be in one of the following phases:
 
 1) pre-training: less than 3 months have passed since the first request was made by that service call. No data are retrieved.
 2) first-time training: 3 months have just passed since the first request. All the data will be retrieved for training.
 3) second-time training: the first model was trained at least 10 days ago and the first incidents have just expired. Data are retrieved since the beginning until the time of the expired incidents (excluding requests that are part of a "true" incident). The model is retrained.
 4) regular: data are retrieved since the last update to the model until the time of the expired incidents (excluding requests that are part of a "true" incident). The model is updated based on these data.
 
-2. In script ``find_anomalies.py``, a service call can be in one of the following phases:
+During the anomaly detection stage a service call can be in one of the following phases:
 
 1) pre-training: less than 3 months have passed since the first request was made by that service call. No data are retrieved.
 2) first-time anomaly finding: 3 months have passed since the first request and the first version of the model has just been trained. All the data will be retrieved for anomaly finding.
@@ -46,19 +57,12 @@ It is important to note that it can take up to 7 days for the [Collector module]
 This means that Analyzer results are available at least 10 days after data received.
 
 ## Installation
-
-Before the module can be used, the following components must be set up and actions performed:
-
-1. Apache must be set up to serve Interface;
-2. Python codebase must be installed and configured;
-3. Initial anomaly models must be calculated.
-
-The detailed instructions can be found ==> [here](analysis_module/installation.md) <==
+The Analyzer and Interface are distributed as .deb packages for Ubuntu 20.04. Detailed installation instructions are in these documents: 
+* [Analyzer](analysis_module/analyzer_installation.md)
+* [User Interface](analysis_module/ui_installation.md)
 
 ## Configuration
-
 Descriptions of different secondary configuration / customization files and parameters can be found ==> [here](analysis_module/customization.md) <==
 
 ## Usage
-
-Use Case-based functionality descriptions with illustrative screenshots can be found ==> [here](analysis_module/usage.md) <==
+Use Case-based functionality descriptions with illustrative screenshots can be found ==> [here](analysis_module/ui_usage.md) <==
