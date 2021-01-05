@@ -1,13 +1,12 @@
-import argparse
 import json
 import time
 
-import settings
 from .database_manager import DatabaseManager
 from .logger_manager import LoggerManager
 from .mongodb_handler import MongoDBHandler
 from .report_manager import ReportManager
 from .translator import Translator
+from .reports_arguments import OpmonReportsArguments
 
 
 def read_in_json(file_name, logger_manager):
@@ -37,25 +36,8 @@ def main(logger_manager):
     # Start timer
     start_processing_time = time.time()
 
-    # Parse input arguments
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--member_code', dest='member_code', help='MemberCode', required=True)
-    parser.add_argument('--subsystem_code', dest='subsystem_code', help='SubsystemCode', default="")
-    parser.add_argument('--member_class', dest='member_class', help='MemberClass', required=True)
-    parser.add_argument('--x_road_instance', dest='x_road_instance', help='XRoadInstance', required=True)
-    parser.add_argument('--start_date', dest='start_date', help='StartDate "YYYY-MM-DD"', required=True)
-    parser.add_argument('--end_date', dest='end_date', help='EndDate "YYYY-MM-DD"', required=True)
-    parser.add_argument('--language', dest='language', help='Language ("et"/"en")', required=True)
-    args = parser.parse_args()
-
-    # Initialize variables
-    member_code = args.member_code
-    subsystem_code = args.subsystem_code
-    member_class = args.member_class
-    x_road_instance = args.x_road_instance
-    start_date = args.start_date
-    end_date = args.end_date
-    language = args.language
+    args = OpmonReportsArguments()
+    settings = args.settings
 
     # Initialize handlers
     mdb_suffix = settings.MONGODB_SUFFIX
@@ -81,14 +63,15 @@ def main(logger_manager):
     ria_image_3 = settings.RIA_IMAGE_3.format(LANGUAGE=language)
 
     # Generate a report manager
-    report_manager = ReportManager(x_road_instance, member_class, member_code, subsystem_code, start_date, end_date,
-                                   riha_json, logger_manager, db_m, language, meta_services, translator, html_template,
+    report_manager = ReportManager(args,
+                                   riha_json, logger_manager, db_m, meta_services, translator, html_template,
                                    report_path, css_files, ria_image_1, ria_image_2, ria_image_3)
 
     # Log starting
     logger_manager.log_info('report_worker', 'report_worker_start')
     # No need to heartbeat here, it might confuse application monitoring
-    # logger_manager.log_heartbeat("report_worker start", settings.HEARTBEAT_LOGGER_PATH, settings.REPORT_HEARTBEAT_NAME, "SUCCEEDED")
+    # logger_manager.log_heartbeat(
+    #     "report_worker start", settings.HEARTBEAT_LOGGER_PATH, settings.REPORT_HEARTBEAT_NAME, "SUCCEEDED")
 
     # Generate report
     report_manager.generate_report()
@@ -100,7 +83,8 @@ def main(logger_manager):
     logger_manager.log_info('report_worker', 'Total generation time: {0}'.format(total_time))
 
     # No need to heartbeat here, it might confuse application monitoring
-    # logger_manager.log_heartbeat("report_worker end", settings.HEARTBEAT_LOGGER_PATH, settings.REPORT_HEARTBEAT_NAME, "SUCCEEDED")
+    # logger_manager.log_heartbeat(
+    #     "report_worker end", settings.HEARTBEAT_LOGGER_PATH, settings.REPORT_HEARTBEAT_NAME, "SUCCEEDED")
 
 
 if __name__ == '__main__':
