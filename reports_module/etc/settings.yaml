@@ -1,0 +1,24 @@
+xroad:
+  instance: <FILL>
+
+mongodb:
+  host: localhost
+  user: <FILL>
+  password: <FILL>
+
+logger:
+  name: reports
+  module: reports
+
+  # Possible logging levels from least to most verbose are:
+  # CRITICAL, FATAL, ERROR, WARNING, INFO, DEBUG
+  level: INFO
+
+  # Logs and heartbeat files are stored under these paths.
+  # Also configure external log rotation and app monitoring accordingly.
+  log-path: /var/log/opmon/reports/logs
+  heartbeat-path: /var/log/opmon/reports/heartbeat
+
+reports:
+  path: /home/opmon/reports
+

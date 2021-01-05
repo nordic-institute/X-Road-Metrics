@@ -7,6 +7,7 @@ from .mongodb_handler import MongoDBHandler
 from .report_manager import ReportManager
 from .translator import Translator
 from .reports_arguments import OpmonReportsArguments
+from . import constants
 
 
 def read_in_json(file_name, logger_manager):
@@ -40,11 +41,7 @@ def main(logger_manager):
     settings = args.settings
 
     # Initialize handlers
-    mdb_suffix = settings.MONGODB_SUFFIX
-    mdb_user = settings.MONGODB_USER
-    mdb_pwd = settings.MONGODB_PWD
-    mdb_server = settings.MONGODB_SERVER
-    db_handler = MongoDBHandler(mdb_suffix, mdb_user, mdb_pwd, mdb_server)
+    db_handler = MongoDBHandler(settings['mongodb'], args.xroad_instance)
     db_m = DatabaseManager(db_handler, logger_manager)
 
     # Initialize translator
