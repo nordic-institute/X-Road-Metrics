@@ -1,7 +1,7 @@
-from reports_module import settings
-from reportslib import unique_subsystems
-from reportslib.database_manager import DatabaseManager
-from reportslib.logger_manager import LoggerManager
+import settings
+from . import unique_subsystems
+from .database_manager import DatabaseManager
+from .logger_manager import LoggerManager
 
 if __name__ == '__main__':
     """

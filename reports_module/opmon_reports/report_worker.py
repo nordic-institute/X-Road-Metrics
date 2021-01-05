@@ -2,12 +2,12 @@ import argparse
 import json
 import time
 
-from reports_module import settings
-from reports_module.reportslib.database_manager import DatabaseManager
-from reports_module.reportslib.logger_manager import LoggerManager
-from reports_module.reportslib.mongodb_handler import MongoDBHandler
-from reports_module.reportslib.report_manager import ReportManager
-from reports_module.reportslib.translator import Translator
+import settings
+from .database_manager import DatabaseManager
+from .logger_manager import LoggerManager
+from .mongodb_handler import MongoDBHandler
+from .report_manager import ReportManager
+from .translator import Translator
 
 
 def read_in_json(file_name, logger_manager):

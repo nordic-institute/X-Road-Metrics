@@ -5,12 +5,12 @@ import time
 import traceback
 
 from . import settings
-from .reportslib.database_manager import DatabaseManager
-from .reportslib.logger_manager import LoggerManager
-from .reportslib.mongodb_handler import MongoDBHandler
-from .reportslib.notification_manager import NotificationManager
-from .reportslib.report_manager import ReportManager
-from .reportslib.translator import Translator
+from .database_manager import DatabaseManager
+from .logger_manager import LoggerManager
+from .mongodb_handler import MongoDBHandler
+from .notification_manager import NotificationManager
+from .report_manager import ReportManager
+from .translator import Translator
 
 
 def read_in_json(file_name, log_m):

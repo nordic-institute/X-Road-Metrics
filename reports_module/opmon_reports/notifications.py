@@ -1,11 +1,11 @@
 import time
 import traceback
 
-from reports_module import settings
-from reports_module.reportslib.database_manager import DatabaseManager
-from reports_module.reportslib.logger_manager import LoggerManager
-from reports_module.reportslib.mongodb_handler import MongoDBHandler
-from reports_module.reportslib.notification_manager import NotificationManager
+import settings
+from .database_manager import DatabaseManager
+from .logger_manager import LoggerManager
+from .mongodb_handler import MongoDBHandler
+from .notification_manager import NotificationManager
 
 
 def send_notifications(notification_manager, logger_manager):

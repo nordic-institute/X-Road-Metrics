@@ -9,9 +9,9 @@ import pandas as pd
 from jinja2 import Environment, FileSystemLoader
 from weasyprint import HTML
 
-from ..reportslib import time_date_tools
-from ..reportslib import tools
-from ..reportslib.report_row import ReportRow
+from . import time_date_tools
+from . import tools
+from .report_row import ReportRow
 
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
