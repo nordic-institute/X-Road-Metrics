@@ -12,6 +12,7 @@ from weasyprint import HTML
 from . import time_date_tools
 from . import tools
 from .report_row import ReportRow
+from . import constants
 
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -25,23 +26,14 @@ CONSUMED_SERVICES_COLUMN_ORDER = ["PRODUCER", "SERVICE", "SUCCEEDED_QUERIES", "F
 
 
 class ReportManager:
-    def __init__(self, reports_arguments,
-                 riha_json, log_m, database_manager, meta_service_list, translator, html_template,
-                 report_path, css_files, ria_file_1, ria_file_2, ria_file_3):
+    def __init__(self, reports_arguments, riha_json, log_m, database_manager, translator):
         self.database_manager = database_manager
         self.reports_arguments = reports_arguments
         self.start_date = datetime.strptime(reports_arguments.start_date, '%Y-%m-%d').strftime('%Y-%m-%d')
         self.end_date = datetime.strptime(reports_arguments.end_date, '%Y-%m-%d').strftime('%Y-%m-%d')
         self.logger_manager = log_m
-        self.meta_services = meta_service_list
         self.translator = translator
         self.riha_json = riha_json
-        self.html_template = html_template
-        self.report_path = report_path
-        self.css_files = css_files
-        self.ria_file_1 = ria_file_1
-        self.ria_file_2 = ria_file_2
-        self.ria_file_3 = ria_file_3
 
     def is_producer_document(self, document):
         return document["serviceSubsystemCode"] == self.reports_arguments.subsystem_code \
@@ -73,31 +65,15 @@ class ReportManager:
         return document
 
     def get_service_type(self, document):
-        """
-        :param document:
-        :return:
-        """
-        result = None
+        is_meta = document["serviceCode"] in constants.META_SERVICE_LIST
 
         if self.is_producer_document(document):
-            # Definitely producer
-            if document["serviceCode"] in self.meta_services:
-                result = "pms"
-                # Produced meta service
-            else:
-                result = "ps"
-                # Produced service
+            return "pms" if is_meta else "ps"
 
         if self.is_client_document(document):
-            # Definitely consumer
-            if document["serviceCode"] in self.meta_services:
-                # Consumed meta service
-                result = "cms"
-            else:
-                # Consumed service
-                result = "cs"
+            return "cms" if is_meta else "cs"  # Consumed meta service
 
-        return result
+        return None
 
     @staticmethod
     def merge_document_fields(document, merged_fields, new_field_name, separator):
@@ -178,7 +154,8 @@ class ReportManager:
                 if producer not in report_map[sorted_service_type]:
                     report_map[sorted_service_type][producer] = dict()
                 if service not in report_map[sorted_service_type][producer]:
-                    report_map[sorted_service_type][producer][service] = self.do_calculations(doc, False)  # Count the stuffs
+                    report_map[sorted_service_type][producer][service] = self.do_calculations(doc,
+                                                                                              False)  # Count the stuffs
                 else:
                     report_map[sorted_service_type][producer][service].update_row(doc)
 
@@ -195,7 +172,8 @@ class ReportManager:
                     report_map[sorted_service_type][service] = dict()
                 client = self.merge_document_fields(doc, client_field_names, "client", "/")
                 if client not in report_map[sorted_service_type][service]:
-                    report_map[sorted_service_type][service][client] = self.do_calculations(doc, True)  # Count the stuffs
+                    report_map[sorted_service_type][service][client] = self.do_calculations(doc,
+                                                                                            True)  # Count the stuffs
                 else:
                     report_map[sorted_service_type][service][client].update_row(doc)
 
@@ -479,16 +457,17 @@ class ReportManager:
         doc = self.find_document_dictionary(member_subsystem_info)
         return doc['subsystem_name'][self.reports_arguments.language] or None
 
-    def prepare_template(self, html_template_path, member_subsystem_info, plot1, plot2, plot3, plot4, df1, df2, df3,
-                         df4, ria_file_path1, ria_file_path2, ria_file_path3, creation_time):
+    def prepare_template(self, plots, data_frames, creation_time):
+
         # Load RIA images
-        image_header_first = ria_file_path1
-        image_header_second = ria_file_path2
-        image_header_third = ria_file_path3
+        language = self.reports_arguments.language
+        image_header_first = constants.RIA_IMAGE_1.format(LANGUAGE=language)
+        image_header_second = constants.RIA_IMAGE_2.format(LANGUAGE=language)
+        image_header_third = constants.RIA_IMAGE_3.format(LANGUAGE=language)
 
         # Get member & subsystem name
-        member_name_temp = self.get_member_name(member_subsystem_info)
-        subsystem_name_temp = self.get_subsystem_name(member_subsystem_info)
+        member_name_temp = self.get_member_name(self.riha_json)
+        subsystem_name_temp = self.get_subsystem_name(self.riha_json)
 
         subsystem_code = tools.truncate(self.reports_arguments.subsystem_code)
         member_code = tools.truncate(self.reports_arguments.member_code)
@@ -497,7 +476,7 @@ class ReportManager:
         env = Environment(loader=FileSystemLoader('.'))
 
         # Setup template
-        template = env.get_template(html_template_path)
+        template = env.get_template(constants.HTML_TEMPLATE_PATH)
         template_vars = {
             "title": subsystem_code + "_" + self.start_date + "_" + self.end_date + "_" + creation_time,
             "member_name_translation": self.translator.get_translation('MEMBER_NAME'),
@@ -512,14 +491,14 @@ class ReportManager:
             "time_period": self.start_date + " - " + self.end_date,
             "report_date_translation": self.translator.get_translation('REPORT_DATE'),
             "report_date": creation_time,
-            "produced_services_succeeded_plot": plot1,
-            "consumed_services_succeeded_plot": plot2,
-            "produced_services_mean_plot": plot3,
-            "consumed_services_mean_plot": plot4,
-            "produced_services": df1.to_html(),
-            "produced_metaservices": df2.to_html(),
-            "consumed_services": df3.to_html(),
-            "consumed_metaservices": df4.to_html(),
+            "produced_services_succeeded_plot": plots[0],
+            "consumed_services_succeeded_plot": plots[1],
+            "produced_services_mean_plot": plots[2],
+            "consumed_services_mean_plot": plots[3],
+            "produced_services": data_frames[0].to_html(),
+            "produced_metaservices": data_frames[1].to_html(),
+            "consumed_services": data_frames[2].to_html(),
+            "consumed_metaservices": data_frames[3].to_html(),
             "consumed_metaservices_translation": self.translator.get_translation('CONSUMED_META_SERVICES'),
             "consumed_services_translation": self.translator.get_translation('CONSUMED_SERVICES'),
             "produced_services_translation": self.translator.get_translation('PRODUCED_SERVICES'),
@@ -535,9 +514,9 @@ class ReportManager:
         html_out = template.render(template_vars)
         return html_out
 
-    def save_pdf_to_file(self, pdf, file_path, style_sheet_path, creation_time):
+    def save_pdf_to_file(self, pdf, creation_time):
         output_directory = os.path.join(
-            file_path,
+            self.reports_arguments.settings['reports']['path'],
             self.reports_arguments.xroad_instance,
             self.reports_arguments.member_class,
             self.reports_arguments.member_code
@@ -553,61 +532,36 @@ class ReportManager:
         )
         report_file = os.path.join(output_directory, report_name)
 
-        HTML(string=pdf).write_pdf(report_file, stylesheets=style_sheet_path)
+        HTML(string=pdf).write_pdf(report_file, stylesheets=constants.CSS_FILES)
 
         return report_name
 
     @staticmethod
     def remove_image(image_path):
-        if image_path is not None:
-            if os.path.isfile(image_path):
-                os.remove(image_path)
-
-    def clean_up_temp_images(self, temp_im_1, temp_im_2, temp_im_3, temp_im_4):
-        self.remove_image(temp_im_1)
-        self.remove_image(temp_im_2)
-        self.remove_image(temp_im_3)
-        self.remove_image(temp_im_4)
+        try:
+            os.remove(image_path)
+        except OSError:
+            pass
 
     def generate_report(self):
         start_generate_report = time.time()
 
-        # start_processing_time = time.time()
         report_map = self.get_documents()
-        # end_processing_time = time.time()
-        # total_time = time.strftime("%H:%M:%S", time.gmtime(end_processing_time - start_processing_time))
-        # self.logger_manager.log_info("reports_info", "get_documents took: {0}".format(total_time))
+        data_frames = self.create_data_frames(report_map)
 
-        # start_processing_time = time.time()
-        df1, df2, df3, df4 = self.create_data_frames(report_map)
-        # end_processing_time = time.time()
-        # total_time = time.strftime("%H:%M:%S", time.gmtime(end_processing_time - start_processing_time))
-        # self.logger_manager.log_info("reports_info", "create_data_frames took: {0}".format(total_time))
+        plots = self.create_plots(
+            report_map,
+            "reports_module/produced_succeeded_plot.png",
+            "reports_module/consumed_succeeded_plot.png",
+            "reports_module/produced_mean_plot.png",
+            "reports_module/consumed_mean_plot.png"
+        )
 
-        # start_processing_time = time.time()
-        plot1, plot2, plot3, plot4 = self.create_plots(
-            report_map, "reports_module/produced_succeeded_plot.png", "reports_module/consumed_succeeded_plot.png",
-            "reports_module/produced_mean_plot.png", "reports_module/consumed_mean_plot.png")
-        # end_processing_time = time.time()
-        # total_time = time.strftime("%H:%M:%S", time.gmtime(end_processing_time - start_processing_time))
-        # self.logger_manager.log_info("reports_info", "create_plots took: {0}".format(total_time))
-
-        # start_processing_time = time.time()
         creation_time = time_date_tools.datetime_to_modified_string(datetime.now())
-        template = self.prepare_template(
-            self.html_template, self.riha_json, plot1, plot2, plot3, plot4, df1, df2, df3, df4, self.ria_file_1,
-            self.ria_file_2, self.ria_file_3, creation_time)
-        # end_processing_time = time.time()
-        # total_time = time.strftime("%H:%M:%S", time.gmtime(end_processing_time - start_processing_time))
-        # self.logger_manager.log_info("reports_info", "prepare_template took: {0}".format(total_time))
+        template = self.prepare_template(plots, data_frames, creation_time)
 
-        # start_processing_time = time.time()
-        report_name = self.save_pdf_to_file(template, self.report_path, self.css_files, creation_time)
-        # end_processing_time = time.time()
-        # total_time = time.strftime("%H:%M:%S", time.gmtime(end_processing_time - start_processing_time))
-        # self.logger_manager.log_info("reports_info", "save_pdf_to_file took: {0}".format(total_time))
-
-        self.clean_up_temp_images(plot1, plot2, plot3, plot4)
+        report_name = self.save_pdf_to_file(template, creation_time)
+        map(self.remove_image, plots)
 
         end_generate_report = time.time()
         total_time = time.strftime("%H:%M:%S", time.gmtime(end_generate_report - start_generate_report))
