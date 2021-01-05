@@ -25,20 +25,16 @@ CONSUMED_SERVICES_COLUMN_ORDER = ["PRODUCER", "SERVICE", "SUCCEEDED_QUERIES", "F
 
 
 class ReportManager:
-    def __init__(self, x_road_instance, member_class, member_code, subsystem_code, start_date, end_date,
-                 riha_json, log_m, database_manager, language, meta_service_list, translator, html_template,
+    def __init__(self, reports_arguments,
+                 riha_json, log_m, database_manager, meta_service_list, translator, html_template,
                  report_path, css_files, ria_file_1, ria_file_2, ria_file_3):
         self.database_manager = database_manager
-        self.member_code = member_code
-        self.subsystem_code = subsystem_code
-        self.member_class = member_class
-        self.x_road_instance = x_road_instance
-        self.start_date = datetime.strptime(start_date, '%Y-%m-%d').strftime('%Y-%m-%d')
-        self.end_date = datetime.strptime(end_date, '%Y-%m-%d').strftime('%Y-%m-%d')
+        self.reports_arguments = reports_arguments
+        self.start_date = datetime.strptime(reports_arguments.start_date, '%Y-%m-%d').strftime('%Y-%m-%d')
+        self.end_date = datetime.strptime(reports_arguments.end_date, '%Y-%m-%d').strftime('%Y-%m-%d')
         self.logger_manager = log_m
         self.meta_services = meta_service_list
         self.translator = translator
-        self.language = language
         self.riha_json = riha_json
         self.html_template = html_template
         self.report_path = report_path
@@ -47,37 +43,17 @@ class ReportManager:
         self.ria_file_2 = ria_file_2
         self.ria_file_3 = ria_file_3
 
-    @staticmethod
-    def is_producer_document(document, subsystem_code, member_code, member_class, xroad_instance):
-        """
-        :param document:
-        :param subsystem_code:
-        :param member_code:
-        :param member_class:
-        :param xroad_instance:
-        :return:
-        """
-        cond_1 = document["serviceSubsystemCode"] == subsystem_code
-        cond_2 = document["serviceMemberCode"] == member_code
-        cond_3 = document["serviceMemberClass"] == member_class
-        cond_4 = document["serviceXRoadInstance"] == xroad_instance
-        return cond_1 and cond_2 and cond_3 and cond_4
+    def is_producer_document(self, document):
+        return document["serviceSubsystemCode"] == self.reports_arguments.subsystem_code \
+               and document["serviceMemberCode"] == self.reports_arguments.member_code \
+               and document["serviceMemberClass"] == self.reports_arguments.member_class \
+               and document["serviceXRoadInstance"] == self.reports_arguments.xroad_instance
 
-    @staticmethod
-    def is_client_document(document, subsystem_code, member_code, member_class, xroad_instance):
-        """
-        :param document:
-        :param subsystem_code:
-        :param member_code:
-        :param member_class:
-        :param xroad_instance:
-        :return:
-        """
-        cond_1 = document["clientSubsystemCode"] == subsystem_code
-        cond_2 = document["clientMemberCode"] == member_code
-        cond_3 = document["clientMemberClass"] == member_class
-        cond_4 = document["clientXRoadInstance"] == xroad_instance
-        return cond_1 and cond_2 and cond_3 and cond_4
+    def is_client_document(self, document):
+        return document["clientSubsystemCode"] == self.reports_arguments.subsystem_code \
+               and document["clientMemberCode"] == self.reports_arguments.member_code \
+               and document["clientMemberClass"] == self.reports_arguments.member_class \
+               and document["clientXRoadInstance"] == self.reports_arguments.xroad_instance
 
     @staticmethod
     def reduce_to_plain_json(document):
@@ -103,8 +79,7 @@ class ReportManager:
         """
         result = None
 
-        if self.is_producer_document(document, self.subsystem_code, self.member_code, self.member_class,
-                                     self.x_road_instance):
+        if self.is_producer_document(document):
             # Definitely producer
             if document["serviceCode"] in self.meta_services:
                 result = "pms"
@@ -113,8 +88,7 @@ class ReportManager:
                 result = "ps"
                 # Produced service
 
-        if self.is_client_document(document, self.subsystem_code, self.member_code, self.member_class,
-                                   self.x_road_instance):
+        if self.is_client_document(document):
             # Definitely consumer
             if document["serviceCode"] in self.meta_services:
                 # Consumed meta service
@@ -158,19 +132,24 @@ class ReportManager:
             time_date_tools.string_to_date(self.end_date), False)
 
         # Generate report map
-        rm = dict()
+        report_map = dict()
 
         # Query faulty documents
         faulty_doc_set = self.database_manager.get_faulty_documents(
-            self.member_code, self.subsystem_code, self.member_class, self.x_road_instance, start_time_timestamp,
-            end_time_timestamp)
+            self.reports_arguments,
+            start_time_timestamp,
+            end_time_timestamp
+        )
         faulty_docs_found = set()
 
-        # Iterate over all the docs and append to report map
-        for doc in self.database_manager.get_matching_documents(self.member_code, self.subsystem_code,
-                                                                self.member_class, self.x_road_instance,
-                                                                start_time_timestamp, end_time_timestamp):
+        matching_docs = self.database_manager.get_matching_documents(
+            self.reports_arguments,
+            start_time_timestamp,
+            end_time_timestamp
+        )
 
+        # Iterate over all the docs and append to report map
+        for doc in matching_docs:
             if doc['_id'] in faulty_docs_found:
                 continue
             if doc['_id'] in faulty_doc_set:
@@ -179,63 +158,48 @@ class ReportManager:
             doc = self.reduce_to_plain_json(doc)
 
             # "ps" / "pms" / "cs" / "cms"
-            sorted_service = self.get_service_type(doc)
-            if sorted_service not in rm:
-                rm[sorted_service] = dict()
+            sorted_service_type = self.get_service_type(doc)
+            if sorted_service_type not in report_map:
+                report_map[sorted_service_type] = dict()
 
             # Get service
             service = self.merge_document_fields(doc, ["serviceCode", "serviceVersion"], "service", ".")
 
-            # Consumer
-            if sorted_service == "cs":
-                producer = self.merge_document_fields(doc, ["serviceXRoadInstance", "serviceMemberClass",
-                                                            "serviceMemberCode", "serviceSubsystemCode"],
-                                                      "producer", "/")
-                if producer not in rm[sorted_service]:
-                    rm[sorted_service][producer] = dict()
-                if service not in rm[sorted_service][producer]:
-                    rm[sorted_service][producer][service] = self.do_calculations(doc, False)  # Count the stuffs
-                else:
-                    rm[sorted_service][producer][service].update_row(doc)
+            service_field_names = [
+                "serviceXRoadInstance",
+                "serviceMemberClass",
+                "serviceMemberCode",
+                "serviceSubsystemCode"
+            ]
 
-            # Consumer Metaservice
-            if sorted_service == "cms":
-                producer = self.merge_document_fields(doc, ["serviceXRoadInstance", "serviceMemberClass",
-                                                            "serviceMemberCode", "serviceSubsystemCode"],
-                                                      "producer", "/")
-                if producer not in rm[sorted_service]:
-                    rm[sorted_service][producer] = dict()
-                if service not in rm[sorted_service][producer]:
-                    rm[sorted_service][producer][service] = self.do_calculations(doc, False)  # Count the stuffs
+            # Consumer or Consumer Metaservice
+            if sorted_service_type in ["cs", "cms"]:
+                producer = self.merge_document_fields(doc, service_field_names, "producer", "/")
+                if producer not in report_map[sorted_service_type]:
+                    report_map[sorted_service_type][producer] = dict()
+                if service not in report_map[sorted_service_type][producer]:
+                    report_map[sorted_service_type][producer][service] = self.do_calculations(doc, False)  # Count the stuffs
                 else:
-                    rm[sorted_service][producer][service].update_row(doc)
+                    report_map[sorted_service_type][producer][service].update_row(doc)
 
-            # Producer
-            if sorted_service == "ps":
-                if service not in rm[sorted_service]:
-                    rm[sorted_service][service] = dict()
-                client = self.merge_document_fields(doc,
-                                                    ["clientXRoadInstance", "clientMemberClass", "clientMemberCode",
-                                                     "clientSubsystemCode"], "client", "/")
-                if client not in rm[sorted_service][service]:
-                    rm[sorted_service][service][client] = self.do_calculations(doc, True)  # Count the stuffs
+            client_field_names = [
+                "clientXRoadInstance",
+                "clientMemberClass",
+                "clientMemberCode",
+                "clientSubsystemCode"
+            ]
+
+            # Producer or Producer Metaservice
+            if sorted_service_type in ["ps", "pms"]:
+                if service not in report_map[sorted_service_type]:
+                    report_map[sorted_service_type][service] = dict()
+                client = self.merge_document_fields(doc, client_field_names, "client", "/")
+                if client not in report_map[sorted_service_type][service]:
+                    report_map[sorted_service_type][service][client] = self.do_calculations(doc, True)  # Count the stuffs
                 else:
-                    rm[sorted_service][service][client].update_row(doc)
+                    report_map[sorted_service_type][service][client].update_row(doc)
 
-            # Producer Metaservice
-            if sorted_service == "pms":
-                if service not in rm[sorted_service]:
-                    rm[sorted_service][service] = dict()
-                client = self.merge_document_fields(doc,
-                                                    ["clientXRoadInstance", "clientMemberClass",
-                                                     "clientMemberCode",
-                                                     "clientSubsystemCode"], "client", "/")
-                if client not in rm[sorted_service][service]:
-                    rm[sorted_service][service][client] = self.do_calculations(doc, True)  # Count the stuffs
-                else:
-                    rm[sorted_service][service][client].update_row(doc)
-
-        return rm
+        return report_map
 
     @staticmethod
     def do_calculations(document, produced_service):
@@ -339,23 +303,23 @@ class ReportManager:
         return df
 
     def create_data_frames(self, report_map):
-        produced_service_input = report_map['ps'] if ('ps' in report_map and report_map['ps'] is not None) else None
+        produced_service_input = report_map.get('ps')
         produced_service_df = self.create_produced_service_df(produced_service_input)
-        produced_metaservice_input = report_map['pms'] if (
-            'pms' in report_map and report_map['pms'] is not None) else None
+
+        produced_metaservice_input = report_map.get('pms')
         produced_metaservice_df = self.create_produced_service_df(produced_metaservice_input)
-        consumed_service_input = report_map['cs'] if ('cs' in report_map and report_map['cs'] is not None) else None
+
+        consumed_service_input = report_map.get('cs')
         consumed_service_df = self.create_consumed_service_df(consumed_service_input)
-        consumed_metaservice_input = report_map['cms'] if (
-            'cms' in report_map and report_map['cms'] is not None) else None
+
+        consumed_metaservice_input = report_map.get('cms')
         consumed_metaservice_df = self.create_consumed_service_df(consumed_metaservice_input)
 
         return produced_service_df, produced_metaservice_df, consumed_service_df, consumed_metaservice_df
 
     def get_name_and_count(self, key_name, dict_data, produced_service, service_name):
-        name = "{0}: {1}".format(
-            self.subsystem_code, key_name) if produced_service else "{0}: {1}".format(
-            key_name, service_name)
+        subsystem_code = self.reports_arguments.subsystem_code
+        name = f"{subsystem_code}: {key_name}" if produced_service else f"{key_name}: {service_name}"
         t_key = dict_data.return_row()
         count = t_key[0]
         return name, count
@@ -431,9 +395,9 @@ class ReportManager:
         return plot
 
     def get_name_and_average(self, key_name, dict_data, produced_service, service):
-        name = "{0}: {1}".format(
-            self.subsystem_code, key_name) if produced_service else "{0}: {1}".format(
-            key_name, service)
+        subsystem_code = self.reports_arguments.subsystem_code
+        name = f"{subsystem_code}: {key_name}" if produced_service else f"{key_name}: {service}"
+
         dict_el = dict_data.return_row()
         count = round(dict_el[3][0] / dict_el[3][1]) if dict_el[3][0] is not None else None
         return name, count
@@ -484,57 +448,36 @@ class ReportManager:
 
         return producer_suc_plot, consumer_suc_plot, producer_dur_plot, consumer_dur_plot
 
-    @staticmethod
-    def get_member_name(member_code, subsystem_code, member_class, x_road_instance, member_name_dict):
+    def find_document_dictionary(self, member_subsystem_info):
+        if member_subsystem_info is None:
+            return None
+        for doc in member_subsystem_info:
+            match = doc['member_code'] == self.reports_arguments.member_code \
+                    and doc['subsystem_code'] == self.reports_arguments.subsystem_code \
+                    and doc['member_class'] == self.reports_arguments.member_class \
+                    and doc['x_road_instance'] == self.reports_arguments.xroad_instance
+            if match:
+                return doc
+        return None
+
+    def get_member_name(self, member_subsystem_info):
         """
         Gets the member name translation from the dictionary file.
-        :param x_road_instance: The xRoadInstance string.
-        :param subsystem_code: The subsystemCode string.
-        :param member_name_dict: The list of dictionaries that contain information about members & subsystems.
-        :param member_code: The member code that the search is based on.
-        :param member_class: The member class that the search is based on.
+        :param member_subsystem_info: The list of dictionaries that contain information about members & subsystems.
         :return: Returns the translation.
         """
-        # Avoid crash
-        if member_name_dict is None:
-            return ""
+        doc = self.find_document_dictionary(member_subsystem_info)
+        return doc['member_name'] or ""
 
-        # member_code, subsystem_code, member_class, x_road_instance, member_subsystem_data
-        for doc in member_name_dict:
-            if doc['member_code'] == member_code and doc['subsystem_code'] == subsystem_code \
-                    and doc['member_class'] == member_class and doc['x_road_instance'] == x_road_instance:
-                if doc['member_name'] is None:
-                    return ""
-                else:
-                    return doc['member_name']
-        return ""
-
-    @staticmethod
-    def get_subsystem_name(member_code, subsystem_code, member_class, x_road_instance, language,
-                           subsystem_name_dict):
+    def get_subsystem_name(self, member_subsystem_info):
         """
         Gets the subsystem name translation from the dictionary file.
-        :param subsystem_name_dict: The list of dictionaries that contain information about members & subsystems.
-        :param x_road_instance: The xRoadInstance string.
-        :param language: The language string.
-        :param member_code: The member code that the search is based on.
-        :param subsystem_code: The subsystem code that the search is based on.
-        :param member_class: The member class that the search is based on.
+        :param member_subsystem_info: The list of dictionaries that contain information about members & subsystems.
         :return: Returns the translation.
         """
-        # Avoid crash
-        if subsystem_name_dict is None:
-            return ""
 
-        # member_code, subsystem_code, member_class, x_road_instance, language, member_subsystem_data
-        for doc in subsystem_name_dict:
-            if doc['member_code'] == member_code and doc['subsystem_code'] == subsystem_code \
-                    and doc['member_class'] == member_class and doc['x_road_instance'] == x_road_instance:
-                if doc['subsystem_name'] is None:
-                    return ""
-                else:
-                    return doc['subsystem_name'][language]
-        return ""
+        doc = self.find_document_dictionary(member_subsystem_info)
+        return doc['subsystem_name'][self.reports_arguments.language] or None
 
     def prepare_template(self, html_template_path, member_subsystem_info, plot1, plot2, plot3, plot4, df1, df2, df3,
                          df4, ria_file_path1, ria_file_path2, ria_file_path3, creation_time):
@@ -544,17 +487,11 @@ class ReportManager:
         image_header_third = ria_file_path3
 
         # Get member & subsystem name
-        member_name_temp = self.get_member_name(self.member_code, self.subsystem_code, self.member_class,
-                                                self.x_road_instance,
-                                                member_subsystem_info)
-        subsystem_name_temp = self.get_subsystem_name(self.member_code, self.subsystem_code, self.member_class,
-                                                      self.x_road_instance, self.language,
-                                                      member_subsystem_info)
+        member_name_temp = self.get_member_name(member_subsystem_info)
+        subsystem_name_temp = self.get_subsystem_name(member_subsystem_info)
 
-        member_name_temp = member_name_temp[:55] if member_name_temp is not None else ""
-        subsystem_name_temp = subsystem_name_temp[:55] if subsystem_name_temp is not None else ""
-        subsystem_code = self.subsystem_code[:55] if self.subsystem_code is not None else ""
-        member_code = self.member_code[:55] if self.member_code is not None else ""
+        subsystem_code = tools.truncate(self.reports_arguments.subsystem_code)
+        member_code = tools.truncate(self.reports_arguments.member_code)
 
         # Setup environment
         env = Environment(loader=FileSystemLoader('.'))
@@ -564,9 +501,9 @@ class ReportManager:
         template_vars = {
             "title": subsystem_code + "_" + self.start_date + "_" + self.end_date + "_" + creation_time,
             "member_name_translation": self.translator.get_translation('MEMBER_NAME'),
-            "member_name": member_name_temp,
+            "member_name": tools.truncate(member_name_temp),
             "subsystem_name_translation": self.translator.get_translation('SUBSYSTEM_NAME'),
-            "subsystem_name": subsystem_name_temp,
+            "subsystem_name": tools.truncate(subsystem_name_temp),
             "memberCode": self.translator.get_translation('MEMBER_CODE'),
             "memberCode_value": member_code,
             "subsystemCode": self.translator.get_translation('SUBSYSTEM_CODE'),
@@ -591,7 +528,7 @@ class ReportManager:
             "image_header_second": image_header_second,
             "image_header_third": image_header_third,
             "xroadEnv": self.translator.get_translation('X_ROAD_ENV'),
-            "xroad_instance": self.x_road_instance
+            "xroad_instance": self.reports_arguments.xroad_instance
         }
 
         # Render the template
@@ -599,12 +536,21 @@ class ReportManager:
         return html_out
 
     def save_pdf_to_file(self, pdf, file_path, style_sheet_path, creation_time):
-        output_directory = os.path.join(file_path, self.x_road_instance, self.member_class, self.member_code)
+        output_directory = os.path.join(
+            file_path,
+            self.reports_arguments.xroad_instance,
+            self.reports_arguments.member_class,
+            self.reports_arguments.member_code
+        )
         if not os.path.isdir(output_directory):
             os.makedirs(output_directory)
 
         report_name = "{0}_{1}_{2}_{3}.pdf".format(
-            tools.format_string(self.subsystem_code), self.start_date, self.end_date, creation_time)
+            tools.format_string(self.reports_arguments.subsystem_code),
+            self.start_date,
+            self.end_date,
+            creation_time
+        )
         report_file = os.path.join(output_directory, report_name)
 
         HTML(string=pdf).write_pdf(report_file, stylesheets=style_sheet_path)
@@ -631,7 +577,7 @@ class ReportManager:
         # end_processing_time = time.time()
         # total_time = time.strftime("%H:%M:%S", time.gmtime(end_processing_time - start_processing_time))
         # self.logger_manager.log_info("reports_info", "get_documents took: {0}".format(total_time))
-        
+
         # start_processing_time = time.time()
         df1, df2, df3, df4 = self.create_data_frames(report_map)
         # end_processing_time = time.time()
@@ -645,7 +591,7 @@ class ReportManager:
         # end_processing_time = time.time()
         # total_time = time.strftime("%H:%M:%S", time.gmtime(end_processing_time - start_processing_time))
         # self.logger_manager.log_info("reports_info", "create_plots took: {0}".format(total_time))
-        
+
         # start_processing_time = time.time()
         creation_time = time_date_tools.datetime_to_modified_string(datetime.now())
         template = self.prepare_template(
