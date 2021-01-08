@@ -6,8 +6,17 @@ from email.utils import make_msgid, formatdate, formataddr
 
 
 class NotificationManager:
-    def __init__(self, database_manager, logger_manager, sender_email, smtp_host, smtp_port, notification_username,
-                 message, subject):
+    def __init__(
+            self,
+            database_manager,
+            logger_manager,
+            sender_email,
+            smtp_host,
+            smtp_port,
+            notification_username,
+            message,
+            subject
+    ):
         """
         Creates a NotificationManager object that keeps the e-mail settings/parameters inside.
         :param database_manager: The DatabaseManager object.
@@ -28,8 +37,14 @@ class NotificationManager:
         self.message = message
         self.subject = subject
 
-    def add_item_to_queue(self, member_code, subsystem_code, member_class, x_road_instance, start_date, end_date,
-                          language, report_name, email_info):
+    def add_item_to_queue(
+            self,
+            reports_arguments,
+            start_date,
+            end_date,
+            report_name,
+            email_info
+    ):
         """
         Add notification to the queue (database).
         :param email_info: The list of emails and receiver names.
@@ -44,8 +59,13 @@ class NotificationManager:
         :return:
         """
         self.database_manager.add_notification_to_queue(
-            member_code, subsystem_code, member_class, x_road_instance, start_date, end_date, language,
-            self.notification_username, report_name, email_info)
+            reports_arguments,
+            start_date,
+            end_date,
+            self.notification_username,
+            report_name,
+            email_info
+        )
 
     def get_items_from_queue(self):
         """
