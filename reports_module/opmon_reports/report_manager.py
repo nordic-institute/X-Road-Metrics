@@ -459,11 +459,14 @@ class ReportManager:
 
     def prepare_template(self, plots, data_frames, creation_time):
 
+        settings = self.reports_arguments.settings['reports']
+
         # Load RIA images
         language = self.reports_arguments.language
-        image_header_first = constants.RIA_IMAGE_1.format(LANGUAGE=language)
-        image_header_second = constants.RIA_IMAGE_2.format(LANGUAGE=language)
-        image_header_third = constants.RIA_IMAGE_3.format(LANGUAGE=language)
+        image_path = settings['image-path']
+        image_header_first = constants.RIA_IMAGE_1.format(IMAGE_PATH=image_path, LANGUAGE=language)
+        image_header_second = constants.RIA_IMAGE_2.format(IMAGE_PATH=image_path, LANGUAGE=language)
+        image_header_third = constants.RIA_IMAGE_3.format(IMAGE_PATH=image_path, LANGUAGE=language)
 
         # Get member & subsystem name
         member_name_temp = self.get_member_name(self.riha_json)
@@ -473,10 +476,10 @@ class ReportManager:
         member_code = tools.truncate(self.reports_arguments.member_code)
 
         # Setup environment
-        env = Environment(loader=FileSystemLoader('.'))
+        env = Environment(loader=FileSystemLoader(settings['html-template']['dir']))
 
         # Setup template
-        template = env.get_template(constants.HTML_TEMPLATE_PATH)
+        template = env.get_template(settings['html-template']['file'])
         template_vars = {
             "title": subsystem_code + "_" + self.start_date + "_" + self.end_date + "_" + creation_time,
             "member_name_translation": self.translator.get_translation('MEMBER_NAME'),
@@ -515,8 +518,9 @@ class ReportManager:
         return html_out
 
     def save_pdf_to_file(self, pdf, creation_time):
+        settings = self.reports_arguments.settings['reports']
         output_directory = os.path.join(
-            self.reports_arguments.settings['reports']['path'],
+            settings['report-path'],
             self.reports_arguments.xroad_instance,
             self.reports_arguments.member_class,
             self.reports_arguments.member_code
@@ -532,7 +536,7 @@ class ReportManager:
         )
         report_file = os.path.join(output_directory, report_name)
 
-        HTML(string=pdf).write_pdf(report_file, stylesheets=constants.CSS_FILES)
+        HTML(string=pdf).write_pdf(report_file, stylesheets=settings['css-paths'])
 
         return report_name
 
