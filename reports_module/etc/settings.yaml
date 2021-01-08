@@ -20,5 +20,12 @@ logger:
   heartbeat-path: /var/log/opmon/reports/heartbeat
 
 reports:
-  path: /home/opmon/reports
-
+  report-path: /home/opmon/reports
+  translation-path: /etc/opmon/reports/lang
+  subsystem-info-path: /etc/opmon/reports/riha.json
+  html-template:
+    dir: /etc/opmon/reports/template
+    file: pdf_report_template.html
+  css-paths:
+    - '/etc/opmon/reports/template/pdf_report_style.css'
+  image-path: /etc/opmon/reports/template/header_images
