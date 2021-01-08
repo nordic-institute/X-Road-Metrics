@@ -12,7 +12,6 @@ class DatabaseManager:
         :param mongodb_handler: MongoDB handler object.
         :param logger_manager: LoggerManager object for logging.
         """
-        self.logger_m = logger_manager
         self.mongodb_handler = mongodb_handler
 
     @staticmethod
@@ -23,12 +22,9 @@ class DatabaseManager:
         """
         return float(time.time())
 
-    def get_matching_documents(self, member_code, subsystem_code, member_class, x_road_instance, start_time, end_time):
-        """Query cleaned data for documents based on member_code, subsystem_code, member_class, start_time, end_time.
-        :param x_road_instance: The XRoadInstance to be queried.
-        :param member_code: The memberCode that needs to be queried, a field in the JSON doc.
-        :param subsystem_code: The subsystemCode that needs to be queried, a field in the JSON doc.
-        :param member_class: The memberClass that needs to be queried, a field in the JSON doc.
+    def get_matching_documents(self, reports_arguments, start_time, end_time):
+        """Query cleaned data for documents based on member_code, subsystem_code, member_class, start_time, end_time.        :param start_time: The starting timestamp for the query.
+        :param reports_arguments: OpmonReportsArguments object to define query scope
         :param start_time: The starting timestamp for the query.
         :param end_time: The ending timestamp for the query.
         :return: Returns the cursor that contains the found documents.
@@ -42,17 +38,17 @@ class DatabaseManager:
             # ------------------------------------
             # Query matching documents as producer
             query_a = dict()
-            query_a["producer.serviceXRoadInstance"] = x_road_instance
-            query_a["producer.serviceMemberCode"] = member_code
-            query_a["producer.serviceSubsystemCode"] = subsystem_code
-            query_a["producer.serviceMemberClass"] = member_class
+            query_a["producer.serviceXRoadInstance"] = reports_arguments.xroad_instance
+            query_a["producer.serviceMemberCode"] = reports_arguments.member_code
+            query_a["producer.serviceSubsystemCode"] = reports_arguments.subsystem_code
+            query_a["producer.serviceMemberClass"] = reports_arguments.member_class
             query_a["producer.requestInTs"] = {"$gte": start_time, "$lte": end_time}
             # Query matching documents as producer from client field
             query_c = dict()
-            query_c["client.serviceXRoadInstance"] = x_road_instance
-            query_c["client.serviceMemberCode"] = member_code
-            query_c["client.serviceSubsystemCode"] = subsystem_code
-            query_c["client.serviceMemberClass"] = member_class
+            query_c["client.serviceXRoadInstance"] = reports_arguments.xroad_instance
+            query_c["client.serviceMemberCode"] = reports_arguments.member_code
+            query_c["client.serviceSubsystemCode"] = reports_arguments.subsystem_code
+            query_c["client.serviceMemberClass"] = reports_arguments.member_class
             query_c["producer"] = None
             query_c["client.requestInTs"] = {"$gte": start_time, "$lte": end_time}
             # ------------------------------------
@@ -60,17 +56,17 @@ class DatabaseManager:
             # ------------------------------------
             # Query matching documents as client
             query_d = dict()
-            query_d["client.clientXRoadInstance"] = x_road_instance
-            query_d["client.clientMemberCode"] = member_code
-            query_d["client.clientSubsystemCode"] = subsystem_code
-            query_d["client.clientMemberClass"] = member_class
+            query_d["client.clientXRoadInstance"] = reports_arguments.xroad_instance
+            query_d["client.clientMemberCode"] = reports_arguments.member_code
+            query_d["client.clientSubsystemCode"] = reports_arguments.subsystem_code
+            query_d["client.clientMemberClass"] = reports_arguments.member_class
             query_d["client.requestInTs"] = {"$gte": start_time, "$lte": end_time}
             # Query matching documents as client from producer
             query_b = dict()
-            query_b["producer.clientXRoadInstance"] = x_road_instance
-            query_b["producer.clientMemberCode"] = member_code
-            query_b["producer.clientSubsystemCode"] = subsystem_code
-            query_b["producer.clientMemberClass"] = member_class
+            query_b["producer.clientXRoadInstance"] = reports_arguments.xroad_instance
+            query_b["producer.clientMemberCode"] = reports_arguments.member_code
+            query_b["producer.clientSubsystemCode"] = reports_arguments.subsystem_code
+            query_b["producer.clientMemberClass"] = reports_arguments.member_class
             query_b["client"] = None
             query_b["producer.requestInTs"] = {"$gte": start_time, "$lte": end_time}
 
@@ -119,33 +115,33 @@ class DatabaseManager:
             self.logger_m.log_error('DatabaseManager.get_matching_documents', '{0}'.format(repr(e)))
             raise e
 
-    def get_faulty_documents(self, member_code, subsystem_code, member_class, x_road_instance, start_time, end_time):
+    def get_faulty_documents(self, reports_arguments, start_time, end_time):
         try:
             db = self.mongodb_handler.get_query_db()
             collection = db[CLEAN_DATA_COLLECTION]
 
             query_a = dict()
-            query_a["producer.serviceXRoadInstance"] = x_road_instance
-            query_a["producer.serviceMemberCode"] = member_code
-            query_a["producer.serviceSubsystemCode"] = subsystem_code
-            query_a["producer.serviceMemberClass"] = member_class
+            query_a["producer.serviceXRoadInstance"] = reports_arguments.xroad_instance
+            query_a["producer.serviceMemberCode"] = reports_arguments.member_code
+            query_a["producer.serviceSubsystemCode"] = reports_arguments.subsystem_code
+            query_a["producer.serviceMemberClass"] = reports_arguments.member_class
             query_a["producer.requestInTs"] = {"$gte": start_time, "$lte": end_time}
-            query_a["client.clientXRoadInstance"] = x_road_instance
-            query_a["client.clientMemberCode"] = member_code
-            query_a["client.clientSubsystemCode"] = subsystem_code
-            query_a["client.clientMemberClass"] = member_class
+            query_a["client.clientXRoadInstance"] = reports_arguments.xroad_instance
+            query_a["client.clientMemberCode"] = reports_arguments.member_code
+            query_a["client.clientSubsystemCode"] = reports_arguments.subsystem_code
+            query_a["client.clientMemberClass"] = reports_arguments.member_class
             query_a["client.requestInTs"] = {"$gte": start_time, "$lte": end_time}
 
             query_b = dict()
-            query_b["client.serviceXRoadInstance"] = x_road_instance
-            query_b["client.serviceMemberCode"] = member_code
-            query_b["client.serviceSubsystemCode"] = subsystem_code
-            query_b["client.serviceMemberClass"] = member_class
+            query_b["client.serviceXRoadInstance"] = reports_arguments.xroad_instance
+            query_b["client.serviceMemberCode"] = reports_arguments.member_code
+            query_b["client.serviceSubsystemCode"] = reports_arguments.subsystem_code
+            query_b["client.serviceMemberClass"] = reports_arguments.member_class
             query_b["client.requestInTs"] = {"$gte": start_time, "$lte": end_time}
-            query_b["producer.clientXRoadInstance"] = x_road_instance
-            query_b["producer.clientMemberCode"] = member_code
-            query_b["producer.clientSubsystemCode"] = subsystem_code
-            query_b["producer.clientMemberClass"] = member_class
+            query_b["producer.clientXRoadInstance"] = reports_arguments.xroad_instance
+            query_b["producer.clientMemberCode"] = reports_arguments.member_code
+            query_b["producer.clientSubsystemCode"] = reports_arguments.subsystem_code
+            query_b["producer.clientMemberClass"] = reports_arguments.member_class
             query_b["producer.requestInTs"] = {"$gte": start_time, "$lte": end_time}
 
             projection = dict()
@@ -624,8 +620,15 @@ class DatabaseManager:
             raise e
         return list(cursor)
 
-    def add_notification_to_queue(self, member_code, subsystem_code, member_class, x_road_instance, start_date,
-                                  end_date, language, notification_username, report_name, email_info):
+    def add_notification_to_queue(
+            self,
+            reports_arguments,
+            start_date,
+            end_date,
+            notification_username,
+            report_name,
+            email_info
+    ):
 
         """
         Add notification to the queue (database).
@@ -647,7 +650,7 @@ class DatabaseManager:
 
             status = "no_email_set_not_sent"
             for email in email_info:
-                if email['email'] is not "" and email['email'] is not None:
+                if email.get('email'):
                     status = 'not_sent'
 
             document = {
