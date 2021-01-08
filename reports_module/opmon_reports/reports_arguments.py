@@ -2,11 +2,11 @@ import argparse
 from .settings_parser import OpmonSettingsManager
 
 
-class OpmonReportsArguments():
+class OpmonReportsArguments:
     def __init__(self):
         args = self._parse_args()
 
-        self.settings = OpmonSettingsManager(args.profile)
+        self.settings = OpmonSettingsManager(args.profile).settings
 
         self.member_code = args.member_code
         self.subsystem_code = args.subsystem_code
