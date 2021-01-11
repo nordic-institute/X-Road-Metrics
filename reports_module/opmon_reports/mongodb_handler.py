@@ -9,10 +9,10 @@ class MongoDBHandler:
         self.db_name = f'query_db_{xroad_instance}'
         self.db_reports_state_name = f'reports_state_{xroad_instance}'
 
-        user = mongo_settings['user']
+        self.user = mongo_settings['user']
         pwd = mongo_settings['password']
         server = mongo_settings['host']
-        self.uri = f"mongodb://{user}:{pwd}@{server}/auth_db"
+        self.uri = f"mongodb://{self.user}:{pwd}@{server}/auth_db"
 
     def get_query_db(self):
         client = pymongo.MongoClient(self.uri)

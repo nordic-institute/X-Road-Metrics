@@ -624,17 +624,15 @@ class DatabaseManager:
     def add_notification_to_queue(
             self,
             reports_arguments,
-            notification_username,
             report_name,
-            email_info
+            receivers
     ):
 
         """
         Add notification to the queue (database).
         :param reports_arguments: OpmonReportsArguments object
-        :param notification_username: The username string.
         :param report_name: Name of the report.
-        :param email_info: Emails and receiver names list.
+        :param receivers: List of receiver dictionaries
         :return:
         """
         try:
@@ -642,9 +640,9 @@ class DatabaseManager:
             collection = db[NOTIFICATION_COLLECTION]
 
             status = "no_email_set_not_sent"
-            for email in email_info:
-                if email.get('email'):
-                    status = 'not_sent'
+
+            if any((receiver.get('email') for receiver in receivers)):
+                status = 'not_sent'
 
             document = {
                 'member_code': reports_arguments.member_code,
@@ -657,9 +655,10 @@ class DatabaseManager:
                 'status': status,
                 'insert_timestamp': self.get_timestamp(),
                 'sending_timestamp': None,
-                'user_id': notification_username,
+                'user_id': self.mongodb_handler.user,  # used to identify notifications that belong to the active
+                                                       # settings profile / xroad instance
                 'report_name': report_name,
-                'email_info': email_info
+                'email_info': receivers
             }
 
             collection.insert_one(document)
@@ -667,17 +666,16 @@ class DatabaseManager:
             self.logger_m.log_error('DatabaseManager.add_notification_to_queue', '{0}'.format(repr(e)))
             raise e
 
-    def get_not_processed_notifications(self, notification_username):
+    def get_not_processed_notifications(self):
         """
         Gets all the notifications from the queue that have not been sent.
-        :param notification_username: The unique identifier per setup.
         :return: Returns a list of unprocessed notifications.
         """
         try:
             db = self.mongodb_handler.get_reports_state_db()
             collection = db[NOTIFICATION_COLLECTION]
 
-            cursor = collection.find({"status": "not_sent", "user_id": notification_username})
+            cursor = collection.find({"status": "not_sent", "user_id": self.mongodb_handler.user})
         except Exception as e:
             self.logger_m.log_error('DatabaseManager.get_not_processed_notifications', '{0}'.format(repr(e)))
             raise e

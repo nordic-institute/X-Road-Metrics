@@ -3,7 +3,7 @@ import time
 import os
 import traceback
 
-from opmon_reports.notification_manager import NotificationManager
+from .notification_manager import NotificationManager
 from .database_manager import DatabaseManager
 from .logger_manager import LoggerManager
 from .mongodb_handler import MongoDBHandler
@@ -87,7 +87,7 @@ def log_report_generation_finish(subsystem_count, fail_count, logger_m):
 
 def generate_reports(args, logger_m):
     database_m = create_database_manager(args, logger_m)
-    # notification_m = create_notification_manager(args, database_m, logger_m)
+    notification_m = create_notification_manager(args, database_m, logger_m)
     riha_json = parse_riha_json(args, logger_m)
     translator = create_translator(args, logger_m)
 
@@ -100,8 +100,8 @@ def generate_reports(args, logger_m):
             args.subsystem = subsystem
             report_manager = create_report_manager(args, riha_json, logger_m, database_m, translator)
             report_name = report_manager.generate_report()
-            # if subsystem.get('email'):
-            #    notification_m.add_item_to_queue(args, report_name, subsystem['email']
+            if subsystem.get('email'):
+                notification_m.add_item_to_queue(args, report_name, subsystem['email'])
         except Exception as e:
             fail_count += 1
             log_report_error(e, index, len(subsystems), logger_m, args)

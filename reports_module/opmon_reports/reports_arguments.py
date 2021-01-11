@@ -10,7 +10,7 @@ class OpmonReportsArguments:
 
         self.settings = OpmonSettingsManager(args.profile).settings
 
-        self.subsystem = self._parse_subsystem(args.subsystem)
+        self.subsystem = self._parse_subsystem(args)
 
         self.xroad_instance = self.settings['xroad']['instance']
         self.start_date = args.start_date
@@ -33,16 +33,18 @@ class OpmonReportsArguments:
         return self.subsystem['subsystem_code']
 
     @staticmethod
-    def _parse_subsystem(subsystem):
-        if subsystem is None:
+    def _parse_subsystem(args):
+        if args.subsystem is None:
             return None
 
-        codes = subsystem.split(':')
+        codes = args.subsystem.split(':')
         if len(codes) != 3:
             raise ValueError(
                 "X-Road subsystem must be in format CLASS:MEMBER:SUBSYSTEM. For example ORG:1234:MYSUB")
         keys = ['member_class', 'member_code', 'subsystem_code']
-        return dict(zip(keys, codes))
+        subsystem_dict = dict(zip(keys, codes))
+        subsystem_dict['email'] = [{'email': args.email, 'name': ''}]
+        return subsystem_dict
 
     @staticmethod
     def _parse_args():
@@ -51,19 +53,56 @@ class OpmonReportsArguments:
         start_date_default = time_date_tools.get_previous_month_first_day().isoformat()
         end_date_default = time_date_tools.get_previous_month_last_day().isoformat()
 
-        parser.add_argument("--profile",
-                            metavar="PROFILE",
-                            default=None,
-                            help="""
-                                Optional settings file profile.
-                                For example with '--profile PROD' settings_PROD.yaml will be used as settings file.
-                                If no profile is defined, settings.yaml will be used by default.
-                                Settings file is searched from current working directory and /etc/opmon/reports/
-                            """
-                            )
+        parser.add_argument(
+            "--profile",
+            metavar="PROFILE",
+            default=None,
+            help="""
+                Optional settings file profile.
+                For example with '--profile PROD' settings_PROD.yaml will be used as settings file.
+                If no profile is defined, settings.yaml will be used by default.
+                Settings file is searched from current working directory and /etc/opmon/reports/
+            """
+        )
 
-        parser.add_argument('--language', dest='language', help='Language ("et"/"en")', default='en')
-        parser.add_argument('--subsystem', dest='subsystem', help='Target subsystem in format CLASS:MEMBER:SUBSYSTEM', default=None)
-        parser.add_argument('--start_date', dest='start_date', help='StartDate "YYYY-MM-DD". Default is first day of previous month', default=start_date_default)
-        parser.add_argument('--end_date', dest='end_date', help='EndDate "YYYY-MM-DD" Default is last day of previous month', default=end_date_default)
+        parser.add_argument(
+            '--language',
+            help='Language code for report and notification language. Default is "en" for English.',
+            default='en'
+        )
+
+        parser.add_argument(
+            '--subsystem',
+            metavar="SYSTEM",
+            default=None,
+            help="""
+                Target subsystem in format CLASS:MEMBER:SUBSYSTEM. 
+                If this argument is omitted reports are generated for all subsystems listed in riha.json.
+            """
+        )
+
+        parser.add_argument(
+            '--email',
+            default=None,
+            help="""
+                This e-mail address is notified about a new report if the "--subsystem" argument is defined.
+                If subsystem is not defined, the e-mail addresses are parsed from riha.json file.
+            """
+        )
+
+        parser.add_argument(
+            '--start-date',
+            dest='start_date',
+            metavar="DATE",
+            help='Report start date in format "YYYY-MM-DD". Default is the first day of the previous month',
+            default=start_date_default
+        )
+
+        parser.add_argument(
+            '--end-date',
+            metavar="DATE",
+            dest='end_date',
+            help='Report end date in format "YYYY-MM-DD". Default is the last day of the previous month',
+            default=end_date_default
+        )
         return parser.parse_args()
