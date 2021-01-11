@@ -13,6 +13,7 @@ class DatabaseManager:
         :param logger_manager: LoggerManager object for logging.
         """
         self.mongodb_handler = mongodb_handler
+        self.logger_m = logger_manager
 
     @staticmethod
     def get_timestamp():
@@ -23,7 +24,7 @@ class DatabaseManager:
         return float(time.time())
 
     def get_matching_documents(self, reports_arguments, start_time, end_time):
-        """Query cleaned data for documents based on member_code, subsystem_code, member_class, start_time, end_time.        :param start_time: The starting timestamp for the query.
+        """Query cleaned data for documents based on member_code, subsystem_code, member_class, start_time, end_time.
         :param reports_arguments: OpmonReportsArguments object to define query scope
         :param start_time: The starting timestamp for the query.
         :param end_time: The ending timestamp for the query.
@@ -623,8 +624,6 @@ class DatabaseManager:
     def add_notification_to_queue(
             self,
             reports_arguments,
-            start_date,
-            end_date,
             notification_username,
             report_name,
             email_info
@@ -632,16 +631,10 @@ class DatabaseManager:
 
         """
         Add notification to the queue (database).
-        :param email_info: Emails and receiver names list.
-        :param report_name: Name of the report.
+        :param reports_arguments: OpmonReportsArguments object
         :param notification_username: The username string.
-        :param member_code: The memberCode string.
-        :param subsystem_code: The subsystemCode string.
-        :param member_class: The memberClass string.
-        :param x_road_instance: The xRoadInstance string.
-        :param start_date: The start_date of the report.
-        :param end_date: The end_date of the report.
-        :param language: The language of the report.
+        :param report_name: Name of the report.
+        :param email_info: Emails and receiver names list.
         :return:
         """
         try:
@@ -654,10 +647,18 @@ class DatabaseManager:
                     status = 'not_sent'
 
             document = {
-                'member_code': member_code, 'subsystem_code': subsystem_code, 'member_class': member_class,
-                'x_road_instance': x_road_instance, 'start_date': str(start_date), 'end_date': str(end_date),
-                'language': language, 'status': status, 'insert_timestamp': self.get_timestamp(),
-                'sending_timestamp': None, 'user_id': notification_username, 'report_name': report_name,
+                'member_code': reports_arguments.member_code,
+                'subsystem_code': reports_arguments.subsystem_code,
+                'member_class': reports_arguments.member_class,
+                'x_road_instance': reports_arguments.xroad_instance,
+                'start_date': reports_arguments.start_date,
+                'end_date': reports_arguments.end_date,
+                'language': reports_arguments.language,
+                'status': status,
+                'insert_timestamp': self.get_timestamp(),
+                'sending_timestamp': None,
+                'user_id': notification_username,
+                'report_name': report_name,
                 'email_info': email_info
             }
 
