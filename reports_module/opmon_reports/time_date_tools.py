@@ -71,13 +71,14 @@ def calculate_closing_date(date, buffer_time):
     return date - datetime.timedelta(days=buffer_time)
 
 
-def get_previous_month_last_day(date):
+def get_previous_month_last_day(date=None):
     """
     Returns the previous month's last day (datetime.date).
     NB: If current date is the last day of the current month, then it returns itself.
-    :param date: The date object (datetime.date).
+    :param date: The date object (datetime.date). If set to None datetime.date.today() is used.
     :return: Returns a date object (datetime.date) of the previous month's last day.
     """
+    date = date or datetime.date.today()
     current_month = date.month
     next_day = date + datetime.timedelta(days=1)
 
@@ -90,23 +91,25 @@ def get_previous_month_last_day(date):
         return previous_month
 
 
-def get_previous_month_first_day(date):
+def get_previous_month_first_day(date=None):
     """
     Returns the previous month's first day (datetime.date).
     NB: If current date is the last day of the current month, then it returns this month's first day.
-    :param date: The date object (datetime.date).
+    :param date: The date object (datetime.date). If set to None datetime.date.today() is used.
     :return: Returns a date object (datetime.date) of the previous month's first day.
     """
+    date = date or datetime.date.today()
     return get_previous_month_last_day(date).replace(day=1)
 
 
-def get_previous_month_start_and_end_date(current_date):
+def get_previous_month_start_and_end_date(current_date=None):
     """
     Returns the start and end date of the previous month.
     If the current date is the last day of the current month, it returns current month's first and last day.
-    :param current_date: The date object (datetime.date).
+    :param current_date: The date object (datetime.date). If set to None datetime.date.today() is used.
     :return: Returns date objects (datetime.date) of the previous month's first day and last day.
     """
+    current_date = current_date or datetime.date.today()
     return get_previous_month_first_day(current_date), get_previous_month_last_day(current_date)
 
 
