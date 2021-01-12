@@ -29,3 +29,27 @@ reports:
   css-paths:
     - '/etc/opmon/reports/template/pdf_report_style.css'
   image-path: /etc/opmon/reports/template/header_images
+  email:
+    sender: <FILL>
+    smtp-host: <FILL>
+    smtp-port: <FILL>
+    message: >
+      Dear {EMAIL_NAME},
+
+
+      There's a new operational monitoring report available for an X-Road subsystem where
+      you are listed as a contact person.
+
+
+      Report name: {REPORT_NAME}
+
+      X-Road subsystem: {X_ROAD_INSTANCE}:{MEMBER_CLASS}:{MEMBER_CODE}:{SUBSYSTEM_CODE}
+
+      Report time period: from {START_DATE} to {END_DATE}
+
+
+      Best regards,
+
+      Operational Monitoring Administration
+
+    subject: "X-Road operational monitoring report for {X_ROAD_INSTANCE}:{MEMBER_CLASS}:{MEMBER_CODE}:{SUBSYSTEM_CODE}"

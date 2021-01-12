@@ -49,41 +49,37 @@ class NotificationManager:
         not_processed_notifications = self.database_manager.get_not_processed_notifications()
         return not_processed_notifications
 
-    def send_mail(self, reports_arguments, receiver_email, receiver_name, report_name):
+    def send_mail(self, notification: dict, receiver: dict):
         """
         Send e-mail based on the given input parameters.
-        :param reports_arguments: OpmonReportsArguments object
-        :param receiver_email: The receiver e-mail.
-        :param receiver_name: Receiver name string.
-        :param report_name: Name of the report.
+        :param notification: dictionary with notification data
+        :param receiver: dictionary with name and email of receiver
         :return:
         """
 
-        msg = MIMEText(
-            self.settings['message'].format(
-                EMAIL_NAME=receiver_name,
-                X_ROAD_INSTANCE=reports_arguments.xroad_instance,
-                MEMBER_CLASS=reports_arguments.member_class,
-                MEMBER_CODE=reports_arguments.member_code,
-                SUBSYSTEM_CODE=reports_arguments.subsystem_code,
-                START_DATE=reports_arguments.start_date,
-                END_DATE=reports_arguments.end_date,
-                REPORT_NAME=report_name
-            )
-        )
-        msg['Subject'] = self.settings['subject'].format(
-            X_ROAD_INSTANCE=reports_arguments.xroad_instance,
-            MEMBER_CLASS=reports_arguments.member_class,
-            MEMBER_CODE=reports_arguments.member_code,
-            SUBSYSTEM_CODE=reports_arguments.subsystem_code,
-            START_DATE=reports_arguments.start_date,
-            END_DATE=reports_arguments.end_date,
-        )
+        format_args = {
+            'X_ROAD_INSTANCE': notification['x_road_instance'],
+            'MEMBER_CLASS': notification['member_class'],
+            'MEMBER_CODE': notification['member_code'],
+            'SUBSYSTEM_CODE': notification['subsystem_code'],
+            'START_DATE': notification['start_date'],
+            'END_DATE': notification['end_date']
+        }
+
+        msg = MIMEText(self.settings['message'].format(
+            EMAIL_NAME=receiver.get('name') or 'recipient',
+            REPORT_NAME=notification['report_name'],
+            **format_args
+        ))
+
+        msg['Subject'] = self.settings['subject'].format(**format_args)
+
         msg['From'] = self.settings['sender']
-        msg['To'] = formataddr((str(Header(f'{receiver_name}', 'utf-8')), receiver_email))
+        msg['To'] = formataddr((str(Header(f'{receiver["name"]}', 'utf-8')), receiver["email"]))
         msg['Message-ID'] = make_msgid(domain=self.settings['smtp-host'])
         msg['Date'] = formatdate(localtime=True)
-        s = smtplib.SMTP(host=self.settings['smtp-host'], port=self.settings['smtp-port'])
+
+        s = smtplib.SMTP(host=self.settings['smtp-host'], port=self.settings['smtp-port'], timeout=15)
         s.helo(socket.gethostname())
         s.send_message(msg)
         s.quit()

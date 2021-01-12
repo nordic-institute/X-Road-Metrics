@@ -9,6 +9,7 @@ class OpmonReportsArguments:
         args = self._parse_args()
 
         self.settings = OpmonSettingsManager(args.profile).settings
+        self.action = args.action
 
         self.subsystem = self._parse_subsystem(args)
 
@@ -52,6 +53,14 @@ class OpmonReportsArguments:
 
         start_date_default = time_date_tools.get_previous_month_first_day().isoformat()
         end_date_default = time_date_tools.get_previous_month_last_day().isoformat()
+
+        actions = ['report', 'notify']
+        parser.add_argument(
+            "action",
+            metavar="ACTION",
+            choices=actions,
+            help=f"OpMon reports action to execute. Supported actions are {actions}"
+        )
 
         parser.add_argument(
             "--profile",
