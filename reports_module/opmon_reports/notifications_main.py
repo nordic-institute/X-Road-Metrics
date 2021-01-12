@@ -1,9 +1,9 @@
 import time
 import traceback
 
-from .reports_main import create_database_manager
-from .reports_main import create_notification_manager
+from .database_manager import DatabaseManager
 from .logger_manager import LoggerManager
+from .notification_manager import NotificationManager
 from .reports_arguments import OpmonReportsArguments
 
 
@@ -48,11 +48,10 @@ def notify_main(args: OpmonReportsArguments):
         logger_m.log_info('send_notifications', 'starting to send notifications')
         start_processing_time = time.time()
 
-        database_m = create_database_manager(args, logger_m)
-        notification_manager = create_notification_manager(args, database_m, logger_m)
+        database_m = DatabaseManager(args, logger_m)
+        notification_m = NotificationManager(args.settings['reports']['email'], database_m, logger_m)
 
-        # Send notifications
-        send_notifications(notification_manager, logger_m)
+        send_notifications(notification_m, logger_m)
         end_processing_time = time.time()
         total_time = time.strftime("%H:%M:%S", time.gmtime(end_processing_time - start_processing_time))
         logger_m.log_info('send_notifications', f'Done sending notifications. Time elapsed: {total_time}')

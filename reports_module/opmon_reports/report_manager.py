@@ -27,6 +27,11 @@ CONSUMED_SERVICES_COLUMN_ORDER = ["PRODUCER", "SERVICE", "SUCCEEDED_QUERIES", "F
 
 class ReportManager:
     def __init__(self, reports_arguments, riha_json, log_m, database_manager, translator):
+        log_m.log_info(
+            'create_reports_manager',
+            f'Prepare reports manager for subsystem "{reports_arguments.subsystem_code}"'
+        )
+
         self.database_manager = database_manager
         self.reports_arguments = reports_arguments
         self.start_date = datetime.strptime(reports_arguments.start_date, '%Y-%m-%d').strftime('%Y-%m-%d')

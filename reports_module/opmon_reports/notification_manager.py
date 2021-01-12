@@ -3,21 +3,25 @@ import socket
 from email.header import Header
 from email.mime.text import MIMEText
 from email.utils import make_msgid, formatdate, formataddr
+from .database_manager import DatabaseManager
+from .logger_manager import LoggerManager
 
 
 class NotificationManager:
     def __init__(
             self,
-            database_manager,
-            logger_manager,
-            email_settings
+            email_settings: dict,
+            database_manager: DatabaseManager,
+            logger_manager: LoggerManager
     ):
         """
         Creates a NotificationManager object that keeps the e-mail settings/parameters inside.
-        :param database_manager: The DatabaseManager object.
-        :param logger_manager: The LoggerManager object.
         :param email_settings: reports.email section of settings.yaml as a dictionary
+        :param database_manager: DatabaseManager object.
+        :param logger_manager: LoggerManager object.
         """
+
+        logger_manager.log_info('create_notification_manager', 'Prepare notification manager.')
         self.database_manager = database_manager
         self.logger_manager = logger_manager
         self.settings = email_settings

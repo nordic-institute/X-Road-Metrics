@@ -1,18 +1,21 @@
 import time
 
+from .mongodb_handler import MongoDBHandler
+
 RAW_DATA_COLLECTION = 'raw_messages'
 CLEAN_DATA_COLLECTION = 'clean_data'
 NOTIFICATION_COLLECTION = 'notification_queue'
 
 
 class DatabaseManager:
-    def __init__(self, mongodb_handler, logger_manager):
+    def __init__(self, reports_arguments, logger_manager):
         """
         Creates a DatabaseManager object that keeps the MongoDB user credentials inside.
-        :param mongodb_handler: MongoDB handler object.
+        :param reports_arguments: OpmonReportsArguments object with command line arguments and parsed settings.
         :param logger_manager: LoggerManager object for logging.
         """
-        self.mongodb_handler = mongodb_handler
+        logger_manager.log_info('create_database_manager', 'Prepare database manager.')
+        self.mongodb_handler = MongoDBHandler(reports_arguments.settings['mongodb'], reports_arguments.xroad_instance)
         self.logger_m = logger_manager
 
     @staticmethod
