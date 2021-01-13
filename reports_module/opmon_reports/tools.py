@@ -27,3 +27,7 @@ def format_string(input_string):
         new_string += format_letter(letter)
 
     return new_string
+
+
+def truncate(s):
+    return s[:55] if s is not None else ""
