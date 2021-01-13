@@ -22,18 +22,31 @@
 <h3>{{subsystem_name_translation}}: {{ subsystem_name }}</h3>
 <h3>{{time_period_translation}}: {{ time_period }}</h3>
 <h3>{{report_date_translation}}: {{ report_date }}</h3>
+
+{% if produced_services_succeeded_plot %}
 <div class="box">
     <img src="file:{{ produced_services_succeeded_plot }}">
 </div>
+{% endif %}
+
+{% if consumed_services_succeeded_plot %}
 <div class="box">
     <img src="file:{{ consumed_services_succeeded_plot }}">
 </div>
+{% endif %}
+
+{% if produced_services_mean_plot %}
 <div class="box">
     <img src="file:{{ produced_services_mean_plot }}">
 </div>
+{% endif %}
+
+{% if consumed_services_mean_plot %}
 <div class="box">
     <img src="file:{{ consumed_services_mean_plot }}">
 </div>
+{% endif %}
+
 <h2>{{produced_services_translation}}</h2> {{ produced_services }}
 <h2>{{produced_metaservices_translation}}</h2> {{ produced_metaservices }}
 <h2>{{consumed_services_translation}}</h2> {{ consumed_services }}

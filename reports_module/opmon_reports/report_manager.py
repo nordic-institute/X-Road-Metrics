@@ -7,7 +7,7 @@ import matplotlib
 import numpy as np
 import pandas as pd
 from jinja2 import Environment, FileSystemLoader
-from weasyprint import HTML
+import weasyprint
 
 from . import time_date_tools
 from . import tools
@@ -463,7 +463,6 @@ class ReportManager:
         return doc['subsystem_name'][self.reports_arguments.language] or None
 
     def prepare_template(self, plots, data_frames, creation_time):
-
         settings = self.reports_arguments.settings['reports']
 
         # Load RIA images
@@ -522,7 +521,7 @@ class ReportManager:
         html_out = template.render(template_vars)
         return html_out
 
-    def save_pdf_to_file(self, pdf, creation_time):
+    def save_pdf_to_file(self, html: str, creation_time):
         settings = self.reports_arguments.settings['reports']
         output_directory = os.path.join(
             settings['report-path'],
@@ -541,7 +540,8 @@ class ReportManager:
         )
         report_file = os.path.join(output_directory, report_name)
 
-        HTML(string=pdf).write_pdf(report_file, stylesheets=settings['css-paths'])
+        self.logger_manager.log_info('save_pdf_to_file', f'Saving report file "{report_file}".')
+        weasyprint.HTML(string=html).write_pdf(report_file, stylesheets=settings['css-paths'])
 
         return report_name
 

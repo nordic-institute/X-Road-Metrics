@@ -1,6 +1,3 @@
-""" Logger Manager - Corrector Module
-"""
-
 import json
 import logging
 import os
