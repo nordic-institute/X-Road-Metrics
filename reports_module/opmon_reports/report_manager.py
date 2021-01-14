@@ -433,7 +433,7 @@ class ReportManager:
 
     def find_document_dictionary(self, member_subsystem_info):
         if member_subsystem_info is None:
-            return None
+            return {}
         for doc in member_subsystem_info:
             match = doc['member_code'] == self.reports_arguments.member_code \
                     and doc['subsystem_code'] == self.reports_arguments.subsystem_code \
@@ -441,26 +441,27 @@ class ReportManager:
                     and doc['x_road_instance'] == self.reports_arguments.xroad_instance
             if match:
                 return doc
-        return None
+        return {}
 
     def get_member_name(self, member_subsystem_info):
         """
         Gets the member name translation from the dictionary file.
         :param member_subsystem_info: The list of dictionaries that contain information about members & subsystems.
-        :return: Returns the translation.
+        :return: Returns the translation or empty string if translation is not found.
         """
         doc = self.find_document_dictionary(member_subsystem_info)
-        return doc['member_name'] or ""
+        return doc.get('member_name') or ""
 
     def get_subsystem_name(self, member_subsystem_info):
         """
         Gets the subsystem name translation from the dictionary file.
         :param member_subsystem_info: The list of dictionaries that contain information about members & subsystems.
-        :return: Returns the translation.
+        :return: Returns the translation or empty string if translation is not found.
         """
 
         doc = self.find_document_dictionary(member_subsystem_info)
-        return doc['subsystem_name'][self.reports_arguments.language] or None
+        subsystem = doc.get('subsystem_name') or {}
+        return subsystem.get(self.reports_arguments.language) or ""
 
     def prepare_template(self, plots, data_frames, creation_time):
         settings = self.reports_arguments.settings['reports']
