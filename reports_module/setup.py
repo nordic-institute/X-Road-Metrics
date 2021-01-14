@@ -5,13 +5,12 @@ requirements = [
     "Jinja2==2.10.1",
     "matplotlib==3.1.2",
     "pandas",
-    # "pdfkit==0.6.1", # TODO: replace weasyprint with this?
+    "weasyprint==51",
     "Pillow",
     "pymongo==3.10.1",
     "pyyaml==5.3.1",
     "requests==2.22.0",
     "tinycss==0.4",
-    "WeasyPrint==0.39" # TODO: weasyprint python wrapper is not in ubuntu repos. Use pdfkit instead?
 ]
 
 classifiers = [
@@ -35,6 +34,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     install_requires=requirements,
+    scripts=['bin/opmon-reports'],
     classifiers=classifiers,
     platforms='POSIX',
     license='MIT License'
