@@ -47,9 +47,9 @@ def find_anomalies(settings):
         else:
             last_transform_timestamp = None
         current_transform_date = current_time - datetime.timedelta(minutes=analyzer_conf.corrector_buffer_time)
-        current_transform_timestamp = (current_transform_date.timestamp() -
-                                       current_transform_date.timestamp() %
-                                       (60 * time_window["agg_minutes"])) * 1000
+
+        residual = current_transform_date.timestamp() % (60 * time_window["agg_minutes"])
+        current_transform_timestamp = (current_transform_date.timestamp() - residual) * 1000
 
         if model_type == "failed_request_ratio":
             model = FailedRequestRatioModel(analyzer_conf)
@@ -125,9 +125,9 @@ def find_anomalies(settings):
         else:
             last_transform_timestamp = None
         current_transform_date = current_time - datetime.timedelta(minutes=analyzer_conf.corrector_buffer_time)
-        current_transform_timestamp = (current_transform_date.timestamp() -
-                                       current_transform_date.timestamp() %
-                                       (60 * time_window["agg_window"]["agg_minutes"])) * 1000
+
+        residual = current_transform_date.timestamp() % (60 * time_window["agg_window"]["agg_minutes"])
+        current_transform_timestamp = (current_transform_date.timestamp() - residual) * 1000
 
         start = time.time()
         logger_m.log_info('_tmp_find_anomalies_3',
@@ -188,4 +188,3 @@ def find_anomalies(settings):
 
     logger_m.log_info('_tmp_find_anomalies_end',
                       "Process finished ... Done!")
-

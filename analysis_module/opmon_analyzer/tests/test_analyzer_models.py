@@ -367,4 +367,3 @@ def test_averages_by_timeperiod_model_add_new_period(mock_config):
     assert (3 == model_row.at[row_label, "request_count_sum"])
     assert (9 == model_row.at[row_label, "request_count_ssq"])
     assert (1 == model_row.at[row_label, "request_count_count"])
-
