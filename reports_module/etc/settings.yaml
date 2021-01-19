@@ -20,7 +20,7 @@ logger:
   heartbeat-path: /var/log/opmon/reports/heartbeat
 
 reports:
-  report-path: /home/opmon/reports
+  report-path: /var/lib/opmon/reports
   translation-path: /etc/opmon/reports/lang
   subsystem-info-path: /etc/opmon/reports/riha.json
   html-template:

@@ -8,7 +8,7 @@
 
 The **Reports module** is part of [X-Road v6 monitor project](../README.md), which includes modules of [Database module](database_module.md), [Collector module](collector_module.md), [Corrector module](corrector_module.md), [Analysis module](analysis_module.md), Reports module (this document), [Opendata module](opendata_module.md) and [Networking/Visualizer module](networking_module.md).
 
-The **Reports module** is responsible for creating different reports about X-Road v6 members subsystems (datasets usage).
+The **Reports module** is responsible for creating monthly reports about X-Road v6 members subsystems (datasets usage).
 The execution of the reports module can be either performed automatically (via **cron job**) or manually.
 
 Overall system, its users and rights, processes and directories are designed in a way, that all modules can reside in one server (different users but in same group 'opmon') but also in separate servers.  
@@ -23,185 +23,81 @@ The module source code can be found at:
 https://github.com/ria-ee/X-Road-opmonitor
 ```
 
-and can be downloaded into server:
-
-```bash
-sudo su - reports
-# If HOME not set, set it to /tmp default.
-export TMP_DIR=${HOME:=/tmp}
-export PROJECT="X-Road-opmonitor"
-export PROJECT_URL="https://github.com/ria-ee/${PROJECT}.git"
-export SOURCE="${TMP_DIR}/${PROJECT}"
-if [ ! -d "${TMP_DIR}/${PROJECT}" ]; then \
-    cd ${TMP_DIR}; git clone ${PROJECT_URL}; \
-else \
-  cd ${SOURCE}; git pull ${PROJECT_URL}; \
-fi
-```
-
 ## Diagram
+
+TODO: add new diagram, this is outdated! OPMONDEV-63.
 
 ![reports module diagram](img/Reports_module_diagram_v6.png "Reports module diagram")
 
 ## Networking
 
 ### Outgoing
+Required:
+- The reports-module needs access to the Database Module (see ==> [Database_Module](database_module.md) <==).
 
-- The reports module needs access to the Database Module (see ==> [Database_Module](database_module.md) <==).
-- The reports module needs access to the X-Road Central Server (http, port 80).
-- The reports module needs access to the reports public publishing server (via rsync or scp, port 22 (SSH)).
-- The reports module needs access to the SMTP to announce member/subsystem contacts about reports created and published (port 25 (SMTP)).
+Optional:
+- The reports-module can be configured to access a reports publishing server (via rsync or scp, port 22 (SSH)).
+- The reports-module can be configured to send e-mail notifications through an SMTP server to announce member/subsystem contacts about reports created and published (port 25 (SMTP)).
 
 ### Incoming
 
-No **incoming** connection is needed in the reports module.
+Reports-module doesn't need any **incoming** connections.
 
 ## Installation
 
-This sections describes the necessary steps to install the **reports module** in a Linux Ubuntu 16.04. 
+This sections describes the necessary steps to install the **reports module** on an Ubuntu 20.04 Linux host.
 To a complete overview of different modules and machines, please refer to the ==> [System Architecture](system_architecture.md) <== documentation.
 
-### Install required packages
+### Add X-Road OpMon Package Repository for Ubuntu
+TODO
 
-To install the necessary packages, execute the following commands in the terminal:
+### Install Reports Package
+To install opmon-reports and all dependencies execute the commands below:
 
 ```bash
 sudo apt-get update
-sudo apt-get install python3-pip
-sudo pip3 install pymongo==3.4.0
-sudo apt-get install libfreetype6-dev
-sudo pip3 install matplotlib==2.0.2
-sudo pip3 install pandas==0.20.3
-sudo pip3 install Jinja2==2.9.6
-sudo apt-get install python3-dev python-lxml python-cffi libcairo2 \
-    libpango1.0-0 libgdk-pixbuf2.0-0 libffi-dev shared-mime-info
-sudo pip3 install WeasyPrint==0.39
-sudo apt-get install libtiff5-dev libjpeg8-dev zlib1g-dev libfreetype6-dev \
-    liblcms2-dev libwebp-dev tcl8.6-dev tk8.6-dev python3-tk
-sudo pip3 install Pillow==4.2.1
-sudo pip3 install tinycss==0.4
-sudo pip3 install requests==2.14.2
+sudo apt-get install opmon-reports
 ```
 
-Most libraries follow the "MAJOR.MINOR.PATCH" schema, so the guideline is to review and update PATCH versions always (they mostly contain bug fixes). MINOR updates can be applied,  as they should keep compatibility, but there is no guarantee for some libraries. A suggestion would be to check if tests are working after MINOR updates and rollback if they stop working. MAJOR updates should not be applied.
+The installation package automatically installs following items:
+ * opmon-reports command to run the reports module manually
+ * Linux user named _opmon_ and group _opmon_
+ * settings file _/etc/opmon/reports/settings.yaml_
+ * cronjob in _/etc/cron.d/opmon-reports-cron_ to generate reports automatically once per month
+ * log folders to _/var/log/opmon/reports/_
 
-### Install reports module
+Only _opmon_ user can access the settings files and run opmon-reports command.
 
-The reports module uses the system user **reports** and group **opmon**.
-Also, the user has to have ability to push generated reports into publishing server via rsync / scp. 
-To allow this, ssh keys have to be exchanged.
-To create group, user and exchange ssh keys, execute:
+To use reports-module you need to fill in your X-Road and MongoDB configuration into the settings file.
+Refer to section [Reports-module Configuration](#reports-module-configuration).
+
+## Usage
+
+### Reports-module Configuration
+
+To use opmon-reports you need to fill in your X-Road and MongoDB configuration into the settings file.
+(here, **vi** is used):
 
 ```bash
-sudo useradd --base-dir /opt --create-home --system --shell /bin/bash --gid reports reports
-sudo groupadd --force opmon
-sudo usermod --append --groups opmon reports
+sudo vi /etc/opmon/reports/settings.yaml
 ```
 
-Additionally, key-based, password-less accesses between modules are needed:
+Settings that the user must fill in:
+* X-Road instance name
+* username and password for the reports-module MongoDB user
+* e-mail template, SMTP server and port
 
-```bash
-#
-# Generate keys
-sudo --user reports ssh-keygen -t rsa
-#
-# Set publishing user and publishing server values, also home directory in publishing server before usage
-# Appending public key to a remote file via SSH
-# Alternatively, administrative user might be used for that
-#
-# export publishing_user=""; export publishing_server=""
-sudo --user reports /bin/cat ${HOME}/.ssh/id_rsa.pub | \
-    ssh ${publishing_user}@${publishing_server} "/bin/cat >> ${HOME}/.ssh/authorized_keys"
+To run opmon-reports for multiple X-Road instances, a settings profile for each instance can be created. 
+For example to have profiles DEV, TEST and PROD create three copies of `setting.yaml` file named 
+`settings_DEV.yaml`, `settings_TEST.yaml` and `settings_PROD.yaml`.
+Then fill the profile specific settings to each file and use the --profile
+flag when running opmon-reports. For example to run using the TEST profile:
+```
+opmon-reports --profile TEST reports
 ```
 
-The module files should be installed in the APPDIR directory, within a sub-folder named after the desired X-Road instance. 
-In this manual, `/srv/app` is used as APPDIR and the `sample` is used as INSTANCE (please change `sample` to map your desired instance).
-
-```bash
-export APPDIR="/srv/app"
-export INSTANCE="sample"
-# Create log and heartbeat directories with group 'opmon' write permission
-sudo mkdir --parents ${APPDIR}/${INSTANCE}
-sudo mkdir --parents ${APPDIR}/${INSTANCE}/logs
-sudo mkdir --parents ${APPDIR}/${INSTANCE}/heartbeat
-sudo chown root:opmon ${APPDIR}/${INSTANCE} ${APPDIR}/${INSTANCE}/logs ${APPDIR}/${INSTANCE}/heartbeat
-sudo chmod g+w ${APPDIR}/${INSTANCE} ${APPDIR}/${INSTANCE}/logs ${APPDIR}/${INSTANCE}/heartbeat
-```
-
-Copy the **reports module** code to the install folder and fix the file permissions:
-
-```bash
-# export APPDIR="/srv/app"; export INSTANCE="sample"
-sudo cp --recursive --preserve ${SOURCE}/reports_module ${APPDIR}/${INSTANCE}
-```
-
-## Usage of reports module
-
-Reports module includes generation of two types of reports: monthly reports (about every memberCode / subsystemCode usage statistics) and Factsheet creation process.
-
-It is important to note that it can take up to 7 days for the ==> [Collector module](collector_module.md) <== to receive X-Road v6 operational data from security server(s) and up to 3 days for the ==> [Corrector_module](corrector_module.md) <== to clean the raw data and derive monitoring metrics in a clean database collection.
-This means that if monthly reports are to be generated, the cron job should run **after** the 7th day of the month (eg 10 days).
-
-# Monthly Reports about memberCode / subsystemCode usage
-
-## Configuration
-
-Settings for different X-Road instances have been prepared and can be used:
-
-```bash
-# export APPDIR="/srv/app"; export INSTANCE="sample"
-sudo rm ${APPDIR}/${INSTANCE}/reports_module/settings.py
-sudo ln --symbolic \
-    ${APPDIR}/${INSTANCE}/reports_module/settings_${INSTANCE}.py \
-	${APPDIR}/${INSTANCE}/reports_module/settings.py
-```
-
-If needed, edit necessary modifications to the settings file using your favorite text editor (here, **vi** is used):
-
-```bash
-# export APPDIR="/srv/app"; export INSTANCE="sample"
-sudo vi ${APPDIR}/${INSTANCE}/reports_module/settings.py
-```
-
-These are the settings that **must** be definitely set:
-
-```python
-MONGODB_USER = ""
-MONGODB_PWD  = ""
-MONGODB_SERVER = ""
-MONGODB_SUFFIX = ""
-
-# --------------------------------------------------------
-# Configure general report settings
-# --------------------------------------------------------
-# Set publishing user and publishing server values, also home directory in publishing server before usage
-reports_publishing_user = ""
-reports_publishing_server = ""
-reports_publishing_directory = ""
-REPORTS_TARGET = "{0}@{1}:{2}/{3}/".format(reports_publishing_user, 
-                                           reports_publishing_server, 
-                                           reports_publishing_directory, 
-                                           INSTANCE)
-
-# --------------------------------------------------------
-# Configure notifications
-# --------------------------------------------------------
-# e-mail from where the reports will be sent
-SENDER_EMAIL = "yourname@yourdomain"
-# the SMTP host used for sending reports
-SMTP_HOST = 'smtp.yourdomain'
-# the smtp port used for sending reports
-SMTP_PORT = 25
-```
-
-These are the settings that will work with default values set but can be changed while needed:
-
-```python
-APPDIR = "/srv/app"
-INSTANCE = "sample"
-# Reports output directory
-REPORTS_PATH = "{0}/{1}/reports/".format(APPDIR, INSTANCE)
-```
+`opmon-reports` command searches the settings file first in current working direcrtory, then in
+_/etc/opmon/reports/_
 
 Available languages for the reports are:
 
@@ -210,204 +106,205 @@ en - english
 et - estonian
 ```
 
-The relevant translation files are in the folder `reports_module/lang`.
+Report language translation files can be found in path _/etc/opmon/reports/lang_
 
-## The external files and additional scripts required for reports module
+### Subsystem Info File
 
-### riha.json
+TODO: Agree on riha.json handling strategy. OPMONDEV-56 
 
-External file `${APPDIR}/${INSTANCE}/reports_module/external_files/riha.json` is generated within ==> [Collector module](collector_module.md) <== because it has access to the necessary X-Road Central Server (or Security Server if needed) and is made available for Reports module through remote copying. 
-It is required for:
-
-1. generation list of possible reports, sub-module `reports_py`, get xRoadInstance/meberClass/memberCode/subSystemCode combinations
-2. complement reports with member and sybsystem names and their translations in human-readable format, sub_module `report_worker.py`
-3. sending out notifications, complement e-mail with member and sybsystem names and their translations in human-readable format, also getting receiver e-mail and name, sub_module `notifications.py`
-
-Sample of `${APPDIR}/${INSTANCE}/reports_module/external_files/riha.json`
+The settings.yaml file has a setting named *reports.subsystem_info_path*. This points to a file that contains a list of 
+all X-Road subsystem available in the used X-Road instance. 
+Default file is name _/etc/opmon/reports/riha.json` and it should have the following syntax:
 
 ```json
 [
   {
     "x_road_instance": "sample",
+    "member_class": "MemberClassA",
+    "member_code": "MemberCodeA",
+    "subsystem_code": "SubsystemCodeA",
+    "member_name": "Member Name",
     "subsystem_name": {
       "et": "Subsystem Name ET",
       "en": "Subsystem Name EN"
     },
-    "member_class": "MemberClassA",
     "email": [
       {
         "name": "Firstname Lastname",
         "email": "yourname@yourdomain"
       }
-    ],
-    "subsystem_code": "SubsystemCodeA",
-    "member_code": "MemberCodeA",
-    "member_name": "Member Name"
+    ]
+  },
+  {
+      "x_road_instance": "sample",
+      "member_class": "MemberClassA",
+      "member_code": "MemberCodeA",
+      "subsystem_code": "SubsystemCodeB",
+      ...
   }
 ]
 ```
 
-### get_dates.sh
+This file can be generated within ==> [Collector module](collector_module.md) <== as collector has access to the 
+necessary X-Road Central Server (or Security Server if needed).
 
-This script is needed to get start and end dates of previous month and needs to output the following: start_date(YYYY-MM-DD) end_date(YYYY-MM-DD)
+The file is used to:
 
-For example: `2017-05-01 2017-05-31`
+1. define default subsystem set that the reports are generated for
+2. get human readable names for each subsystem
+3. to get e-mail addresses of each subsystem's maintainers
 
-```bash
-#!/bin/bash
-TODAY=$(date '+%F') # or whatever YYYY-MM-DD you need
-THIS_MONTH_START=$(date -d "$TODAY" '+%Y-%m-01')
-LAST_MONTH_START=$(date -d "$THIS_MONTH_START -1 month" '+%F')
-LAST_MONTH_END=$(date -d "$LAST_MONTH_START +1 month -1 day" '+%F')
-echo $LAST_MONTH_START $LAST_MONTH_END
-```
-
-## Correct necessary permissions
-
-```bash
-# export APPDIR="/srv/app"; export INSTANCE="sample"
-sudo chown --recursive reports:reports ${APPDIR}/${INSTANCE}/reports_module
-sudo chmod --recursive -x+X ${APPDIR}/${INSTANCE}/reports_module
-find  ${APPDIR}/${INSTANCE}/reports_module/ -name '*.sh' -type f | sudo xargs chmod u+x
-```
-
-## Usage
 
 ### Manual usage
 
-Run the `report_worker.py` with `member_code`, `subsystem_code` (optional), `member_class`, `x_road_instance`, `start_date`, `end_date` and `language parameters`.
-Here's an example of the script call WITH the subsystem_code:
-
+All reports-module actions can be executed by calling the `opmon-reports` command.
+Command should be executed as user `opmon` so change to that user:
 ```bash
-# export APPDIR="/srv/app"; export INSTANCE="sample"
-cd ${APPDIR}/${INSTANCE}
-sudo --user reports /usr/bin/python3 -m reports_module.report_worker \
-    --member_code MemberCodeA \
-	--subsystem_code SubsystemCodeA \
-	--member_class MemberClassA \
-	--x_road_instance sample \
-	--start_date 2017-5-1 \
-	--end_date 2017-5-31 \
-	--language en
+sudo su opmon
 ```
 
-Here's an example of the script call WITHOUT the `subystem_code` (generates report about when query logs did NOT include subsystem_code):
-
+Available actions:
 ```bash
-# export APPDIR="/srv/app"; export INSTANCE="sample"
-cd ${APPDIR}/${INSTANCE}
-sudo --user reports /usr/bin/python3 -m reports_module.report_worker \
-    --member_code MemberCodeA \
-	--member_class MemberClassA \
-	--x_road_instance sample \
-	--start_date 2017-5-1 \
-	--end_date 2017-5-31 \
-	--language en
+opmon-reports report                       # Generate reports using default arguments
+opmon-reports notify                       # Send pending e-mail notifications
+opmnon-reports --help                      # Show available command line arguments
 ```
 
-### CRON usage
-
-CRON usage includes 4 steps:
-
-1. Generate complementary data for reports from RIHA
-2. Run reports
-3. Publish reports
-4. Run notification manager
-
-Add **reports module** as a **cron job** to the **reports** user.
-
+Above examples use the default settings file. To use another settings profile, you can use --profile flag:
 ```bash
-sudo crontab -u reports -e
+opmon-reports --profile TEST report
+opmon-reports --profile TEST notify
 ```
 
-The **cron job** entry (executes in 10th day of month 12:34:
+### Cron settings
+Default installation includes a cronjob in _/etc/cron.d/opmon-reports-cron_ that runs reports-module monthly. 
+This job runs reports module using the default settings profile (_/etc/opmon/reports/settings.yaml_)
 
+It is important to note that it can take several days for ==> [Collector module](collector_module.md) <== to receive 
+the operational data from security server(s) and for the ==> [Corrector_module](corrector_module.md) <== to 
+clean the raw data and derive monitoring metrics in a clean database collection if the X-Road instance has a lot of members.
+
+This means that if monthly reports are to be generated, the cron job should run **after** the collector and corrector
+have finished processing data for that month. By default the cron job is configured to run on 10th day of each month,
+which should allow for a long enough grace period.
+
+If you want to change the reports cronjob scheduling or settings profiles, edit the file e.g. with vi
 ```
-34 12 10 * * export APPDIR="/srv/app"; export INSTANCE="sample"; cd ${APPDIR}/${INSTANCE}/reports_module; ./cron_reports.sh
+vi /etc/cron.d/opmon-reports-cron
 ```
-
-**Note:** The prediction of 10th date comes from timeschedule:
-
-- X-Road Security Servers keep operational monitoring data up to 7 days, during this timeframe it must collected by [Collector module](collector_module.md).
-- We give extra 3 days to ensure all raw_messages are corrected, message pairs found, transferred into clean_data and marked as `{"correctorStatus": "done"}` by [Corrector module](corrector_module.md).
-
-To check if the reports module is properly installed in the reports user, execute:
-
+and make your changes. For example to run reports every six months on the 15th day using settings profiles PROD and TEST:
 ```bash
-sudo crontab -u reports -l
+# m   h  dom  mon   dow  user     command
+  1   0   15   */6    *   opmon    opmon-reports --profile TEST report
+  1   3   15   */6    *   opmon    opmon-reports --profile PROD report
+
 ```
 
-### Result
-
-Check the availability of generated report(s) at the reports folder:
-
+If reports-generation is to be run only manually, comment out the default cron task by adding a '#'-character:
 ```bash
-# export APPDIR="/srv/app"; export INSTANCE="sample"
-ls -l --recursive ${APPDIR}/${INSTANCE}/reports
+#  1   0   10   *   *   opmon    opmon-reports report
 ```
 
-The Report naming convention is the following: `memberCode_startDate_endDate_creationDate_creationTime.pdf`.
-For example: subsystemCodeA_2017-05-01_2017-05-31_2017-06-10_12-34-56-123456.pdf
+### Publishing Reoprts
+Using default settings the opmon-reports command generates report pdf files into folder _/home/opmon/reports_.
+If you want to publish the reports on some external file server, you can setup e.g. a rsync cronjob. 
+Below example assumes your file-server hostname is _myfileserver_ and user _myuser_ can access it with from the
+opmon-reports host.
 
-The "startDate", "endDate" & the "creationDate" have the following format: YYYY-MM-DD.
-For example: 2017-05-31
+TODO: add example when file server strategy has been confirmed. OPMONDEV-63
 
-The creationTime has the hour-minute-second-millisecond format: HH-mm-ss-MMMSSS.
-For example: 12-34-56-123456
+If you don't use any external file server users can copy the reports to their workstations using e.g. _scp_ command.
+TODO: add example  
+
+### E-mail Notifications
+TODO: Add documentation after the default notification strategy has been confirmed. OPMONDEV-63
+
 
 ### Note about Indexing
 
-Index build in background (see [Database module, Index Creation](database_module.md#index-creation) might affect availability of cursor for long-running queries.
-Please review the need of active [Collector module](collector_module.md) and specifically the need of active [Corrector module](corrector_module.md) while running Reports.
+Index build in background (see [Database module, Index Creation](database_module.md#index-creation) might affect 
+availability of cursor for long-running queries.
+Please review the need of active [Collector module](collector_module.md) and specifically the need of active 
+[Corrector module](corrector_module.md) while running Reports.
 
-### Monitoring and Status
+## Monitoring and Status
 
-#### Logging 
+### Logging 
 
-The **reports module** produces log files that, by default, are stored at `${APPDIR}/${INSTANCE}/logs`
+The settings for the log file in the settings file are the following:
 
-To change the logging level, it is necessary to change the logger.setLevel parameter in the settings file:
+```yaml
+xroad:
+  instance: EXAMPLE
 
-```python
-# INFO - logs INFO & WARNING & ERROR
-# WARNING - logs WARNING & ERROR
-# ERROR - logs ERROR
-logger.setLevel(logging.INFO)
+#  ...
+
+logger:
+  name: reports
+  module: reports
+  
+  # Possible logging levels from least to most verbose are:
+  # CRITICAL, FATAL, ERROR, WARNING, INFO, DEBUG
+  level: INFO
+
+  # Logs and heartbeat files are stored under these paths.
+  # Also configure external log rotation and app monitoring accordingly.
+  log-path: /var/log/opmon/reports/logs
+
 ```
 
-The time format for durations in the log files is the following: "HH:MM:SS".
-For example:
+The log file is written to `log-path` and log file name contains the X-Road instance name. 
+The above example configuration would write logs to `/var/log/opmon/reports/logs/log_reports_EXAMPLE.json`.
+
+Every log line includes:
+
+- **"timestamp"**: timestamp in Unix format (epoch)
+- **"local_timestamp"**: timestamp in local format '%Y-%m-%d %H:%M:%S %z'
+- **"module"**: "reports"
+- **"version"**: in form of "v${MINOR}.${MAJOR}"
+- **"activity"**: string identifier of the logging code block
+- **level**: possible values "INFO", "WARNING", "ERROR"
+- **msg**: message
+
+The **reports module** log handler is compatible with the logrotate utility. To configure log rotation for the example setup above, create the file:
 
 ```
-"Finished process. Processing time: 00:00:56"
+sudo vi /etc/logrotate.d/opmon-reports
+```
+
+and add the following content :
+```
+/var/log/opmon/reports/logs/log_reports_EXAMPLE.json {
+    rotate 10
+    size 2M
+}
+```
+
+For further log rotation options, please refer to logrotate manual:
+
+```
+man logrotate
 ```
 
 ### Heartbeat
 
-The Reports module has a heartbeat.json file.
-The settings (in the settings file) for the heartbeat files are the following:
+The settings for the heartbeat file in the settings file are the following:
 
-```python
-HEARTBEAT_LOGGER_PATH = '{0}/{1}/heartbeat/'.format(APPDIR, INSTANCE)
-REPORT_HEARTBEAT_NAME = "heartbeat_report.json"
-```
-So, for each MONGODB_SUFFIX (X-Road instance) a separate heartbeat will be generated.
+```yaml
+xroad:
+  instance: EXAMPLE
 
-The Reports module has a heartbeat.json file, by default, is stored at `${APPDIR}/${INSTANCE}/heartbeat`.
+#  ...
 
-The heartbeat files consist of the following fields:
-
-```
-timestamp - the timestamp when the heartbeat was updated
-module - module name
-msg - message
-version - version
-status - status
-```
-
-The statuses used in the Reports and Factsheet generation in the heartbeat are the following:
+logger:
+  #  ...
+  heartbeat-path: /var/log/opmon/reports/heartbeat
 
 ```
-"FAILED"
-"SUCCEEDED"
-```
+
+The heartbeat file is written to `heartbeat-path` and hearbeat file name contains the X-Road instance name. 
+The above example configuration would write logs to `/var/log/opmon/reports/heartbeat/heartbeat_reports_EXAMPLE.json`.
+
+The heartbeat file consists last message of log file and status
+
+- **status**: possible values "FAILED", "SUCCEEDED"
