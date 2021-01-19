@@ -19,10 +19,10 @@ class AveragesByTimeperiodModel(object):
         self.model_creation_timestamp = model_creation_timestamp
 
     def fit(self, dt_agg):
-        
+
         if len(dt_agg) <= 0:
             return
-        
+
         dt_agg = self._add_similar_periods_string(dt_agg)
 
         self.dt_avgs = dt_agg.drop([self._config.timestamp_field, "request_ids"],
@@ -33,35 +33,35 @@ class AveragesByTimeperiodModel(object):
                                                                              np.sum,
                                                                              self.ssq])
         self.dt_avgs.columns = ['_'.join(col) for col in self.dt_avgs.columns.values]
-        
+
         for metric in self._config.historic_averages_thresholds.keys():
             self.dt_avgs["%s_std" % metric] = self.dt_avgs["%s_std" % metric].fillna(0)
-            
+
             self.dt_avgs["%s_mean" % metric] = self.dt_avgs["%s_mean" % metric].astype(float)
             self.dt_avgs["%s_std" % metric] = self.dt_avgs["%s_std" % metric].astype(float)
             self.dt_avgs["%s_count" % metric] = self.dt_avgs["%s_count" % metric].astype(float)
             self.dt_avgs["%s_sum" % metric] = self.dt_avgs["%s_sum" % metric].astype(float)
             self.dt_avgs["%s_ssq" % metric] = self.dt_avgs["%s_ssq" % metric].astype(float)
-        
+
         current_time = datetime.now()
-        
+
         self.dt_avgs = self.dt_avgs.assign(version=1)
         self.dt_avgs = self.dt_avgs.assign(model_creation_timestamp=current_time)
         self.dt_avgs = self.dt_avgs.assign(model_update_timestamp=current_time)
         self.dt_avgs = self.dt_avgs.assign(model_name=self.time_window['timeunit_name'])
-        
+
     def transform(self, dt_agg):
-        
+
         all_anomalies = pd.DataFrame()
-        
+
         if self.dt_avgs is None or len(dt_agg) <= 0:
             return all_anomalies
-        
+
         dt_agg = self._add_similar_periods_string(dt_agg)
-            
+
         dt_merged = dt_agg.reset_index().merge(self.dt_avgs.reset_index(),
                                                on=self._config.service_call_fields + ['similar_periods'], how="left")
-            
+
         for metric, threshold in self._config.historic_averages_thresholds.items():
             tmp = dt_merged.dropna(subset=[metric])
             if metric != "request_count":
@@ -84,8 +84,9 @@ class AveragesByTimeperiodModel(object):
             anomalies = anomalies.assign(model_timeunit=self.time_window['timeunit_name'])
             anomalies = anomalies.assign(incident_status='new')
             anomalies = anomalies.assign(period_end_time=(anomalies[self._config.timestamp_field] +
-                                                          pd.to_timedelta(1, unit=self.time_window['agg_window']['pd_timeunit'])))
-                
+                                                          pd.to_timedelta(1, unit=self.time_window['agg_window'][
+                                                              'pd_timeunit'])))
+
             anomalies = anomalies.assign(anomalous_metric=metric)
             anomalies = anomalies.assign(comments="")
             anomalies = anomalies.assign(monitored_metric_value=anomalies[metric])
@@ -93,7 +94,8 @@ class AveragesByTimeperiodModel(object):
             anomalies = anomalies.rename(columns={"%s_mean" % metric: "metric_mean",
                                                   "%s_std" % metric: "metric_std",
                                                   "version": "model_version"})
-            anomalies = anomalies.assign(difference_from_normal=abs(anomalies["monitored_metric_value"] - anomalies["metric_mean"]))
+            anomalies = anomalies.assign(
+                difference_from_normal=abs(anomalies["monitored_metric_value"] - anomalies["metric_mean"]))
             model_param_cols = ["metric_mean", "metric_std", 'model_timeunit', 'similar_periods']
             model_params = anomalies[model_param_cols].to_dict('records')
             anomalies = anomalies.assign(model_params=model_params)
@@ -109,29 +111,30 @@ class AveragesByTimeperiodModel(object):
             anomalies = anomalies.rename(columns={self._config.timestamp_field: 'period_start_time'})
 
             all_anomalies = pd.concat([all_anomalies, anomalies], axis=0)
-        
+
         return all_anomalies
-    
+
     def update_model(self, data_new_agg):
         print("Model will be updated based on %s new requests" % data_new_agg.shape[0])
-        
+
         if len(data_new_agg) <= 0:
             return
-        
+
         data_new_agg = self._add_similar_periods_string(data_new_agg)
-            
+
         # separate time periods that already exist in the model from those that don't
         data_new_agg = data_new_agg.set_index(self._config.service_call_fields + ['similar_periods'])
-            
+
         new_periods = data_new_agg.index.difference(self.dt_avgs.index)
         existing_periods = data_new_agg.index.intersection(self.dt_avgs.index)
-            
+
         data_new_agg_new_periods = data_new_agg.loc[new_periods]
         data_new_agg_existing_periods = data_new_agg.loc[existing_periods]
-        
-        print("There are %s completely new periods and %s new entries to existing periods" % (len(new_periods), len(data_new_agg_existing_periods)))
+
+        print("There are %s completely new periods and %s new entries to existing periods" % (
+        len(new_periods), len(data_new_agg_existing_periods)))
         print("Updating existing periods...")
-        
+
         # update existing periods in the model
         start = time.time()
         counter = 0
@@ -140,16 +143,18 @@ class AveragesByTimeperiodModel(object):
             model_vals = self.dt_avgs.loc[name].fillna(0)
 
             for metric in self._config.historic_averages_thresholds.keys():
+                mean, std, n, summ, ssq = self._update_mean_std_n(
+                    model_vals[f"{metric}_sum"],
+                    model_vals[f"{metric}_ssq"],
+                    model_vals[f"{metric}_count"],
+                    row[metric]
+                )
 
-                mean, std, n, summ, ssq = self._update_mean_std_n(model_vals["%s_sum" % metric],
-                                                                  model_vals["%s_ssq" % metric],
-                                                                  model_vals["%s_count" % metric],
-                                                                  row[metric])
-                self.dt_avgs.set_value(name, "%s_mean" % metric, mean)
-                self.dt_avgs.set_value(name, "%s_std" % metric, std)
-                self.dt_avgs.set_value(name, "%s_count" % metric, n)
-                self.dt_avgs.set_value(name, "%s_sum" % metric, summ)
-                self.dt_avgs.set_value(name, "%s_ssq" % metric, ssq)
+                self.dt_avgs.loc[name, f"{metric}_mean"] = mean
+                self.dt_avgs.loc[name, f"{metric}_std"] = std
+                self.dt_avgs.loc[name, f"{metric}_count"] = n
+                self.dt_avgs.loc[name, f"{metric}_sum"] = summ
+                self.dt_avgs.loc[name, f"{metric}_ssq"] = ssq
             counter += 1
             if counter % 1000 == 0:
                 print("%s/%s done, time: %s" % (counter, len(data_new_agg_existing_periods), time.time() - start))
@@ -158,33 +163,35 @@ class AveragesByTimeperiodModel(object):
         # add completely new periods to the model as additional rows
         print("Adding new periods...")
         start = time.time()
-        data_new_agg_new_periods_grouped = data_new_agg_new_periods.reset_index().groupby(self._config.service_call_fields +
-                                                                                          ['similar_periods'])
+        data_new_agg_new_periods_grouped = data_new_agg_new_periods.reset_index().groupby(
+            self._config.service_call_fields +
+            ['similar_periods'])
         relevant_metrics = list(self._config.historic_averages_thresholds.keys())
         tmp = data_new_agg_new_periods_grouped[relevant_metrics].agg([np.mean, self.std, 'count', np.sum, self.ssq])
 
         tmp.columns = ['_'.join(col) for col in tmp.columns.values]
         for metric in self._config.historic_averages_thresholds.keys():
             tmp["%s_std" % metric] = tmp["%s_std" % metric].fillna(0)
-        
+
         current_time = datetime.now()
         tmp = tmp.assign(version=self.version)
-        tmp = tmp.assign(model_creation_timestamp=self.model_creation_timestamp) #self.dt_avgs.model_creation_timestamp.iloc[0])
+        tmp = tmp.assign(
+            model_creation_timestamp=self.model_creation_timestamp)  # self.dt_avgs.model_creation_timestamp.iloc[0])
         tmp = tmp.assign(model_update_timestamp=current_time)
         tmp = tmp.assign(model_name=self.time_window['timeunit_name'])
-        
+
         self.dt_avgs = self.dt_avgs.append(tmp)
         print("Done, time: %s" % (time.time() - start))
-          
+
         self.dt_avgs = self.dt_avgs.assign(version=self.version + 1)
         self.dt_avgs = self.dt_avgs.assign(model_update_timestamp=current_time)
-    
+
     def std(self, x):
         return np.std(x, ddof=0)
-    
+
     def ssq(self, x):
         return np.sum(x * x)
-    
+
     def _generate_description(self, row):
         desc = "Average %s per %s %s is %s, but observed %s was %s." % (
             row['anomalous_metric'],
@@ -195,17 +202,17 @@ class AveragesByTimeperiodModel(object):
             row['anomalous_metric'],
             np.round(row['monitored_metric_value'], 2))
         return desc
-    
+
     def _get_timeunit_name(self, timeunit, value):
         if timeunit == "weekday":
-            return("on %ss" % (list(calendar.day_name)[value]))
+            return ("on %ss" % (list(calendar.day_name)[value]))
         elif timeunit == "hour":
-            return("between %02d:00 and %02d:00" % (value, value + 1))
+            return ("between %02d:00 and %02d:00" % (value, value + 1))
         if timeunit == "month":
-            return("in %s" % (list(calendar.month_name)[value]))
+            return ("in %s" % (list(calendar.month_name)[value]))
         else:
-            return(value)
-    
+            return (value)
+
     def _update_mean_std_n(self, summ, sumsq, n, x):
         n += 1
         summ += x
@@ -219,10 +226,11 @@ class AveragesByTimeperiodModel(object):
 
     def _get_timestamp(self, date):
         return int((pd.Series(date).astype(np.int64) / 1e6).astype(np.int64)[0])
-    
+
     def _add_similar_periods_string(self, dt_agg):
         if len(dt_agg) > 0:
-            dt_agg["similar_periods"] = getattr(dt_agg[self._config.timestamp_field].dt, self.time_window['similar_periods'][0]).apply(str)
+            dt_agg["similar_periods"] = getattr(dt_agg[self._config.timestamp_field].dt,
+                                                self.time_window['similar_periods'][0]).apply(str)
             for i in range(1, len(self.time_window['similar_periods'])):
                 dt_agg["similar_periods"] += "_"
                 dt_agg["similar_periods"] += getattr(dt_agg[self._config.timestamp_field].dt,
