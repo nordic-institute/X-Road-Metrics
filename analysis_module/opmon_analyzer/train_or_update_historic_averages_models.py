@@ -37,16 +37,20 @@ def update_model(settings):
         time_second_model=max_incident_creation_time
     )
 
-    logger_m.log_info(log_activity,
-                      "Number of service calls that have passed the training period " +
-                      f"(model will be trained for the first time): {len(sc_first_model)}")
+    logger_m.log_info(
+        log_activity,
+        f"Number of service calls for first model training: {len(sc_first_model)}"
+    )
 
-    logger_m.log_info(log_activity,
-                      "Number of service calls that have passed the retraining period " +
-                      f"(model will be retrained for the first time): {len(sc_second_model)}")
+    logger_m.log_info(
+        log_activity,
+        f"Number of service calls for model re-training: {len(sc_second_model)}"
+    )
 
-    logger_m.log_info(log_activity,
-                      f"Number of service calls that will be updated in regular mode: {len(sc_regular)}")
+    logger_m.log_info(
+        log_activity,
+        f"Number of service calls that will be updated in regular mode: {len(sc_regular)}"
+    )
 
     # 4.3.5 - 4.3.9 Comparison with historic averages for:
     # request count, response size, request size, response duration, request duration

@@ -159,7 +159,7 @@ class AnalyzerDatabaseManager(object):
             [{'$match': filter_dict}, {'$group': {'_id': None, 'count': {"$sum": "$request_count"}}}])
         try:
             request_count = next(result)['count']
-        except:
+        except (StopIteration, KeyError, TypeError):
             request_count = 0
 
         return request_count
@@ -330,11 +330,16 @@ class AnalyzerDatabaseManager(object):
         res = self.query_db.clean_data.aggregate([
             {'$project': project_dict},
             {'$match': filter_dict},
-            {'$group': {"_id": group_dict,
-                        'request_count': {'$sum': 1},
-                        "docs": {"$push":
-                                     {relevant_metric: "$%s" % relevant_metric,
-                                      "id": "$_id"}}}},
+            {'$group': {
+                "_id": group_dict,
+                'request_count': {'$sum': 1},
+                "docs": {
+                    "$push": {
+                        relevant_metric: "$%s" % relevant_metric,
+                        "id": "$_id"
+                    }
+                }
+            }},
             {"$unwind": "$docs"},
             {'$match': {'docs.%s' % relevant_metric: {"$lt": threshold}}},
             {'$group': {"_id": "$_id",
@@ -437,19 +442,27 @@ class AnalyzerDatabaseManager(object):
         if len(first_timestamps) == 0:
             return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
 
-        first_model_to_be_trained = first_timestamps[(pd.isnull(first_timestamps.first_model_train_timestamp)) &
-                                                     (first_timestamps.first_request_timestamp <= time_first_model)]
-        model_to_be_retrained = first_timestamps[(pd.isnull(first_timestamps.first_model_retrain_timestamp)) &
-                                                 (first_timestamps.first_incident_timestamp <= time_second_model)]
+        first_train_time_is_null = (pd.isnull(first_timestamps.first_model_train_timestamp))
+        first_request_before_model = (first_timestamps.first_request_timestamp <= time_first_model)
+        first_model_to_be_trained = first_timestamps[first_train_time_is_null & first_request_before_model]
+
+        retrain_time_is_null = (pd.isnull(first_timestamps.first_model_retrain_timestamp))
+        incident_before_model = (first_timestamps.first_incident_timestamp <= time_second_model)
+        model_to_be_retrained = first_timestamps[retrain_time_is_null & incident_before_model]
+
         first_timestamps = first_timestamps[~pd.isnull(first_timestamps.first_model_retrain_timestamp)]
 
         return first_timestamps, first_model_to_be_trained, model_to_be_retrained
 
     def get_service_calls_for_transform_stages(self):
         first_timestamps = self.get_first_timestamps_for_service_calls()
-        first_incidents_to_be_reported = first_timestamps[(pd.isnull(first_timestamps.first_incident_timestamp)) &
-                                                          (~pd.isnull(first_timestamps.first_model_train_timestamp))]
+
+        first_incident_time_is_null = (pd.isnull(first_timestamps.first_incident_timestamp))
+        first_model_train_time_not_null = (~pd.isnull(first_timestamps.first_model_train_timestamp))
+
+        first_incidents_to_be_reported = first_timestamps[first_incident_time_is_null & first_model_train_time_not_null]
         regular_service_calls = first_timestamps[~pd.isnull(first_timestamps.first_incident_timestamp)]
+
         return regular_service_calls, first_incidents_to_be_reported
 
     def get_data_for_train_stages(self, sc_regular, sc_first_model, sc_second_model, relevant_anomalous_metrics,
