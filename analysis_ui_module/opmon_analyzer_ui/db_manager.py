@@ -42,8 +42,8 @@ class IncidentDatabaseManager(object):
                 if data_type == 'numeric':
                     try:
                         value = float(value)
-                    except:
-                        return {"error_message": "<b>%s:</b> Value must be numeric." % field}
+                    except(OverflowError, ValueError, TypeError):
+                        return {"error_message": "<b>%s:</b> Invalid value." % field}
                     
                     if op == '=':
                         filter_dict[field]["$gte"] = value - FLOAT_PRECISION
