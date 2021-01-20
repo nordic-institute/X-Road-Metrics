@@ -1,0 +1,104 @@
+# Settings file for corrector unit tests
+
+corrector:
+  thread-count: 8
+  documents-max: 20000
+  documents-min: 20000
+  timeout-days: 3
+
+  # seconds to wait after batch if batch size was less than documents-min
+  wait-on-done: 300
+
+  # seconds to wait before attempting restart after error
+  wait-on-error: 600
+
+  # Time window to match documents (in milliseconds)
+  time-window: 600000 # 10 minutes
+
+  calc:
+    total-duration: true
+    client-request-duration: true
+    client-response-duration: true
+    producer-request-duration: true
+    producer-response-duration: true
+    producer-duration-client-view: true
+    producer-duration-producer-view: true
+    producer-is-duration: true
+    request-nw-duration: true
+    response-nw-duration: true
+    request-size: true
+    response-size: true
+
+  comparison-list:
+    - 'clientMemberClass'
+    - 'requestMimeSize'
+    - 'serviceSubsystemCode'
+    - 'requestAttachmentCount'
+    - 'serviceSecurityServerAddress'
+    - 'messageProtocolVersion'
+    - 'responseSoapSize'
+    - 'succeeded'
+    - 'clientSubsystemCode'
+    - 'responseAttachmentCount'
+    - 'serviceMemberClass'
+    - 'messageUserId'
+    - 'serviceMemberCode'
+    - 'serviceXRoadInstance'
+    - 'clientSecurityServerAddress'
+    - 'clientMemberCode'
+    - 'clientXRoadInstance'
+    - 'messageIssue'
+    - 'serviceVersion'
+    - 'requestSoapSize'
+    - 'serviceCode'
+    - 'representedPartyClass'
+    - 'representedPartyCode'
+    - 'soapFaultCode'
+    - 'soapFaultString'
+    - 'responseMimeSize'
+    - 'messageId'
+
+  comparison_list_orphan:
+    - 'clientMemberClass'
+    - 'serviceSubsystemCode'
+    - 'serviceSecurityServerAddress'
+    - 'messageProtocolVersion'
+    - 'succeeded'
+    - 'clientSubsystemCode'
+    - 'serviceMemberClass'
+    - 'messageUserId'
+    - 'serviceMemberCode'
+    - 'serviceXRoadInstance'
+    - 'clientSecurityServerAddress'
+    - 'clientMemberCode'
+    - 'clientXRoadInstance'
+    - 'messageIssue'
+    - 'serviceVersion'
+    - 'serviceCode'
+    - 'representedPartyClass'
+    - 'representedPartyCode'
+    - 'soapFaultCode'
+    - 'soapFaultString'
+    - 'messageId'
+
+
+xroad:
+  instance: DEFAULT
+
+mongodb:
+  host: defaultmongodb
+  user: defaultuser
+  password: defaultpass
+
+logger:
+  name: corrector
+  module: corrector
+  
+  # Possible logging levels from least to most verbose are:
+  # CRITICAL, FATAL, ERROR, WARNING, INFO, DEBUG
+  level: INFO
+
+  # Logs and heartbeat files are stored under these paths.
+  # Also configure external log rotation and app monitoring accordingly.
+  log-path: /var/log/opmon/corrector/logs
+  heartbeat-path: /var/log/opmon/corrector/heartbeat
