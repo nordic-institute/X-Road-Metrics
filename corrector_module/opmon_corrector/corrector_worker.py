@@ -94,7 +94,7 @@ class CorrectorWorker:
 
             if merged_document is None:
                 # Try to match the current document with orphan-matching
-                merged_document = doc_m.find_orphan_match(current_document, matching_documents)
+                merged_document = doc_m.find_match(current_document, matching_documents, orphan=True)
                 if merged_document is not None:
                     matching_type = 'orphan_pair'
             else:

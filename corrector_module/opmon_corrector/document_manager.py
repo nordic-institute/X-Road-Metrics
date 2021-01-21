@@ -27,37 +27,33 @@ class DocumentManager:
             'soapFaultString'
         )
 
+    @staticmethod
+    def subtract_or_none(a, b):
+        return None if None in [a, b] else a - b
+
     def _client_calculations(self, in_doc):
         """
         Calculates client specific parameters.
         :param in_doc: The input document.
         :return: Returns the document with applied calculations.
         """
+        request_in = in_doc['client'].get('requestInTs')
+        request_out = in_doc['client'].get('requestOutTs')
+        response_in = in_doc['client'].get('responseInTs')
+        response_out = in_doc['client'].get('responseOutTs')
+
         if self.calc['total-duration']:
-            try:
-                in_doc['totalDuration'] = in_doc['client']['responseOutTs'] - in_doc['client']['requestInTs']
-            except (TypeError, ValueError, KeyError):
-                in_doc['totalDuration'] = None
+            in_doc['totalDuration'] = self.subtract_or_none(response_out, request_in)
 
         if self.calc['client-request-duration']:
-            try:
-                in_doc['clientSsRequestDuration'] = in_doc['client']['requestOutTs'] - in_doc['client']['requestInTs']
-            except (TypeError, ValueError, KeyError):
-                in_doc['clientSsRequestDuration'] = None
+            in_doc['clientSsRequestDuration'] = self.subtract_or_none(request_out, request_in)
 
         if self.calc['client-response-duration']:
-            try:
-                in_doc['clientSsResponseDuration'] = in_doc['client']['responseOutTs'] - in_doc['client'][
-                    'responseInTs']
-            except (TypeError, ValueError, KeyError):
-                in_doc['clientSsResponseDuration'] = None
+            in_doc['clientSsResponseDuration'] = self.subtract_or_none(response_out, response_in)
 
         if self.calc['producer-duration-client-view']:
-            try:
-                in_doc['producerDurationClientView'] = in_doc['client']['responseInTs'] - in_doc['client'][
-                    'requestOutTs']
-            except (TypeError, ValueError, KeyError):
-                in_doc['producerDurationClientView'] = None
+            in_doc['producerDurationClientView'] = self.subtract_or_none(response_in, request_out)
+
         return in_doc
 
     def _producer_calculations(self, in_doc):
@@ -184,12 +180,10 @@ class DocumentManager:
         :param value: The value to be checked.
         :return: Returns either the input value or the min_value or the max_value based on the input value.
         """
-        min_int = -2 ** 31 + 1
-        max_int = 2 ** 31 - 1
-        result = None
-        if value is not None:
-            result = min(max_int, value) if value > 0 else max(min_int, value)
-        return result
+        lo = -2 ** 31 + 1
+        hi = 2 ** 31 - 1
+
+        return None if value is None else max(min(value, hi), lo)
 
     def _limit_calculation_values(self, document):
         """
@@ -197,21 +191,27 @@ class DocumentManager:
         :param document: The input document.
         :return: Returns the document with fixed values.
         """
-        document['clientSsResponseDuration'] = self.get_boundary_value(document['clientSsResponseDuration'])
-        document['producerSsResponseDuration'] = self.get_boundary_value(document['producerSsResponseDuration'])
-        document['requestNwDuration'] = self.get_boundary_value(document['requestNwDuration'])
-        document['totalDuration'] = self.get_boundary_value(document['totalDuration'])
-        document['producerDurationProducerView'] = self.get_boundary_value(document['producerDurationProducerView'])
-        document['responseNwDuration'] = self.get_boundary_value(document['responseNwDuration'])
-        document['producerResponseSize'] = self.get_boundary_value(document['producerResponseSize'])
-        document['producerDurationClientView'] = self.get_boundary_value(document['producerDurationClientView'])
-        document['clientResponseSize'] = self.get_boundary_value(document['clientResponseSize'])
-        document['producerSsRequestDuration'] = self.get_boundary_value(document['producerSsRequestDuration'])
-        document['clientRequestSize'] = self.get_boundary_value(document['clientRequestSize'])
-        document['clientSsRequestDuration'] = self.get_boundary_value(document['clientSsRequestDuration'])
-        document['producerRequestSize'] = self.get_boundary_value(document['producerRequestSize'])
-        document['producerIsDuration'] = self.get_boundary_value(document['producerIsDuration'])
-        return document
+        keys_to_limit = [
+            'clientSsResponseDuration',
+            'producerSsResponseDuration',
+            'requestNwDuration',
+            'totalDuration',
+            'producerDurationProducerView',
+            'responseNwDuration',
+            'producerResponseSize',
+            'producerDurationClientView',
+            'clientResponseSize',
+            'producerSsRequestDuration',
+            'clientRequestSize',
+            'clientSsRequestDuration',
+            'producerRequestSize',
+            'producerIsDuration'
+        ]
+
+        return {
+            key: (self.get_boundary_value(value) if key in keys_to_limit else value)
+            for (key, value) in document.items()
+        }
 
     def apply_calculations(self, in_doc):
         """
@@ -225,21 +225,26 @@ class DocumentManager:
         in_doc = self._limit_calculation_values(in_doc)
         return in_doc
 
-    def match_documents(self, document_a, document_b):
+    def match_documents(self, document_a, document_b, orphan=False):
         """
         Tries to match 2 regular documents.
         :param document_a: The input document A.
         :param document_b: The input document B.
+        :param orphan: Set to True to match orphan documents.
         :return: Returns True if the given documents match.
         """
+
+        if None in [document_a, document_b]:
+            return False
+
         # Divide document into client and producer
         security_type = document_a.get('securityServerType', None)
         if security_type == 'Client':
             client = document_a
-            producer = document_b['producer']
+            producer = document_b.get('producer')
         elif security_type == 'Producer':
             producer = document_a
-            client = document_b['client']
+            client = document_b.get('client')
         else:
             # If here, Something is wrong
             self.logger_m.log_error('document_manager',
@@ -251,7 +256,7 @@ class DocumentManager:
             return False
 
         # Check time exists
-        if client['requestInTs'] is None or producer['requestInTs'] is None:
+        if client.get('requestInTs') is None or producer.get('requestInTs') is None:
             return False
 
         # Check time difference
@@ -259,75 +264,24 @@ class DocumentManager:
             return False
 
         # Check attribute list
-        for attribute in self.COMPARISON_LIST:
+        attributes = self.orphan_comparison_list if orphan else self.COMPARISON_LIST
+        for attribute in attributes:
             if client.get(attribute, None) != producer.get(attribute, None):
                 return False
 
         # If here, all matching conditions are OK
         return True
 
-    def match_orphan_documents(self, document_a, document_b):
-        """
-        Tries to match 2 possible orphan documents.
-        :param document_a: The input document A.
-        :param document_b: The input document B.
-        :return: Returns True if the given documents match.
-        """
-        security_type = document_a.get('securityServerType', None)
-        # Divide document into client and producer
-        if security_type == 'Client':
-            client = document_a
-            producer = document_b['producer']
-        elif security_type == 'Producer':
-            producer = document_a
-            client = document_b['client']
-        else:
-            # If here, Something is wrong
-            self.logger_m.log_error('document_manager',
-                                    'Unknown matching type (orphan) between {0} and {1}'.format(document_a, document_b))
-            return False
-
-        # Check if client/producer object exist
-        if client is None or producer is None:
-            return False
-
-        # Check attribute list
-        for attribute in self.orphan_comparison_list:
-            if client.get(attribute, None) != producer.get(attribute, None):
-                return False
-
-        # Check time exists
-        if client['requestInTs'] is None or producer['requestInTs'] is None:
-            return False
-
-        # Check time difference
-        if abs(client['requestInTs'] - producer['requestInTs']) > self.TIME_WINDOW:
-            return False
-
-        # If here, all matching conditions are OK
-        return True
-
-    def find_match(self, document_a, documents_list):
+    def find_match(self, document_a, documents_list, orphan=False):
         """
         Performs the regular match for given document in the given document_list.
         :param document_a: The document to be matched.
         :param documents_list: The list of documents to search the match from.
+        :param orphan: Set to True to match orphan documents
         :return: Returns the matching document. If no match found, returns None.
         """
         for cur_document in documents_list:
-            if self.match_documents(document_a, cur_document):
-                return cur_document
-        return None
-
-    def find_orphan_match(self, document_a, documents_list):
-        """
-        Performs the orphan match for given document in the given document_list.
-        :param document_a: The document to be matched.
-        :param documents_list: The list of documents to search the match from.
-        :return: Returns the matching document. If no match found, returns None.
-        """
-        for cur_document in documents_list:
-            if self.match_orphan_documents(document_a, cur_document):
+            if self.match_documents(document_a, cur_document, orphan):
                 return cur_document
         return None
 
@@ -342,10 +296,13 @@ class DocumentManager:
         :param message_id: Message_id.
         :return: Returns the document that includes all the fields.
         """
-        created_document = {'client': client_document, 'producer': producer_document, 'clientHash': client_hash,
-                            'producerHash': producer_hash,
-                            'messageId': message_id}
-        return created_document
+        return {
+            'client': client_document,
+            'producer': producer_document,
+            'clientHash': client_hash,
+            'producerHash': producer_hash,
+            'messageId': message_id
+        }
 
     def correct_structure(self, doc):
         """
