@@ -88,82 +88,47 @@ class DocumentManager:
         :param in_doc: The input document.
         :return: Returns the document with applied calculations.
         """
+
+        if None in [in_doc.get('client'), in_doc.get('producer')]:
+            return in_doc
+
+        producer_request_in = in_doc['producer'].get('requestInTs')
+        producer_response_out = in_doc['producer'].get('responseOutTs')
+        client_response_in = in_doc['client'].get('responseInTs')
+        client_request_out = in_doc['client'].get('requestOutTs')
+
         if self.calc['request-nw-duration']:
-            try:
-                in_doc['requestNwDuration'] = in_doc['producer']['requestInTs'] - in_doc['client']['requestOutTs']
-            except (TypeError, ValueError, KeyError):
-                in_doc['requestNwDuration'] = None
+            in_doc['requestNwDuration'] = self.subtract_or_none(producer_request_in, client_request_out)
 
         if self.calc['response-nw-duration']:
-            try:
-                in_doc['responseNwDuration'] = in_doc['client']['responseInTs'] - in_doc['producer']['responseOutTs']
-            except (TypeError, ValueError, KeyError):
-                in_doc['responseNwDuration'] = None
+            in_doc['responseNwDuration'] = self.subtract_or_none(client_response_in, producer_response_out)
 
         if self.calc['request-size']:
-            try:
-                # Calculate clientRequestSize
-                if in_doc['client'] is not None:
-                    if in_doc['client']['requestAttachmentCount'] == 0 \
-                            or in_doc['client']['requestAttachmentCount'] is None:
-                        in_doc['clientRequestSize'] = in_doc['client']['requestSoapSize']
-                    elif in_doc['client']['requestAttachmentCount'] > 0:
-                        in_doc['clientRequestSize'] = in_doc['client']['requestMimeSize']
-                    else:
-                        in_doc['clientRequestSize'] = None
-                else:
-                    in_doc['clientRequestSize'] = None
-            except (TypeError, ValueError, KeyError):
-                in_doc['clientRequestSize'] = None
-            try:
-                # Calculate producerRequestSize
-                if in_doc['producer'] is not None:
-                    if in_doc['producer']['requestAttachmentCount'] == 0 \
-                            or in_doc['producer']['requestAttachmentCount'] is None:
-                        in_doc['producerRequestSize'] = in_doc['producer']['requestSoapSize']
-                    elif in_doc['producer']['requestAttachmentCount'] > 0:
-                        in_doc['producerRequestSize'] = in_doc['producer']['requestMimeSize']
-                    else:
-                        in_doc['producerRequestSize'] = None
-                else:
-                    in_doc['producerRequestSize'] = None
-
-            except (TypeError, ValueError, KeyError):
-                in_doc['producerRequestSize'] = None
+            in_doc['clientRequestSize'] = self.calculate_transaction_size(in_doc['client'], 'request')
+            in_doc['producerRequestSize'] = self.calculate_transaction_size(in_doc['producer'], 'request')
 
         if self.calc['response-size']:
-            try:
-                # Calculate clientResponseSize
-                if in_doc['client'] is not None:
-                    if in_doc['client']['responseAttachmentCount'] == 0 \
-                            or in_doc['client']['responseAttachmentCount'] is None:
-                        in_doc['clientResponseSize'] = in_doc['client']['responseSoapSize']
-                    elif in_doc['client']['responseAttachmentCount'] > 0:
-                        in_doc['clientResponseSize'] = in_doc['client']['responseMimeSize']
-                    else:
-                        in_doc['clientResponseSize'] = None
-                else:
-                    in_doc['clientResponseSize'] = None
-            except (TypeError, ValueError, KeyError):
-                in_doc['clientResponseSize'] = None
-
-            try:
-                # Calculate producerResponseSize
-                if in_doc['producer'] is not None:
-                    if in_doc['producer']['responseAttachmentCount'] == 0 \
-                            or in_doc['producer']['responseAttachmentCount'] is None:
-                        in_doc['producerResponseSize'] = in_doc['producer']['responseSoapSize']
-                    elif in_doc['producer']['responseAttachmentCount'] > 0:
-                        in_doc['producerResponseSize'] = in_doc['producer']['responseMimeSize']
-                    else:
-                        in_doc['producerResponseSize'] = None
-                else:
-                    in_doc['producerResponseSize'] = None
-
-            except (TypeError, ValueError, KeyError):
-                in_doc['producerResponseSize'] = None
+            in_doc['clientResponseSize'] = self.calculate_transaction_size(in_doc['client'], 'response')
+            in_doc['producerResponseSize'] = self.calculate_transaction_size(in_doc['producer'], 'response')
 
         return in_doc
+
+    @staticmethod
+    def calculate_transaction_size(document_member: dict, transaction_type: str):
+        if transaction_type not in ['request', 'response']:
+            return None
+
+        size = None
+
+        try:
+            if document_member[f'{transaction_type}AttachmentCount'] in [0, None]:
+                size = document_member[f'{transaction_type}SoapSize']
+            elif document_member[f'{transaction_type}AttachmentCount'] > 0:
+                size = document_member[f'{transaction_type}MimeSize']
+        except (TypeError, ValueError, KeyError):
+            pass
+
+        return size
 
     @staticmethod
     def get_boundary_value(value):
