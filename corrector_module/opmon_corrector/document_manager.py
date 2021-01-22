@@ -37,7 +37,7 @@ class DocumentManager:
         :param in_doc: The input document.
         :return: Returns the document with applied calculations.
         """
-        client = in_doc.get('client', {})
+        client = in_doc.get('client') or {}
         request_in = client.get('requestInTs')
         request_out = client.get('requestOutTs')
         response_in = client.get('responseInTs')
@@ -63,7 +63,7 @@ class DocumentManager:
         :param in_doc: The input document.
         :return: Returns the document with applied calculations.
         """
-        producer = in_doc.get('producer', {})
+        producer = in_doc.get('producer') or {}
         request_in = producer.get('requestInTs')
         request_out = producer.get('requestOutTs')
         response_in = producer.get('responseInTs')
@@ -90,8 +90,8 @@ class DocumentManager:
         :return: Returns the document with applied calculations.
         """
 
-        client = in_doc.get('client', {})
-        producer = in_doc.get('producer', {})
+        client = in_doc.get('client') or {}
+        producer = in_doc.get('producer') or {}
 
         producer_request_in = producer.get('requestInTs')
         producer_response_out = producer.get('responseOutTs')

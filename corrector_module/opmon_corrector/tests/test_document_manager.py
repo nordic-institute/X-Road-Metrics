@@ -231,7 +231,10 @@ def test_pair_calculations(mock_logger_manager, basic_settings):
 
 def test_pair_calculations_without_client_and_producer(mock_logger_manager, basic_settings):
     dm = DocumentManager(basic_settings)
-    doc = {}
+    doc = {
+        'client': None,
+        'producer': None
+    }
     doc = dm._pair_calculations(doc)
 
     assert (doc['requestNwDuration'] is None)
