@@ -62,32 +62,24 @@ class DocumentManager:
         :param in_doc: The input document.
         :return: Returns the document with applied calculations.
         """
+
+        request_in = in_doc['producer'].get('requestInTs')
+        request_out = in_doc['producer'].get('requestOutTs')
+        response_in = in_doc['producer'].get('responseInTs')
+        response_out = in_doc['producer'].get('responseOutTs')
+
         if self.calc['producer-duration-producer-view']:
-            try:
-                in_doc['producerDurationProducerView'] = in_doc['producer']['responseOutTs'] - in_doc['producer'][
-                    'requestInTs']
-            except (TypeError, ValueError, KeyError):
-                in_doc['producerDurationProducerView'] = None
+            in_doc['producerDurationProducerView'] = self.subtract_or_none(response_out, request_in)
 
         if self.calc['producer-request-duration']:
-            try:
-                in_doc['producerSsRequestDuration'] = in_doc['producer']['requestOutTs'] - in_doc['producer'][
-                    'requestInTs']
-            except (TypeError, ValueError, KeyError):
-                in_doc['producerSsRequestDuration'] = None
+            in_doc['producerSsRequestDuration'] = self.subtract_or_none(request_out, request_in)
 
         if self.calc['producer-response-duration']:
-            try:
-                in_doc['producerSsResponseDuration'] = in_doc['producer']['responseOutTs'] - in_doc['producer'][
-                    'responseInTs']
-            except (TypeError, ValueError, KeyError):
-                in_doc['producerSsResponseDuration'] = None
+            in_doc['producerSsResponseDuration'] = self.subtract_or_none(response_out, response_in)
 
         if self.calc['producer-is-duration']:
-            try:
-                in_doc['producerIsDuration'] = in_doc['producer']['responseInTs'] - in_doc['producer']['requestOutTs']
-            except (TypeError, ValueError, KeyError):
-                in_doc['producerIsDuration'] = None
+            in_doc['producerIsDuration'] = self.subtract_or_none(response_in, request_out)
+
         return in_doc
 
     def _pair_calculations(self, in_doc):
