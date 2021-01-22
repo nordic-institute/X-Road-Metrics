@@ -73,6 +73,21 @@ def test_enable_all_client_calculations(mock_logger_manager, basic_settings):
     assert (doc['clientSsResponseDuration'] == 3)
 
 
+def test_client_calculations_without_client(mock_logger_manager, basic_settings):
+    dm = DocumentManager(basic_settings)
+    doc = deepcopy(test_doc)
+    doc.pop('client')
+
+    doc = dm._client_calculations(doc)
+
+    assert (doc['producer'] == test_doc['producer'])
+    assert (doc.get('client') is None)
+
+    assert (doc['totalDuration'] is None)
+    assert (doc['clientSsRequestDuration'] is None)
+    assert (doc['clientSsResponseDuration'] is None)
+
+
 def test_disable_client_calculations(mock_logger_manager, basic_settings):
     dm = DocumentManager(basic_settings)
 
@@ -128,6 +143,22 @@ def test_enable_all_producer_calculations(mock_logger_manager, basic_settings):
     assert (doc['producerSsRequestDuration'] == 2)
     assert (doc['producerSsResponseDuration'] == 2)
     assert (doc['producerIsDuration'] == 3)
+
+
+def test_producer_calculations_without_producer(mock_logger_manager, basic_settings):
+    dm = DocumentManager(basic_settings)
+    doc = deepcopy(test_doc)
+    doc.pop('producer')
+
+    doc = dm._producer_calculations(doc)
+
+    assert (doc['client'] == test_doc['client'])
+    assert (doc.get('producer') is None)
+
+    assert (doc['producerDurationProducerView'] is None)
+    assert (doc['producerSsRequestDuration'] is None)
+    assert (doc['producerSsResponseDuration'] is None)
+    assert (doc['producerIsDuration'] is None)
 
 
 def test_disable_producer_calculations(mock_logger_manager, basic_settings):
@@ -196,6 +227,19 @@ def test_pair_calculations(mock_logger_manager, basic_settings):
     assert (doc['producerRequestSize'] == 2345)
     assert (doc['clientResponseSize'] == 4321)
     assert (doc['producerResponseSize'] == 5432)
+
+
+def test_pair_calculations_without_client_and_producer(mock_logger_manager, basic_settings):
+    dm = DocumentManager(basic_settings)
+    doc = {}
+    doc = dm._pair_calculations(doc)
+
+    assert (doc['requestNwDuration'] is None)
+    assert (doc['responseNwDuration'] is None)
+    assert (doc['clientRequestSize'] is None)
+    assert (doc['producerRequestSize'] is None)
+    assert (doc['clientResponseSize'] is None)
+    assert (doc['producerResponseSize'] is None)
 
 
 def test_pair_calculations_with_attachments(mock_logger_manager, basic_settings):

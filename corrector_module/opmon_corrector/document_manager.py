@@ -37,10 +37,11 @@ class DocumentManager:
         :param in_doc: The input document.
         :return: Returns the document with applied calculations.
         """
-        request_in = in_doc['client'].get('requestInTs')
-        request_out = in_doc['client'].get('requestOutTs')
-        response_in = in_doc['client'].get('responseInTs')
-        response_out = in_doc['client'].get('responseOutTs')
+        client = in_doc.get('client', {})
+        request_in = client.get('requestInTs')
+        request_out = client.get('requestOutTs')
+        response_in = client.get('responseInTs')
+        response_out = client.get('responseOutTs')
 
         if self.calc['total-duration']:
             in_doc['totalDuration'] = self.subtract_or_none(response_out, request_in)
@@ -62,11 +63,11 @@ class DocumentManager:
         :param in_doc: The input document.
         :return: Returns the document with applied calculations.
         """
-
-        request_in = in_doc['producer'].get('requestInTs')
-        request_out = in_doc['producer'].get('requestOutTs')
-        response_in = in_doc['producer'].get('responseInTs')
-        response_out = in_doc['producer'].get('responseOutTs')
+        producer = in_doc.get('producer', {})
+        request_in = producer.get('requestInTs')
+        request_out = producer.get('requestOutTs')
+        response_in = producer.get('responseInTs')
+        response_out = producer.get('responseOutTs')
 
         if self.calc['producer-duration-producer-view']:
             in_doc['producerDurationProducerView'] = self.subtract_or_none(response_out, request_in)
@@ -89,13 +90,13 @@ class DocumentManager:
         :return: Returns the document with applied calculations.
         """
 
-        if None in [in_doc.get('client'), in_doc.get('producer')]:
-            return in_doc
+        client = in_doc.get('client', {})
+        producer = in_doc.get('producer', {})
 
-        producer_request_in = in_doc['producer'].get('requestInTs')
-        producer_response_out = in_doc['producer'].get('responseOutTs')
-        client_response_in = in_doc['client'].get('responseInTs')
-        client_request_out = in_doc['client'].get('requestOutTs')
+        producer_request_in = producer.get('requestInTs')
+        producer_response_out = producer.get('responseOutTs')
+        client_response_in = client.get('responseInTs')
+        client_request_out = client.get('requestOutTs')
 
         if self.calc['request-nw-duration']:
             in_doc['requestNwDuration'] = self.subtract_or_none(producer_request_in, client_request_out)
@@ -104,12 +105,12 @@ class DocumentManager:
             in_doc['responseNwDuration'] = self.subtract_or_none(client_response_in, producer_response_out)
 
         if self.calc['request-size']:
-            in_doc['clientRequestSize'] = self.calculate_transaction_size(in_doc['client'], 'request')
-            in_doc['producerRequestSize'] = self.calculate_transaction_size(in_doc['producer'], 'request')
+            in_doc['clientRequestSize'] = self.calculate_transaction_size(client, 'request')
+            in_doc['producerRequestSize'] = self.calculate_transaction_size(producer, 'request')
 
         if self.calc['response-size']:
-            in_doc['clientResponseSize'] = self.calculate_transaction_size(in_doc['client'], 'response')
-            in_doc['producerResponseSize'] = self.calculate_transaction_size(in_doc['producer'], 'response')
+            in_doc['clientResponseSize'] = self.calculate_transaction_size(client, 'response')
+            in_doc['producerResponseSize'] = self.calculate_transaction_size(producer, 'response')
 
         return in_doc
 
