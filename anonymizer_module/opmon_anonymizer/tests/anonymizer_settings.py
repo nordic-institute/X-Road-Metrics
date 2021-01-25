@@ -1,6 +1,10 @@
+import os
+
+TEST_DIR = os.path.abspath(os.path.dirname(__file__))
+
 anonymizer = {}
 
-anonymizer['field_translations_file'] = 'field_translations.list'
+anonymizer['field_translations_file'] = os.path.join('field_translations.list')
 anonymizer['transformers'] = []
 anonymizer['threads'] = 1
 
@@ -13,4 +17,4 @@ hiding_rules = []
 
 substitution_rules = []
 
-field_data_file = 'field_data.yaml'
+field_data_file = os.path.join('field_data.yaml')

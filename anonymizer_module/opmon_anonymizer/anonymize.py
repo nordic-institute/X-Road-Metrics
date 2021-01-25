@@ -1,15 +1,14 @@
-import anonymizer.anonymizer as anonymizer
-from anonymizer.anonymizer import Anonymizer
-from anonymizer.iio.mongodb_manager import MongoDB_Manager
-from anonymizer.iio.opendata_writer import OpenDataWriter
+from opmon_anonymizer.anonymizer import Anonymizer
+from opmon_anonymizer.iio.mongodb_manager import MongoDB_Manager
+from opmon_anonymizer.iio.opendata_writer import OpenDataWriter
 from datetime import datetime
-from anonymizer.anonymizer_config import AnonymizerConfig
+from opmon_anonymizer.anonymizer_config import AnonymizerConfig
 import os
 from sys import argv
 import traceback
 
-from anonymizer.utils import logger_manager
-import anonymizer.settings as settings
+from opmon_anonymizer.utils import logger_manager
+import opmon_anonymizer.settings as settings
 
 if len(argv) > 1:
     anonymization_limit = int(argv[1])

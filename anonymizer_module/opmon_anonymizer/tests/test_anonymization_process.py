@@ -4,8 +4,8 @@ import json
 import unittest
 from unittest.mock import Mock
 
-from ..anonymizer import Anonymizer
-from ..anonymizer_config import AnonymizerConfig
+from opmon_anonymizer.anonymizer import Anonymizer
+from opmon_anonymizer.anonymizer_config import AnonymizerConfig
 
 TEST_DIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -40,7 +40,7 @@ class TestAnonymizationProcess(unittest.TestCase):
 
         config = AnonymizerConfig(os.path.join(TEST_DIR, 'anonymizer_settings.py'))
 
-        anonymizer = Anonymizer(reader, writer, config)
+        anonymizer = Anonymizer(reader, writer, config, logger_manager=Mock())
 
         dual_records_anonymized = anonymizer.anonymize()
         anonymized_documents = writer.get_written_records()
@@ -60,7 +60,7 @@ class TestAnonymizationProcess(unittest.TestCase):
         config = AnonymizerConfig(os.path.join(TEST_DIR, 'anonymizer_settings.py'))
         config.anonymizer['transformers'] = ['default.reduce_request_in_ts_precision']
 
-        anonymizer = Anonymizer(reader, writer, config)
+        anonymizer = Anonymizer(reader, writer, config, logger_manager=Mock())
 
         dual_records_anonymized = anonymizer.anonymize()
         anonymized_documents = writer.get_written_records()
@@ -81,7 +81,7 @@ class TestAnonymizationProcess(unittest.TestCase):
         config = AnonymizerConfig(os.path.join(TEST_DIR, 'anonymizer_settings.py'))
         config.hiding_rules = [[{'feature': 'clientSubsystemCode', 'regex': '^.*-dev-app-kalkulaator$'}]]
 
-        anonymizer = Anonymizer(reader, writer, config)
+        anonymizer = Anonymizer(reader, writer, config, logger_manager=Mock())
 
         dual_records_anonymized = anonymizer.anonymize()
         anonymized_documents = writer.get_written_records()
@@ -111,7 +111,7 @@ class TestAnonymizationProcess(unittest.TestCase):
             }
         ]
 
-        anonymizer = Anonymizer(reader, writer, config)
+        anonymizer = Anonymizer(reader, writer, config, logger_manager=Mock())
 
         dual_records_anonymized = anonymizer.anonymize()
         anonymized_documents = writer.get_written_records()

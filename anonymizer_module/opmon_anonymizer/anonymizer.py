@@ -185,7 +185,7 @@ class Anonymizer(object):
                 return []
 
             try:
-                import anonymizer.transformers as transformers
+                import opmon_anonymizer.transformers as transformers
             except:
                 import opendata_module.anonymizer.transformers as transformers
 

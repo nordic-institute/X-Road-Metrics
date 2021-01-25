@@ -6,7 +6,7 @@ import os
 import signal
 from signal import SIGABRT, SIGILL, SIGINT, SIGSEGV, SIGTERM, SIGHUP
 import traceback
-from anonymizer.utils import logger_manager
+from opmon_anonymizer.utils import logger_manager
 import sys
 
 ROOT_DIR = os.path.abspath(os.path.dirname(__file__))

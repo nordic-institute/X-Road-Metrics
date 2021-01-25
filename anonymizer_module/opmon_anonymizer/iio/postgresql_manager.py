@@ -2,7 +2,7 @@ import psycopg2 as pg
 from datetime import datetime
 import logging
 import traceback
-from anonymizer.utils import logger_manager
+from opmon_anonymizer.utils import logger_manager
 
 
 class PostgreSQL_Manager(object):

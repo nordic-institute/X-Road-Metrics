@@ -1,7 +1,7 @@
 import logging
 import os
 import traceback
-from anonymizer.utils import logger_manager
+from opmon_anonymizer.utils import logger_manager
 
 
 class AnonymizerConfig(object):

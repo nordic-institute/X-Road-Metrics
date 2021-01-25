@@ -4,7 +4,7 @@ import re
 import unittest
 from unittest.mock import Mock, MagicMock
 
-from ..anonymizer import AnonymizationJob
+from opmon_anonymizer.anonymizer import AnonymizationJob
 
 ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
 
