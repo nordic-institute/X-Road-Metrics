@@ -5,7 +5,7 @@ import unittest
 from unittest.mock import MagicMock, Mock
 
 from opmon_anonymizer.anonymizer import Anonymizer
-from opmon_anonymizer.iio.mongodb_manager import PreviousRunManager
+from opmon_anonymizer.iio.mongodbmanager import PreviousRunManager
 
 ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
 

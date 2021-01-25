@@ -1,0 +1,73 @@
+# Default settings file for X-Road OpMon anonymizer-module.
+# Fill in your network configuration and anonymization rules.
+#
+# To run anonymizer for many different X-Road instances, you can create settings
+# profiles. For example to have profiles DEV, TEST and PROD copy this file to
+# settings_DEV.yaml, settings_TEST.yaml and settings_PROD.yaml.
+# Then fill the profile specific settings to each file and use the --profile
+# flag when running opmon-anonymizer. For example to run using the TEST profile:
+#    opmon-anonymizer --profile TEST
+
+xroad:
+  instance: <FILL>
+
+anonymizer:
+  field-translatios-file: /etc/opmon/anonymizer/field_translations.list
+  field-data-file: /etc/opmon/anonymizer/field_data.yaml
+  transformers:
+    - 'default.reduce_request_in_ts_precision'
+    - 'default.force_durations_to_integer_range'
+  threads: 1
+
+  # This example hides Estonian Internal Security Service and the Estonian Foreign Intelligence Service
+  hiding-rules:
+    - feature: 'clientMemberCode'
+      regex: '^(70005938|70000591)$'
+
+    - feature: 'serviceMemberCode'
+      regex: '^(70005938|70000591)$'
+
+    - feature: 'clientSubsystemCode'
+      regex: '^(#NA)$'
+
+    - feature: 'serviceSubsystemCode'
+      regex: '^(#NA)$'
+
+  substitution-rules:
+    conditions:
+      - feature: 'clientXRoadInstance'
+        regex: '^XYZ$'
+
+    substitutes:
+      - feature: 'clientMemberClass'
+        value: '#NA'
+
+mongodb:
+  host: localhost
+  user: <FILL>
+  password: <FILL>
+
+postgres:
+  host: localhost
+  port: 5432
+  user: <FILL>
+  password: <FILL>
+  database-name: <FILL>
+  table-name: logs
+  buffer-size: 10000
+  readonly-users:
+    - <FILL>
+    - <FILL>
+
+logger:
+  name: collector
+  module: collector
+
+  # Possible logging levels from least to most verbose are:
+  # CRITICAL, FATAL, ERROR, WARNING, INFO, DEBUG
+  level: INFO
+
+  # Logs and heartbeat files are stored under these paths.
+  # Also configure external log rotation and app monitoring accordingly.
+  log-path: /var/log/opmon/collector/logs
+  heartbeat-path: /var/log/opmon/collector/heartbeat

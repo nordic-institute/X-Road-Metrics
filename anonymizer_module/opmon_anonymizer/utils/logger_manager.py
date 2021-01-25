@@ -1,8 +1,11 @@
+""" Logger Manager
+"""
+
 import json
 import logging
 import os
 import time
-from logging.handlers import RotatingFileHandler
+from logging.handlers import WatchedFileHandler
 
 
 def get_timestamp():
@@ -14,26 +17,39 @@ def get_local_timestamp():
 
 
 class LoggerManager:
-    __version__ = 'v1.5'
+    __version__ = 'v1.6'
 
-    def __init__(self, logger_name, module_name, heartbeat_dir=None):
-        """
-        Creates a LoggerManager object that keeps the logger_name and module_name inside.
-        :param logger_name: Name of the logger.
-        :param module_name: Name of the module.
-        """
-        self.logger_name = logger_name
-        self.module_name = module_name
-        self.heartbeat_dir = heartbeat_dir
+    def __init__(self, logger_settings, xroad_instance):
+        self.name = logger_settings['name']
+        self.module = logger_settings['module']
+        self.level = logger_settings['level']
+
+        self.log_path = logger_settings['log-path']
+        self.log_filename = f'log_{self.name}_{xroad_instance}.json'
+
+        self.heartbeat_path = logger_settings['heartbeat-path']
+        self.heartbeat_filename = f'heartbeat_{self.name}_{xroad_instance}.json'
+
+        self._setup_logger()
+
+    def _setup_logger(self):
+        logger = logging.getLogger(self.name)
+        logger.setLevel(self.level)
+
+        formatter = logging.Formatter("%(message)s")
+        log_file = os.path.join(self.log_path, self.log_filename)
+        file_handler = WatchedFileHandler(log_file)
+        file_handler.setFormatter(formatter)
+        logger.addHandler(file_handler)
 
     def log_info(self, activity, msg):
-        logger = logging.getLogger(self.logger_name)
+        logger = logging.getLogger(self.name)
         # Build Message
         data = dict()
         data['level'] = 'INFO'
         data['timestamp'] = get_timestamp()
         data['local_timestamp'] = get_local_timestamp()
-        data['module'] = self.module_name
+        data['module'] = self.module
         data['activity'] = activity
         data['msg'] = msg
         data['version'] = self.__version__
@@ -41,13 +57,13 @@ class LoggerManager:
         logger.info(json.dumps(data))
 
     def log_warning(self, activity, msg):
-        logger = logging.getLogger(self.logger_name)
+        logger = logging.getLogger(self.name)
         # Build Message
         data = dict()
         data['level'] = 'WARNING'
         data['timestamp'] = get_timestamp()
         data['local_timestamp'] = get_local_timestamp()
-        data['module'] = self.module_name
+        data['module'] = self.module
         data['activity'] = activity
         data['msg'] = msg
         data['version'] = self.__version__
@@ -55,38 +71,30 @@ class LoggerManager:
         logger.warning(json.dumps(data))
 
     def log_error(self, activity, msg):
-        logger = logging.getLogger(self.logger_name)
+        logger = logging.getLogger(self.name)
         # Build Message
         data = dict()
         data['level'] = 'ERROR'
         data['timestamp'] = get_timestamp()
         data['local_timestamp'] = get_local_timestamp()
-        data['module'] = self.module_name
+        data['module'] = self.module
         data['activity'] = activity
         data['msg'] = msg
         data['version'] = self.__version__
         # Log to file
         logger.error(json.dumps(data))
 
-    def log_heartbeat(self, msg, heartbeat_name, status):
+    def log_heartbeat(self, msg, status):
         # Build Message
         data = dict()
+        data['status'] = status
         data['timestamp'] = get_timestamp()
         data['local_timestamp'] = get_local_timestamp()
-        data['module'] = self.module_name
+        data['module'] = self.module
         data['msg'] = msg
         data['version'] = self.__version__
-        data['status'] = status
         # Log to file
-        with open(os.path.join(self.heartbeat_dir, "{0}.json".format(heartbeat_name)), 'w') as out_file:
+        if not os.path.isdir(self.heartbeat_path):
+            os.makedirs(self.heartbeat_path)
+        with open(os.path.join(self.heartbeat_path, self.heartbeat_filename), 'w') as out_file:
             json.dump(data, out_file)
-
-
-def setup_logger(logger_name, log_level, log_path, max_file_size, backup_count):
-    logger = logging.getLogger(logger_name)
-    logger.setLevel(log_level)
-    formatter = logging.Formatter("%(message)s")
-    rotate_handler = RotatingFileHandler(log_path, maxBytes=max_file_size,
-                                         backupCount=backup_count)
-    rotate_handler.setFormatter(formatter)
-    logger.addHandler(rotate_handler)
