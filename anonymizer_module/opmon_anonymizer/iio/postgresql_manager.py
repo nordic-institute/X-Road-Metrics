@@ -1,23 +1,22 @@
 import psycopg2 as pg
 from datetime import datetime
-import logging
 import traceback
-from opmon_anonymizer.utils import logger_manager
 
 
-class PostgreSQL_Manager(object):
+class PostgreSqlManager(object):
 
-    def __init__(self, host_address='localhost', port_number='5432', database_name='opendata', table_name='logs', user=None, password=None,
-                 table_schema=None, readonly_users=None, threshold_ts=None):
-        self._table_name = table_name
-        self._readonly_users = readonly_users
-        self._connection_string = self._get_connection_string(host_address, port_number, database_name, user, password)
+    def __init__(self, postgres_settings, table_schema, logger):
+        self._settings = postgres_settings
+        self._table_name = postgres_settings['table-name']
+        self._readonly_users = postgres_settings['readonly-users']
+        self._connection_string = self._get_connection_string()
 
-        self._field_order = [field_name for field_name, field_type in table_schema]
-
+        self._field_order = [field_name for field_name, _ in table_schema]
         if table_schema:
             self._ensure_table(table_schema)
             self._ensure_privileges()
+
+        self._logger = logger
 
     def add_data(self, data):
         if data:
@@ -30,15 +29,14 @@ class PostgreSQL_Manager(object):
 
                 with pg.connect(self._connection_string) as connection:
                     cursor = connection.cursor()
-                    insertion_str = ','.join(cursor.mogrify("({0})".format(','.join(['%s'] * len(row))), row).decode('utf8') for row in data)
-                    cursor.execute('INSERT INTO {table_name} ({fields}) VALUES '.format(
-                        **{'table_name': self._table_name, 'fields': ','.join(self._field_order)}) + insertion_str)
+
+                    query_value_rows = [f"({','.join(str(row))})" for row in data]
+                    query_values = ','.join(query_value_rows)
+                    fields = ','.join(self._field_order)
+                    cursor.execute(f'INSERT INTO {self._table_name} ({fields}) VALUES ({query_values})')
             except Exception:
-                logger = logger_manager.LoggerManager(logger_name='opendata-anonymizer', module='opendata')
-                logger.log_error('log_insertion_failed',
-                                 "Failed to insert logs to postgres. ERROR: {0}".format(
-                                     traceback.format_exc().replace('\n', '')
-                                 ))
+                trace = traceback.format_exc().replace('\n', '')
+                self._logger.log_error('log_insertion_failed', f"Failed to insert logs to postgres. ERROR: {trace}")
                 raise
 
     def is_alive(self):
@@ -48,10 +46,10 @@ class PostgreSQL_Manager(object):
             return True
 
         except:
-            logger = logger_manager.LoggerManager(logger_name='opendata-anonymizer', module='opendata')
-            logger.log_error('postgres_connection_failed',
-                             "Failed to connect to postgres with connection string {0}. ERROR: {1}".format(
-                                 self._connection_string, traceback.format_exc().replace('\n', '')))
+            trace = traceback.format_exc().replace('\n', '')
+            error = f"Failed to connect to postgres with connection string {self._connection_string}. ERROR: {trace}"
+            self._logger.log_error('postgres_connection_failed', error)
+
             return False
 
     def _ensure_table(self, schema):
@@ -63,16 +61,14 @@ class PostgreSQL_Manager(object):
                     column_schema = ', ' + column_schema
 
                 try:
-                    cursor.execute("CREATE TABLE {table_name} (id SERIAL PRIMARY KEY{column_schema})".format(
-                        **{'table_name': self._table_name, 'column_schema': column_schema}))
+                    cursor.execute(f"CREATE TABLE {self._table_name} (id SERIAL PRIMARY KEY{column_schema})")
                 except:
-                    pass    # Table existed
+                    pass  # Table exists
         except Exception:
-            logger = logger_manager.LoggerManager(logger_name='opendata-anonymizer', module='opendata')
-            logger.log_error('failed_ensuring_postgres_table',
-                             "Failed to ensure postgres table {0} existence with connection {1}. ERROR: {2}".format(
-                                 self._table_name, self._connection_string, traceback.format_exc().replace('\n', '')
-                             ))
+            trace = traceback.format_exc().replace('\n', '')
+            error = f"Failed to ensure postgres table {self._table_name} " \
+                    + f"existence with connection {self._connection_string}. ERROR: {trace}"
+            self._logger.log_error('failed_ensuring_postgres_table', error)
             raise
 
     def _ensure_privileges(self):
@@ -90,27 +86,28 @@ class PostgreSQL_Manager(object):
                             'readonly_user': readonly_user
                         }))
                     except:
-                        pass    # Privileges existed
+                        pass  # Privileges existed
 
         except Exception:
-            logger = logger_manager.LoggerManager(logger_name='opendata-anonymizer', module='opendata')
-            logger.log_error('ensuring_readolny_users_permissions_failed',
-                             "Failed to ensure readonly users' permissions for postgres table {0} existence with connection {1}".format(
-                                 self._table_name, self._connection_string, traceback.format_exc().replace('\n', '')
-                             ))
+            trace = traceback.format_exc().replace('\n', '')
+            self._logger.log_error('ensuring_readolny_users_permissions_failed',
+                                   f"Failed to ensure readonly users' permissions for postgres table {self._table_name}"
+                                   + f" existence with connection {self._connection_string}. ERROR: {trace}")
             raise
 
-    def _get_connection_string(self, host, port, database_name, user, password):
-        string_parts = ["host={host} dbname={dbname}".format(
-            **{'host': host, 'dbname': database_name})]
+    def _get_connection_string(self):
+        args = []
+        args += f"host={self._settings['host']}"
+        args += f"dbname={self._settings['database-name']}"
+
+        port, user, password = map(self._settings.get, ['port', 'user', 'password'])
 
         if port:
-            string_parts.append("port=" + str(port))
+            args += f"port={port}"
 
         if user:
-            string_parts.append("user=" + user)
+            args += f"user={user}"
+            if password:
+                args += f"password={password}"
 
-        if password:
-            string_parts.append("password=" + password)
-
-        return ' '.join(string_parts)
+        return ' '.join(args)

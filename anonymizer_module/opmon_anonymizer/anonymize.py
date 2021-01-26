@@ -37,8 +37,8 @@ except Exception:
 
 
 try:
-    writer = OpenDataWriter(settings)
-    is_postgres_alive = writer._db_manager.is_alive()
+    writer = OpenDataWriter(settings, logger_manager)
+    is_postgres_alive = writer.db_manager.is_alive()
 except Exception:
     logger.log_heartbeat('Failed to initialize PostgreSQL connection.', 'FAILED')
 

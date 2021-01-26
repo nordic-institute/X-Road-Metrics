@@ -5,13 +5,14 @@ appdir = '/srv/app'
 x_road_instance = 'sample'
 
 # Anonymizer
-anonymizer = {}
+#anonymizer = {}
 
-anonymizer['field_translations_file'] = 'field_translations.list'
-anonymizer['transformers'] = ['default.reduce_request_in_ts_precision', 'default.force_durations_to_integer_range']
-anonymizer['threads'] = 1
+#anonymizer['field_translations_file'] = 'field_translations.list'
+#anonymizer['transformers'] = ['default.reduce_request_in_ts_precision', 'default.force_durations_to_integer_range']
+#anonymizer['threads'] = 1
 
 # MongoDB (anonymizer input) connection parameters
+"""
 mongo_db = {}
 
 mongo_db['host_address'] = '#NA'
@@ -26,8 +27,10 @@ mongo_db['state'] = {
     'database_name': 'anonymizer_state_' + x_road_instance,
     'table_name': 'state'
 }
+"""
 
 # PostgreSQL connection parameters
+"""
 postgres = {}
 
 postgres['buffer_size'] = 10000
@@ -41,6 +44,7 @@ postgres['readonly_users'] = [
     'networking_' + x_road_instance.lower().replace('-', '_')
 ]
 postgres['password'] = '#NA'
+"""
 
 # Hiding rules for removing selected entries altogether
 # According to Security Authorities Act [1] §5 the security authorities are the Estonian Internal Security Service and the Estonian Foreign Intelligence Service. Their authorizations are described in chapter 4 (§21 - 35) of the above mentioned act. Based on aspects stated in the State Secrets and Classified Information of Foreign States Act [2] §11 section 3, §7 p 10 and § 8 p 1 and in the Public Information Act [3] §35 section 1 p 1, 31, 51 the X-Road usage statistics of security authorities is considered to be for internal use only. X-Road data that is being published as open data by RIA does not contain information about the security authorities.
@@ -48,6 +52,7 @@ postgres['password'] = '#NA'
 # [2] Foreign States Act https://www.riigiteataja.ee/en/eli/ee/519062017007/consolide/current
 # [3] Public Information Act https://www.riigiteataja.ee/en/eli/ee/518012016001/consolide/current
 
+"""
 hiding_rules = [
     [{'feature': 'clientMemberCode', 'regex': '^(70005938|70000591)$'}],
     [{'feature': 'serviceMemberCode', 'regex': '^(70005938|70000591)$'}],
@@ -67,8 +72,9 @@ substitution_rules = [
         ]
     },
 ]
+"""
 
-field_data_file = 'field_data.yaml'
+#field_data_file = 'field_data.yaml'
 
 # Logging and heartbeat parameters
 log = {}
