@@ -1,37 +1,41 @@
 import pkgutil
 import importlib
 import os
-from collections import defaultdict
 import re
 import yaml
 import traceback
+
+from .transformers import get_enabled_transformers
 
 ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
 class Anonymizer(object):
 
-    def __init__(self, reader, writer, config, anonymization_job=None, logger_manager=None):
+    def __init__(
+            self,
+            reader,
+            writer,
+            settings,
+            logger_manager,
+            anonymization_job=None,
+    ):
         self._logger = logger_manager
 
-        self._config = config
+        self._settings = settings
         self._reader = reader
 
-        field_translations_file_path = (config.anonymizer['field_translations_file']
-                                        if config.anonymizer['field_translations_file'].startswith('/')
-                                        else os.path.join(ROOT_DIR, 'cfg_lists', config.anonymizer['field_translations_file']))
+        field_translations_path = self._validate_path(settings['anonymizer']['field-translations-file'])
+        field_data_path = self._validate_path(settings['anonymizer']['field-data-file'])
 
-        field_data_file_path = (config.field_data_file if config.field_data_file.startswith('/')
-                                else os.path.join(ROOT_DIR, 'cfg_lists', config.field_data_file))
-
-        self._allowed_fields = self._get_allowed_fields(field_translations_file_path)
+        self._allowed_fields = self._get_allowed_fields(field_data_path, logger_manager)
 
         hiding_rules = self._get_hiding_rules()
         substitution_rules = self._get_substitution_rules()
         transformers = self._get_transformers()
 
-        field_translations = self._get_field_translations(field_translations_file_path)
-        field_value_masks = self._get_field_value_masks(field_data_file_path)
+        field_translations = self._get_field_translations(field_translations_path)
+        field_value_masks = self._get_field_value_masks(field_data_path)
 
         self._anonymization_job = (
             AnonymizationJob(writer, hiding_rules, substitution_rules, transformers,
@@ -39,60 +43,24 @@ class Anonymizer(object):
             if not anonymization_job else anonymization_job
         )
 
-    def anonymize(self):
-        writer_buffer_size = int(self._config.postgres['buffer_size'])
+    @staticmethod
+    def _validate_path(path):
+        if not path.startswith('/'):
+            path = os.path.join(ROOT_DIR, 'cfg_lists', path)
+        return path
+
+    def anonymize(self, log_limit=None):
+        writer_buffer_size = int(self._settings['postgres']['buffer-size'])
         record_buffer = []
 
         batch_start_mongodb_timestamp = None
-        batch_end_mongodb_timestamp = None
         last_successful_batch_timestamp = self._reader.last_processed_timestamp
 
-        for record_idx, record in enumerate(self._reader.get_records(self._allowed_fields)):
-            if batch_start_mongodb_timestamp is None:
-                batch_start_mongodb_timestamp = self._reader.last_processed_timestamp
-
-            record_buffer.append(record)
-
-            if len(record_buffer) >= writer_buffer_size:
-                batch_end_mongodb_timestamp = self._reader.last_processed_timestamp
-                try:
-                    self._anonymization_job.run(record_buffer)
-                except:
-                    self._logger.log_error('failed_anonymizing_record_batch',
-                                           "Record batch with correctorTime within range [{0}, {1}] failed. " +
-                                           "Last successful correctorTime was {2}".format(
-                                               batch_start_mongodb_timestamp,
-                                               batch_end_mongodb_timestamp,
-                                               last_successful_batch_timestamp))
-                    self._reader.update_last_processed_timestamp(last_successful_batch_timestamp)
-                    return record_idx + 1
-
-                record_buffer = []
-                self._logger.log_info('record_batch_anonymized',
-                                      "{0} records anonymized. correctorTime within range [{1}, {2}]".format(
-                                          record_idx + 1, batch_start_mongodb_timestamp, batch_end_mongodb_timestamp))
-
-                batch_start_mongodb_timestamp = None
-                last_successful_batch_timestamp = batch_end_mongodb_timestamp
-
-        if record_buffer:
-            self._anonymization_job.run(record_buffer)
-
-        try:
-            return record_idx + 1
-        except:
-            return 0    # Got no records from MongoDB
-
-    def anonymize_with_limit(self, log_limit):
-        writer_buffer_size = int(self._config.postgres['buffer_size'])
-        record_buffer = []
-
-        batch_start_mongodb_timestamp = None
-        batch_end_mongodb_timestamp = None
-        last_successful_batch_timestamp = self._reader.last_processed_timestamp
+        record_idx = 0
 
         for record_idx, record in enumerate(self._reader.get_records(self._allowed_fields)):
-            if record_idx >= log_limit:
+
+            if log_limit is not None and record_idx >= log_limit:
                 break
 
             if batch_start_mongodb_timestamp is None:
@@ -125,30 +93,27 @@ class Anonymizer(object):
         if record_buffer:
             self._anonymization_job.run(record_buffer)
 
-        try:
-            return record_idx
-        except:
-            return 0    # Got no records from MongoDB
+        return record_idx + 1
 
-    def _get_allowed_fields(self, field_translations_file_path):
+    @staticmethod
+    def _get_allowed_fields(field_translations_file_path, logger):
         try:
             with open(field_translations_file_path) as field_translations_file:
                 allowed_fields = [line.strip().split(' -> ')[0] for line in field_translations_file if line.strip()]
 
             return allowed_fields
         except Exception:
-            self._logger.log_error('allowed_fields_parsing_failed',
-                                   "Failed to parse allowed fields from field translations file at {0}. ERROR: {1}".format(
-                                       os.path.abspath(field_translations_file_path),
-                                       traceback.format_exc().replace('\n', '')
-                                   ))
+            trace = traceback.format_exc().replace('\n', '')
+            path = os.path.abspath(field_translations_file_path)
+            logger.log_error('allowed_fields_parsing_failed',
+                             f"Failed to parse allowed fields from field translations file at {path}. ERROR: {trace}")
             raise
 
     def _get_hiding_rules(self):
         try:
             rules = []
 
-            for rule in self._config.hiding_rules:
+            for rule in self._settings['hiding-rules']:
                 field_pattern_pairs = [(constraint['feature'], re.compile(constraint['regex'])) for constraint in rule]
                 rules.append(field_pattern_pairs)
 
@@ -164,11 +129,13 @@ class Anonymizer(object):
         try:
             rules = []
 
-            for rule in self._config.substitution_rules:
-                processed_rule = {}
-                processed_rule['conditions'] = [(constraint['feature'], re.compile(constraint['regex'])) for constraint in rule['conditions']]
-                processed_rule['substitutes'] = rule['substitutes']
-
+            for rule in self._settings['substitution_rules']:
+                processed_rule = {
+                    'conditions': [
+                        (constraint['feature'], re.compile(constraint['regex'])) for constraint in rule['conditions']
+                    ],
+                    'substitutes': rule['substitutes']
+                }
                 rules.append(processed_rule)
 
             return rules
@@ -180,29 +147,9 @@ class Anonymizer(object):
             raise
 
     def _get_transformers(self):
+        """Autobots, transform and roll out!"""
         try:
-            if not self._config.anonymizer['transformers']:
-                return []
-
-            try:
-                import opmon_anonymizer.transformers as transformers
-            except:
-                import opendata_module.anonymizer.transformers as transformers
-
-            transformer_functions = self._config.anonymizer['transformers']
-            transformer_dict = defaultdict(list)
-
-            for transformer_function in transformer_functions:
-                function_module, function_name = transformer_function.split('.')
-                transformer_dict[function_module].append(function_name)
-
-            transformer_modules = self._get_modules(transformers, [module for module in transformer_dict])
-
-            transformers = [getattr(transformer_modules[transformer_module_name], transformer_function_name)
-                            for transformer_module_name in transformer_dict
-                            for transformer_function_name in transformer_dict[transformer_module_name]]
-
-            return transformers
+            return get_enabled_transformers(self._settings['anonymizer']['transformers'])
         except Exception:
             self._logger.log_error('transformers_parsing_failed',
                                    "Failed to parse config attribute `anonymizer.transformers`.".format(
@@ -210,7 +157,8 @@ class Anonymizer(object):
                                    ))
             raise
 
-    def _get_modules(self, package, modules):
+    @staticmethod
+    def _get_modules(package, modules):
         package_name = package.__name__
 
         package_prefix = package_name + '.'
@@ -270,8 +218,16 @@ class Anonymizer(object):
 
 class AnonymizationJob(object):
 
-    def __init__(self, writer, hiding_rules, substitution_rules, transformers, field_translations, field_value_masks,
-                 logger_manager):
+    def __init__(
+            self,
+            writer,
+            hiding_rules,
+            substitution_rules,
+            transformers,
+            field_translations,
+            field_value_masks,
+            logger_manager
+    ):
         self._writer = writer
         self._hiding_rules = hiding_rules
         self._substitution_rules = substitution_rules
@@ -322,7 +278,8 @@ class AnonymizationJob(object):
                              ))
             raise
 
-    def _record_matches_conditions(self, record, conditions):
+    @staticmethod
+    def _record_matches_conditions(record, conditions):
         for field, pattern in conditions:
             if field not in record:
                 break

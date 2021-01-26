@@ -21,26 +21,30 @@ anonymizer:
 
   # This example hides Estonian Internal Security Service and the Estonian Foreign Intelligence Service
   hiding-rules:
-    - feature: 'clientMemberCode'
-      regex: '^(70005938|70000591)$'
+    -
+      - feature: 'clientMemberCode'
+        regex: '^(70005938|70000591)$'
 
-    - feature: 'serviceMemberCode'
-      regex: '^(70005938|70000591)$'
+    -
+      - feature: 'serviceMemberCode'
+        regex: '^(70005938|70000591)$'
 
-    - feature: 'clientSubsystemCode'
-      regex: '^(#NA)$'
+    -
+      - feature: 'clientSubsystemCode'
+        regex: '^(#NA)$'
 
-    - feature: 'serviceSubsystemCode'
-      regex: '^(#NA)$'
+    -
+      - feature: 'serviceSubsystemCode'
+        regex: '^(#NA)$'
 
   substitution-rules:
-    conditions:
-      - feature: 'clientXRoadInstance'
-        regex: '^XYZ$'
+    - conditions:
+        - feature: 'clientXRoadInstance'
+          regex: '^XYZ$'
 
-    substitutes:
-      - feature: 'clientMemberClass'
-        value: '#NA'
+      substitutes:
+        - feature: 'clientMemberClass'
+          value: '#NA'
 
 mongodb:
   host: localhost

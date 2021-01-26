@@ -18,7 +18,6 @@ class TestAnonymizationProcess(unittest.TestCase):
 
     def test_anonymizing_without_documents(self):
         MockAnonymizer.anonymize = Anonymizer.anonymize
-        MockAnonymizer.anonymize_with_limit = Anonymizer.anonymize_with_limit
 
         anonymizer = MockAnonymizer()
 
@@ -32,7 +31,7 @@ class TestAnonymizationProcess(unittest.TestCase):
         anonymizer._allowed_fields = None
 
         self.assertEqual(anonymizer.anonymize(), 0)
-        self.assertEqual(anonymizer.anonymize_with_limit(1), 0)
+        self.assertEqual(anonymizer.anonymize(log_limit=1), 0)
 
     def test_anonymizing_without_constraints(self):
         reader = MockStandardReader()

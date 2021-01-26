@@ -14,7 +14,7 @@ settings = OpmonSettingsManager().settings
 if len(argv) > 1:
     anonymization_limit = int(argv[1])
 else:
-    anonymization_limit = 0
+    anonymization_limit = None
 
 ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -50,11 +50,9 @@ except Exception:
 try:
     logger.log_info('anonymization_process_started', 'Started anonymizing logs.')
     logger.log_heartbeat('Started anonymizing logs.', 'SUCCEEDED')
-    anonymizer_instance = Anonymizer(reader, writer, settings, logger_manager=logger)
-    if anonymization_limit:
-        records = anonymizer_instance.anonymize_with_limit(anonymization_limit)
-    else:
-        records = anonymizer_instance.anonymize()
+    anonymizer_instance = Anonymizer(reader, writer, settings, logger)
+    records = anonymizer_instance.anonymize(anonymization_limit)
+
 except Exception:
     trace = traceback.format_exc().replace('\n', '')
     logger.log_error('anonymization_process_failed', f'Failed to anonymize. ERROR: {trace}')
