@@ -1,7 +1,7 @@
 import os
 import yaml
 
-from .postgresql_manager import PostgreSQL_Manager
+from .postgresql_manager import PostgreSqlManager
 
 ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -17,7 +17,7 @@ class OpenDataWriter(object):
 
         schema = self._get_schema(field_data_path)
 
-        self.db_manager = PostgreSQL_Manager(settings['postgres'], schema, logger)
+        self.db_manager = PostgreSqlManager(settings['postgres'], schema, logger)
 
     def write_records(self, records):
         self.db_manager.add_data(records)
