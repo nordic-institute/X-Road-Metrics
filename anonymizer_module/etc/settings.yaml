@@ -15,8 +15,8 @@ anonymizer:
   field-translatios-file: /etc/opmon/anonymizer/field_translations.list
   field-data-file: /etc/opmon/anonymizer/field_data.yaml
   transformers:
-    - 'default.reduce_request_in_ts_precision'
-    - 'default.force_durations_to_integer_range'
+    reduce-request-in-ts-precision: true
+    force-durations-to-integer-range: true
   threads: 1
 
   # This example hides Estonian Internal Security Service and the Estonian Foreign Intelligence Service

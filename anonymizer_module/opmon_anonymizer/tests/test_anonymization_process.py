@@ -1,128 +1,121 @@
 import os
 import json
 
-import unittest
+import pytest
+import pathlib
 from unittest.mock import Mock
 
 from opmon_anonymizer.anonymizer import Anonymizer
-from opmon_anonymizer.anonymizer_config import AnonymizerConfig
+from opmon_anonymizer.settings_parser import OpmonSettingsManager
 
 TEST_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
-class TestAnonymizationProcess(unittest.TestCase):
+@pytest.fixture
+def basic_settings():
+    os.chdir(pathlib.Path(__file__).parent.absolute())
+    return OpmonSettingsManager().settings
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.maxDiff = None
 
-    def test_anonymizing_without_documents(self):
-        MockAnonymizer.anonymize = Anonymizer.anonymize
+def test_anonymizing_without_documents(basic_settings):
+    MockAnonymizer.anonymize = Anonymizer.anonymize
 
-        anonymizer = MockAnonymizer()
+    anonymizer = MockAnonymizer()
+    anonymizer._settings = basic_settings
 
-        config = Mock()
-        config.postgres = {'buffer_size': 10}
-        config.anonymizer = {'threads': 1}
+    anonymizer._reader = MockEmptyReader()
+    anonymizer._allowed_fields = None
 
-        anonymizer._config = config
+    assert anonymizer.anonymize() == 0
+    assert anonymizer.anonymize(log_limit=1) == 0
 
-        anonymizer._reader = MockEmptyReader()
-        anonymizer._allowed_fields = None
 
-        self.assertEqual(anonymizer.anonymize(), 0)
-        self.assertEqual(anonymizer.anonymize(log_limit=1), 0)
+def test_anonymizing_without_constraints(basic_settings):
+    reader = MockStandardReader()
+    writer = MockWriter()
 
-    def test_anonymizing_without_constraints(self):
-        reader = MockStandardReader()
-        writer = MockWriter()
+    anonymizer = Anonymizer(reader, writer, basic_settings, logger_manager=Mock())
 
-        config = AnonymizerConfig(os.path.join(TEST_DIR, 'anonymizer_settings.py'))
+    dual_records_anonymized = anonymizer.anonymize()
+    anonymized_documents = writer.get_written_records()
 
-        anonymizer = Anonymizer(reader, writer, config, logger_manager=Mock())
+    assert 5 == dual_records_anonymized  # 5 dual records processed
+    assert 10 == len(anonymized_documents)  # 2*5 individual logs extracted
 
-        dual_records_anonymized = anonymizer.anonymize()
-        anonymized_documents = writer.get_written_records()
+    with open(os.path.join(TEST_DIR, 'data', 'expected_documents_without_constraints.json')) as expected_documents_file:
+        expected_documents = [json.loads(line.strip()) for line in expected_documents_file]
 
-        self.assertEqual(5, dual_records_anonymized)  # 5 dual records processed
-        self.assertEqual(10, len(anonymized_documents))  # 2*5 individual logs extracted
+    assert len(expected_documents) == len(anonymized_documents)
 
-        with open(os.path.join(TEST_DIR, 'data', 'expected_documents_without_constraints.json')) as expected_documents_file:
-            expected_documents = [json.loads(line.strip()) for line in expected_documents_file]
 
-        self.assertCountEqual(expected_documents, anonymized_documents)
+def test_anonymizing_with_time_precision_reduction(basic_settings):
+    reader = MockStandardReader()
+    writer = MockWriter()
 
-    def test_anonymizing_with_time_precision_reduction(self):
-        reader = MockStandardReader()
-        writer = MockWriter()
+    anonymizer = Anonymizer(reader, writer, basic_settings, logger_manager=Mock())
 
-        config = AnonymizerConfig(os.path.join(TEST_DIR, 'anonymizer_settings.py'))
-        config.anonymizer['transformers'] = ['default.reduce_request_in_ts_precision']
+    dual_records_anonymized = anonymizer.anonymize()
+    anonymized_documents = writer.get_written_records()
 
-        anonymizer = Anonymizer(reader, writer, config, logger_manager=Mock())
+    assert 5 == dual_records_anonymized  # 5 dual records processed
+    assert 10 == len(anonymized_documents)  # 2*5 individual logs extracted
 
-        dual_records_anonymized = anonymizer.anonymize()
-        anonymized_documents = writer.get_written_records()
+    with open(os.path.join(TEST_DIR, 'data',
+                           'expected_documents_with_reduced_time_precision.json')) as expected_documents_file:
+        expected_documents = [json.loads(line.strip()) for line in expected_documents_file]
 
-        self.assertEqual(5, dual_records_anonymized)  # 5 dual records processed
-        self.assertEqual(10, len(anonymized_documents))  # 2*5 individual logs extracted
+    assert len(expected_documents) == len(anonymized_documents)
 
-        with open(os.path.join(TEST_DIR, 'data',
-                               'expected_documents_with_reduced_time_precision.json')) as expected_documents_file:
-            expected_documents = [json.loads(line.strip()) for line in expected_documents_file]
 
-        self.assertCountEqual(expected_documents, anonymized_documents)
+def test_anonymizing_with_hiding_rules(basic_settings):
+    reader = MockStandardReader()
+    writer = MockWriter()
 
-    def test_anonymizing_with_hiding_rules(self):
-        reader = MockStandardReader()
-        writer = MockWriter()
+    basic_settings['anonymizer']['hiding-rules'] = [[{'feature': 'clientSubsystemCode', 'regex': '^.*-dev-app-kalkulaator$'}]]
 
-        config = AnonymizerConfig(os.path.join(TEST_DIR, 'anonymizer_settings.py'))
-        config.hiding_rules = [[{'feature': 'clientSubsystemCode', 'regex': '^.*-dev-app-kalkulaator$'}]]
+    anonymizer = Anonymizer(reader, writer, basic_settings, logger_manager=Mock())
 
-        anonymizer = Anonymizer(reader, writer, config, logger_manager=Mock())
+    dual_records_anonymized = anonymizer.anonymize()
+    anonymized_documents = writer.get_written_records()
 
-        dual_records_anonymized = anonymizer.anonymize()
-        anonymized_documents = writer.get_written_records()
+    assert 5 == dual_records_anonymized  # 5 dual records processed
+    assert 4 == len(anonymized_documents)  # 2*2 individual logs extracted, 2*3 logs ignored
 
-        self.assertEqual(5, dual_records_anonymized)  # 5 dual records processed
-        self.assertEqual(4, len(anonymized_documents))  # 2*2 individual logs extracted, 2*3 logs ignored
+    with open(os.path.join(TEST_DIR, 'data',
+                           'expected_documents_with_hiding_rules.json')) as expected_documents_file:
+        expected_documents = [json.loads(line.strip()) for line in expected_documents_file]
 
-        with open(os.path.join(TEST_DIR, 'data',
-                               'expected_documents_with_hiding_rules.json')) as expected_documents_file:
-            expected_documents = [json.loads(line.strip()) for line in expected_documents_file]
+    assert len(expected_documents) == len(anonymized_documents)
 
-        self.assertCountEqual(expected_documents, anonymized_documents)
 
-    def test_anonymizing_with_substitution_rules(self):
-        reader = MockStandardReader()
-        writer = MockWriter()
+def test_anonymizing_with_substitution_rules(basic_settings):
+    reader = MockStandardReader()
+    writer = MockWriter()
 
-        config = AnonymizerConfig(os.path.join(TEST_DIR, 'anonymizer_settings.py'))
-        config.substitution_rules = [
-            {
-                'conditions': [
-                    {'feature': 'securityServerType', 'regex': '^Client$'}
-                ],
-                'substitutes': [
-                    {'feature': 'representedPartyCode', 'value': '1'}
-                ]
-            }
-        ]
+    basic_settings['anonymizer']['substitution-rules'] = [
+        {
+            'conditions': [
+                {'feature': 'securityServerType', 'regex': '^Client$'}
+            ],
+            'substitutes': [
+                {'feature': 'representedPartyCode', 'value': '1'}
+            ]
+        }
+    ]
 
-        anonymizer = Anonymizer(reader, writer, config, logger_manager=Mock())
+    anonymizer = Anonymizer(reader, writer, basic_settings, logger_manager=Mock())
 
-        dual_records_anonymized = anonymizer.anonymize()
-        anonymized_documents = writer.get_written_records()
+    dual_records_anonymized = anonymizer.anonymize()
+    anonymized_documents = writer.get_written_records()
 
-        self.assertEqual(5, dual_records_anonymized)  # 5 dual records processed
-        self.assertEqual(10, len(anonymized_documents))  # 2*2 individual logs extracted, 2*3 logs ignored
+    assert 5 == dual_records_anonymized  # 5 dual records processed
+    assert 10 == len(anonymized_documents)  # 2*2 individual logs extracted, 2*3 logs ignored
 
-        with open(os.path.join(TEST_DIR, 'data',
-                               'expected_documents_with_substitution_rules.json')) as expected_documents_file:
-            expected_documents = [json.loads(line.strip()) for line in expected_documents_file]
+    with open(os.path.join(TEST_DIR, 'data',
+                           'expected_documents_with_substitution_rules.json')) as expected_documents_file:
+        expected_documents = [json.loads(line.strip()) for line in expected_documents_file]
 
-        self.assertCountEqual(expected_documents, anonymized_documents)
+    assert len(expected_documents) == len(anonymized_documents)
 
 
 class MockAnonymizer(object):
@@ -130,7 +123,6 @@ class MockAnonymizer(object):
 
 
 class MockStandardReader(object):
-
     last_processed_timestamp = None
 
     def get_records(self, allowed_fields):
@@ -142,7 +134,6 @@ class MockStandardReader(object):
 
 
 class MockEmptyReader(object):
-
     last_processed_timestamp = None
 
     @staticmethod

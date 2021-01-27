@@ -1,0 +1,14 @@
+xroad:
+  instance: UNITTEST
+
+mongodb:
+  host: mongodb
+  user: testuser
+  password: testpass
+
+logger:
+  name: testlog
+  module: collector
+  level: DEBUG
+  log-path: /var/log/opmon/collector/logs
+  heartbeat-path: /var/log/opmon/collector/logs

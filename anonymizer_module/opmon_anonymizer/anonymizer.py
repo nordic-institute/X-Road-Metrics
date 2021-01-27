@@ -56,11 +56,11 @@ class Anonymizer(object):
         batch_start_mongodb_timestamp = None
         last_successful_batch_timestamp = self._reader.last_processed_timestamp
 
-        record_idx = 0
+        processed_count = 0
 
-        for record_idx, record in enumerate(self._reader.get_records(self._allowed_fields)):
+        for record in self._reader.get_records(self._allowed_fields):
 
-            if log_limit is not None and record_idx >= log_limit:
+            if log_limit is not None and processed_count >= log_limit:
                 break
 
             if batch_start_mongodb_timestamp is None:
@@ -80,20 +80,24 @@ class Anonymizer(object):
                                                batch_end_mongodb_timestamp,
                                                last_successful_batch_timestamp))
                     self._reader.update_last_processed_timestamp(last_successful_batch_timestamp)
-                    return record_idx + 1
+                    return processed_count
 
+                processed_count += len(record_buffer)
                 record_buffer = []
-                self._logger.log_info('record_batch_anonymized',
-                                      "{0} records anonymized. correctorTime within range [{1}, {2}]".format(
-                                          record_idx + 1, batch_start_mongodb_timestamp, batch_end_mongodb_timestamp))
+                self._logger.log_info(
+                    'record_batch_anonymized',
+                    f"{processed_count} records anonymized."
+                    + f"correctorTime within range [{batch_start_mongodb_timestamp}, {batch_end_mongodb_timestamp}]"
+                )
 
                 batch_start_mongodb_timestamp = None
                 last_successful_batch_timestamp = batch_end_mongodb_timestamp
 
         if record_buffer:
             self._anonymization_job.run(record_buffer)
+            processed_count += len(record_buffer)
 
-        return record_idx + 1
+        return processed_count
 
     @staticmethod
     def _get_allowed_fields(field_translations_file_path, logger):
@@ -113,7 +117,7 @@ class Anonymizer(object):
         try:
             rules = []
 
-            for rule in self._settings['hiding-rules']:
+            for rule in self._settings['anonymizer']['hiding-rules']:
                 field_pattern_pairs = [(constraint['feature'], re.compile(constraint['regex'])) for constraint in rule]
                 rules.append(field_pattern_pairs)
 
@@ -129,7 +133,7 @@ class Anonymizer(object):
         try:
             rules = []
 
-            for rule in self._settings['substitution_rules']:
+            for rule in self._settings['anonymizer']['substitution-rules']:
                 processed_rule = {
                     'conditions': [
                         (constraint['feature'], re.compile(constraint['regex'])) for constraint in rule['conditions']
