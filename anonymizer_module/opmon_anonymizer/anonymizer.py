@@ -1,5 +1,3 @@
-import pkgutil
-import importlib
 import os
 import re
 import yaml
@@ -160,22 +158,6 @@ class Anonymizer(object):
                                        traceback.format_exc().replace('\n', '')
                                    ))
             raise
-
-    @staticmethod
-    def _get_modules(package, modules):
-        package_name = package.__name__
-
-        package_prefix = package_name + '.'
-
-        desired_modules = set([package_prefix + module_name for module_name in modules])
-        modules = {}
-
-        for importer, module_name, is_package in pkgutil.iter_modules(package.__path__, package_prefix):
-            if module_name in desired_modules:
-                module = importlib.import_module(module_name, package_name)
-                modules[module_name.rsplit('.', 1)[1]] = module
-
-        return modules
 
     def _get_field_translations(self, field_translations_file_path):
         try:
