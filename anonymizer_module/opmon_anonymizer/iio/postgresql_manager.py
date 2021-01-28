@@ -6,6 +6,7 @@ import traceback
 class PostgreSqlManager(object):
 
     def __init__(self, postgres_settings, table_schema, logger):
+        self._logger = logger
         self._settings = postgres_settings
         self._table_name = postgres_settings['table-name']
         self._readonly_users = postgres_settings['readonly-users']
@@ -16,28 +17,37 @@ class PostgreSqlManager(object):
             self._ensure_table(table_schema)
             self._ensure_privileges()
 
-        self._logger = logger
-
     def add_data(self, data):
-        if data:
-            try:
-                # Inject requestInDate for fast daily queries
-                for datum in data:
-                    datum['requestInDate'] = datetime.fromtimestamp(datum['requestInTs'] / 1000).strftime('%Y-%m-%d')
+        if not data:
+            return
 
-                data = [[record[field_name] for field_name in self._field_order] for record in data]
+        try:
+            # Inject requestInDate for fast daily queries
+            for datum in data:
+                datum['requestInDate'] = datetime.fromtimestamp(datum['requestInTs'] / 1000).strftime('%Y-%m-%d')
 
-                with pg.connect(self._connection_string) as connection:
-                    cursor = connection.cursor()
+            with pg.connect(self._connection_string) as connection:
+                cursor = connection.cursor()
+                query = self._generate_insert_query(cursor, data)
+                cursor.execute(query)
+        except Exception:
+            trace = traceback.format_exc().replace('\n', '')
+            self._logger.log_error('log_insertion_failed', f"Failed to insert logs to postgres. ERROR: {trace}")
+            raise
 
-                    query_value_rows = [f"({','.join(str(row))})" for row in data]
-                    query_values = ','.join(query_value_rows)
-                    fields = ','.join(self._field_order)
-                    cursor.execute(f'INSERT INTO {self._table_name} ({fields}) VALUES ({query_values})')
-            except Exception:
-                trace = traceback.format_exc().replace('\n', '')
-                self._logger.log_error('log_insertion_failed', f"Failed to insert logs to postgres. ERROR: {trace}")
-                raise
+    def _generate_insert_query(self, cursor, data):
+        column_names = ','.join(self._field_order)
+        template = '({})'.format(','.join(['%s'] * len(self._field_order)))
+
+        rows = []
+
+        for record in data:
+            record_values = [record[field_name] for field_name in self._field_order]
+            rows.append(cursor.mogrify(template, record_values).decode('utf-8'))
+
+        query_rows = ','.join(rows)
+        return f'INSERT INTO {self._table_name} ({column_names}) VALUES {query_rows}'
+
 
     def is_alive(self):
         try:
@@ -96,18 +106,13 @@ class PostgreSqlManager(object):
             raise
 
     def _get_connection_string(self):
-        args = []
-        args += f"host={self._settings['host']}"
-        args += f"dbname={self._settings['database-name']}"
+        args = [
+            f"host={self._settings['host']}",
+            f"dbname={self._settings['database-name']}"
+        ]
 
-        port, user, password = map(self._settings.get, ['port', 'user', 'password'])
+        optional_settings = {key: self._settings.get(key) for key in ['port', 'user', 'password']}
+        optional_args = [f"{key}={value}" if value else "" for key, value in optional_settings.items()]
 
-        if port:
-            args += f"port={port}"
+        return ' '.join(args + optional_args)
 
-        if user:
-            args += f"user={user}"
-            if password:
-                args += f"password={password}"
-
-        return ' '.join(args)
