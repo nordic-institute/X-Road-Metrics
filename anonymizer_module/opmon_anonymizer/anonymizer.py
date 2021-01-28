@@ -23,8 +23,8 @@ class Anonymizer(object):
         self._settings = settings
         self._reader = reader
 
-        field_translations_path = self._validate_path(settings['anonymizer']['field-translations-file'])
-        field_data_path = self._validate_path(settings['anonymizer']['field-data-file'])
+        field_translations_path = settings['anonymizer']['field-translations-file']
+        field_data_path = settings['anonymizer']['field-data-file']
 
         self._allowed_fields = self._get_allowed_fields(field_translations_path, logger_manager)
 
@@ -40,12 +40,6 @@ class Anonymizer(object):
                              field_translations, field_value_masks, self._logger)
             if not anonymization_job else anonymization_job
         )
-
-    @staticmethod
-    def _validate_path(path):
-        if not path.startswith('/'):
-            path = os.path.join(ROOT_DIR, 'cfg_lists', path)
-        return path
 
     def anonymize(self, log_limit=None):
         writer_buffer_size = int(self._settings['postgres']['buffer-size'])

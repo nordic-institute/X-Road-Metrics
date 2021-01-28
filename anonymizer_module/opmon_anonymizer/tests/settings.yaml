@@ -19,8 +19,8 @@ postgres:
   readonly-users: []
 
 anonymizer:
-  field-translations-file: field_translations.list
-  field-data-file: field_data.yaml
+  field-translations-file: ../../etc/field_translations.list
+  field-data-file: ../../etc/field_data.yaml
   transformers:
     reduce-request-in-ts-precision: true
     force-durations-to-integer-range: true
