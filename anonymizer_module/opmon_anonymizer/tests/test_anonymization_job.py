@@ -17,7 +17,7 @@ class TestAnonymizationJob(unittest.TestCase):
 
     def test_record_hiding_with_rules(self):
         hiding_rules = [
-            [('feature1', re.compile('value.')), ('feature2', re.compile('value\d+'))],
+            [('feature1', re.compile('value.')), ('feature2', re.compile(r'value\d+'))],
         ]
 
         records = [
@@ -47,7 +47,7 @@ class TestAnonymizationJob(unittest.TestCase):
             {
                 'conditions': [
                     ('feature1', re.compile('value.')),
-                    ('feature2', re.compile('value\d+')),
+                    ('feature2', re.compile(r'value\d+')),
                 ],
                 'substitutes': [
                     {'feature': 'feature1', 'value': 'new_value1'},
