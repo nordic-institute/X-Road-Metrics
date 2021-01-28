@@ -26,7 +26,7 @@ class Anonymizer(object):
         field_translations_path = self._validate_path(settings['anonymizer']['field-translations-file'])
         field_data_path = self._validate_path(settings['anonymizer']['field-data-file'])
 
-        self._allowed_fields = self._get_allowed_fields(field_data_path, logger_manager)
+        self._allowed_fields = self._get_allowed_fields(field_translations_path, logger_manager)
 
         hiding_rules = self._get_hiding_rules()
         substitution_rules = self._get_substitution_rules()
