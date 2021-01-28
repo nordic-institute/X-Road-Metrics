@@ -1,8 +1,6 @@
 from pymongo import MongoClient
 import pymongo
 import datetime
-import signal
-from signal import SIGABRT, SIGILL, SIGINT, SIGSEGV, SIGTERM, SIGHUP
 import traceback
 from opmon_anonymizer.utils import logger_manager
 import sys
@@ -10,18 +8,16 @@ import sys
 
 class MongoDbManager(object):
 
-    def __init__(self, settings):
+    def __init__(self, settings, logger):
         self.settings = settings
         xroad = settings['xroad']['instance']
-        self._logger = logger_manager.LoggerManager(settings['logger'], xroad)
+        self._logger = logger
 
         self.client = MongoClient(self.get_mongo_uri(settings))
         self.query_db = self.client[f"query_db_{xroad}"]
         self.state_db = self.client[f"anonymizer_state_{xroad}"]
 
-        self.last_processed_timestamp = self.get_previous_run()
-        for sig in (SIGABRT, SIGILL, SIGINT, SIGSEGV, SIGTERM, SIGHUP):
-            signal.signal(sig, self.handle_signal)
+        self.last_processed_timestamp = self.get_last_processed_timestamp()
 
     @staticmethod
     def get_mongo_uri(settings):
@@ -33,7 +29,7 @@ class MongoDbManager(object):
     def get_records(self, allowed_fields):
         collection = self.query_db.clean_data
 
-        min_timestamp = self.get_previous_run()
+        min_timestamp = self.get_last_processed_timestamp()
 
         projection = {field: True for field in allowed_fields}
         projection['correctorTime'] = True
@@ -42,13 +38,19 @@ class MongoDbManager(object):
 
         current_timestamp = datetime.datetime.now().timestamp()
 
-        for document in collection.find({
-            'correctorTime': {'$gt': min_timestamp, '$lte': current_timestamp},
-            'correctorStatus': 'done',
-            'client.clientXRoadInstance': {'$ne': None}
-        }, projection=projection, no_cursor_timeout=True).sort('correctorTime', pymongo.ASCENDING):
+        documents = collection.find(
+            {
+                'correctorTime': {'$gt': min_timestamp, '$lte': current_timestamp},
+                'correctorStatus': 'done',
+                'client.clientXRoadInstance': {'$ne': None}
+            },
+            projection=projection,
+            no_cursor_timeout=True
+        ).sort('correctorTime', pymongo.ASCENDING)
+
+        for document in documents:
             if batch_idx == 1000:
-                self.set_previous_run(max_timestamp=self.last_processed_timestamp)
+                self.set_last_processed_timestamp()
                 batch_idx = 0
 
             self.last_processed_timestamp = document['correctorTime']
@@ -57,7 +59,7 @@ class MongoDbManager(object):
             yield self._add_missing_fields(document, allowed_fields)
             batch_idx += 1
 
-        self.set_previous_run(max_timestamp=self.last_processed_timestamp)
+        self.set_last_processed_timestamp()
 
     def is_alive(self):
         try:
@@ -92,22 +94,21 @@ class MongoDbManager(object):
                                        str(allowed_fields), str(document), traceback.format_exc().replace('\n', ''))))
             raise
 
-    def get_previous_run(self):
-        return float(self.state_db.state.find_one({'key': 'last_mongodb_timestamp'}) or 0.0)
+    def get_last_processed_timestamp(self):
+        state = self.state_db.state.find_one({'key': 'last_mongodb_timestamp'}) or {}
+        return float(state.get('value') or 0.0)
 
-    def set_previous_run(self, max_timestamp):
-        if not max_timestamp:
+    def set_last_processed_timestamp(self):
+        if not self.last_processed_timestamp:
             return
 
         self.state_db.state.update(
             {'key': 'last_mongodb_timestamp'},
-            {'key': 'last_mongodb_timestamp', 'value': str(max_timestamp)},
+            {'key': 'last_mongodb_timestamp', 'value': str(self.last_processed_timestamp)},
             upsert=True
         )
 
-    def __del__(self):
-        self.set_previous_run(max_timestamp=self.last_processed_timestamp)
-
     def handle_signal(self, signum, frame):
-        self.set_previous_run(max_timestamp=self.last_processed_timestamp)
+        print('signal', signum, frame)
+        self.save_on_exit()
         sys.exit(1)
