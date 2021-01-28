@@ -9,4 +9,3 @@ def get_enabled_transformers(transformers_settings):
         transformers.append(default.force_durations_to_integer_range)
 
     return transformers
-

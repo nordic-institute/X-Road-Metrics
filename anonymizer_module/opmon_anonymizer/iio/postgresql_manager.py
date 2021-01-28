@@ -48,14 +48,13 @@ class PostgreSqlManager(object):
         query_rows = ','.join(rows)
         return f'INSERT INTO {self._table_name} ({column_names}) VALUES {query_rows}'
 
-
     def is_alive(self):
         try:
             with pg.connect(self._connection_string) as connection:
                 pass
             return True
 
-        except:
+        except Exception:
             trace = traceback.format_exc().replace('\n', '')
             error = f"Failed to connect to postgres with connection string {self._connection_string}. ERROR: {trace}"
             self._logger.log_error('postgres_connection_failed', error)
@@ -72,7 +71,7 @@ class PostgreSqlManager(object):
 
                 try:
                     cursor.execute(f"CREATE TABLE {self._table_name} (id SERIAL PRIMARY KEY{column_schema})")
-                except:
+                except Exception:
                     pass  # Table exists
         except Exception:
             trace = traceback.format_exc().replace('\n', '')
@@ -95,7 +94,7 @@ class PostgreSqlManager(object):
                             'table_name': self._table_name,
                             'readonly_user': readonly_user
                         }))
-                    except:
+                    except Exception:
                         pass  # Privileges existed
 
         except Exception:
@@ -115,4 +114,3 @@ class PostgreSqlManager(object):
         optional_args = [f"{key}={value}" if value else "" for key, value in optional_settings.items()]
 
         return ' '.join(args + optional_args)
-
