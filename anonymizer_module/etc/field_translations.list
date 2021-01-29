@@ -44,3 +44,9 @@ client.representedPartyClass -> representedPartyClass
 producer.representedPartyClass -> representedPartyClass
 client.representedPartyCode -> representedPartyCode
 producer.representedPartyCode -> representedPartyCode
+client.serviceSecurityServerAddress -> serviceSecurityServerAddress
+producer.serviceSecurityServerAddress -> serviceSecurityServerAddress
+client.clientSecurityServerAddress -> clientSecurityServerAddress
+producer.clientSecurityServerAddress -> clientSecurityServerAddress
+client.messageId -> messageId
+producer.messageId -> messageId

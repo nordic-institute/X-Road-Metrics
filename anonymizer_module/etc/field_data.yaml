@@ -83,3 +83,12 @@ fields:
     representedPartyCode:
         description: Code of the represented party
         type: varchar(255)
+    serviceSecurityServerAddress:
+        description: Security server address
+        type: varchar(255)
+    clientSecurityServerAddress:
+        description: Security server address
+        type: varchar(255)
+    messageId:
+        description: Identifier of the message
+        type: varchar(255)

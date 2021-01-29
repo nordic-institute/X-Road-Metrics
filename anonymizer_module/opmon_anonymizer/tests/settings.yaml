@@ -1,0 +1,62 @@
+# NOTE! THIS SETTINGS FILE IS FOR UNIT-TEST PURPOSES!
+
+xroad:
+  instance: DEFAULT
+
+mongodb:
+  host: defaultmongodb
+  user: defaultuser
+  password: defaultpass
+
+postgres:
+  host: defaultpostgres
+  port: 5432
+  user: user
+  password: testpass
+  database-name: mydb
+  table-name: logs
+  buffer-size: 10000
+  readonly-users: []
+
+anonymizer:
+  field-translations-file: ../../etc/field_translations.list
+  field-data-file: ../../etc/field_data.yaml
+  transformers:
+    reduce-request-in-ts-precision: true
+    force-durations-to-integer-range: true
+  threads: 1
+
+  # This example hides Estonian Internal Security Service and the Estonian Foreign Intelligence Service
+  hiding-rules:
+    -
+      - feature: 'clientMemberCode'
+        regex: '^(70005938|70000591)$'
+
+    -
+      - feature: 'serviceMemberCode'
+        regex: '^(70005938|70000591)$'
+
+    -
+      - feature: 'clientSubsystemCode'
+        regex: '^(#NA)$'
+
+    -
+      - feature: 'serviceSubsystemCode'
+        regex: '^(#NA)$'
+
+  substitution-rules:
+    - conditions:
+        - feature: 'clientXRoadInstance'
+          regex: '^XYZ$'
+
+      substitutes:
+        - feature: 'clientMemberClass'
+          value: '#NA'
+
+logger:
+  name: defaultlog
+  module: default
+  level: DEBUG
+  log-path: /var/log/opmon/collector/logs
+  heartbeat-path: /var/log/opmon/collector/logs
+

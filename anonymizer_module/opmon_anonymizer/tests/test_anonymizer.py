@@ -1,11 +1,9 @@
 import os
-import datetime
 
 import unittest
 from unittest.mock import MagicMock, Mock
 
-from ..anonymizer import Anonymizer
-from ..iio.mongodb_manager import PreviousRunManager
+from opmon_anonymizer.anonymizer import Anonymizer
 
 ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -17,10 +15,11 @@ class TestAnonymizer(unittest.TestCase):
         self.maxDiff = None
 
     def test_allowed_fields_parsing(self):
-        anonymizer_instance = Mock()
 
         allowed_fields = Anonymizer._get_allowed_fields(
-            anonymizer_instance, os.path.join(ROOT_DIR, 'data', 'test_field_translations.list'))
+            os.path.join(ROOT_DIR, 'data', 'test_field_translations.list'),
+            Mock()
+        )
         expected_allowed_fields = ['client.requestInTs', 'producer.requestInTs', 'client.securityServerType', 'totalDuration']
         self.assertCountEqual(expected_allowed_fields, allowed_fields)
 

@@ -4,7 +4,7 @@ import re
 import unittest
 from unittest.mock import Mock, MagicMock
 
-from ..anonymizer import AnonymizationJob
+from opmon_anonymizer.anonymizer import AnonymizationJob
 
 ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -17,7 +17,7 @@ class TestAnonymizationJob(unittest.TestCase):
 
     def test_record_hiding_with_rules(self):
         hiding_rules = [
-            [('feature1', re.compile('value.')), ('feature2', re.compile('value\d+'))],
+            [('feature1', re.compile('value.')), ('feature2', re.compile(r'value\d+'))],
         ]
 
         records = [
@@ -26,9 +26,9 @@ class TestAnonymizationJob(unittest.TestCase):
             {'feature1': 'value1', 'feature2': 'value_two', 'feature3': 'value3'},
         ]
 
-        MockAnonymizationJob._record_matches_conditions = AnonymizationJob._record_matches_conditions
         MockAnonymizationJob._should_be_hidden = AnonymizationJob._should_be_hidden
         anonymization_job = MockAnonymizationJob()
+        anonymization_job._record_matches_conditions = AnonymizationJob._record_matches_conditions
         anonymization_job._hiding_rules = hiding_rules
 
         logger = MagicMock()
@@ -47,7 +47,7 @@ class TestAnonymizationJob(unittest.TestCase):
             {
                 'conditions': [
                     ('feature1', re.compile('value.')),
-                    ('feature2', re.compile('value\d+')),
+                    ('feature2', re.compile(r'value\d+')),
                 ],
                 'substitutes': [
                     {'feature': 'feature1', 'value': 'new_value1'},
@@ -66,9 +66,9 @@ class TestAnonymizationJob(unittest.TestCase):
             {'feature1': 'valueB', 'feature2': 'value_two', 'feature3': 'old_value'},
         ]
 
-        MockAnonymizationJob._record_matches_conditions = AnonymizationJob._record_matches_conditions
         MockAnonymizationJob._substitute = AnonymizationJob._substitute
         anonymization_job = MockAnonymizationJob()
+        anonymization_job._record_matches_conditions = AnonymizationJob._record_matches_conditions
         anonymization_job._substitution_rules = substitution_rules
 
         logger = MagicMock()
