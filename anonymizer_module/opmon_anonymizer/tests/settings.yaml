@@ -26,32 +26,33 @@ anonymizer:
     force-durations-to-integer-range: true
   threads: 1
 
-  # This example hides Estonian Internal Security Service and the Estonian Foreign Intelligence Service
   hiding-rules:
-    -
+    -   # exclude all records where client id is "foo" and service id is bar.
       - feature: 'clientMemberCode'
-        regex: '^(70005938|70000591)$'
-
-    -
+        regex: '^(foo)$'
       - feature: 'serviceMemberCode'
-        regex: '^(70005938|70000591)$'
-
-    -
-      - feature: 'clientSubsystemCode'
-        regex: '^(#NA)$'
-
-    -
-      - feature: 'serviceSubsystemCode'
-        regex: '^(#NA)$'
+        regex: '^(bar)$'
 
   substitution-rules:
-    - conditions:
-        - feature: 'clientXRoadInstance'
-          regex: '^XYZ$'
+    - conditions:  # substitute client and service member codes with "N/A" if the client member code is "foo2"
+        - feature: 'clientMemberCode'
+          regex: '^foo2$'
 
       substitutes:
-        - feature: 'clientMemberClass'
-          value: '#NA'
+        - feature: 'clientMemberCode'
+          value: 'N/A'
+        - feature: 'serviceMemberCode'
+          value: 'N/A'
+
+    - conditions:  # substitute message id with 0, if client member code is "bar2"
+        - feature: 'clientMemberCode'
+          regex: '^bar2$'
+        - feature: 'clientMemberCode'
+          regex: '^foo2$'
+
+      substitutes:
+        - feature: 'messageId'
+          value: '0'
 
 logger:
   name: defaultlog

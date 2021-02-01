@@ -131,7 +131,7 @@ to be substituted and value contains the substitute string.
 
 The below example defines two substitution rules.
 First rule will substitute client and service member codes with _"N/A"_ if the client member code is _"foo2"_.
-The second rule will substitute message id with 0, if service client member code is _"bar2"_ and 
+The second rule will substitute message id with 0, if client member code is _"bar2"_ and 
 service member code is _"foo2"_.
 
 ```yaml
