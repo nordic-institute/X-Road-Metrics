@@ -1,7 +1,7 @@
 import unittest
 import datetime
 
-from opendata_module.interface.api.input_validator import load_and_validate_date, load_and_validate_columns, load_and_validate_constraints,\
+from opendata_module.opmon_opendata.api.input_validator import load_and_validate_date, load_and_validate_columns, load_and_validate_constraints,\
     load_and_validate_order_clauses
 
 
