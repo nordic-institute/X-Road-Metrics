@@ -1,14 +1,16 @@
 import psycopg2 as pg
+from dateutil import relativedelta
 
 
 class PostgreSQL_Manager(object):
 
-    def __init__(self, config, field_names, logs_time_buffer):
+    def __init__(self, settings):
 
-        self._table_name = config['table_name']
-        self._connection_string = self._get_connection_string(**config)
-        self._field_name_map = self._get_field_name_map(field_names)
-        self._logs_time_buffer = logs_time_buffer
+        self._settings = settings['postgres']
+        self._table_name = settings['postgres']['table-name']
+        self._connection_string = self._get_connection_string()
+        self._field_name_map = self._get_field_name_map(settings['opendata']['field-descriptions'].keys())
+        self._logs_time_buffer = relativedelta.relativedelta(days=settings['opendata']['delay-days'])
 
     def get_column_names_and_types(self):
         with pg.connect(self._connection_string) as connection:
@@ -52,20 +54,16 @@ class PostgreSQL_Manager(object):
 
         return min_and_max
 
-    def _get_connection_string(self, host_address=None, port=None, database_name=None, user=None, password=None, **irrelevant_settings):
-        string_parts = ["host={host} dbname={dbname}".format(
-            **{'host': host_address, 'dbname': database_name})]
+    def _get_connection_string(self):
+        args = [
+            f"host={self._settings['host']}",
+            f"dbname={self._settings['database-name']}"
+        ]
 
-        if port:
-            string_parts.append("port=" + str(port))
+        optional_settings = {key: self._settings.get(key) for key in ['port', 'user', 'password']}
+        optional_args = [f"{key}={value}" if value else "" for key, value in optional_settings.items()]
 
-        if user:
-            string_parts.append("user=" + user)
-
-        if password:
-            string_parts.append("password=" + password)
-
-        return ' '.join(string_parts)
+        return ' '.join(args + optional_args)
 
     def _get_database_settings(self, config):
         settings = {'host_address': config['writer']['host_address'],
