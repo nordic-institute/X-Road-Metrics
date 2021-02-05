@@ -1,4 +1,4 @@
-var API_ROOT = '../api'
+var API_ROOT = './api'
 
 $('#new-constraint-column').change(function() {
     var type = $(this).find(":selected").data('type');
