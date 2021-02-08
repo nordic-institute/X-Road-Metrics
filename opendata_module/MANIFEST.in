@@ -1,0 +1,2 @@
+recursive-include opmon_opendata/templates *
+recursive-include opmon_opendata/static *

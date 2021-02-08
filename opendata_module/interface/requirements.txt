@@ -1,6 +1,0 @@
-psycopg2==2.8.6
-django==1.10.5
-pyyaml==3.12
-djangorestframework
-django-rest-swagger
-python-dateutil==2.8.1

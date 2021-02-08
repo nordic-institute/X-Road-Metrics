@@ -1,0 +1,38 @@
+xroad:
+  instance: <FILL>
+
+opendata:
+  delay-days: 10
+  preview-limit: 10
+  field-data-path: /etc/opmon/opendata/field_data.yaml
+  maintenance-mode: false
+  disclaimer: "<p>add disclaimer here</p>"
+  header: "<p>add header here</p>"
+  footer: "<p>add footer here</p>"
+
+postgres:
+  host: localhost
+  port: 5432
+  user: <FILL>
+  password: <FILL>
+  database-name: <FILL>
+  table-name: logs
+
+logger:
+  name: opendata
+  module: opendata
+
+  # Possible logging levels from least to most verbose are:
+  # CRITICAL, FATAL, ERROR, WARNING, INFO, DEBUG
+  level: INFO
+
+  # Logs and heartbeat files are stored under these paths.
+  # Also configure external log rotation and app monitoring accordingly.
+  log-path: /var/log/opmon/anonymizer/logs
+  heartbeat-path: /var/log/opmon/anonymizer/heartbeat
+
+django:
+  secret-key: <FILL>
+  allowed-hosts:
+    - 'localhost'
+    - '127.0.0.1'
