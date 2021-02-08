@@ -107,3 +107,5 @@ STATIC_ROOT = os.path.join('/usr/share/opmon/opendata/www', 'static')
 # Ignore Django internal logging mechanisms
 LOGGING = None
 
+# Disable Django admin-ui
+ADMIN_ENABLED = False
