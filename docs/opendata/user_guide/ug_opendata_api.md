@@ -15,11 +15,13 @@ In order to achieve that, handlers allow to query the following data:
 * All daily logs in **tar.gz** format;
 * Sample logs for a day in **JSON** format.
 
-URL below is used as 
+
+The `curl` examples below use the environment variable _URL_ to represent the
+opendata host base URL. If you run open-data module on a host named _my-opendata-host_ and want to use
+settings profile named _example-settings_ then you can set the base URL like this:
 
 ```bash
-export PROFILE="example_settings_profile"
-export URL="https://my-opendata-host/${PROFILE}"
+export URL="https://my-opendata-host/example-settings"
 # or http:// when security certificate not in place yet)
 ```
 
