@@ -1,43 +1,138 @@
 
-| [![Republic of Estonia Information System Authority](img/ria_100_en.png)](https://www.ria.ee/en.html) [![X-ROAD](img/xroad_100_en.png)](https://www.ria.ee/en/state-information-system/x-tee.html) | ![European Union / European Regional Development Fund / Investing in your future](img/eu_rdf_100_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.11.2022. If it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
-| :-------------------------------------------------- | -------------------------: |
-
-# X-Road v6 monitor project - Opendata module
+# X-Road v6 monitor project - Opendata Module
 
 ## About
 
-Opendata module is part of [X-Road v6 monitor project](../README.md), which includes modules of [Database module](database_module.md), [Collector module](collector_module.md), [Corrector module](corrector_module.md), [Analysis module](analysis_module.md), [Reports module](reports_module.md), Opendata module (this document) and [Networking/Visualizer module](networking_module.md).
+The **Opendata module** is part of [X-Road v6 monitor project](../README.md), 
+which includes modules of [Database module](database_module.md), [Collector module](collector_module.md), 
+[Corrector module](corrector_module.md), [Analysis module](analysis_module.md), [Reports module](reports_module.md), 
+[Anonymizer module](anonymizer_module.md) and [Networking/Visualizer module](networking_module.md).
 
-Overall system, its users and rights, processes and directories are designed in a way, that all modules can reside in one server (different users but in same group 'opmon') but also in separate servers.  
-
-Overall system is also designed in a way, that allows to monitor data from different X-Road v6 instances (in Estonia `ee-dev`, `ee-test`, `EE`, see also [X-Road v6 environments](https://moodle.ria.ee/mod/page/view.php?id=700).
-
-Overall system is also designed in a way, that can be used by X-Road Centre for all X-Road members as well as for Member own monitoring (includes possibilities to monitor also members data exchange partners).
+The **Opendata module** is used to publish the X-Road operational monitoring data. The module has a UI and a REST API 
+that allow filtering the anonymized operational monitoring data and downloading it as gzip archives.
 
 ## Architecture
 
-Opendata module provides:
+Opendata module serves data that has been prepared by the [Anonymizer module](anonymizer_module.md)  
+Overview of the module architecture related to publishing opmon data
+through is in the diagram below:
+ ![system diagram](img/opendata/opendata_overview.png "System overview")
 
-**Anonymizer** is a pipeline for making X-Road v6 logs suitable for public use. It is achieved by fetching still unprocessed - but corrected data - from the ==> [Corrector Module's](corrector_module.md) <== output, applying the defined anonymization procedures, and outputting the already anonymized data.
+## Networking
 
-Anonymizer is on a machine without publicly accessible interface.
+MongoDb is used to store "non-anonymized" opmon data that should be accessible only by the X-Road administrators.
+Anonymized opmon data that can be published for wider audience is stored in the PostgreSQL. The opendata UI needs
+access only to the PostgreSQL. To follow the "principal of least priviledge" it is recommended to
+install opmon UI on a dedicated host that has no access at all to MongoDb.
 
-**Interface** is an API and a GUI to access the data already anonymized by Anonymizer.
+The opendata module UI is served by Apache web server using HTTPS protocol (default port 443).
 
-Open Data Module's Interface (API and GUI) and PostgreSQL reside on a machine with public access.
+## Installation
 
-![system diagram](img/opendata/opendata_overview.png "System overview")
+This sections describes the necessary steps to install the **opendata module** on 
+an Ubuntu 20.04 Linux host. For a complete overview of different modules and machines, 
+please refer to the ==> [System Architecture](system_architecture.md) <== documentation.
 
-It is important to note that it can take up to 7 days for the ==> [Collector module](collector_module.md) <== to receive X-Road v6 operational data from security server(s) and up to 3 days for the ==> [Corrector_module](corrector_module.md) <== to clean the raw data and derive monitoring metrics in a clean database collection.
-This means that data is available in Opendata module at least 10 days after data received.
 
-## Installation and configuration
+### Add X-Road OpMon Package Repository for Ubuntu
+TODO
 
-The installation and configuration procedures along with test runs are described on the following pages (**Note:** Node 2 should be set up before, as Anonymizer depends on  a running PostgreSQL instance).
+### Install Opendata Package
+To install opmon-opendata and all dependencies execute the commands below:
 
-- [**Node 1: Anonymizer**](opendata/anonymizer.md)
+```bash
+sudo apt-get update
+sudo apt-get install opmon-opendata
+```
 
-- [**Node 2: Interface and PostgreSQL**](opendata/interface_postgresql.md)
+The installation package automatically installs following items:
+ * Linux users _opmon_ and _www-data_
+ * opmon-opendata Django web-application package
+ * Apache web server and dependencies
+ * Apache configuration file for the web-app _/etc/apache2/opmon-opendata.conf_
+ * web-app static content under _/usr/share/opmon/opendata_
+ * web-app dynamic content under _/var/lib/opmon/opendata_
+ * settings file _/etc/opmon/opendata/settings.yaml_
+ * log folders to _/var/log/opmon/opendata/_
+
+Only users in _opmon_ group can access the settings files.
+
+You have to fill in some environment specific settings to the settings file to make the Opendata module work properly.
+Refer to section [Opendata Module Configuration](#opendata-module-configuration)
+
+## Usage
+### Opendata Module Configuration
+
+To use opendata module you need to fill in your X-Road, PostgreSQL and Django configuration into the settings file.
+(here, **vi** is used):
+
+```bash
+sudo vi /etc/opmon/opendata/settings.yaml
+```
+
+Settings that the user must fill in:
+* X-Road instance name
+* host and port of the PostgreSQL server
+* username and password for opendata interface postgreSQL user
+* name of PostgreSQL database where the anonymized open data is stored
+* secret key for the Django web-app
+* allowed hostname(s) for the web-app server
+
+### Hostname configuration
+To prevent Cross Site Scripting attacks a list of allowed host header values must be defined in Django and Apache settings.
+The default configuration allows only requests targeting 'localhost'.
+External clients call the server using the server's IP address or DNS name. These must be added to the list of allowed hostnames.
+The simplest way is to add the server's local IP address.
+If your server has a DNS name configured, you can also use that.
+
+For example to add allowed hostnames 10.1.2.3 (example local IP) and myhost.mydomain.org (example DNS name) follow these steps:
+Set the allowed-hosts section in settings.yaml like this:
+```
+django:
+  secret-key: *******************
+  allowed-hosts:
+    - 'localhost'
+    - '127.0.0.1'
+    - '10.1.2.3'
+    - 'myhost.mydomain.org'
+
+```
+
+Then edit the Apache config file /etc/apache2/opmon-opendata.conf and set the ServerName and ServerAlias fields:
+```
+<VirtualHost *:80>
+        ServerName myhost.mydomain.org
+        ServerAlias 10.1.2.3
+        ServerAlias localhost
+        ServerAlias 127.0.0.1
+        ServerAdmin me@mydomain.org
+        ...
+```
+
+After these changes you must restart Apache:
+```bash
+sudo apache2ctl restart
+```
+
+And then you can test accessing the Opmon Opendata UI by pointing your browser to `http://10.1.2.3/` or
+`http://myhost.mydomain.org/`
+
+**NOTE:** Django returns HTTP status 400 BAD REQUEST if the allowed host check fails.
+
+### Settings profiles
+The opendata module can show data for multiple X-Road instances using settings profiles. 
+For example to have profiles DEV, TEST and PROD create three copies of the `setting.yaml` 
+file named `settings_DEV.yaml`, `settings_TEST.yaml` and `settings_PROD.yaml` and 
+change the xroad-instance setting in the files.
+
+Then you can access different X-road instances data by selecting the settings profile in the url:
+```
+http://myhost.mydomain.org/       # settings from settings.yaml
+http://myhost.mydomain.org/DEV/   # settings from settings_DEV.yaml
+http://myhost.mydomain.org/TEST/  # settings from settings_TEST.yaml
+http://myhost.mydomain.org/PROD/  # settings from settings_PROD.yaml
+```
+
 
 ## Opendata Interface documentation
 
@@ -47,10 +142,82 @@ User Guide can be found from ==> [here](opendata/user_guide/ug_opendata_interfac
 Opendata provides a simple API to query daily anonymized logs and relevant metafeatures.  
 Documentation can be found from ==> [here](opendata/user_guide/ug_opendata_api.md) <==.
 
-## Scaling over X-Road instances
+## Monitoring and Status
 
-Each X-Road instance will have it's own set of Anonymizer and Interface with PostgreSQL tables. 
-X-Road instance INSTANCE will have its data anonymized by its dedicated Anonymizer process, anonymized data is stored in a dedicated PostgreSQL table, and Interface.
+### Logging 
 
-If there should be available opendata from 3 X-Road instances, then there should also be available 3 Anonymizer processes and 3 PostgreSQL tables storing the anonymized logs with 3 Interface applications running.
+The settings for the log file in the settings file are the following:
+
+```yaml
+xroad:
+  instance: EXAMPLE
+
+#  ...
+
+logger:
+  name: opendata
+  module: opendata
+  
+  # Possible logging levels from least to most verbose are:
+  # CRITICAL, FATAL, ERROR, WARNING, INFO, DEBUG
+  level: INFO
+
+  # Logs and heartbeat files are stored under these paths.
+  # Also configure external log rotation and app monitoring accordingly.
+  log-path: /var/log/opmon/opendata/logs
+
+```
+
+The log file is written to `log-path` and log file name contains the X-Road instance name. 
+The above example configuration would write logs to `/var/log/opmon/opendata/logs/log_opendata_EXAMPLE.json`.
+
+
+The **opendata module** log handler is compatible with the logrotate utility. 
+To configure log rotation for the example setup above, create the file:
+
+```
+sudo vi /etc/logrotate.d/opmon-opendata
+```
+
+and add the following content :
+```
+/var/log/opmon/opendata/logs/log_opendata_EXAMPLE.json {
+    rotate 10
+    size 2M
+}
+```
+
+For further log rotation options, please refer to logrotate manual:
+
+```
+man logrotate
+```
+
+### Heartbeat
+
+The settings for the heartbeat file in the settings file are the following:
+
+```yaml
+xroad:
+  instance: EXAMPLE
+
+#  ...
+
+logger:
+  #  ...
+  heartbeat-path: /var/log/opmon/opendata/heartbeat
+
+```
+
+The heartbeat file is written to `heartbeat-path` and hearbeat file name contains the X-Road instance name. 
+The above example configuration would write logs to
+ `/var/log/opmon/opendata/heartbeat/heartbeat_opendata_EXAMPLE.json`.
+
+The heartbeat file consists last message of log file and status
+
+- **status**: possible values "FAILED", "SUCCEEDED"
+
+The heartbeat is updated every time that end-users make calls to the opendata API.
+If the end-user traffic is infrequent, the heartbeat can be updated manually by curling the opendata module's
+heartbeat API e.g. periodically in a cronjob.
 

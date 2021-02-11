@@ -15,11 +15,13 @@ In order to achieve that, handlers allow to query the following data:
 * All daily logs in **tar.gz** format;
 * Sample logs for a day in **JSON** format.
 
-URL below is used as 
+
+The `curl` examples below use the environment variable _URL_ to represent the
+opendata host base URL. If you run open-data module on a host named _my-opendata-host_ and want to use
+settings profile named _example-settings_ then you can set the base URL like this:
 
 ```bash
-export INSTANCE="sample"
-export URL="https://logs.x-tee.ee/${INSTANCE}"
+export URL="https://my-opendata-host/example-settings"
 # or http:// when security certificate not in place yet)
 ```
 
@@ -50,19 +52,38 @@ POST expects query to be in JSON format and be the whole request body.
 
 ## Handlers
 
+### Heartbeat
+
+The handler checks that the PostgreSQL connection is alive in the backend.
+
+```bash
+curl --get --url "${URL}/api/heartbeat"
+```
+
+#### Parameters
+
+None
+
+#### Returns
+
+Heartbeat status in JSON format.
+Possible heartbeat values are _SUCCEEDED_ and _FAILED_
+
+```json
+{"heartbeat": "SUCCEEDED"}
+```
+
 ### Minimum and maximum date
 
 Logs can only be downloaded on a daily basis. The handler provides a date range, from which it is sensible to query.
 
 ```bash
-# export INSTANCE="sample"; export URL="https://logs.x-tee.ee/${INSTANCE}"
 curl --get --url "${URL}/api/date_range"
 ```
 
 There's also a POST version:
 
 ```bash
-# export INSTANCE="sample"; export URL="https://logs.x-tee.ee/${INSTANCE}"
 curl --request --url "${URL}/api/date_range"
 ```
 
@@ -83,14 +104,12 @@ Minimum and maximum date of the logs in the database, sample:
 It is possible to provide several data column specific parameters when querying daily logs. This handler gives an overview of the columns.
 
 ```bash
-# export INSTANCE="sample"; export URL="https://logs.x-tee.ee/${INSTANCE}"
 curl --get --url "${URL}/api/column_data"
 ```
 
 There's also a POST version:
 
 ```bash
-# export INSTANCE="sample"; export URL="https://logs.x-tee.ee/${INSTANCE}"
 curl --request --url "${URL}/api/column_data"
 ```
 
@@ -122,14 +141,12 @@ Metadata of the existing columns.
 Retrieve first PREVIEW_LIMIT = 100 logs, which have matched the query, in JSON format.
 
 ```bash
-# export INSTANCE="sample"; export URL="https://logs.x-tee.ee/${INSTANCE}"
 curl --get --url "${URL}/api/logs_sample"
 ```
 
 There's also a POST version:
 
 ```bash
-# export INSTANCE="sample"; export URL="https://logs.x-tee.ee/${INSTANCE}"
 curl --request --url "${URL}/api/logs_sample"
 ```
 
@@ -192,7 +209,6 @@ If columns were not provide, the order is identical to the column order from [co
 #### Example query
 
 ```bash
-# export INSTANCE="sample"; export URL="https://logs.x-tee.ee/${INSTANCE}"
 # export DATE=$(date -d "10 days ago" '+%Y-%m-%d')
 curl --get --url "${URL}/api/logs_sample" \
     --data-urlencode "date=${DATE}" \
@@ -204,7 +220,6 @@ curl --get --url "${URL}/api/logs_sample" \
 The same in POST version:
 
 ```bash
-# export INSTANCE="sample"; export URL="https://logs.x-tee.ee/${INSTANCE}"
 # export DATE=$(date -d "10 days ago" '+%Y-%m-%d')
 curl --request --url "${URL}/api/logs_sample" \
     --header "Content-Type:application/json" \
@@ -234,7 +249,6 @@ Binary file with MIME type "application/gzip".
 GET version:
 
 ```bash
-# export INSTANCE="sample"; export URL="https://logs.x-tee.ee/${INSTANCE}"
 # export DATE=$(date -d "10 days ago" '+%Y-%m-%d')
 
 TEMPFILE=$(tempfile)
@@ -253,7 +267,6 @@ tar tzvf ${TEMPFILE} # See download content
 There's also a POST version:
 
 ```bash
-# export INSTANCE="sample"; export URL="https://logs.x-tee.ee/${INSTANCE}"
 # export DATE=$(date -d "10 days ago" '+%Y-%m-%d')
 
 TEMPFILE=$(tempfile)
