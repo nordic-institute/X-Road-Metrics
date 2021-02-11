@@ -82,10 +82,21 @@ def test_set_next_records_timestamp(basic_settings, mocker):
     xroad_instance = basic_settings['xroad']['instance']
 
     d = DatabaseManager(mongo_settings, xroad_instance, mocker.Mock())
-    d.set_next_records_timestamp('key', 123)
 
-    t = d.get_next_records_timestamp('key', 0)
+    # Verify that no timestamp is found for server 'test-server' in mock db
+    collection = pymongo.MongoClient(d.mongo_uri)[d.db_collector_state]['collector_pointer']
+    document = collection.find_one({'server': 'test-server'})
+    assert document is None
+
+    # Verify that a new timestamp can be added
+    d.set_next_records_timestamp('test-server', 123)
+    t = d.get_next_records_timestamp('test-server', 0)
     assert t == 123
+
+    # Verify that an existing timestamp can be changed
+    d.set_next_records_timestamp('test-server', 456)
+    t = d.get_next_records_timestamp('test-server', 0)
+    assert t == 456
 
 
 @mongomock.patch(servers=(('defaultmongodb', 27017),))
