@@ -3,6 +3,7 @@
 
 import time
 import pymongo
+from pymongo import ReturnDocument
 
 
 class DatabaseManager:
@@ -28,7 +29,7 @@ class DatabaseManager:
             data['timestamp'] = self.get_timestamp()
             data['server_list'] = server_list
             data['collector_id'] = self.collector_id
-            collection.insert(data)
+            collection.insert_one(data)
         except Exception as e:
             self.logger_m.log_error('ServerManager.get_server_list_database', '{0}'.format(repr(e)))
             raise e
@@ -59,7 +60,7 @@ class DatabaseManager:
                 data = dict()
                 data['server'] = server_key
                 data['records_from'] = self.get_timestamp() - records_from_offset
-                collection.insert(data)
+                collection.insert_one(data)
             else:
                 data = cur
             # Return pointers
@@ -74,11 +75,20 @@ class DatabaseManager:
             client = pymongo.MongoClient(self.mongo_uri)
             db = client[self.db_collector_state]
             collection = db['collector_pointer']
-            data = dict()
-            data['server'] = server_key
-            data['records_from'] = records_from
-            collection.find_and_modify(query={'server': server_key},
-                                       update=data, upsert=True)
+
+            update_operations = {'$set': {
+                'server': server_key,
+                'records_from': records_from
+            }}
+
+            if collection.find_one_and_update(
+                    {'server': server_key},
+                    update_operations,
+                    return_document=ReturnDocument.AFTER,
+                    upsert=True
+            ) is None:
+                raise IndexError(f"Document not found. MongoDb collection {str(collection)}, server key {server_key}.")
+
         except Exception as e:
             self.logger_m.log_error('ServerManager.set_next_records_timestamp', '{0}'.format(repr(e)))
             raise e
