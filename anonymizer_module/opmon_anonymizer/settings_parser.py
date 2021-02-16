@@ -54,7 +54,7 @@ class OpmonSettingsManager:
     @staticmethod
     def _get_settings_files(file_list, profile):
         instance_suffix = '' if profile is None else f'_{profile}'
-        pattern = r'.+/settings' + instance_suffix + r'\.(yaml|yml)'
+        pattern = r'^.+/settings' + instance_suffix + r'\.(yaml|yml)$'
 
         settings_files = [f for f in file_list if re.match(pattern, f)]
         if len(settings_files) == 0:

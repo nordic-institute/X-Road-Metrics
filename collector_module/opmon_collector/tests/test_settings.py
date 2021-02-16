@@ -48,6 +48,16 @@ def test_loading_settings_file_with_profile(set_dir):
     }
 
 
+def test_loading_settings_file_with_invalid_extension(set_dir):
+    filename = './settings_EXTENSIONTEST.yaml.extra'
+    open(filename, 'a').close()
+
+    with pytest.raises(FileNotFoundError):
+        settings = OpmonSettingsManager('EXTENSIONTEST').settings
+
+    os.remove(filename)
+
+
 def test_loading_non_existing_settings_file(set_dir):
     with pytest.raises(FileNotFoundError):
         settings = OpmonSettingsManager('NOTFOUND').settings
