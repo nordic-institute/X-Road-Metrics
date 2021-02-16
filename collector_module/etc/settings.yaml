@@ -39,7 +39,7 @@ collector:
   # Directory where collector creates a PID-file.
   # PID stores the Unix Process Id of the collector instance that is running.
   # Only one collector instance can be running at a time.
-  pid-directory: /var/run/opmon/collector
+  pid-directory: /tmp/opmon/collector
 
 xroad:
   instance: <FILL>
