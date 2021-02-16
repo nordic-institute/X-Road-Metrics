@@ -10,6 +10,8 @@ class OpmonPidFileHandler:
             f"opmon_collector_{settings['xroad']['instance']}.pid"
         )
 
+        self.file_created = False
+
         atexit.register(self._cleanup)
 
     @staticmethod
@@ -48,7 +50,9 @@ class OpmonPidFileHandler:
         pid = os.getpid()
         with open(self.pid_file, 'w') as f:
             f.write(str(pid))
+        self.file_created = True
 
     def _cleanup(self):
-        with contextlib.suppress(FileNotFoundError):
-            os.remove(self.pid_file)
+        if self.file_created:
+            with contextlib.suppress(FileNotFoundError):
+                os.remove(self.pid_file)
