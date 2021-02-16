@@ -43,6 +43,8 @@ class OpmonPidFileHandler:
         if self.another_instance_is_running():
             raise RuntimeError(f"Found PID-file {self.pid_file}. Another opmon-collector instance is already running.")
 
+        os.makedirs(os.path.dirname(self.pid_file), exist_ok=True)
+
         pid = os.getpid()
         with open(self.pid_file, 'w') as f:
             f.write(str(pid))
