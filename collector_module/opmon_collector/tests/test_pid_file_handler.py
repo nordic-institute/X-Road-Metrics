@@ -104,3 +104,18 @@ def test_another_instance_is_running_with_invalid_file(basic_settings):
     assert not handler.another_instance_is_running()
     assert not handler.another_instance_is_running()
     assert not os.path.isfile(pid_file)
+
+
+def test_cleanup(basic_settings):
+    handler = OpmonPidFileHandler(basic_settings)
+
+    pid_file = './opmon_collector_DEFAULT.pid'
+    assert not os.path.isfile(pid_file)
+
+    handler.create_pid_file()
+    assert os.path.isfile(pid_file)
+
+    handler._cleanup()
+    assert not os.path.isfile(pid_file)
+
+    handler._cleanup()  # should not raise FileNotFoundException
