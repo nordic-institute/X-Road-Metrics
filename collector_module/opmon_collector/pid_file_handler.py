@@ -1,3 +1,5 @@
+import atexit
+import contextlib
 import os
 
 
@@ -7,6 +9,8 @@ class OpmonPidFileHandler:
             settings['collector']['pid-directory'],
             f"opmon_collector_{settings['xroad']['instance']}.pid"
         )
+
+        atexit.register(self._cleanup)
 
     @staticmethod
     def pid_exists(pid: int):
@@ -42,3 +46,7 @@ class OpmonPidFileHandler:
         pid = os.getpid()
         with open(self.pid_file, 'w') as f:
             f.write(str(pid))
+
+    def _cleanup(self):
+        with contextlib.suppress(FileNotFoundError):
+            os.remove(self.pid_file)
