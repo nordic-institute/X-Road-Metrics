@@ -7,7 +7,6 @@ from opmon_collector.collector_multiprocessing import run_threaded_collector
 from opmon_collector.collector_multiprocessing import process_thread_pool
 import opmon_collector
 
-
 TEST_SERVERS = [1, 2, 3]
 
 
@@ -33,6 +32,13 @@ def mock_thread_pool(mocker):
     return pool
 
 
+@pytest.fixture(autouse=True)
+def cleanup_test_pid_files():
+    pid_file = './opmon_collector_DEFAULT.pid'
+    if os.path.isfile(pid_file):
+        os.remove(pid_file)
+
+
 def mock_thread(test_input):
     if test_input == 2:
         return False, FileNotFoundError('test error')
@@ -53,6 +59,19 @@ def test_run_threaded_collector(mocker, mock_server_manager, mock_thread_pool, b
     for i in inputs:
         assert i['settings'] == basic_settings
         assert i['server_data'] in TEST_SERVERS
+
+
+def test_run_threaded_collector_with_existing_pid_file(mocker, mock_server_manager, mock_thread_pool, basic_settings):
+    pid_file = './opmon_collector_DEFAULT.pid'
+    mock_logger = mocker.Mock()
+
+    with open(pid_file, 'w') as f:
+        f.write(str(os.getpid()))  # write an existing pid into file
+
+    with pytest.raises(RuntimeError):
+        run_threaded_collector(mock_logger, basic_settings)
+
+    assert mock_thread_pool.map.call_count == 0
 
 
 def test_process_thread_pool():

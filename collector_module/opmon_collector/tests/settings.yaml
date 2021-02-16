@@ -6,6 +6,7 @@ collector:
   records-to-offset: 100
   repeat-min-records: 50
   repeat-limit: 500
+  pid-directory: .
 
 xroad:
   instance: DEFAULT
