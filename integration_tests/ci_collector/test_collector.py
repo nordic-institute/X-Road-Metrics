@@ -1,4 +1,5 @@
 import os
+import signal
 import subprocess
 import time
 
@@ -7,7 +8,6 @@ import pymongo
 
 
 def test_update_server_list():
-    return
     xroad = get_parameter('xroad.instance')
     mongo = get_mongo_collection(f"collector_state_{xroad}", "server_list")
 
@@ -34,7 +34,6 @@ def test_update_server_list():
 
 
 def test_collect():
-    return
     xroad = get_parameter('xroad.instance')
     mongo = get_mongo_collection(f"query_db_{xroad}", "raw_messages")
 
@@ -67,7 +66,6 @@ def test_collect():
 
 
 def test_execution_is_blocked_by_pid_file():
-    return
     xroad = get_parameter('xroad.instance')
     pid_dir = get_parameter('collector.pid-directory')
     pid_file = f'{pid_dir}/opmon_collector_{xroad}.pid'
@@ -105,22 +103,26 @@ def assert_action_creates_and_deletes_pid_file(command):
 
     assert not os.path.isfile(pid_file)
 
+    start_time = time.time()
     proc = subprocess.Popen(command)
 
     pid_from_file = None
-    for t in range(10):
-        try:
-            with open(pid_file, 'r') as f:
-                pid_from_file = int(f.readline())
-                break
-        except Exception:
-            time.sleep(0.1)
-            continue
+
+    while proc.poll() is None and time.time() - start_time < 1000:
+        if os.path.isfile(pid_file):
+            try:
+                with open(pid_file, 'r') as f:
+                    pid_from_file = int(f.readline())
+                    break
+            except Exception:
+                pass
 
     assert pid_from_file == proc.pid
 
-    proc.terminate()
+    proc.send_signal(signal.SIGINT)
+    proc.wait()
     assert not os.path.isfile(pid_file)
+
 
 def get_parameter(parameter_name):
     command = f"opmon-collector settings get {parameter_name}".split(' ')
