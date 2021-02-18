@@ -1,3 +1,5 @@
+import atexit
+import contextlib
 import os
 
 
@@ -7,6 +9,10 @@ class OpmonPidFileHandler:
             settings['collector']['pid-directory'],
             f"opmon_collector_{settings['xroad']['instance']}.pid"
         )
+
+        self.file_created = False
+
+        atexit.register(self._cleanup)
 
     @staticmethod
     def pid_exists(pid: int):
@@ -39,6 +45,14 @@ class OpmonPidFileHandler:
         if self.another_instance_is_running():
             raise RuntimeError(f"Found PID-file {self.pid_file}. Another opmon-collector instance is already running.")
 
+        os.makedirs(os.path.dirname(self.pid_file), exist_ok=True)
+
         pid = os.getpid()
         with open(self.pid_file, 'w') as f:
             f.write(str(pid))
+        self.file_created = True
+
+    def _cleanup(self):
+        if self.file_created:
+            with contextlib.suppress(FileNotFoundError):
+                os.remove(self.pid_file)

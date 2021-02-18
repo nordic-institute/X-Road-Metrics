@@ -1,3 +1,5 @@
+import os
+import signal
 import subprocess
 import time
 
@@ -61,6 +63,65 @@ def test_collect():
     for msg in new_messages:
         missing_keys = required_keys - set(msg.keys())
         assert missing_keys == set()
+
+
+def test_execution_is_blocked_by_pid_file():
+    xroad = get_parameter('xroad.instance')
+    pid_dir = get_parameter('collector.pid-directory')
+    pid_file = f'{pid_dir}/opmon_collector_{xroad}.pid'
+    assert not os.path.isfile(pid_file)
+
+    with open(pid_file, 'w') as f:
+        f.write(str(os.getpid()))  # write test-executor's pid to collector pidfile
+
+    command = f"opmon-collector update".split(' ')
+    proc = subprocess.run(command, capture_output=True)
+
+    message_to_find = "Another opmon-collector instance is already running."
+
+    assert proc.stderr.decode('utf-8').find(message_to_find) > 0
+    assert proc.returncode == 1
+
+    command = f"opmon-collector collect".split(' ')
+    proc = subprocess.run(command, capture_output=True)
+
+    assert proc.stderr.decode('utf-8').find(message_to_find) > 0
+    assert proc.returncode == 1
+
+    os.remove(pid_file)
+
+
+def test_pid_file_creation_and_deletion():
+    assert_action_creates_and_deletes_pid_file(f"opmon-collector collect".split(' '))
+    assert_action_creates_and_deletes_pid_file(f"opmon-collector update".split(' '))
+
+
+def assert_action_creates_and_deletes_pid_file(command):
+    xroad = get_parameter('xroad.instance')
+    pid_dir = get_parameter('collector.pid-directory')
+    pid_file = f'{pid_dir}/opmon_collector_{xroad}.pid'
+
+    assert not os.path.isfile(pid_file)
+
+    start_time = time.time()
+    proc = subprocess.Popen(command)
+
+    pid_from_file = None
+
+    while proc.poll() is None and time.time() - start_time < 1000:
+        if os.path.isfile(pid_file):
+            try:
+                with open(pid_file, 'r') as f:
+                    pid_from_file = int(f.readline())
+                    break
+            except Exception:
+                pass
+
+    assert pid_from_file == proc.pid
+
+    proc.send_signal(signal.SIGINT)
+    proc.wait()
+    assert not os.path.isfile(pid_file)
 
 
 def get_parameter(parameter_name):
