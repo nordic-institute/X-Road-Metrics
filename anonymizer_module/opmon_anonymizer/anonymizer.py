@@ -236,6 +236,8 @@ class AnonymizationJob(object):
 
                     processed_records.append(record)
 
+            self._logger_manager.log_info('AnonymizationJob.run',
+                                          f'Processing done. Records to write {len(processed_records)}.')
             self._writer.write_records(processed_records)
         except Exception:
             logger.log_error('record_batch_anonymization_failed',
