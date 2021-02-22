@@ -30,6 +30,7 @@ class PostgreSqlManager(object):
                 cursor = connection.cursor()
                 query = self._generate_insert_query(cursor, data)
                 cursor.execute(query)
+                self._logger.log_info('PostgreSqlManager.add_data', f'Inserted {len(data)} rows to PostgreSQL.')
         except Exception:
             trace = traceback.format_exc().replace('\n', '')
             self._logger.log_error('log_insertion_failed', f"Failed to insert logs to postgres. ERROR: {trace}")
