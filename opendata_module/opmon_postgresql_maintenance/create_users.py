@@ -33,8 +33,8 @@ def _connect_postgres(args):
 
     if args.host is not None:
         host, port = args.host.split(":")
-        connections_args['host']: host
-        connections_args['port']: port
+        connections_args['host'] = host
+        connections_args['port'] = int(port)
 
     if args.password is not None:
         connections_args['password'] = args.password
