@@ -29,6 +29,7 @@ setup(
     author='NIIS',
     author_email='info@niis.org',
     packages=find_packages(exclude=("*.tests", "tests",)),
+    scripts=['bin/opmon-init-postgresql'],
     include_package_data=True,
     install_requires=requirements,
     classifiers=classifiers,
