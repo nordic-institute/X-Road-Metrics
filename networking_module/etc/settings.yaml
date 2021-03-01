@@ -1,0 +1,19 @@
+xroad:
+  instance: <FILL>
+
+networking:
+  interval: 5
+  buffer: 10
+  metaservices:
+    - "getWsdl"
+    - "listMethods"
+    - "allowedMethods"
+    - "getSecurityServerMetrics"
+    - "getSecurityServerOperationalData"
+    - "getSecurityServerHealthData"
+
+postgres:
+  host: localhost
+  port: 5432
+  username: <FILL>
+  password: <FILL>
