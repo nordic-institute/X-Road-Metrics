@@ -22,3 +22,5 @@ settings <- tryCatch(
 #postgres doesn't like uppercase or dashes
 settings$postgres$suffix <- tolower(gsub("-", "_",settings$xroad$instance))
 
+logfile <- paste0(settings$logger$"log-path", "/prepare_data_log.json")
+heartbeatfile <- paste0(settings$logger$"heartbeat-path", "/prepare_data_heartbeat.json")
