@@ -3,7 +3,8 @@ library(dplyr)
 library(shinycssloaders)
 library(qgraph)
 library(ggplot2)
-library(stringr)
+
+rdsPath <- "/var/lib/opmon/networking"
 
 ####ui####
 ui <- fluidPage(
@@ -50,8 +51,8 @@ server <- function(input, output, session) {
   {
     query <- parseQueryString(session$clientData$url_search)
     profile.suffix <- if ("profile" %in% names(query)) paste0("_", query[["profile"]]) else ""
-    reactives$dat <- readRDS(paste0("dat", profile.suffix, ".rds"))
-    reactives$dates <- readRDS(paste0("dates", profile.suffix, ".rds"))
+    reactives$dat <- readRDS(paste0(rdsPath, "/dat", profile.suffix, ".rds"))
+    reactives$dates <- readRDS(paste0(rdsPath, "/dates", profile.suffix, ".rds"))
     reactives$xroadInstance <- reactives$dates[3]
 
     session$sendCustomMessage(

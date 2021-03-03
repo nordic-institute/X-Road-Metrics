@@ -1,11 +1,28 @@
+#!/usr/bin/env Rscript
+
 starttime <- Sys.time()
 
 duration <- function() { paste('"duration":"', format(as.POSIXct(as.numeric(Sys.time() - starttime, units = 'secs'), origin = as.Date(starttime), tz = "GMT"), format = "%H:%M:%S"), '", ', sep = '') }
 
-args <- commandArgs(trailingOnly = F)
-scriptPath <- normalizePath(dirname(sub("^--file=", "", args[grep("^--file=", args)])))
+library(dplyr)
+library(RPostgreSQL)
+library(jsonlite)
 
-setwd(scriptPath)
+settingsScript <- "/usr/share/opmon/networking/prepare_data_settings.R"
+if (file.exists("./prepare_data_settings.R")){
+  settingsScript <- "./prepare_data_settings.R"
+}
+
+source(settingsScript)
+
+
+if (!file.exists(logfile)){
+  file.create(logfile)
+}
+
+if (!file.exists(heartbeatfile)){
+  file.create(heartbeatfile)
+}
 
 cat('{"module":"networking_module", ',
     '"local_timestamp":"', as.character(starttime), '", ',
@@ -13,18 +30,12 @@ cat('{"module":"networking_module", ',
     '"level":"INFO", ',
     '"activity":"starting data preparation", ',
     '"msg":"data preparation script started"}\n',
-    file = 'logs/prepare_data_log.json', append = T, sep = '')
+    file = logfile, append = T, sep = '')
 
-library(dplyr)
-library(RPostgreSQL)
-library(jsonlite)
-
-source('prepare_data_settings.R')
-
-path.data <- paste0('/srv/shiny-server/', settings$xroad$instance, '/dat', profile.suffix,'.rds')
-path.dates <- paste0('/srv/shiny-server/', settings$xroad$instance, '/dates', profile.suffix, '.rds')
-path.membernames <- paste0('/srv/app/', settings$xroad$instance, '/membernames.rds')
-riha <- paste0('riha_', settings$xroad$instance, '.json')
+path.data <- paste0('/var/lib/opmon/networking/dat', profile.suffix,'.rds')
+path.dates <- paste0('/var/lib/opmon/networking/dates', profile.suffix, '.rds')
+path.membernames <- paste0('/usr/share/opmon/networking/membernames', profile.suffix, '.rds')
+riha <- settings$networking$"subsystem-info-path"
 days <- (settings$networking$interval + settings$networking$buffer)
 
 tryCatch(
@@ -44,12 +55,12 @@ tryCatch(
         '"level":"ERROR", ',
         '"activity":"establish Open data PosgreSQL connection", ',
         '"msg":"', gsub("[\r\n]", "", toString(err.msg)), '"}\n',
-        file = 'logs/prepare_data_log.json', append = T, sep = '')
+        file = logfile, append = T, sep = '')
     cat('{"module":"networking_module", ',
         '"local_timestamp":"', as.character(Sys.time()), '", ',
         '"timestamp":', as.numeric(Sys.time()), ', ',
         '"msg":"FAILED"}',
-        file = 'heartbeat/prepare_data_heartbeat.json', append = F, sep = '')
+        file = heartbeatfile, append = F, sep = '')
   }
 )
 
@@ -65,12 +76,12 @@ tryCatch(
         '"level":"ERROR", ',
         '"activity":"read riha.json", ',
         '"msg":"', gsub("[\r\n]", "", toString(err.msg)), '"}\n',
-        file = 'logs/prepare_data_log.json', append = T, sep = '')
+        file = logfile, append = T, sep = '')
     cat('{"module":"networking_module", ',
         '"local_timestamp":"', as.character(Sys.time()), '", ',
         '"timestamp":', as.numeric(Sys.time()), ', ',
         '"msg":"FAILED"}',
-        file = 'heartbeat/prepare_data_heartbeat.json', append = F, sep = '')
+        file = heartbeatfile, append = F, sep = '')
   }
 )
 
@@ -90,12 +101,12 @@ tryCatch(
         '"level":"ERROR", ',
         '"activity":"retrieve last date from Open data PosgreSQL database", ',
         '"msg":"', gsub("[\r\n]", "", toString(err.msg)), '"}\n',
-        file = 'logs/prepare_data_log.json', append = T, sep = '')
+        file = logfile, append = T, sep = '')
     cat('{"module":"networking_module", ',
         '"local_timestamp":"', as.character(Sys.time()), '", ',
         '"timestamp":', as.numeric(Sys.time()), ', ',
         '"msg":"FAILED"}',
-        file = 'heartbeat/prepare_data_heartbeat.json', append = F, sep = '')
+        file = heartbeatfile, append = F, sep = '')
   }
 )
 
@@ -120,12 +131,12 @@ if (!is.null(last.date)) {
           '"level":"ERROR", ',
           '"activity":"retrieve logs from Open data PosgreSQL database", ',
           '"msg":"', gsub("[\r\n]", "", toString(err.msg)), '"}\n',
-          file = 'logs/prepare_data_log.json', append = T, sep = '')
+          file = logfile, append = T, sep = '')
       cat('{"module":"networking_module", ',
           '"local_timestamp":"', as.character(Sys.time()), '", ',
           '"timestamp":', as.numeric(Sys.time()), ', ',
           '"msg":"FAILED"}',
-          file = 'heartbeat/prepare_data_heartbeat.json', append = F, sep = '')
+          file = heartbeatfile, append = F, sep = '')
     }
   )
 
@@ -171,12 +182,12 @@ if (!is.null(last.date)) {
           '"level":"ERROR", ',
           '"activity":"prepare data and save for visualizer", ',
           '"msg":"', gsub("[\r\n]", "", toString(err.msg)), '"}\n',
-          file = 'logs/prepare_data_log.json', append = T, sep = '')
+          file = logfile, append = T, sep = '')
       cat('{"module":"networking_module", ',
           '"local_timestamp":"', as.character(Sys.time()), '", ',
           '"timestamp":', as.numeric(Sys.time()), ', ',
           '"msg":"FAILED"}',
-          file = 'heartbeat/prepare_data_heartbeat.json', append = F, sep = '')
+          file = heartbeatfile, append = F, sep = '')
     })
   } else {
     cat('{"module":"networking_module", ',
@@ -186,12 +197,12 @@ if (!is.null(last.date)) {
         '"level":"ERROR", ',
         '"activity":"retrieve logs from Open data PosgreSQL database", ',
         '"msg":"no data in the Open data PostgreSQL database for the specified time frame"}\n',
-        file = 'logs/prepare_data_log.json', append = T, sep = '')
+        file = logfile, append = T, sep = '')
     cat('{"module":"networking_module", ',
         '"local_timestamp":"', as.character(Sys.time()), '", ',
         '"timestamp":', as.numeric(Sys.time()), ', ',
         '"msg":"FAILED"}',
-        file = 'heartbeat/prepare_data_heartbeat.json', append = F, sep = '')
+        file = heartbeatfile, append = F, sep = '')
 
   }
 }
@@ -204,11 +215,11 @@ if (exists("dat2")) {
       '"level":"INFO", ',
       '"activity":"data preparation ended", ',
       '"msg":"', nrow(dat2), ' rows were written for visualizer"}\n',
-      file = 'logs/prepare_data_log.json', append = T, sep = '')
+      file = logfile, append = T, sep = '')
   cat('{"module":"networking_module", ',
       '"local_timestamp":"', as.character(Sys.time()), '", ',
       '"timestamp":', as.numeric(Sys.time()), ', ',
       '"msg":"SUCCEEDED"}',
-      file = 'heartbeat/prepare_data_heartbeat.json', append = F, sep = '')
+      file = heartbeatfile, append = F, sep = '')
 }
 
