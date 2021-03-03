@@ -1,0 +1,10 @@
+# Default cronjob for OpMon Networking module
+# Runs the Networking Visualizer data preparation script daily
+# Script is run using the default networking module settings file (/etc/opmon/networking/settings.yaml)
+
+
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# m   h  dom mon dow  user       command
+  12  4   *   *   *   opmon      /usr/share/opmon/networking/networking-cron-entrypoint.sh
