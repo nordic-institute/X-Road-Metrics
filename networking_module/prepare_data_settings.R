@@ -1,21 +1,24 @@
-# This is a Networking modules settings file. 
-# Different settings file must be configured for each X-Road instance.
+library("yaml")
 
-# The name of the X-Road instance.
-instancename="sample"
+args <- commandArgs(trailingOnly = TRUE)
+profile.suffix <- ""
 
-# Time interval in days for which the data is queried.
-interval=5
+if (length(args) >= 2 && args[1] == "--profile") {
+  profile.suffix <- paste0("_", args[2])
+}
 
-# Time buffer backward from the last date to enable data collection and correction.
-buffer=10
+settings_file_name <- paste0("settings", profile.suffix, ".yaml")
 
-# List of metaservices (services related to the X-road monitoring by the Information System Authority).
-metaservices<-c("getWsdl", "listMethods", "allowedMethods", "getSecurityServerMetrics", "getSecurityServerOperationalData", "getSecurityServerHealthData")
+settings <- tryCatch(
+  yaml.load_file(paste0("./", settings_file_name)),
+  error=function(cond) {
+    message(cond)
+    return(
+      yaml.load_file(paste0("/etc/opmon/networking/", settings_file_name))
+    )
+  }
+)
 
-# Open data PostgreSQL database credentials. 
-host="#NA"
-dbname="opendata_sample"
-user="networking_sample"
-port=5432
-pwd="#NA"
+#postgres doesn't like uppercase or dashes
+settings$postgres$suffix <- tolower(gsub("-", "_",settings$xroad$instance))
+
