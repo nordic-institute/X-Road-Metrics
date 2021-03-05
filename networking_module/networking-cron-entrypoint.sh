@@ -10,19 +10,21 @@
 #
 # Author: Toomas Mölder <toomas.molder@ria.ee>, skype: toomas.molder, phone: +372 5522000
 
-# Prepare running environment
-# Change INSTANCE if needed!
-APPDIR="/srv/app"
-INSTANCE="sample" 
+PROFILE=${1:-""}
+
+PROFILE_FLAG=""
+if [[ -n "$PROFILE" ]]; then PROFILE_FLAG="--profile $PROFILE"; fi;
+
+PROFILE_SUFFIX=""
+if [[ -n "$PROFILE" ]]; then PROFILE_SUFFIX="_$PROFILE"; fi;
 
 # Prepare ${LOG} and ${LOCK}
 # Please note, that they depend of command ${0}
 PID=$$
 filename=$(basename -- "${0}")
-extension="${filename##*.}"
-filename="${filename%.*}"
-LOG=${APPDIR}/${INSTANCE}/logs/${filename}.log
-LOCK=${APPDIR}/${INSTANCE}/heartbeat/${filename}.lock
+filename="${filename%.*}${PROFILE_SUFFIX}"
+LOG=/var/log/opmon/networking/logs/${filename}.log
+LOCK=/var/log/opmon/networking/heartbeat/${filename}.lock
 
 # Begin
 echo "${PID}: Start of ${0}"  2>&1 | awk '{ print strftime("%Y-%m-%dT%H:%M:%S\t"), $0; fflush(); }' | tee -a ${LOG}
@@ -39,7 +41,7 @@ fi
 #
 # Actual stuff
 #
-Rscript ${APPDIR}/${INSTANCE}/networking_module/prepare_data_report.R 2>&1 | awk '{ print strftime("%Y-%m-%dT%H:%M:%S\t"), $0; fflush(); }' | tee -a ${LOG}
+Rscript /usr/bin/opmon-networking "$PROFILE_FLAG" 2>&1 | awk '{ print strftime("%Y-%m-%dT%H:%M:%S\t"), $0; fflush(); }' | tee -a ${LOG}
 
 # Remove ${LOCK}
 /bin/rm ${LOCK} 2>&1 | awk '{ print strftime("%Y-%m-%dT%H:%M:%S\t"), $0; fflush(); }' | tee -a ${LOG}

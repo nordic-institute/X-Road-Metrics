@@ -11,9 +11,14 @@ networking:
     - "getSecurityServerMetrics"
     - "getSecurityServerOperationalData"
     - "getSecurityServerHealthData"
+  subsystem-info-path: /etc/opmon/networking/riha.json
 
 postgres:
   host: localhost
   port: 5432
   username: <FILL>
   password: <FILL>
+
+logger:
+  log-path: /var/log/opmon/networking/logs
+  heartbeat-path: /var/log/opmon/networking/heartbeat
