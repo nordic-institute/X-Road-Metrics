@@ -3,7 +3,7 @@
 SHINY_VERSION=1.5.16.958
 PACKAGE_SHA=330e4e1c11251a2bd362de39063efaa3dbc87a6b06eced8472522147ad276ee4
 PACKAGE_NAME=shiny-server-${SHINY_VERSION}-amd64.deb
-TMP_DIR=/tmp/opmon/networking/shiny-server-install
+TMP_DIR=$(mktemp --tmp  --directory "opmon-install-shiny-server-XXXXXXX")
 
 confirm_version_change() {
     echo "Another shiny-server version is already installed:"
@@ -45,7 +45,6 @@ verify_checksum() {
 }
 
 download_shiny_server_package() {
-  mkdir --parent ${TMP_DIR}
   wget -P ${TMP_DIR} https://download3.rstudio.org/ubuntu-14.04/x86_64/${PACKAGE_NAME}
 
 }
