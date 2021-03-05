@@ -4,11 +4,10 @@ SHINY_VERSION=1.5.16.958
 PACKAGE_SHA=330e4e1c11251a2bd362de39063efaa3dbc87a6b06eced8472522147ad276ee4
 PACKAGE_NAME=shiny-server-${SHINY_VERSION}-amd64.deb
 TMP_DIR=/tmp/opmon/networking/shiny-server-install
-INSTALLED_SHINY_VERSION=$(apt-cache policy shiny-server | grep Installed)
 
 confirm_version_change() {
     echo "Another shiny-server version is already installed:"
-    echo "shiny-server ${INSTALLED_SHINY_VERSION}"
+    echo "shiny-server ${1}"
     read -p "Replace the installed version with shiny-server ${SHINY_VERSION}? (y/N)" -n 1 -r
     echo ""
     if [[ ! $REPLY =~ ^[Yy]$ ]];
@@ -18,16 +17,21 @@ confirm_version_change() {
     fi
 }
 
-check_previous_installation() {
-  if [[ "${INSTALLED_SHINY_VERSION}" == *${SHINY_VERSION}* ]];
+exit_if_already_installed() {
+  if [[ ${1} == *${SHINY_VERSION}* ]];
   then
     echo "shiny-server ${SHINY_VERSION} already installed."
     exit 0
-  elif \
-    [[ "${INSTALLED_SHINY_VERSION}" == *Installed* ]] && \
-    [[ ! "${INSTALLED_SHINY_VERSION}" == *none* ]];
+  fi
+}
+
+check_previous_installation() {
+  if [[ $(dpkg-query --showformat='${Status}' --show shiny-server) == *installed* ]];
   then
-    confirm_version_change
+    local INSTALLED_SHINY_VERSION
+    INSTALLED_SHINY_VERSION=$(dpkg-query --showformat='${Version}' --show shiny-server)
+    exit_if_already_installed "$INSTALLED_SHINY_VERSION"
+    confirm_version_change "$INSTALLED_SHINY_VERSION"
   fi
 }
 
