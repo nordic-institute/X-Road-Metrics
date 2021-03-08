@@ -74,15 +74,14 @@ use it automatically.
 Default settings file for opmon-networking data preparation step is /etc/opmon/networking/settings.yaml
 
 Before running the data preparation, user should fill in the following configuration:
-    * X-Road instance name
-    * Open data PostgreSQL database connection configuration
+  - X-Road instance name
+  - Open data PostgreSQL database connection configuration
     
 Additionally, the following parameters can be adjusted in the settings file:
-    * Time interval for data to be fetched from Open data PostgreSQL database
-    * List of metaservices
-    * Logging configuration
-    * Subsystem-info file location
-
+  - Time interval for data to be fetched from Open data PostgreSQL database
+  - List of metaservices
+  - Logging configuration
+  - Subsystem-info file location
 
 ### Subsystem-info file
 During the data preparation step networking module adds subsystem names to the data.
