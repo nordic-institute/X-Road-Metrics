@@ -165,7 +165,7 @@ def test_update_row(random_row):
 def test_return_row_empty():
     report_row_producer = ReportRow(None)
     row = [0, 0, None, (None, None), None, None, (None, None), None, None, (None, None), None]
-    assert (report_row_producer.return_row(), row)
+    assert report_row_producer.return_row() == row
 
 
 def test_return_row_random(random_row):

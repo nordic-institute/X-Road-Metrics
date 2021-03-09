@@ -85,7 +85,7 @@ class OpmonReportsArguments:
             metavar="SYSTEM",
             default=None,
             help="""
-                Target subsystem in format CLASS:MEMBER:SUBSYSTEM. 
+                Target subsystem in format CLASS:MEMBER:SUBSYSTEM.
                 If this argument is omitted reports are generated for all subsystems listed in riha.json.
             """
         )

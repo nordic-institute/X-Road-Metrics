@@ -85,4 +85,3 @@ def log_notification_finish(success_count, fail_count, logger_m):
     log_msg = f'{success_count}/{total_count} emails sent successfully. Failed to send {fail_count} emails.'
     logger_m.log_info('finished_sending_email', log_msg)
     logger_m.log_heartbeat(log_msg, "SUCCEEDED" if fail_count == 0 else "FAILED")
-

@@ -288,11 +288,11 @@ def test_get_member_name(mocker, basic_args, member_names):
 
     member_names = []
     member_name = report_manager.get_member_name(member_names)
-    assert (member_name, "")
+    assert member_name == ""
 
     member_names = None
     member_name = report_manager.get_member_name(member_names)
-    assert (member_name, "")
+    assert member_name == ""
 
 
 def test_get_subsystem_name(mocker, basic_args, member_names):

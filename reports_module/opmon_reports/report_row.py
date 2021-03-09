@@ -51,10 +51,14 @@ class ReportRow:
             self.response_min = min(self.response_min,
                                     response_size) if self.response_min is not None else response_size
             self.response_avg = (
-                self.response_avg[0] +
-                response_size, self.response_avg[1] + 1) if self.response_avg[0] is not None else (response_size, 1)
-            self.response_max = max(self.response_max,
-                                    response_size) if self.response_max is not None else response_size
+                self.response_avg[0] + response_size,
+                self.response_avg[1] + 1
+            ) if self.response_avg[0] is not None else (response_size, 1)
+
+            self.response_max = max(
+                self.response_max,
+                response_size
+            ) if self.response_max is not None else response_size
 
     def update_row(self, document):
         self.update_success_counters(document['succeeded'])
