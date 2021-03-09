@@ -13,11 +13,11 @@ class ReportRow:
         self.response_max = None
         self.produced_service = produced_service
 
-    def calculate_succeeded_queries(self, succeeded):
-        self.succeeded_queries += 1 if succeeded else 0
-
-    def calculate_failed_queries(self, succeeded):
-        self.failed_queries += 1 if not succeeded else 0
+    def update_success_counters(self, succeeded):
+        if succeeded:
+            self.succeeded_queries += 1
+        else:
+            self.failed_queries += 1
 
     def calculate_duration(self, document):
         duration = document['producerDurationProducerView'] if self.produced_service else document['totalDuration']
@@ -57,8 +57,7 @@ class ReportRow:
                                     response_size) if self.response_max is not None else response_size
 
     def update_row(self, document):
-        self.calculate_succeeded_queries(document['succeeded'])
-        self.calculate_failed_queries(document['succeeded'])
+        self.update_success_counters(document['succeeded'])
         if document['succeeded']:
             self.calculate_duration(document)
             self.calculate_request(document)
