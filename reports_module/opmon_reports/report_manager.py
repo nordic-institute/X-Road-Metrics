@@ -42,15 +42,15 @@ class ReportManager:
 
     def is_producer_document(self, document):
         return document["serviceSubsystemCode"] == self.reports_arguments.subsystem_code \
-               and document["serviceMemberCode"] == self.reports_arguments.member_code \
-               and document["serviceMemberClass"] == self.reports_arguments.member_class \
-               and document["serviceXRoadInstance"] == self.reports_arguments.xroad_instance
+            and document["serviceMemberCode"] == self.reports_arguments.member_code \
+            and document["serviceMemberClass"] == self.reports_arguments.member_class \
+            and document["serviceXRoadInstance"] == self.reports_arguments.xroad_instance
 
     def is_client_document(self, document):
         return document["clientSubsystemCode"] == self.reports_arguments.subsystem_code \
-               and document["clientMemberCode"] == self.reports_arguments.member_code \
-               and document["clientMemberClass"] == self.reports_arguments.member_class \
-               and document["clientXRoadInstance"] == self.reports_arguments.xroad_instance
+            and document["clientMemberCode"] == self.reports_arguments.member_code \
+            and document["clientMemberClass"] == self.reports_arguments.member_class \
+            and document["clientXRoadInstance"] == self.reports_arguments.xroad_instance
 
     @staticmethod
     def reduce_to_plain_json(document):
@@ -436,9 +436,9 @@ class ReportManager:
             return {}
         for doc in member_subsystem_info:
             match = doc['member_code'] == self.reports_arguments.member_code \
-                    and doc['subsystem_code'] == self.reports_arguments.subsystem_code \
-                    and doc['member_class'] == self.reports_arguments.member_class \
-                    and doc['x_road_instance'] == self.reports_arguments.xroad_instance
+                and doc['subsystem_code'] == self.reports_arguments.subsystem_code \
+                and doc['member_class'] == self.reports_arguments.member_class \
+                and doc['x_road_instance'] == self.reports_arguments.xroad_instance
             if match:
                 return doc
         return {}
