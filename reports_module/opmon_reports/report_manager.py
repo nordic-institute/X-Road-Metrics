@@ -1,5 +1,6 @@
 import operator
 import os
+import tempfile
 import time
 from datetime import datetime
 
@@ -362,20 +363,14 @@ class ReportManager:
 
     def create_succeeded_plot(self, data, produced_service, file_name):
         suc_top = self.get_succeeded_top(data, produced_service)
+        names, no_of_s = zip(*suc_top)
 
-        names = []
-        no_of_s = []
-        for pair in suc_top:
-            names.append(pair[0])
-            no_of_s.append(pair[1])
+        if len(names) <= 0:
+            return None
 
-        plot = None
-        if len(names) > 0:
-            plot = self.create_plot(
-                names, no_of_s, self.translator.get_translation('PRODUCED_SERVICES_TOP_COUNT'),
-                file_name) if produced_service else self.create_plot(
-                names, no_of_s, self.translator.get_translation('CONSUMED_SERVICES_TOP_COUNT'), file_name)
-        return plot
+        title = 'PRODUCED_SERVICES_TOP_COUNT' if produced_service else 'CONSUMED_SERVICES_TOP_COUNT'
+        translated_title = self.translator.get_translation(title)
+        return self.create_plot(names, no_of_s, translated_title, file_name)
 
     def get_name_and_average(self, key_name, dict_data, produced_service, service):
         subsystem_code = self.reports_arguments.subsystem_code
@@ -405,31 +400,34 @@ class ReportManager:
 
     def create_duration_plot(self, data, produced_service, file_name):
         dur_top = self.get_duration_top(data, produced_service)
-        names = []
-        durs = []
-        for pair in dur_top:
-            names.append(pair[0])
-            durs.append(pair[1])
+        names, durs = zip(*dur_top)
 
-        plot = None
-        if len(names) > 0:
-            plot = self.create_plot(names, durs, self.translator.get_translation('PRODUCED_SERVICES_TOP_MEAN'),
-                                    file_name) if produced_service else self.create_plot(
-                names, durs, self.translator.get_translation('CONSUMED_SERVICES_TOP_MEAN'), file_name)
-        return plot
+        if len(names) <= 0:
+            return None
 
-    def create_plots(self, report_map, plot_1_path, plot_2_path, plot_3_path, plot_4_path):
+        title = 'PRODUCED_SERVICES_TOP_MEAN' if produced_service else 'CONSUMED_SERVICES_TOP_MEAN'
+        translated_title = self.translator.get_translation(title)
+        return self.create_plot(names, durs, translated_title, file_name)
 
-        producer_suc_plot = self.create_succeeded_plot(
-            report_map['ps'], True, plot_1_path) if 'ps' in report_map else None
-        consumer_suc_plot = self.create_succeeded_plot(
-            report_map['cs'], False, plot_2_path) if 'cs' in report_map else None
-        producer_dur_plot = self.create_duration_plot(
-            report_map['ps'], True, plot_3_path) if 'ps' in report_map else None
-        consumer_dur_plot = self.create_duration_plot(
-            report_map['cs'], False, plot_4_path) if 'cs' in report_map else None
+    def create_plots(self, report_map, tmp_dir):
+        plot_filenames = [
+            "produced_succeeded_plot.png",
+            "consumed_succeeded_plot.png",
+            "produced_mean_plot.png",
+            "consumed_mean_plot.png"
+        ]
 
-        return producer_suc_plot, consumer_suc_plot, producer_dur_plot, consumer_dur_plot
+        plot_paths = [os.path.join(tmp_dir, filename) for filename in plot_filenames]
+
+        producer_data = report_map.get('ps')
+        consumer_data = report_map.get('cs')
+
+        return (
+            self.create_succeeded_plot(producer_data, True, plot_paths[0]) if producer_data else None,
+            self.create_succeeded_plot(consumer_data, False, plot_paths[1]) if consumer_data else None,
+            self.create_duration_plot(producer_data, True, plot_paths[2]) if producer_data else None,
+            self.create_duration_plot(consumer_data, False, plot_paths[3]) if consumer_data else None
+        )
 
     def find_document_dictionary(self, member_subsystem_info):
         if member_subsystem_info is None:
@@ -546,32 +544,18 @@ class ReportManager:
 
         return report_name
 
-    @staticmethod
-    def remove_image(image_path):
-        try:
-            os.remove(image_path)
-        except OSError:
-            pass
-
     def generate_report(self):
         start_generate_report = time.time()
 
         report_map = self.get_documents()
         data_frames = self.create_data_frames(report_map)
 
-        plots = self.create_plots(
-            report_map,
-            "reports_module/produced_succeeded_plot.png",
-            "reports_module/consumed_succeeded_plot.png",
-            "reports_module/produced_mean_plot.png",
-            "reports_module/consumed_mean_plot.png"
-        )
+        with tempfile.TemporaryDirectory(prefix="opmon-reports") as tmp:
+            plots = self.create_plots(report_map, tmp)
 
-        creation_time = time_date_tools.datetime_to_modified_string(datetime.now())
-        template = self.prepare_template(plots, data_frames, creation_time)
-
-        report_name = self.save_pdf_to_file(template, creation_time)
-        map(self.remove_image, plots)
+            creation_time = time_date_tools.datetime_to_modified_string(datetime.now())
+            template = self.prepare_template(plots, data_frames, creation_time)
+            report_name = self.save_pdf_to_file(template, creation_time)
 
         end_generate_report = time.time()
         total_time = time.strftime("%H:%M:%S", time.gmtime(end_generate_report - start_generate_report))

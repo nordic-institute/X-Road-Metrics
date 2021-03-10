@@ -1,5 +1,8 @@
+import os
+
 import pytest
 from copy import copy
+import tempfile
 
 from opmon_reports.report_manager import ReportManager
 from opmon_reports.report_manager import ReportRow
@@ -317,3 +320,23 @@ def test_get_subsystem_name(mocker, basic_args, member_names):
     member_names = None
     member_name = report_manager.get_subsystem_name(member_names)
     assert member_name == ""
+
+
+def test_generate_report_tempfolder(mocker, basic_args):
+    report_manager = ReportManager(basic_args, mocker.Mock(), mocker.Mock(), mocker.Mock(), mocker.Mock())
+
+    mocker.patch('opmon_reports.report_manager.ReportManager.get_documents', return_value={})
+    mocker.patch('opmon_reports.report_manager.ReportManager.create_data_frames', return_value=[])
+    mocker.patch('opmon_reports.report_manager.ReportManager.create_plots', return_value=(None, None, None, None))
+    mocker.patch('opmon_reports.report_manager.ReportManager.prepare_template', return_value=mocker.Mock())
+    mocker.patch('opmon_reports.report_manager.ReportManager.save_pdf_to_file', return_value="test report")
+
+    tempdir_spy = mocker.spy(tempfile, "TemporaryDirectory")
+
+    assert report_manager.generate_report() == "test report"
+    tempdir_spy.assert_called_once()
+
+    tempdir = tempdir_spy.spy_return.name
+
+    assert "opmon-reports" in tempdir
+    assert not os.path.exists(tempdir)
