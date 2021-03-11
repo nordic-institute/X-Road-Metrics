@@ -160,8 +160,7 @@ class ReportManager:
                 if producer not in report_map[sorted_service_type]:
                     report_map[sorted_service_type][producer] = dict()
                 if service not in report_map[sorted_service_type][producer]:
-                    report_map[sorted_service_type][producer][service] = self.do_calculations(doc,
-                                                                                              False)  # Count the stuffs
+                    report_map[sorted_service_type][producer][service] = self.do_calculations(doc, False)
                 else:
                     report_map[sorted_service_type][producer][service].update_row(doc)
 
@@ -178,8 +177,7 @@ class ReportManager:
                     report_map[sorted_service_type][service] = dict()
                 client = self.merge_document_fields(doc, client_field_names, "client", "/")
                 if client not in report_map[sorted_service_type][service]:
-                    report_map[sorted_service_type][service][client] = self.do_calculations(doc,
-                                                                                            True)  # Count the stuffs
+                    report_map[sorted_service_type][service][client] = self.do_calculations(doc, True)
                 else:
                     report_map[sorted_service_type][service][client].update_row(doc)
 
@@ -192,47 +190,43 @@ class ReportManager:
         return r_row
 
     @staticmethod
-    def get_min_mean_max(min_val, mean, max_val):
-        if min_val is not None:
-            min_val = round(min_val)
-        avg = None
-        if mean[0] is not None:
-            avg = round(mean[0] / mean[1])
-        if max_val is not None:
-            max_val = round(max_val)
-        return "{0} / {1} / {2}".format(min_val, avg, max_val)
+    def get_min_mean_max(min_val, average, max_val):
+        return "{0} / {1} / {2}".format(
+            round(min_val) if min_val is not None else None,
+            average.rounded_average,
+            round(max_val) if max_val is not None else None
+        )
 
-    def build_producer_document(self, key_name, service_name, dict_data):
-        new_dict = dict()
-        new_dict[self.translator.get_translation("SERVICE")] = key_name
-        new_dict[self.translator.get_translation("CLIENT")] = service_name
-        dict_el = dict_data.return_row()
-        new_dict[self.translator.get_translation("SUCCEEDED_QUERIES")] = dict_el[0]
-        new_dict[self.translator.get_translation("FAILED_QUERIES")] = dict_el[1]
-        new_dict[self.translator.get_translation("DURATION_MIN_MEAN_MAX_MS")] = \
-            self.get_min_mean_max(dict_el[2], dict_el[3], dict_el[4])
-        new_dict[self.translator.get_translation("REQUEST_SIZE_MIN_MEAN_MAX_B")] = \
-            self.get_min_mean_max(dict_el[5], dict_el[6], dict_el[7])
-        new_dict[self.translator.get_translation("RESPONSE_SIZE_MIN_MEAN_MAX_B")] = \
-            self.get_min_mean_max(dict_el[8], dict_el[9], dict_el[10])
-        return new_dict
+    def build_producer_document(self, key_name, service_name, dict_data: ReportRow):
+        doc = self.build_document_base(dict_data)
+        doc.update({
+            self.translator.get_translation("SERVICE"): key_name,
+            self.translator.get_translation("CLIENT"): service_name,
+        })
+        return doc
 
-    def build_consumer_document(self, key_name, service_name, dict_data):
-        new_dict = dict()
-        new_dict[self.translator.get_translation("PRODUCER")] = key_name
-        # t_key = list(dict_data.keys())[0]
-        new_dict[self.translator.get_translation("SERVICE")] = service_name
-        dict_el = dict_data.return_row()
-        # dict_el = dict_data[t_key]
-        new_dict[self.translator.get_translation("SUCCEEDED_QUERIES")] = dict_el[0]
-        new_dict[self.translator.get_translation("FAILED_QUERIES")] = dict_el[1]
-        new_dict[self.translator.get_translation("DURATION_MIN_MEAN_MAX_MS")] = \
-            self.get_min_mean_max(dict_el[2], dict_el[3], dict_el[4])
-        new_dict[self.translator.get_translation("REQUEST_SIZE_MIN_MEAN_MAX_B")] = \
-            self.get_min_mean_max(dict_el[5], dict_el[6], dict_el[7])
-        new_dict[self.translator.get_translation("RESPONSE_SIZE_MIN_MEAN_MAX_B")] = \
-            self.get_min_mean_max(dict_el[8], dict_el[9], dict_el[10])
-        return new_dict
+    def build_consumer_document(self, key_name, service_name, dict_data: ReportRow):
+        doc = self.build_document_base(dict_data)
+        doc.update({
+            self.translator.get_translation("PRODUCER"): key_name,
+            self.translator.get_translation("SERVICE"): service_name,
+        })
+        return doc
+
+    def build_document_base(self, dict_data: ReportRow):
+        return {
+            self.translator.get_translation("SUCCEEDED_QUERIES"): dict_data.succeeded_queries,
+            self.translator.get_translation("FAILED_QUERIES"): dict_data.failed_queries,
+
+            self.translator.get_translation("DURATION_MIN_MEAN_MAX_MS"): self.get_min_mean_max(
+                dict_data.duration_min, dict_data.duration_avg, dict_data.duration_max),
+
+            self.translator.get_translation("REQUEST_SIZE_MIN_MEAN_MAX_B"): self.get_min_mean_max(
+                dict_data.request_max, dict_data.request_avg, dict_data.request_max),
+
+            self.translator.get_translation("RESPONSE_SIZE_MIN_MEAN_MAX_B"): self.get_min_mean_max(
+                dict_data.response_min, dict_data.response_avg, dict_data.response_max)
+        }
 
     def get_list_of_produced_services(self, data):
         ps_list = []
@@ -301,31 +295,6 @@ class ReportManager:
 
         return produced_service_df, produced_metaservice_df, consumed_service_df, consumed_metaservice_df
 
-    def get_name_and_count(self, key_name, dict_data, produced_service, service_name):
-        subsystem_code = self.reports_arguments.subsystem_code
-        name = f"{subsystem_code}: {key_name}" if produced_service else f"{key_name}: {service_name}"
-        t_key = dict_data.return_row()
-        count = t_key[0]
-        return name, count
-
-    def get_succeeded_top(self, data, produced_service):
-        result_dict = dict()
-        for key in data:
-            for service in data[key]:
-                n, c = self.get_name_and_count(key, data[key][service], produced_service, service)
-                if c > 0:
-                    if n in result_dict:
-                        if result_dict[n] < c:
-                            result_dict[n] = c
-                    else:
-                        result_dict[n] = c
-
-        sorted_dict = sorted(result_dict.items(), key=operator.itemgetter(1))
-        if len(sorted_dict) < 6:
-            return sorted_dict
-        else:
-            return sorted_dict[-5:]
-
     @staticmethod
     def create_plot(list_of_y_values, list_of_x_values, title, file_name):
         """
@@ -361,54 +330,6 @@ class ReportManager:
 
         return filename
 
-    def create_succeeded_plot(self, data, produced_service, file_name):
-        suc_top = self.get_succeeded_top(data, produced_service)
-        names, no_of_s = zip(*suc_top)
-
-        if len(names) <= 0:
-            return None
-
-        title = 'PRODUCED_SERVICES_TOP_COUNT' if produced_service else 'CONSUMED_SERVICES_TOP_COUNT'
-        translated_title = self.translator.get_translation(title)
-        return self.create_plot(names, no_of_s, translated_title, file_name)
-
-    def get_name_and_average(self, key_name, dict_data, produced_service, service):
-        subsystem_code = self.reports_arguments.subsystem_code
-        name = f"{subsystem_code}: {key_name}" if produced_service else f"{key_name}: {service}"
-
-        dict_el = dict_data.return_row()
-        count = round(dict_el[3][0] / dict_el[3][1]) if dict_el[3][0] is not None else None
-        return name, count
-
-    def get_duration_top(self, data, produced_service):
-        result_dict = dict()
-        for key in data:
-            for service in data[key]:
-                n, c = self.get_name_and_average(key, data[key][service], produced_service, service)
-                if c is not None:
-                    if n in result_dict:
-                        if result_dict[n] < c:
-                            result_dict[n] = c
-                    else:
-                        result_dict[n] = c
-
-        sorted_dict = sorted(result_dict.items(), key=operator.itemgetter(1))
-        if len(sorted_dict) < 6:
-            return sorted_dict
-        else:
-            return sorted_dict[-5:]
-
-    def create_duration_plot(self, data, produced_service, file_name):
-        dur_top = self.get_duration_top(data, produced_service)
-        names, durs = zip(*dur_top)
-
-        if len(names) <= 0:
-            return None
-
-        title = 'PRODUCED_SERVICES_TOP_MEAN' if produced_service else 'CONSUMED_SERVICES_TOP_MEAN'
-        translated_title = self.translator.get_translation(title)
-        return self.create_plot(names, durs, translated_title, file_name)
-
     def create_plots(self, report_map, tmp_dir):
         plot_filenames = [
             "produced_succeeded_plot.png",
@@ -423,11 +344,72 @@ class ReportManager:
         consumer_data = report_map.get('cs')
 
         return (
-            self.create_succeeded_plot(producer_data, True, plot_paths[0]) if producer_data else None,
-            self.create_succeeded_plot(consumer_data, False, plot_paths[1]) if consumer_data else None,
-            self.create_duration_plot(producer_data, True, plot_paths[2]) if producer_data else None,
-            self.create_duration_plot(consumer_data, False, plot_paths[3]) if consumer_data else None
+            self.create_succeeded_plot(producer_data, True, plot_paths[0]),
+            self.create_succeeded_plot(consumer_data, False, plot_paths[1]),
+            self.create_duration_plot(producer_data, True, plot_paths[2]),
+            self.create_duration_plot(consumer_data, False, plot_paths[3])
         )
+
+    def create_succeeded_plot(self, data, produced_service, file_name):
+        if data is None:
+            return None
+
+        succeeded_top = self.get_succeeded_top(data, produced_service)
+
+        if len(succeeded_top) <= 0:
+            return None
+
+        names, success_counts = zip(*succeeded_top)
+
+        title = 'PRODUCED_SERVICES_TOP_COUNT' if produced_service else 'CONSUMED_SERVICES_TOP_COUNT'
+        translated_title = self.translator.get_translation(title)
+        return self.create_plot(names, success_counts, translated_title, file_name)
+
+    def get_succeeded_top(self, data, produced_service):
+        result_dict = dict()
+
+        for key1 in data:
+            for key2 in data[key1]:
+                count = data[key1][key2].succeeded_queries
+                name = f"{self.reports_arguments.subsystem_code}: {key1}" if produced_service else f"{key1}: {key2}"
+                if count <= 0:
+                    continue
+
+                if name not in result_dict or result_dict[name] < count:
+                    result_dict[name] = count
+
+        sorted_pairs = sorted(result_dict.items(), key=operator.itemgetter(1))
+        return sorted_pairs if len(sorted_pairs) < 6 else sorted_pairs[-5:]
+
+    def create_duration_plot(self, data, produced_service, file_name):
+        if data is None:
+            return None
+
+        top_durations = self.get_duration_top(data, produced_service)
+
+        if len(top_durations) <= 0:
+            return None
+
+        names, durations = zip(*top_durations)
+
+        title = 'PRODUCED_SERVICES_TOP_MEAN' if produced_service else 'CONSUMED_SERVICES_TOP_MEAN'
+        translated_title = self.translator.get_translation(title)
+        return self.create_plot(names, durations, translated_title, file_name)
+
+    def get_duration_top(self, data, produced_service):
+        result_dict = dict()
+        for key1 in data:
+            for key2 in data[key1]:
+                duration = data[key1][key2].duration_avg.rounded_average
+                name = f"{self.reports_arguments.subsystem_code}: {key1}" if produced_service else f"{key1}: {key2}"
+                if duration is None:
+                    continue
+
+                if name not in result_dict or result_dict[name] < duration:
+                    result_dict[name] = duration
+
+        sorted_pairs = sorted(result_dict.items(), key=operator.itemgetter(1))
+        return sorted_pairs if len(sorted_pairs) < 6 else sorted_pairs[-5:]
 
     def find_document_dictionary(self, member_subsystem_info):
         if member_subsystem_info is None:
