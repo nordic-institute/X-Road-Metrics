@@ -61,7 +61,9 @@ def test_calculate_duration():
 
     assert (report_row_producer.duration_min == min(producers_duration))
     assert (report_row_producer.duration_max == max(producers_duration))
-    assert (report_row_producer.duration_avg == (sum(producers_duration), number_of_producers))
+    assert report_row_producer.duration_avg.sum == sum(producers_duration)
+    assert report_row_producer.duration_avg.count == number_of_producers
+    assert report_row_producer.duration_avg.average == sum(producers_duration) / number_of_producers
 
     consumers_duration = []
     for i in range(number_of_consumers):
@@ -74,7 +76,7 @@ def test_calculate_duration():
 
     assert (report_row_consumer.duration_min == min(consumers_duration))
     assert (report_row_consumer.duration_max == max(consumers_duration))
-    assert (report_row_consumer.duration_avg == (sum(consumers_duration), number_of_consumers))
+    assert report_row_consumer.duration_avg.average == sum(consumers_duration) / number_of_consumers
 
 
 def test_calculate_request():
@@ -95,7 +97,7 @@ def test_calculate_request():
 
     assert (report_row_producer.request_min == min(client_requirements))
     assert (report_row_producer.request_max == max(client_requirements))
-    assert (report_row_producer.request_avg == (sum(client_requirements), number_of_client_requirements))
+    assert report_row_producer.request_avg.average == sum(client_requirements) / number_of_client_requirements
 
     producer_requirements = []
     for i in range(number_of_producer_requirements):
@@ -108,7 +110,7 @@ def test_calculate_request():
 
     assert (report_row_consumer.request_min == min(producer_requirements))
     assert (report_row_consumer.request_max == max(producer_requirements))
-    assert (report_row_consumer.request_avg == (sum(producer_requirements), number_of_producer_requirements))
+    assert report_row_consumer.request_avg.average == sum(producer_requirements) / number_of_producer_requirements
 
 
 def test_calculate_response():
@@ -129,7 +131,7 @@ def test_calculate_response():
 
     assert (report_row_producer.response_min == min(client_requirements))
     assert (report_row_producer.response_max == max(client_requirements))
-    assert (report_row_producer.response_avg == (sum(client_requirements), number_of_client_requirements))
+    assert report_row_producer.response_avg.average == sum(client_requirements) / number_of_client_requirements
 
     producer_requirements = []
     for i in range(number_of_producer_requirements):
@@ -142,7 +144,7 @@ def test_calculate_response():
 
     assert (report_row_consumer.response_min == min(producer_requirements))
     assert (report_row_consumer.response_max == max(producer_requirements))
-    assert (report_row_consumer.response_avg == (sum(producer_requirements), number_of_producer_requirements))
+    assert report_row_consumer.response_avg.average == sum(producer_requirements) / number_of_producer_requirements
 
 
 def test_update_row(random_row):
@@ -150,39 +152,13 @@ def test_update_row(random_row):
 
     assert (report_row_producer.response_min == min(client_responses))
     assert (report_row_producer.response_max == max(client_responses))
-    assert (report_row_producer.response_avg == (sum(client_responses), number_of_clients))
+    assert (report_row_producer.response_avg.average == (sum(client_responses) / number_of_clients))
     assert (report_row_producer.request_min == min(client_requests))
     assert (report_row_producer.request_max == max(client_requests))
-    assert (report_row_producer.request_avg == (sum(client_requests), number_of_clients))
+    assert (report_row_producer.request_avg.average == (sum(client_requests) / number_of_clients))
     assert (report_row_producer.duration_min == min(client_durations))
     assert (report_row_producer.duration_max == max(client_durations))
-    assert (report_row_producer.duration_avg == (sum(client_durations), number_of_clients))
+    assert (report_row_producer.duration_avg.average == (sum(client_durations) / number_of_clients))
     assert (report_row_producer.succeeded_queries == number_of_clients)
     # It is equal to number_of_clients because the "succeeded": None means it is False in the new_doc_none.
     assert (report_row_producer.failed_queries == number_of_clients)
-
-
-def test_return_row_empty():
-    report_row_producer = ReportRow(None)
-    row = [0, 0, None, (None, None), None, None, (None, None), None, None, (None, None), None]
-    assert report_row_producer.return_row() == row
-
-
-def test_return_row_random(random_row):
-    report_row_producer, client_requests, client_responses, number_of_clients, client_durations = random_row
-
-    row = [
-        number_of_clients,
-        number_of_clients,
-        min(client_durations),
-        (sum(client_durations), number_of_clients),
-        max(client_durations),
-        min(client_requests),
-        (sum(client_requests), number_of_clients),
-        max(client_requests),
-        min(client_responses),
-        (sum(client_responses), number_of_clients),
-        max(client_responses)
-    ]
-
-    assert (report_row_producer.return_row() == row)

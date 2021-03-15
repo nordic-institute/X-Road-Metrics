@@ -1,15 +1,43 @@
+class AverageValue:
+    def __init__(self):
+        self.sum = 0.0
+        self.count = 0
+
+    @property
+    def average(self):
+        if self.count == 0:
+            return None
+        return self.sum / self.count
+
+    @property
+    def rounded_average(self):
+        if self.average is None:
+            return None
+        return round(self.average)
+
+    def add_sample(self, sample: float):
+        if sample is None:
+            return
+        self.sum += sample
+        self.count += 1
+
+    def __repr__(self):
+        return f"{self.average}"
+
+
 class ReportRow:
     def __init__(self, produced_service):
         self.succeeded_queries = 0
         self.failed_queries = 0
         self.duration_min = None
-        self.duration_avg = (None, None)
+        self.duration_avg = AverageValue()
+        self.duration_sample_count = 0
         self.duration_max = None
         self.request_min = None
-        self.request_avg = (None, None)
+        self.request_avg = AverageValue()
         self.request_max = None
         self.response_min = None
-        self.response_avg = (None, None)
+        self.response_avg = AverageValue()
         self.response_max = None
         self.produced_service = produced_service
 
@@ -21,12 +49,12 @@ class ReportRow:
 
     def calculate_duration(self, document):
         duration = document['producerDurationProducerView'] if self.produced_service else document['totalDuration']
-        if duration is not None:
-            self.duration_min = min(self.duration_min, duration) if self.duration_min is not None else duration
-            self.duration_avg = (
-                self.duration_avg[0] + duration, self.duration_avg[1] + 1) if self.duration_avg[0] is not None else (
-                duration, 1)
-            self.duration_max = max(self.duration_max, duration) if self.duration_max is not None else duration
+        if duration is None:
+            return
+
+        self.duration_min = min(self.duration_min, duration) if self.duration_min is not None else duration
+        self.duration_max = max(self.duration_max, duration) if self.duration_max is not None else duration
+        self.duration_avg.add_sample(duration)
 
     def calculate_request(self, document):
         request_size = None
@@ -34,12 +62,12 @@ class ReportRow:
             request_size = document["clientRequestSize"]
         elif document["producerRequestSize"] is not None:
             request_size = document["producerRequestSize"]
-        if request_size is not None:
-            self.request_min = min(self.request_min, request_size) if self.request_min is not None else request_size
-            self.request_avg = (
-                self.request_avg[0] + request_size, self.request_avg[1] + 1) if self.request_avg[0] is not None else (
-                request_size, 1)
-            self.request_max = max(self.request_max, request_size) if self.request_max is not None else request_size
+        if request_size is None:
+            return
+
+        self.request_min = min(self.request_min, request_size) if self.request_min is not None else request_size
+        self.request_max = max(self.request_max, request_size) if self.request_max is not None else request_size
+        self.request_avg.add_sample(request_size)
 
     def calculate_response(self, document):
         response_size = None
@@ -47,18 +75,13 @@ class ReportRow:
             response_size = document["clientResponseSize"]
         elif document["producerResponseSize"] is not None:
             response_size = document["producerResponseSize"]
-        if response_size is not None:
-            self.response_min = min(self.response_min,
-                                    response_size) if self.response_min is not None else response_size
-            self.response_avg = (
-                self.response_avg[0] + response_size,
-                self.response_avg[1] + 1
-            ) if self.response_avg[0] is not None else (response_size, 1)
 
-            self.response_max = max(
-                self.response_max,
-                response_size
-            ) if self.response_max is not None else response_size
+        if response_size is None:
+            return
+
+        self.response_min = min(self.response_min, response_size) if self.response_min is not None else response_size
+        self.response_max = max(self.response_max, response_size) if self.response_max is not None else response_size
+        self.response_avg.add_sample(response_size)
 
     def update_row(self, document):
         self.update_success_counters(document['succeeded'])
@@ -67,10 +90,19 @@ class ReportRow:
             self.calculate_request(document)
             self.calculate_response(document)
 
-    def return_row(self):
-        return [self.succeeded_queries, self.failed_queries, self.duration_min, self.duration_avg, self.duration_max,
-                self.request_min, self.request_avg, self.request_max, self.response_min, self.response_avg,
-                self.response_max]
-
     def __repr__(self):
-        return "{0}".format(self.return_row())
+        return "{0}".format(
+            [
+                self.succeeded_queries,
+                self.failed_queries,
+                self.duration_min,
+                self.duration_avg.average,
+                self.duration_max,
+                self.request_min,
+                self.request_avg.average,
+                self.request_max,
+                self.response_min,
+                self.response_avg.average,
+                self.response_max
+            ]
+        )

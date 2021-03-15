@@ -1,8 +1,12 @@
+import os
+
 import pytest
 from copy import copy
+import tempfile
 
 from opmon_reports.report_manager import ReportManager
 from opmon_reports.report_manager import ReportRow
+from opmon_reports.report_row import AverageValue
 
 
 @pytest.fixture()
@@ -55,22 +59,49 @@ def member_names():
     ]
 
 
-def map_rows_to_test_services(rows):
+class UnitTestAverageValue(AverageValue):
+    def __init__(self, sum, count):
+        super().__init__()
+        self.sum = sum
+        self.count = count
+
+
+def map_rows_to_producer_services(rows):
     return {
         "service_1": {
-            "ee-dev_0": rows[0],
-            "ee-dev_1": rows[1],
-            "ee-dev_2": rows[2]
+            "SUB1": rows[0],
+            "SUB2": rows[1],
+            "SUB3": rows[2]
         },
         "service_2": {
-            "ee-dev_3": rows[6],
-            "ee-dev_4": rows[7],
-            "ee-dev_5": rows[8]
+            "SUB1": rows[6],
+            "SUB2": rows[7],
+            "SUB3": rows[8]
         },
         "service_3": {
-            "ee-dev_6": rows[3],
-            "ee-dev_7": rows[4],
-            "ee-dev_8": rows[5]
+            "SUB1": rows[3],
+            "SUB2": rows[4],
+            "SUB3": rows[5]
+        },
+    }
+
+
+def map_rows_to_consumer_services(rows):
+    return {
+        "SUB1": {
+            "service1": rows[0],
+            "service2": rows[1],
+            "service3": rows[2]
+        },
+        "SUB2": {
+            "service1": rows[6],
+            "service2": rows[7],
+            "service3": rows[8]
+        },
+        "SUB3": {
+            "service1": rows[3],
+            "service2": rows[4],
+            "service3": rows[5]
         },
     }
 
@@ -167,78 +198,40 @@ def test_merge_document_fields(mocker, basic_args, basic_document):
 
 
 def test_get_min_mean_max():
-    assert ReportManager.get_min_mean_max(5, (11, 2), 5) == "5 / 6 / 5"
-    assert ReportManager.get_min_mean_max(-5, (-11, 2), -5) == "-5 / -6 / -5"
-    assert ReportManager.get_min_mean_max(5.44235, (11.12412, 3.1253), 5.415123) == "5 / 4 / 5"
-    assert ReportManager.get_min_mean_max(5.6, (11, 4), 5.6) == "6 / 3 / 6"
-    assert ReportManager.get_min_mean_max(None, (11, 2), 5) == "None / 6 / 5"
-    assert ReportManager.get_min_mean_max(None, (None, None), None) == "None / None / None"
-
-
-def test_get_name_and_count(mocker, basic_args):
-    report_manager = ReportManager(basic_args, mocker.Mock(), mocker.Mock(), mocker.Mock(), mocker.Mock())
-
-    key = "ee-dev"
-    report_row = ReportRow(None)
-    suc_queries = 10
-    report_row.succeeded_queries = suc_queries
-    produced_service = True
-    service_name = "service"
-
-    name_and_count = report_manager.get_name_and_count(key, report_row, produced_service, service_name)
-    assert name_and_count == ("TEST_SUB: ee-dev", suc_queries)
-
-    produced_service = False
-    name_and_count = report_manager.get_name_and_count(key, report_row, produced_service, service_name)
-    assert name_and_count == ("ee-dev: service", suc_queries)
+    assert ReportManager.get_min_mean_max(5, UnitTestAverageValue(11, 2), 5) == "5 / 6 / 5"
+    assert ReportManager.get_min_mean_max(-5, UnitTestAverageValue(-11, 2), -5) == "-5 / -6 / -5"
+    assert ReportManager.get_min_mean_max(5.44235, UnitTestAverageValue(11.12412, 3.1253), 5.415123) == "5 / 4 / 5"
+    assert ReportManager.get_min_mean_max(5.6, UnitTestAverageValue(11, 4), 5.6) == "6 / 3 / 6"
+    assert ReportManager.get_min_mean_max(None, UnitTestAverageValue(11, 2), 5) == "None / 6 / 5"
+    assert ReportManager.get_min_mean_max(None, AverageValue(), None) == "None / None / None"
 
 
 def test_get_succeeded_top(mocker, basic_args):
     report_manager = ReportManager(basic_args, mocker.Mock(), mocker.Mock(), mocker.Mock(), mocker.Mock())
 
     rows = [ReportRow(None) for _ in range(9)]
-    success_counts = [10, 15, 7, 12, 13, 8, 11, 14, 9]
+    success_counts = [10, 15, 7, 14, 13, 8, 11, 12, 9]
 
     for row, success_count in zip(rows, success_counts):
         row.succeeded_queries = success_count
 
-    test_data = map_rows_to_test_services(rows)
-
+    test_data = map_rows_to_producer_services(rows)
     succeeded_top = report_manager.get_succeeded_top(test_data, produced_service=True)
     assert succeeded_top == [
-        ("TEST_SUB: service_3", 13),
-        ("TEST_SUB: service_2", 14),
-        ("TEST_SUB: service_1", 15)
+        ('TEST_SUB: service_2', 12),
+        ('TEST_SUB: service_3', 14),
+        ('TEST_SUB: service_1', 15)
     ]
 
+    test_data = map_rows_to_consumer_services(rows)
     succeeded_top = report_manager.get_succeeded_top(test_data, produced_service=False)
     assert succeeded_top == [
-        ("service_2: ee-dev_3", 11),
-        ("service_3: ee-dev_6", 12),
-        ("service_3: ee-dev_7", 13),
-        ("service_2: ee-dev_4", 14),
-        ("service_1: ee-dev_1", 15)
+        ('SUB2: service1', 11),
+        ('SUB2: service2', 12),
+        ('SUB3: service2', 13),
+        ('SUB3: service1', 14),
+        ('SUB1: service2', 15)
     ]
-
-
-def test_get_name_and_average(mocker, basic_args):
-    report_manager = ReportManager(basic_args, mocker.Mock(), mocker.Mock(), mocker.Mock(), mocker.Mock())
-    key = "ee-dev"
-    report_row = ReportRow(None)
-    report_row.duration_avg = (5123.123, 15)
-    produced_service = True
-    service_name = "service"
-
-    name_and_average = report_manager.get_name_and_average(key, report_row, produced_service, service_name)
-    assert name_and_average == ("TEST_SUB: ee-dev", round(report_row.duration_avg[0] / (report_row.duration_avg[1])))
-
-    produced_service = False
-    name_and_average = report_manager.get_name_and_average(key, report_row, produced_service, service_name)
-    assert name_and_average == ("ee-dev: service", round(report_row.duration_avg[0] / (report_row.duration_avg[1])))
-
-    report_row.duration_avg = (None, None)
-    name_and_average = report_manager.get_name_and_average(key, report_row, produced_service, service_name)
-    assert name_and_average == ("ee-dev: service", None)
 
 
 def test_get_duration(mocker, basic_args):
@@ -246,32 +239,36 @@ def test_get_duration(mocker, basic_args):
 
     rows = [ReportRow(None) for _ in range(9)]
     duration_avgs = [
-        (100, 10),
-        (1000, 10),
-        (200, 10),
-        (109, 10),
-        (1100, 10),
-        (209, 10),
-        (90, 10),
-        (900, 10),
-        (190, 10)
+        UnitTestAverageValue(100, 10),
+        UnitTestAverageValue(1000, 10),
+        UnitTestAverageValue(200, 10),
+        UnitTestAverageValue(109, 10),
+        UnitTestAverageValue(1100, 10),
+        UnitTestAverageValue(209, 10),
+        UnitTestAverageValue(90, 10),
+        UnitTestAverageValue(900, 10),
+        UnitTestAverageValue(190, 10)
     ]
 
     for row, duration_avg in zip(rows, duration_avgs):
         row.duration_avg = duration_avg
 
-    test_data = map_rows_to_test_services(rows)
-
+    test_data = map_rows_to_producer_services(rows)
     duration_top = report_manager.get_duration_top(test_data, produced_service=True)
-    assert duration_top == [("TEST_SUB: service_2", 90), ("TEST_SUB: service_1", 100), ("TEST_SUB: service_3", 110)]
+    assert duration_top == [
+        ('TEST_SUB: service_2', 90),
+        ('TEST_SUB: service_1', 100),
+        ('TEST_SUB: service_3', 110)
+    ]
 
+    test_data = map_rows_to_consumer_services(rows)
     duration_top = report_manager.get_duration_top(test_data, produced_service=False)
     assert duration_top == [
-        ("service_1: ee-dev_2", 20),
-        ("service_3: ee-dev_8", 21),
-        ("service_2: ee-dev_4", 90),
-        ("service_1: ee-dev_1", 100),
-        ("service_3: ee-dev_7", 110)
+        ('SUB1: service3', 20),
+        ('SUB3: service3', 21),
+        ('SUB2: service2', 90),
+        ('SUB1: service2', 100),
+        ('SUB3: service2', 110)
     ]
 
 
@@ -317,3 +314,23 @@ def test_get_subsystem_name(mocker, basic_args, member_names):
     member_names = None
     member_name = report_manager.get_subsystem_name(member_names)
     assert member_name == ""
+
+
+def test_generate_report_tempfolder(mocker, basic_args):
+    report_manager = ReportManager(basic_args, mocker.Mock(), mocker.Mock(), mocker.Mock(), mocker.Mock())
+
+    mocker.patch('opmon_reports.report_manager.ReportManager.get_documents', return_value={})
+    mocker.patch('opmon_reports.report_manager.ReportManager.create_data_frames', return_value=[])
+    mocker.patch('opmon_reports.report_manager.ReportManager.create_plots', return_value=(None, None, None, None))
+    mocker.patch('opmon_reports.report_manager.ReportManager.prepare_template', return_value=mocker.Mock())
+    mocker.patch('opmon_reports.report_manager.ReportManager.save_pdf_to_file', return_value="test report")
+
+    tempdir_spy = mocker.spy(tempfile, "TemporaryDirectory")
+
+    assert report_manager.generate_report() == "test report"
+    tempdir_spy.assert_called_once()
+
+    tempdir = tempdir_spy.spy_return.name
+
+    assert "opmon-reports" in tempdir
+    assert not os.path.exists(tempdir)
