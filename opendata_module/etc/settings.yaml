@@ -28,8 +28,8 @@ logger:
 
   # Logs and heartbeat files are stored under these paths.
   # Also configure external log rotation and app monitoring accordingly.
-  log-path: /var/log/opmon/anonymizer/logs
-  heartbeat-path: /var/log/opmon/anonymizer/heartbeat
+  log-path: /var/log/opmon/opendata/logs
+  heartbeat-path: /var/log/opmon/opendata/heartbeat
 
 django:
   secret-key: <FILL>
