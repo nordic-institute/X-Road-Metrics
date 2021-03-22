@@ -49,7 +49,8 @@ The installation package automatically installs following items:
  * Linux users _opmon_ and _www-data_
  * opmon-opendata Django web-application package
  * Apache web server and dependencies
- * Apache configuration file for the web-app _/etc/apache2/opmon-opendata.conf_
+ * Apache configuration file template for the web-app _/etc/apache2/conf-available/opmon-opendata.conf_
+ * a self signed SSL certificate
  * web-app static content under _/usr/share/opmon/opendata_
  * web-app dynamic content under _/var/lib/opmon/opendata_
  * settings file _/etc/opmon/opendata/settings.yaml_
@@ -79,34 +80,14 @@ Settings that the user must fill in:
 * allowed hostname(s) for the web-app server
 
 ### Hostname configuration
-To prevent Cross Site Scripting attacks a list of allowed host header values must be defined in Django and Apache settings.
-The default configuration allows only requests targeting 'localhost'.
-External clients call the server using the server's IP address or DNS name. These must be added to the list of allowed hostnames.
-The simplest way is to add the server's local IP address.
-If your server has a DNS name configured, you can also use that.
+The Apache Virtual Host configuration defines the hostname for the Opendata service.
+The Opendata module installer fills in the current hostname to Apache config file automatically.
 
-For example to add allowed hostnames 10.1.2.3 (example local IP) and myhost.mydomain.org (example DNS name) follow these steps:
-Set the allowed-hosts section in settings.yaml like this:
+If your hostname changes, or the installer used wrong hostname, you can change the value by editing the Apache config
+file `/etc/apache2/sites-available/opmon-opendata.conf`. For example if your hostname is `myhost.mydomain.org` 
+change the contents of the file to:
 ```
-django:
-  secret-key: *******************
-  allowed-hosts:
-    - 'localhost'
-    - '127.0.0.1'
-    - '10.1.2.3'
-    - 'myhost.mydomain.org'
-
-```
-
-Then edit the Apache config file /etc/apache2/opmon-opendata.conf and set the ServerName and ServerAlias fields:
-```
-<VirtualHost *:80>
-        ServerName myhost.mydomain.org
-        ServerAlias 10.1.2.3
-        ServerAlias localhost
-        ServerAlias 127.0.0.1
-        ServerAdmin me@mydomain.org
-        ...
+Use OpmonOpendataVHost myhost.mydomain.org
 ```
 
 After these changes you must restart Apache:
@@ -114,10 +95,11 @@ After these changes you must restart Apache:
 sudo apache2ctl restart
 ```
 
-And then you can test accessing the Opmon Opendata UI by pointing your browser to `http://10.1.2.3/` or
-`http://myhost.mydomain.org/`
+And then you can test accessing the Opmon Opendata UI by pointing your browser to `https://myhost.mydomain.org/`
 
-**NOTE:** Django returns HTTP status 400 BAD REQUEST if the allowed host check fails.
+The instructions above should be sufficient for simple use cases. 
+For more advanced Apache configurations, e.g. to add more allowed alias names for the host, 
+you need to modify the apache configuration template in `/etc/apache2/conf-available/opmon-opendata.conf`.
 
 ### Settings profiles
 The opendata module can show data for multiple X-Road instances using settings profiles. 
@@ -127,10 +109,10 @@ change the xroad-instance setting in the files.
 
 Then you can access different X-road instances data by selecting the settings profile in the url:
 ```
-http://myhost.mydomain.org/       # settings from settings.yaml
-http://myhost.mydomain.org/DEV/   # settings from settings_DEV.yaml
-http://myhost.mydomain.org/TEST/  # settings from settings_TEST.yaml
-http://myhost.mydomain.org/PROD/  # settings from settings_PROD.yaml
+https://myhost.mydomain.org/       # settings from settings.yaml
+https://myhost.mydomain.org/DEV/   # settings from settings_DEV.yaml
+https://myhost.mydomain.org/TEST/  # settings from settings_TEST.yaml
+https://myhost.mydomain.org/PROD/  # settings from settings_PROD.yaml
 ```
 
 
