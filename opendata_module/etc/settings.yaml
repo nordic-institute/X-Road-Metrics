@@ -34,5 +34,4 @@ logger:
 django:
   secret-key: <FILL>
   allowed-hosts:
-    - 'localhost'
-    - '127.0.0.1'
+    - '*'

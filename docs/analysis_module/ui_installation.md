@@ -12,7 +12,7 @@ This sections describes the necessary steps to install the **analyzer module** o
 
 ### Firewall Setup
 Opmon Analyzer User Interface is hosted on an Apache web server.
-To access the web app, you need to allow incoming HTTP (or HTTPS) requests in the host machine's firewall.
+To access the web app, you need to allow incoming HTTPS requests in the host machine's firewall.
 
 **IMPORTANT:** The instructions below can be applied on a host machine that is used only to run Opmon Analyzer.
 On a shared host contact the system administrator and follow your networking environment's security policies.
@@ -28,7 +28,6 @@ sudo apt install ufw
 sudo ufw default deny incoming
 sudo ufw default allow outgoing
 sudo ufw allow 22/tcp
-sudo ufw allow http
 sudo ufw allow https
 sudo ufw enable
 ```
@@ -55,7 +54,8 @@ The installation package automatically installs following items:
  * Linux users _opmon_ and _www-data_
  * opmon-analyzer-ui Django web-application package
  * Apache web server and dependencies
- * Apache configuration file for the web-app _/etc/apache2/opmon-analyzer-ui.conf_
+ * Apache configuration file for the web-app _/etc/apache2/conf-available/opmon-analyzer-ui.conf_
+ * a self signed SSL certificate
  * web-app static content under _/usr/share/opmon/analyzer_ui_
  * web-app dynamic content under _/var/lib/opmon/analyzer_ui_
  * settings file _/etc/opmon/analyzer_ui/settings.yaml_
@@ -83,34 +83,15 @@ Settings that the user must fill in:
 * allowed hostname(s) for the web-app server
 
 ### Hostname configuration
-To prevent Cross Site Scripting attacks a list of allowed host header values must be defined in Django and Apache settings.
-The default configuration allows only requests targeting 'localhost'.
-External clients call the server using the server's IP address or DNS name. These must be added to the list of allowed hostnames.
-The simplest way is to add the server's local IP address.
-If your server has a DNS name configured, you can also use that.
+The Apache Virtual Host configuration defines the hostname for the Analyzer UI service.
+The Analyzer UI module installer fills in the current hostname to Apache config file automatically.
 
-For example to add allowed hostnames 10.1.2.3 (example local IP) and myhost.mydomain.org (example DNS name) follow these steps:
-Set the allowed-hosts section in settings.yaml like this:
+If your hostname changes after installation, or the installer used wrong hostname, you can change the value by editing 
+the Apache config file `/etc/apache2/sites-available/opmon-analyzer-ui.conf`. 
+For example if your hostname is `myhost.mydomain.org` 
+change the contents of the file to:
 ```
-django:
-  secret-key: *******************
-  allowed-hosts:
-    - 'localhost'
-    - '127.0.0.1'
-    - '10.1.2.3'
-    - 'myhost.mydomain.org'
-
-```
-
-Then edit the Apache config file /etc/apache2/opmon-analyzer-ui.conf and set the ServerName and ServerAlias fields:
-```
-<VirtualHost *:80>
-        ServerName myhost.mydomain.org
-        ServerAlias 10.1.2.3
-        ServerAlias localhost
-        ServerAlias 127.0.0.1
-        ServerAdmin me@mydomain.org
-        ...
+Use OpmonOpendataVHost myhost.mydomain.org
 ```
 
 After these changes you must restart Apache:
@@ -118,10 +99,11 @@ After these changes you must restart Apache:
 sudo apache2ctl restart
 ```
 
-And then you can test accessing the Opmon Analyzer UI by pointing your browser to `http://10.1.2.3/` or
-`http://myhost.mydomain.org/`
+And then you can test accessing the Opmon Opendata UI by pointing your browser to `https://myhost.mydomain.org/`
 
-**NOTE:** Django returns HTTP status 400 BAD REQUEST if the allowed host check fails.
+The instructions above should be sufficient for simple use cases. 
+For more advanced Apache configurations, e.g. to add more allowed alias names for the host, 
+you need to modify the apache configuration template in `/etc/apache2/conf-available/opmon-analzer-ui.conf`.
 
 ### Settings profiles
 The analyzer UI can show data for multiple X-Road instances using settings profiles. 
@@ -131,93 +113,10 @@ change the xroad-instance setting in the files.
 
 Then you can access different X-road instances data by selecting the settings profile in the url:
 ```
-http://myhost.mydomain.org/       # settings from settings.yaml
-http://myhost.mydomain.org/DEV/   # settings from settings_DEV.yaml
-http://myhost.mydomain.org/TEST/  # settings from settings_TEST.yaml
-http://myhost.mydomain.org/PROD/  # settings from settings_PROD.yaml
-```
-
-### Allowed hosts
-
-Allowed hosts defines the valid host headers to [prevent Cross Site Scripting attacks](https://docs.djangoproject.com/en/1.11/topics/security/#host-headers-virtual-hosting). _ALLOWED__HOSTS_ must include the domain name of the hosting server (or IP address, if missing) or Django will automatically respond with "Bad Request (400)".
-
-```python
-ALLOWED_HOSTS = ['opmon-analyzer', 'localhost', '127.0.0.1']
-```
-
-**Note:** when getting **Bad request (400)** when accessing a page, then `ALLOWED_HOSTS` needs more tuning. 
-
-### Static root
-
-Static root is necessary only for GUI and holds the CSS and JS files to serve through Apache after `python manage.py collectstatic` has been issued. By default it directs to the Interface instance's root directory.
-
-```python
-# WEBDIR="/var/www"; INSTANCE="sample"
-STATIC_ROOT = '{0}/{1}/analysis_module/analyzer_ui/static/'.format(WEBDIR, INSTANCE)
-```
-
-## 7. Configuring Apache
-
-Let Apache know of the correct WSGI instance by replacing Apache's default mod_wsgi loader.
-
-```bash
-sudo cp --preserve /etc/apache2/mods-available/wsgi.load{,.bak}
-sudo mod_wsgi-express install-module | head --lines 1 > /etc/apache2/mods-available/wsgi.load
-```
-
-Create an Apache configuration file at **/etc/apache2/sites-available/analyzer.conf** for port 80 (http). 
-
-**Note:** To configure port 443 (https), public domain address and certificates are required.
-
-**Note:** The correct Python interpreter is derived from the loaded *wsgi_module*.
-
-```bash
-sudo vi /etc/apache2/sites-available/analyzer.conf
-```
-
-**Note:** `hostname -I` is probably the easiest way to get opmon-analyzer server's IP address for `<machine IP>`
-
-**Note:** `<machine IP>` can be substituted with public domain name, once it's acquired.
-
-```bash
-<VirtualHost <machine IP>:80>
-        ServerName <machine IP>
-        ServerAdmin yourname@yourdomain
-        
-        ErrorLog ${APACHE_LOG_DIR}/analysis-error.log
-        CustomLog ${APACHE_LOG_DIR}/analysis-access.log combined
-
-        LoadModule wsgi_module "/usr/lib/apache2/modules/mod_wsgi-py35.cpython-35m-x86_64-linux-gnu.so"
-
-        WSGIApplicationGroup %{GLOBAL}
-
-        #### Interface instances ####
-
-        ## SAMPLE ##
-
-        WSGIDaemonProcess sample
-        WSGIScriptAlias /sample /var/www/sample/analysis_module/analyzer_ui/analyzer_ui/wsgi.py process-group=sample
-
-        # Suffices to share static files only from one X-Road instance, as instances share the static files.
-        Alias /static /var/www/sample/opendata_module/interface/static
-
-        <Directory /var/www/sample/opendata_module/interface/static>
-                Require all granted
-        </Directory>
-        
-</VirtualHost>
-```
-
-After we have defined our *VirtualHost* configuration, we must enable the new *site* --- *analyzer.conf* --- so that Apache could start serving it.
-
-```bash
-sudo a2ensite analyzer.conf
-```
-
-We need to reload Apache in order for the site update to apply.
-
-```bash
-sudo service apache2 reload
+https://myhost.mydomain.org/       # settings from settings.yaml
+https://myhost.mydomain.org/DEV/   # settings from settings_DEV.yaml
+https://myhost.mydomain.org/TEST/  # settings from settings_TEST.yaml
+https://myhost.mydomain.org/PROD/  # settings from settings_PROD.yaml
 ```
 
 ## 8. Configuring database parameters
@@ -254,7 +153,7 @@ sudo --user analyzer python3 ${APPDIR}/${INSTANCE}/analysis_module/analyzer/find
 
 ## 10. Accessing web interface
 
-Navigate to http://opmon-analyzer/${INSTANCE}/
+Navigate to https://opmon-analyzer/${INSTANCE}/
 
 ## 11. CRON usage
 
