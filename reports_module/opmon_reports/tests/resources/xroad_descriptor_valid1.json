@@ -1,0 +1,91 @@
+[
+  {
+    "x_road_instance": "LTT",
+    "member_class": "TESTCLASS",
+    "member_code": "TESTMEMBER",
+    "member_name": "Test Member Name",
+    "subsystem_code": "TESTSUB",
+    "subsystem_name": {
+      "en": "Test Subsystem",
+      "fi": "Testialijärjestelmä",
+      "sv": "Test Delsystem"
+    },
+    "email": [
+      {
+        "name": "Seppo Sorsa",
+        "email": "seppo.sorsa@gofore.com"
+      },
+      {
+        "name": "Teppo Testi",
+        "email": "teppo@testi.com"
+      }
+    ]
+  },
+
+  {
+    "x_road_instance": "LTT",
+    "member_class": "TEST",
+    "member_code": "TEST2",
+    "member_name": "RH Test Member",
+    "subsystem_code": "SUB3",
+    "email": []
+  },
+
+  {
+    "x_road_instance": "LTT",
+    "member_class": "TESTCLASS",
+    "member_code": "TESTMEMBER",
+    "subsystem_code": "MINIMALSUB"
+  },
+
+  {
+    "x_road_instance": "LTT",
+    "member_class": "TEST",
+    "member_code": "TEST2",
+    "member_name": "RH Test Member",
+    "subsystem_code": "SUB4",
+    "subsystem_name": {
+      "en": "RH Test Sub4"
+    },
+    "email": [
+      {
+        "name": "",
+        "email": ""
+      }
+    ]
+  },
+
+  {
+    "x_road_instance": "LTT",
+    "member_class": "TEST",
+    "member_code": "TEST1",
+    "member_name": "SS Test Member",
+    "subsystem_code": "SUB1",
+    "subsystem_name": {
+      "en": "SS Test Sub1"
+    },
+    "email": [
+      {
+        "name": "Firstname Lastname",
+        "email": "yourname@yourdomain"
+      }
+    ]
+  },
+
+  {
+    "email": [
+      {
+        "name": "Out of Place",
+        "email": "out@place"
+      }
+    ],
+    "member_class": "TEST",
+    "x_road_instance": "LTT",
+    "member_code": "TEST1",
+    "subsystem_code": "SUB2",
+    "subsystem_name": {
+      "en": "SS Test Sub2"
+    },
+    "member_name": "SS Test Member"
+  }
+]

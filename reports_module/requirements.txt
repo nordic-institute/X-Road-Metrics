@@ -1,8 +1,1 @@
-pymongo==3.10.1
-matplotlib==2.0.2
-pandas==0.20.3
-Jinja2==2.9.6
-WeasyPrint==0.39
-Pillow==4.2.1
-tinycss==0.4
-requests==2.14.2
+.

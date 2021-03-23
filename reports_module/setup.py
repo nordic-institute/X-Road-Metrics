@@ -11,6 +11,7 @@ requirements = [
     "pyyaml==5.3.1",
     "requests==2.22.0",
     "tinycss==0.4",
+    "jsonschema==3.2.0"
 ]
 
 classifiers = [
