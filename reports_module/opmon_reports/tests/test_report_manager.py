@@ -272,50 +272,6 @@ def test_get_duration(mocker, basic_args):
     ]
 
 
-def test_get_member_name(mocker, basic_args, member_names):
-    report_manager = ReportManager(basic_args, mocker.Mock(), mocker.Mock(), mocker.Mock(), mocker.Mock())
-
-    basic_args.member_code = "MemberCodeA"
-    basic_args.subsystem_code = "SubsystemCodeA"
-    basic_args.member_class = "MemberClassA"
-    basic_args.xroad_instance = "CI-REPORTS"
-
-    member_name = report_manager.get_member_name(member_names)
-    assert member_name == "Member Name"
-
-    member_names = []
-    member_name = report_manager.get_member_name(member_names)
-    assert member_name == ""
-
-    member_names = None
-    member_name = report_manager.get_member_name(member_names)
-    assert member_name == ""
-
-
-def test_get_subsystem_name(mocker, basic_args, member_names):
-    report_manager = ReportManager(basic_args, mocker.Mock(), mocker.Mock(), mocker.Mock(), mocker.Mock())
-
-    basic_args.member_code = "MemberCodeA"
-    basic_args.subsystem_code = "SubsystemCodeA"
-    basic_args.member_class = "MemberClassA"
-    basic_args.xroad_instance = "CI-REPORTS"
-
-    member_name = report_manager.get_subsystem_name(member_names)
-    assert member_name == "Subsystem Name EN"
-
-    basic_args.language = "et"
-    member_name = report_manager.get_subsystem_name(member_names)
-    assert member_name == "Subsystem Name ET"
-
-    member_names = []
-    member_name = report_manager.get_subsystem_name(member_names)
-    assert member_name == ""
-
-    member_names = None
-    member_name = report_manager.get_subsystem_name(member_names)
-    assert member_name == ""
-
-
 def test_generate_report_tempfolder(mocker, basic_args):
     report_manager = ReportManager(basic_args, mocker.Mock(), mocker.Mock(), mocker.Mock(), mocker.Mock())
 

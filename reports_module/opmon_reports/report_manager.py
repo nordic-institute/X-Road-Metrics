@@ -12,8 +12,13 @@ import weasyprint
 
 from . import time_date_tools
 from . import tools
+from .database_manager import DatabaseManager
+from .logger_manager import LoggerManager
 from .report_row import ReportRow
 from . import constants
+from .reports_arguments import OpmonReportsArguments
+from .translator import Translator
+from .xroad_descriptor_parser import OpmonXroadDescriptor
 
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -27,7 +32,13 @@ CONSUMED_SERVICES_COLUMN_ORDER = ["PRODUCER", "SERVICE", "SUCCEEDED_QUERIES", "F
 
 
 class ReportManager:
-    def __init__(self, reports_arguments, riha_json, log_m, database_manager, translator):
+    def __init__(
+            self,
+            reports_arguments: OpmonReportsArguments,
+            xroad_descriptor: OpmonXroadDescriptor,
+            log_m: LoggerManager,
+            database_manager: DatabaseManager,
+            translator: Translator):
         log_m.log_info(
             'create_reports_manager',
             f'Prepare reports manager for subsystem "{reports_arguments.subsystem_code}"'
@@ -39,7 +50,7 @@ class ReportManager:
         self.end_date = datetime.strptime(reports_arguments.end_date, '%Y-%m-%d').strftime('%Y-%m-%d')
         self.logger_manager = log_m
         self.translator = translator
-        self.riha_json = riha_json
+        self.xroad_descriptor = xroad_descriptor
 
     def is_producer_document(self, document):
         return document["serviceSubsystemCode"] == self.reports_arguments.subsystem_code \
@@ -411,38 +422,6 @@ class ReportManager:
         sorted_pairs = sorted(result_dict.items(), key=operator.itemgetter(1))
         return sorted_pairs if len(sorted_pairs) < 6 else sorted_pairs[-5:]
 
-    def find_document_dictionary(self, member_subsystem_info):
-        if member_subsystem_info is None:
-            return {}
-        for doc in member_subsystem_info:
-            match = doc['member_code'] == self.reports_arguments.member_code \
-                and doc['subsystem_code'] == self.reports_arguments.subsystem_code \
-                and doc['member_class'] == self.reports_arguments.member_class \
-                and doc['x_road_instance'] == self.reports_arguments.xroad_instance
-            if match:
-                return doc
-        return {}
-
-    def get_member_name(self, member_subsystem_info):
-        """
-        Gets the member name translation from the dictionary file.
-        :param member_subsystem_info: The list of dictionaries that contain information about members & subsystems.
-        :return: Returns the translation or empty string if translation is not found.
-        """
-        doc = self.find_document_dictionary(member_subsystem_info)
-        return doc.get('member_name') or ""
-
-    def get_subsystem_name(self, member_subsystem_info):
-        """
-        Gets the subsystem name translation from the dictionary file.
-        :param member_subsystem_info: The list of dictionaries that contain information about members & subsystems.
-        :return: Returns the translation or empty string if translation is not found.
-        """
-
-        doc = self.find_document_dictionary(member_subsystem_info)
-        subsystem = doc.get('subsystem_name') or {}
-        return subsystem.get(self.reports_arguments.language) or ""
-
     def prepare_template(self, plots, data_frames, creation_time):
         settings = self.reports_arguments.settings['reports']
 
@@ -453,9 +432,8 @@ class ReportManager:
         image_header_second = constants.RIA_IMAGE_2.format(IMAGE_PATH=image_path, LANGUAGE=language)
         image_header_third = constants.RIA_IMAGE_3.format(IMAGE_PATH=image_path, LANGUAGE=language)
 
-        # Get member & subsystem name
-        member_name_temp = self.get_member_name(self.riha_json)
-        subsystem_name_temp = self.get_subsystem_name(self.riha_json)
+        member_name = tools.truncate(self.xroad_descriptor.get_member_name(self.reports_arguments))
+        subsystem_name = tools.truncate(self.xroad_descriptor.get_subsystem_name(self.reports_arguments))
 
         subsystem_code = tools.truncate(self.reports_arguments.subsystem_code)
         member_code = tools.truncate(self.reports_arguments.member_code)
@@ -468,9 +446,9 @@ class ReportManager:
         template_vars = {
             "title": subsystem_code + "_" + self.start_date + "_" + self.end_date + "_" + creation_time,
             "member_name_translation": self.translator.get_translation('MEMBER_NAME'),
-            "member_name": tools.truncate(member_name_temp),
+            "member_name": member_name,
             "subsystem_name_translation": self.translator.get_translation('SUBSYSTEM_NAME'),
-            "subsystem_name": tools.truncate(subsystem_name_temp),
+            "subsystem_name": subsystem_name,
             "memberCode": self.translator.get_translation('MEMBER_CODE'),
             "memberCode_value": member_code,
             "subsystemCode": self.translator.get_translation('SUBSYSTEM_CODE'),

@@ -1,5 +1,6 @@
 import smtplib
 import socket
+from typing import Iterable
 from email.header import Header
 from email.mime.text import MIMEText
 from email.utils import make_msgid, formatdate, formataddr
@@ -30,19 +31,19 @@ class NotificationManager:
             self,
             reports_arguments,
             report_name,
-            email_info
+            receivers: Iterable[dict]
     ):
         """
         Add notification to the queue (database).
         :param reports_arguments: OpmonReportsArguments object specifying target subsystem
         :param report_name: Name of the report.
-        :param email_info: The list of emails and receiver names.
+        :param receivers: The list of emails and receiver names.
         :return:
         """
         self.database_manager.add_notification_to_queue(
             reports_arguments,
             report_name,
-            email_info
+            receivers
         )
 
     def get_items_from_queue(self):

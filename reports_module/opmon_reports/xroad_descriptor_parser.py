@@ -4,20 +4,21 @@ from json import JSONDecodeError
 import jsonschema
 from jsonschema import ValidationError
 
+from .logger_manager import LoggerManager
 from .reports_arguments import OpmonReportsArguments
 from .xroad_descriptor_schema import xroad_descriptor_schema
 
 
 class OpmonXroadDescriptor:
-    def __init__(self, info_file_path, logger):
+    def __init__(self, descriptor_file_path: str, logger: LoggerManager):
         logger.log_info('OpmonSubsystemInfo', 'Start parsing info file.')
 
-        self.path = info_file_path
+        self.path = descriptor_file_path
         self.logger = logger
 
         self._data = []
         try:
-            with open(info_file_path, 'r') as f:
+            with open(descriptor_file_path, 'r') as f:
                 json_data = f.read()
             self._data = json.loads(json_data)
             jsonschema.validate(instance=self._data, schema=xroad_descriptor_schema)
@@ -25,6 +26,16 @@ class OpmonXroadDescriptor:
             self._handle_missing_file()
         except (ValidationError, JSONDecodeError) as e:
             self._handle_parsing_error(e)
+
+    def __getitem__(self, index):
+        return self._data[index]
+
+    def __iter__(self):
+        for descriptor in self._data:
+            yield descriptor
+
+    def __len__(self):
+        return len(self._data)
 
     def get_subsystem_name(self, reports_args: OpmonReportsArguments):
         descriptor = self._find(reports_args)

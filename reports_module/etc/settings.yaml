@@ -1,6 +1,10 @@
 xroad:
   instance: <FILL>
 
+  # X-Road descriptor file that lists all subsystems available.
+  # Optionally the file may include localized subsystem names and maintainer e-mail addresses.
+  descriptor-path: /etc/opmon/reports/xroad-descriptor.json
+
 mongodb:
   host: localhost
   user: <FILL>
@@ -22,7 +26,6 @@ logger:
 reports:
   report-path: /var/lib/opmon/reports
   translation-path: /etc/opmon/reports/lang
-  subsystem-info-path: /etc/opmon/reports/riha.json
   html-template:
     dir: /etc/opmon/reports/template
     file: pdf_report_template.html

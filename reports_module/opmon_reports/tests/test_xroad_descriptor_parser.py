@@ -1,4 +1,3 @@
-from opmon_reports.reports_arguments import OpmonReportsArguments
 from opmon_reports.xroad_descriptor_parser import OpmonXroadDescriptor
 import os
 
@@ -14,19 +13,19 @@ def get_resource_path(resource_file_name):
 def test_xroad_descriptor_parsing_valid1(mocker):
     json_path = get_resource_path("xroad_descriptor_valid1.json")
     xroad_descriptor = OpmonXroadDescriptor(json_path, mocker.Mock())
-    assert len(xroad_descriptor._data) == 6
-    assert xroad_descriptor._data[0]['x_road_instance'] == "LTT"
-    assert xroad_descriptor._data[0]['subsystem_name']['fi'] == "Testialijärjestelmä"
-    assert xroad_descriptor._data[0]['email'][0]['name'] == "Seppo Sorsa"
-    assert xroad_descriptor._data[0]['email'][1]['email'] == "teppo@testi.com"
+    assert len(xroad_descriptor) == 6
+    assert xroad_descriptor[0]['x_road_instance'] == "LTT"
+    assert xroad_descriptor[0]['subsystem_name']['fi'] == "Testialijärjestelmä"
+    assert xroad_descriptor[0]['email'][0]['name'] == "Seppo Sorsa"
+    assert xroad_descriptor[0]['email'][1]['email'] == "teppo@testi.com"
 
-    assert xroad_descriptor._data[1]['email'] == []
-    assert xroad_descriptor._data[1].get('subsystem_name') is None
+    assert xroad_descriptor[1]['email'] == []
+    assert xroad_descriptor[1].get('subsystem_name') is None
 
-    assert xroad_descriptor._data[2].get('email') is None
-    assert xroad_descriptor._data[2].get('subsystem_name') is None
+    assert xroad_descriptor[2].get('email') is None
+    assert xroad_descriptor[2].get('subsystem_name') is None
 
-    assert xroad_descriptor._data[5]['email'][0]['name'] == "Out of Place"
+    assert xroad_descriptor[5]['email'][0]['name'] == "Out of Place"
 
     xroad_descriptor.logger.log_warning.assert_not_called()
     xroad_descriptor.logger.log_error.assert_not_called()
@@ -70,6 +69,14 @@ def test_xroad_descriptor_parsing_file_not_found(mocker):
     xroad_descriptor.logger.log_error.assert_not_called()
 
     assert xroad_descriptor._data == []
+
+
+def test_iteration(mocker):
+    json_path = get_resource_path("xroad_descriptor_valid1.json")
+    xroad_descriptor = OpmonXroadDescriptor(json_path, mocker.Mock())
+
+    for subsystem_descriptor in xroad_descriptor:
+        assert subsystem_descriptor in xroad_descriptor._data
 
 
 def test_getters(mocker):
