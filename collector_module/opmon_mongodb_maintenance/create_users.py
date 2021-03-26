@@ -4,10 +4,6 @@
 Script to create MongoDb users for X-Road OpMon tools.
 """
 
-from pymongo import MongoClient
-import sys
-import argparse
-import getpass
 import string
 import secrets
 
@@ -27,27 +23,12 @@ admin_roles = {
 }
 
 
-def main():
+def create_users(args, client):
     passwords = {}
-    args = _parse_args()
-    client = _connect_mongo(args)
 
     _create_admin_users(args, client, passwords)
     _create_opmon_users(args, client, passwords)
     _print_users(passwords)
-
-
-def _connect_mongo(args):
-    if args.user is None:
-        return MongoClient(args.host)
-    
-    password = args.password or getpass.getpass()
-    return MongoClient(
-        args.host,
-        username=args.user,
-        password=password,
-        authSource=args.auth
-    )
 
 
 def _create_admin_users(args, client, passwords):
@@ -55,43 +36,42 @@ def _create_admin_users(args, client, passwords):
         return
 
     for user_name, roles in admin_roles.items():
-        passwords[user_name] = user_name if args.dummy_passwords else _generate_password()
-        client.admin.command('createUser', user_name, pwd=passwords[user_name], roles=roles)
+        try:
+            password = user_name if args.dummy_passwords else _generate_password()
+            client.admin.command('createUser', user_name, pwd=password, roles=roles)
+            passwords[user_name] = password
+        except Exception as e:
+            print(f"Failed to create user {user_name}: {e}")
 
 
 def _create_opmon_users(args, client, passwords):
     for user, roles in user_roles.items():
         user_name = '{}_{}'.format(user, args.xroad)
         role_list = _roles_to_list(roles)
-        passwords[user_name] = user_name if args.dummy_passwords else _generate_password()
+        password = user_name if args.dummy_passwords else _generate_password()
 
-        client.auth_db.command('createUser', user_name, pwd=passwords[user_name], roles=role_list)
+        try:
+            client.auth_db.command('createUser', user_name, pwd=password, roles=role_list)
+            passwords[user_name] = password
+        except Exception as e:
+            print(f"Failed to create user {user_name}: {e}")
 
 
 def _roles_to_list(roles):
     return [{'db': db, 'role': role} for db, role in roles.items()]
 
 
-def _parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("xroad", metavar="X-ROAD-INSTANCE", help="X-Road instance name.")
-    parser.add_argument("--host", metavar="HOST:PORT", default="localhost:27017", help="MongoDb host:port. Default is localhost:27017")
-    parser.add_argument("--user", help='MongoDb username', default=None)
-    parser.add_argument("--password", help='MongoDb password', default=None)
-    parser.add_argument('--auth', help='Authorization Database', default='admin')
-    parser.add_argument("--dummy-passwords", action="store_true", help="Skip generation of secure passwords for users. Password will be same as username.")
-    parser.add_argument("--generate-admins", action="store_true", help="Also generate admin users.")
-    args = parser.parse_args()
+def _print_users(passwords: dict):
 
-    return args
+    if len(passwords) == 0:
+        print("No users created.")
+        return
 
-
-def _print_users(passwords):
     width = max([len(k) for k in passwords.keys()]) + 1
 
     print("\nGenerated following users: \n")
     print(f'{"Username":<{width}}| Password')
-    print(f'{width * "-"}+{"-"*20}')
+    print(f'{width * "-"}+{"-" * 20}')
     [print(f'{user:<{width}}| {password}') for user, password in passwords.items()]
 
 
@@ -110,7 +90,3 @@ def _generate_password():
                 and sum(c.isdigit() for c in password) >= 3
                 and any(c in string.punctuation for c in password)):
             return password
-
-
-if __name__ == '__main__':
-    main()
