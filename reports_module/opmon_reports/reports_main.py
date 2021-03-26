@@ -9,24 +9,7 @@ from .logger_manager import LoggerManager
 from .report_manager import ReportManager
 from .translator import Translator
 from .reports_arguments import OpmonReportsArguments
-
-
-def read_in_json(file_name, logger_manager):
-    """
-    Reads in the given .json file.
-    :param logger_manager: The LoggerManager object.
-    :param file_name: Path to the .json file.
-    :return: Returns the data that is in the file.
-    """
-    data = None
-    try:
-        with open(file_name, 'r') as f:
-            json_data = f.read()
-        data = json.loads(json_data)
-    except FileNotFoundError:
-        logger_manager.log_warning("reading_in_json", "The riha.json does not exist, will run without it.")
-
-    return data
+from .xroad_descriptor_parser import OpmonXroadDescriptor
 
 
 def create_translator(args, logger_m):
@@ -38,11 +21,6 @@ def create_translator(args, logger_m):
     with open(lang_path, 'rb') as language_file:
         language_template = json.loads(language_file.read().decode("utf-8"))
     return Translator(language_template)
-
-
-def parse_riha_json(args, logger_m):
-    logger_m.log_info('parse_riha_json', 'Gather subsystems from riha.json.')
-    return read_in_json(args.settings['reports']['subsystem-info-path'], logger_m)
 
 
 def log_report_error(e, subsystem_index, subsystem_count, logger_m, args):
@@ -69,17 +47,17 @@ def log_report_generation_finish(subsystem_count, fail_count, logger_m):
 def generate_reports(args, logger_m):
     database_m = DatabaseManager(args, logger_m)
     notification_m = NotificationManager(args.settings['reports']['email'], database_m, logger_m)
-    riha_json = parse_riha_json(args, logger_m)
+    xroad_descriptor = OpmonXroadDescriptor(args.settings['xroad']['descriptor-path'], logger_m)
     translator = create_translator(args, logger_m)
 
-    # If no subsystem was defined as command line argument create a report for all subsystems in riha.json
-    subsystems = riha_json if args.subsystem is None else [args.subsystem]
+    # If no subsystem was defined as command line argument create a report for all subsystems in descriptor.json
+    subsystems = xroad_descriptor if args.subsystem is None else [args.subsystem]
     fail_count = 0
 
     for index, subsystem in enumerate(subsystems, start=1):
         try:
             args.subsystem = subsystem
-            report_manager = ReportManager(args, riha_json, logger_m, database_m, translator)
+            report_manager = ReportManager(args, xroad_descriptor, logger_m, database_m, translator)
             report_name = report_manager.generate_report()
             if subsystem.get('email'):
                 notification_m.add_item_to_queue(args, report_name, subsystem['email'])
@@ -91,7 +69,6 @@ def generate_reports(args, logger_m):
 
 
 def report_main(args: OpmonReportsArguments):
-
     logger_m = LoggerManager(args.settings['logger'], args.xroad_instance)
 
     try:

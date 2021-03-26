@@ -1,4 +1,5 @@
 import time
+from typing import Iterable
 
 from .mongodb_handler import MongoDBHandler
 
@@ -628,7 +629,7 @@ class DatabaseManager:
             self,
             reports_arguments,
             report_name,
-            receivers
+            receivers: Iterable[dict]
     ):
 
         """

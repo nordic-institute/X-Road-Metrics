@@ -86,7 +86,7 @@ class OpmonReportsArguments:
             default=None,
             help="""
                 Target subsystem in format CLASS:MEMBER:SUBSYSTEM.
-                If this argument is omitted reports are generated for all subsystems listed in riha.json.
+                If this argument is omitted reports are generated for all subsystems listed in xroad descriptor file.
             """
         )
 
@@ -95,7 +95,7 @@ class OpmonReportsArguments:
             default=None,
             help="""
                 This e-mail address is notified about a new report if the "--subsystem" argument is defined.
-                If subsystem is not defined, the e-mail addresses are parsed from riha.json file.
+                If subsystem is not defined, the e-mail addresses are parsed from xroad descriptor file.
             """
         )
 
