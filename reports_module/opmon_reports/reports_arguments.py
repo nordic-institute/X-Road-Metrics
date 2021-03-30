@@ -11,9 +11,9 @@ class OpmonReportsArguments:
         self.settings = OpmonSettingsManager(args.profile).settings
         self.action = args.action
 
+        self.xroad_instance = self.settings['xroad']['instance']
         self.subsystem = self._parse_subsystem(args)
 
-        self.xroad_instance = self.settings['xroad']['instance']
         self.start_date = args.start_date
         self.end_date = args.end_date
         self.language = args.language
@@ -33,8 +33,7 @@ class OpmonReportsArguments:
     def subsystem_code(self):
         return self.subsystem['subsystem_code']
 
-    @staticmethod
-    def _parse_subsystem(args):
+    def _parse_subsystem(self, args):
         if args.subsystem is None:
             return None
 
@@ -45,6 +44,7 @@ class OpmonReportsArguments:
         keys = ['member_class', 'member_code', 'subsystem_code']
         subsystem_dict = dict(zip(keys, codes))
         subsystem_dict['email'] = [{'email': args.email, 'name': ''}]
+        subsystem_dict['x_road_instance'] = self.xroad_instance
         return subsystem_dict
 
     @staticmethod

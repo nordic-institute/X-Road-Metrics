@@ -27,9 +27,9 @@ class DatabaseManager:
         """
         return float(time.time())
 
-    def get_matching_documents(self, reports_arguments, start_time, end_time):
+    def get_matching_documents(self, target, start_time, end_time):
         """Query cleaned data for documents based on member_code, subsystem_code, member_class, start_time, end_time.
-        :param reports_arguments: OpmonReportsArguments object to define query scope
+        :param target: OpmonXroadSubsystemDescriptor object to define query scope
         :param start_time: The starting timestamp for the query.
         :param end_time: The ending timestamp for the query.
         :return: Returns the cursor that contains the found documents.
@@ -42,75 +42,80 @@ class DatabaseManager:
             # Producer group
             # ------------------------------------
             # Query matching documents as producer
-            query_a = dict()
-            query_a["producer.serviceXRoadInstance"] = reports_arguments.xroad_instance
-            query_a["producer.serviceMemberCode"] = reports_arguments.member_code
-            query_a["producer.serviceSubsystemCode"] = reports_arguments.subsystem_code
-            query_a["producer.serviceMemberClass"] = reports_arguments.member_class
-            query_a["producer.requestInTs"] = {"$gte": start_time, "$lte": end_time}
+            query_a = {
+                "producer.serviceXRoadInstance": target.xroad_instance,
+                "producer.serviceMemberCode": target.member_code,
+                "producer.serviceSubsystemCode": target.subsystem_code,
+                "producer.serviceMemberClass": target.member_class,
+                "producer.requestInTs": {"$gte": start_time, "$lte": end_time}
+            }
             # Query matching documents as producer from client field
-            query_c = dict()
-            query_c["client.serviceXRoadInstance"] = reports_arguments.xroad_instance
-            query_c["client.serviceMemberCode"] = reports_arguments.member_code
-            query_c["client.serviceSubsystemCode"] = reports_arguments.subsystem_code
-            query_c["client.serviceMemberClass"] = reports_arguments.member_class
-            query_c["producer"] = None
-            query_c["client.requestInTs"] = {"$gte": start_time, "$lte": end_time}
+            query_c = {
+                "client.serviceXRoadInstance": target.xroad_instance,
+                "client.serviceMemberCode": target.member_code,
+                "client.serviceSubsystemCode": target.subsystem_code,
+                "client.serviceMemberClass": target.member_class,
+                "producer": None,
+                "client.requestInTs": {"$gte": start_time, "$lte": end_time}
+            }
             # ------------------------------------
             # Client group
             # ------------------------------------
             # Query matching documents as client
-            query_d = dict()
-            query_d["client.clientXRoadInstance"] = reports_arguments.xroad_instance
-            query_d["client.clientMemberCode"] = reports_arguments.member_code
-            query_d["client.clientSubsystemCode"] = reports_arguments.subsystem_code
-            query_d["client.clientMemberClass"] = reports_arguments.member_class
-            query_d["client.requestInTs"] = {"$gte": start_time, "$lte": end_time}
+            query_d = {
+                "client.clientXRoadInstance": target.xroad_instance,
+                "client.clientMemberCode": target.member_code,
+                "client.clientSubsystemCode": target.subsystem_code,
+                "client.clientMemberClass": target.member_class,
+                "client.requestInTs": {"$gte": start_time, "$lte": end_time}
+            }
             # Query matching documents as client from producer
-            query_b = dict()
-            query_b["producer.clientXRoadInstance"] = reports_arguments.xroad_instance
-            query_b["producer.clientMemberCode"] = reports_arguments.member_code
-            query_b["producer.clientSubsystemCode"] = reports_arguments.subsystem_code
-            query_b["producer.clientMemberClass"] = reports_arguments.member_class
-            query_b["client"] = None
-            query_b["producer.requestInTs"] = {"$gte": start_time, "$lte": end_time}
+            query_b = {
+                "producer.clientXRoadInstance": target.xroad_instance,
+                "producer.clientMemberCode": target.member_code,
+                "producer.clientSubsystemCode": target.subsystem_code,
+                "producer.clientMemberClass": target.member_class,
+                "client": None,
+                "producer.requestInTs": {"$gte": start_time, "$lte": end_time}
+            }
 
             # Define projection
-            projection = dict()
-            projection["_id"] = 1
-            projection["correctorTime"] = 1
-            projection["producerRequestSize"] = 1
-            projection["producerDurationProducerView"] = 1
-            projection["clientRequestSize"] = 1
-            projection["totalDuration"] = 1
-            projection["clientResponseSize"] = 1
-            projection["producerResponseSize"] = 1
-            projection["client.serviceMemberClass"] = 1
-            projection["client.succeeded"] = 1
-            projection["client.serviceMemberCode"] = 1
-            projection["client.requestInTs"] = 1
-            projection["client.serviceCode"] = 1
-            projection["client.serviceSubsystemCode"] = 1
-            projection["client.serviceVersion"] = 1
-            projection["client.clientMemberClass"] = 1
-            projection["client.serviceXRoadInstance"] = 1
-            projection["client.clientXRoadInstance"] = 1
-            projection["client.clientMemberCode"] = 1
-            projection["client.clientSubsystemCode"] = 1
-            projection["client.securityServerType"] = 1
-            projection["producer.serviceMemberClass"] = 1
-            projection["producer.succeeded"] = 1
-            projection["producer.serviceMemberCode"] = 1
-            projection["producer.requestInTs"] = 1
-            projection["producer.serviceCode"] = 1
-            projection["producer.serviceSubsystemCode"] = 1
-            projection["producer.serviceVersion"] = 1
-            projection["producer.clientMemberClass"] = 1
-            projection["producer.serviceXRoadInstance"] = 1
-            projection["producer.clientXRoadInstance"] = 1
-            projection["producer.clientMemberCode"] = 1
-            projection["producer.clientSubsystemCode"] = 1
-            projection["producer.securityServerType"] = 1
+            projection = {
+                "_id": 1,
+                "correctorTime": 1,
+                "producerRequestSize": 1,
+                "producerDurationProducerView": 1,
+                "clientRequestSize": 1,
+                "totalDuration": 1,
+                "clientResponseSize": 1,
+                "producerResponseSize": 1,
+                "client.serviceMemberClass": 1,
+                "client.succeeded": 1,
+                "client.serviceMemberCode": 1,
+                "client.requestInTs": 1,
+                "client.serviceCode": 1,
+                "client.serviceSubsystemCode": 1,
+                "client.serviceVersion": 1,
+                "client.clientMemberClass": 1,
+                "client.serviceXRoadInstance": 1,
+                "client.clientXRoadInstance": 1,
+                "client.clientMemberCode": 1,
+                "client.clientSubsystemCode": 1,
+                "client.securityServerType": 1,
+                "producer.serviceMemberClass": 1,
+                "producer.succeeded": 1,
+                "producer.serviceMemberCode": 1,
+                "producer.requestInTs": 1,
+                "producer.serviceCode": 1,
+                "producer.serviceSubsystemCode": 1,
+                "producer.serviceVersion": 1,
+                "producer.clientMemberClass": 1,
+                "producer.serviceXRoadInstance": 1,
+                "producer.clientXRoadInstance": 1,
+                "producer.clientMemberCode": 1,
+                "producer.clientSubsystemCode": 1,
+                "producer.securityServerType": 1
+            }
 
             queries = [query_a, query_b, query_c, query_d]
             for q in queries:
@@ -120,43 +125,41 @@ class DatabaseManager:
             self.logger_m.log_error('DatabaseManager.get_matching_documents', '{0}'.format(repr(e)))
             raise e
 
-    def get_faulty_documents(self, reports_arguments, start_time, end_time):
+    def get_faulty_documents(self, target, start_time, end_time):
         try:
             db = self.mongodb_handler.get_query_db()
             collection = db[CLEAN_DATA_COLLECTION]
 
-            query_a = dict()
-            query_a["producer.serviceXRoadInstance"] = reports_arguments.xroad_instance
-            query_a["producer.serviceMemberCode"] = reports_arguments.member_code
-            query_a["producer.serviceSubsystemCode"] = reports_arguments.subsystem_code
-            query_a["producer.serviceMemberClass"] = reports_arguments.member_class
-            query_a["producer.requestInTs"] = {"$gte": start_time, "$lte": end_time}
-            query_a["client.clientXRoadInstance"] = reports_arguments.xroad_instance
-            query_a["client.clientMemberCode"] = reports_arguments.member_code
-            query_a["client.clientSubsystemCode"] = reports_arguments.subsystem_code
-            query_a["client.clientMemberClass"] = reports_arguments.member_class
-            query_a["client.requestInTs"] = {"$gte": start_time, "$lte": end_time}
+            query_a = {
+                "producer.serviceXRoadInstance": target.xroad_instance,
+                "producer.serviceMemberCode": target.member_code,
+                "producer.serviceSubsystemCode": target.subsystem_code,
+                "producer.serviceMemberClass": target.member_class,
+                "producer.requestInTs": {"$gte": start_time, "$lte": end_time},
+                "client.clientXRoadInstance": target.xroad_instance,
+                "client.clientMemberCode": target.member_code,
+                "client.clientSubsystemCode": target.subsystem_code,
+                "client.clientMemberClass": target.member_class,
+                "client.requestInTs": {"$gte": start_time, "$lte": end_time}
+            }
 
-            query_b = dict()
-            query_b["client.serviceXRoadInstance"] = reports_arguments.xroad_instance
-            query_b["client.serviceMemberCode"] = reports_arguments.member_code
-            query_b["client.serviceSubsystemCode"] = reports_arguments.subsystem_code
-            query_b["client.serviceMemberClass"] = reports_arguments.member_class
-            query_b["client.requestInTs"] = {"$gte": start_time, "$lte": end_time}
-            query_b["producer.clientXRoadInstance"] = reports_arguments.xroad_instance
-            query_b["producer.clientMemberCode"] = reports_arguments.member_code
-            query_b["producer.clientSubsystemCode"] = reports_arguments.subsystem_code
-            query_b["producer.clientMemberClass"] = reports_arguments.member_class
-            query_b["producer.requestInTs"] = {"$gte": start_time, "$lte": end_time}
-
-            projection = dict()
-            projection["_id"] = 1
+            query_b = {
+                "client.serviceXRoadInstance": target.xroad_instance,
+                "client.serviceMemberCode": target.member_code,
+                "client.serviceSubsystemCode": target.subsystem_code,
+                "client.serviceMemberClass": target.member_class,
+                "client.requestInTs": {"$gte": start_time, "$lte": end_time},
+                "producer.clientXRoadInstance": target.xroad_instance,
+                "producer.clientMemberCode": target.member_code,
+                "producer.clientSubsystemCode": target.subsystem_code,
+                "producer.clientMemberClass": target.member_class,
+                "producer.requestInTs": {"$gte": start_time, "$lte": end_time}
+            }
 
             faulty_set = set()
 
-            queries = [query_a, query_b]
-            for q in queries:
-                for doc in collection.find(q, projection):
+            for q in [query_a, query_b]:
+                for doc in collection.find(q, {"_id": 1}):
                     faulty_set.add(doc['_id'])
 
         except Exception as e:

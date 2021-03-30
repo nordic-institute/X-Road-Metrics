@@ -18,7 +18,7 @@ from .report_row import ReportRow
 from . import constants
 from .reports_arguments import OpmonReportsArguments
 from .translator import Translator
-from .xroad_descriptor_parser import OpmonXroadDescriptor
+from .xroad_descriptor_parser import OpmonXroadDescriptor, OpmonXroadSubsystemDescriptor
 
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -35,13 +35,14 @@ class ReportManager:
     def __init__(
             self,
             reports_arguments: OpmonReportsArguments,
-            xroad_descriptor: OpmonXroadDescriptor,
+            target: OpmonXroadSubsystemDescriptor,
             log_m: LoggerManager,
             database_manager: DatabaseManager,
-            translator: Translator):
+            translator: Translator
+    ):
         log_m.log_info(
             'create_reports_manager',
-            f'Prepare reports manager for subsystem "{reports_arguments.subsystem_code}"'
+            f'Prepare reports manager for subsystem "{target.subsystem_code}"'
         )
 
         self.database_manager = database_manager
@@ -50,19 +51,19 @@ class ReportManager:
         self.end_date = datetime.strptime(reports_arguments.end_date, '%Y-%m-%d').strftime('%Y-%m-%d')
         self.logger_manager = log_m
         self.translator = translator
-        self.xroad_descriptor = xroad_descriptor
+        self.target = target
 
     def is_producer_document(self, document):
-        return document["serviceSubsystemCode"] == self.reports_arguments.subsystem_code \
-            and document["serviceMemberCode"] == self.reports_arguments.member_code \
-            and document["serviceMemberClass"] == self.reports_arguments.member_class \
-            and document["serviceXRoadInstance"] == self.reports_arguments.xroad_instance
+        return document["serviceSubsystemCode"] == self.target.subsystem_code \
+            and document["serviceMemberCode"] == self.target.member_code \
+            and document["serviceMemberClass"] == self.target.member_class \
+            and document["serviceXRoadInstance"] == self.target.xroad_instance
 
     def is_client_document(self, document):
-        return document["clientSubsystemCode"] == self.reports_arguments.subsystem_code \
-            and document["clientMemberCode"] == self.reports_arguments.member_code \
-            and document["clientMemberClass"] == self.reports_arguments.member_class \
-            and document["clientXRoadInstance"] == self.reports_arguments.xroad_instance
+        return document["clientSubsystemCode"] == self.target.subsystem_code \
+            and document["clientMemberCode"] == self.target.member_code \
+            and document["clientMemberClass"] == self.target.member_class \
+            and document["clientXRoadInstance"] == self.target.xroad_instance
 
     @staticmethod
     def reduce_to_plain_json(document):
@@ -129,14 +130,14 @@ class ReportManager:
 
         # Query faulty documents
         faulty_doc_set = self.database_manager.get_faulty_documents(
-            self.reports_arguments,
+            self.target,
             start_time_timestamp,
             end_time_timestamp
         )
         faulty_docs_found = set()
 
         matching_docs = self.database_manager.get_matching_documents(
-            self.reports_arguments,
+            self.target,
             start_time_timestamp,
             end_time_timestamp
         )
@@ -382,7 +383,7 @@ class ReportManager:
         for key1 in data:
             for key2 in data[key1]:
                 count = data[key1][key2].succeeded_queries
-                name = f"{self.reports_arguments.subsystem_code}: {key1}" if produced_service else f"{key1}: {key2}"
+                name = f"{self.target.subsystem_code}: {key1}" if produced_service else f"{key1}: {key2}"
                 if count <= 0:
                     continue
 
@@ -412,7 +413,7 @@ class ReportManager:
         for key1 in data:
             for key2 in data[key1]:
                 duration = data[key1][key2].duration_avg.rounded_average
-                name = f"{self.reports_arguments.subsystem_code}: {key1}" if produced_service else f"{key1}: {key2}"
+                name = f"{self.target.subsystem_code}: {key1}" if produced_service else f"{key1}: {key2}"
                 if duration is None:
                     continue
 
@@ -432,11 +433,10 @@ class ReportManager:
         image_header_second = constants.RIA_IMAGE_2.format(IMAGE_PATH=image_path, LANGUAGE=language)
         image_header_third = constants.RIA_IMAGE_3.format(IMAGE_PATH=image_path, LANGUAGE=language)
 
-        member_name = tools.truncate(self.xroad_descriptor.get_member_name(self.reports_arguments))
-        subsystem_name = tools.truncate(self.xroad_descriptor.get_subsystem_name(self.reports_arguments))
-
-        subsystem_code = tools.truncate(self.reports_arguments.subsystem_code)
-        member_code = tools.truncate(self.reports_arguments.member_code)
+        member_name = tools.truncate(self.target.get_member_name())
+        subsystem_name = tools.truncate(self.target.get_subsystem_name(language))
+        subsystem_code = tools.truncate(self.target.subsystem_code)
+        member_code = tools.truncate(self.target.member_code)
 
         # Setup environment
         env = Environment(loader=FileSystemLoader(settings['html-template']['dir']))
@@ -473,7 +473,7 @@ class ReportManager:
             "image_header_second": image_header_second,
             "image_header_third": image_header_third,
             "xroadEnv": self.translator.get_translation('X_ROAD_ENV'),
-            "xroad_instance": self.reports_arguments.xroad_instance
+            "xroad_instance": self.target.xroad_instance
         }
 
         # Render the template
@@ -484,15 +484,15 @@ class ReportManager:
         settings = self.reports_arguments.settings['reports']
         output_directory = os.path.join(
             settings['report-path'],
-            self.reports_arguments.xroad_instance,
-            self.reports_arguments.member_class,
-            self.reports_arguments.member_code
+            self.target.xroad_instance,
+            self.target.member_class,
+            self.target.member_code
         )
         if not os.path.isdir(output_directory):
             os.makedirs(output_directory)
 
         report_name = "{0}_{1}_{2}_{3}.pdf".format(
-            tools.format_string(self.reports_arguments.subsystem_code),
+            tools.format_string(self.target.subsystem_code),
             self.start_date,
             self.end_date,
             creation_time

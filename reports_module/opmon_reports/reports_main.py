@@ -47,25 +47,22 @@ def log_report_generation_finish(subsystem_count, fail_count, logger_m):
 def generate_reports(args, logger_m):
     database_m = DatabaseManager(args, logger_m)
     notification_m = NotificationManager(args.settings['reports']['email'], database_m, logger_m)
-    xroad_descriptor = OpmonXroadDescriptor(args.settings['xroad']['descriptor-path'], logger_m)
+    xroad_descriptor = OpmonXroadDescriptor(args, logger_m)
     translator = create_translator(args, logger_m)
-
-    # If no subsystem was defined as command line argument create a report for all subsystems in descriptor.json
-    subsystems = xroad_descriptor if args.subsystem is None else [args.subsystem]
     fail_count = 0
 
-    for index, subsystem in enumerate(subsystems, start=1):
+    for index, target_subsystem in enumerate(xroad_descriptor, start=1):
         try:
-            args.subsystem = subsystem
-            report_manager = ReportManager(args, xroad_descriptor, logger_m, database_m, translator)
+            report_manager = ReportManager(args, target_subsystem, logger_m, database_m, translator)
             report_name = report_manager.generate_report()
-            if subsystem.get('email'):
-                notification_m.add_item_to_queue(args, report_name, subsystem['email'])
+            emails = target_subsystem.get_emails()
+            if emails:
+                notification_m.add_item_to_queue(args, report_name, emails)
         except Exception as e:
             fail_count += 1
-            log_report_error(e, index, len(subsystems), logger_m, args)
+            log_report_error(e, index, len(xroad_descriptor), logger_m, args)
 
-    log_report_generation_finish(len(subsystems), fail_count, logger_m)
+    log_report_generation_finish(len(xroad_descriptor), fail_count, logger_m)
 
 
 def report_main(args: OpmonReportsArguments):
