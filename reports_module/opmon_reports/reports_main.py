@@ -47,7 +47,7 @@ def log_report_generation_finish(subsystem_count, fail_count, logger_m):
 def generate_reports(args, logger_m):
     database_m = DatabaseManager(args, logger_m)
     notification_m = NotificationManager(args.settings['reports']['email'], database_m, logger_m)
-    xroad_descriptor = OpmonXroadDescriptor(args, logger_m)
+    xroad_descriptor = OpmonXroadDescriptor(args, database_m, logger_m)
     translator = create_translator(args, logger_m)
     fail_count = 0
 
