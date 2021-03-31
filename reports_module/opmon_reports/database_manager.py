@@ -219,94 +219,56 @@ class DatabaseManager:
             raise e
         return list(cursor)
 
-
-    def get_client_subsystems(self, start_time, end_time):
-        """
-        Gets a list of matching client side subsystems from the MongoDB for the specified time frame.
-        :param start_time: The starting timestamp for the query.
-        :param end_time: The ending timestamp for the query.
-        :return: Returns a list of matching client side subsystems.
-        """
+    def get_unique_subsystems(self, start_time, end_time):
         try:
             db = self.mongodb_handler.get_query_db()
             collection = db[CLEAN_DATA_COLLECTION]
 
-            # Step_matching: limit the documents range
-            step_matching = {"$match": {"$or": []}}
-            # step_matching = {"$match": {"$and": []}}
-            matching_condition_producer = {"producer.requestInTs": {"$gte": start_time, "$lte": end_time}}
-            matching_condition_client = {"client.requestInTs": {"$gte": start_time, "$lte": end_time}}
-            step_matching["$match"]["$or"].append(matching_condition_producer)
-            step_matching["$match"]["$or"].append(matching_condition_client)
-
-            # Step_condition: choose client/producer sub_document
-            step_condition = {"$project": {"document": {}}}
-            step_condition["$project"]["document"]["$cond"] = [{"$ne": ["$client", None]}, "$client", "$producer"]
-
-            # Step_matching_2: Make sure that the request succeeded
-            step_matching_2 = {"$match": {"document.succeeded": True}}
-
-            # Step_grouping: group the data by grouping_criteria
-            step_grouping = {"$group": {}}
-
-            grouping_criteria = {
-                "clientXRoadInstance": "$document.clientXRoadInstance",
-                "clientMemberClass": "$document.clientMemberClass",
-                "clientMemberCode": "$document.clientMemberCode",
-                "clientSubsystemCode": "$document.clientSubsystemCode"
-            }
-
-            step_grouping["$group"]["_id"] = grouping_criteria
-            step_grouping["$group"]["count"] = {"$sum": 1}
-
-            aggregation_steps = [step_matching, step_condition, step_matching_2, step_grouping]
-            cursor = collection.aggregate(aggregation_steps)
-
-        except Exception as e:
-            self.logger_m.log_error('DatabaseManager.get_client_subsystems', '{0}'.format(repr(e)))
-            raise e
-
-        return list(cursor)
-
-    def get_all_unique_client_subsystems(self):
-        """
-        Query cleaned data to get all the unique memberClass/memberCode/subsystemCode pairs and their counts.
-        :return: Returns a list of all the unique memberClass/memberCode/subsystemCode pairs and their counts.
-        """
-        try:
-            db = self.mongodb_handler.get_query_db()
-            collection = db[CLEAN_DATA_COLLECTION]
-
-            cursor = collection.aggregate(
-                [
-                    {
-                        "$group": {
-                            "_id": {
-                                "clientClientMemberCode": "$client.clientMemberCode",
-                                "clientClientSubsystemCode": "$client.clientSubsystemCode",
-                                "clientServiceMemberCode": "$client.serviceMemberCode",
-                                "clientServiceSubsystemCode": "$client.serviceSubsystemCode",
-                                "producerClientMemberCode": "$producer.clientMemberCode",
-                                "producerClientSubsystemCode": "$producer.clientSubsystemCode",
-                                "producerServiceMemberCode": "$producer.serviceMemberCode",
-                                "producerServiceSubsystemCode": "$producer.serviceSubsystemCode",
-                                "clientClientMemberClass": "$client.clientMemberClass",
-                                "clientServiceMemberClass": "$client.serviceMemberClass",
-                                "producerClientMemberClass": "$producer.clientMemberClass",
-                                "producerServiceMemberClass": "$producer.serviceMemberClass"
-                            },
-                            "count": {
-                                "$sum": 1
-                            }
+            cursor = collection.aggregate([
+                {
+                    "$match": {
+                        "client.requestInTs": {
+                            "$gte": start_time,
+                            "$lte": end_time
                         }
                     }
-                ]
-            )
+                },
+                {
+                    "$group": {
+                        "_id": None,
+                        "clients": self._build_unique_subsystem_query('client'),
+                        "services": self._build_unique_subsystem_query('service')
+                    }
+                },
+                {
+                    "$project": {
+                        "subsystems": {"$setUnion": ["$clients", "$services"]}
+                    }
+                }
+            ])
+
+            return [s for s in cursor.next()['subsystems'] if s is not None]
 
         except Exception as e:
-            self.logger_m.log_error('DatabaseManager.get_all_unique_client_subsystems', '{0}'.format(repr(e)))
+            self.logger_m.log_error('DatabaseManager.get_unique_subsystems', repr(e))
             raise e
-        return list(cursor)
+
+    @staticmethod
+    def _build_unique_subsystem_query(target):
+        return {
+            "$addToSet": {
+                "$cond": [
+                    {"$ne": [f"$client.{target}SubsystemCode", None]},
+                    {
+                        "x_road_instance": f"$client.{target}XRoadInstance",
+                        "member_class": f"$client.{target}MemberClass",
+                        "member_code": f"$client.{target}MemberCode",
+                        "subsystem_code": f"$client.{target}SubsystemCode"
+                    },
+                    None
+                ],
+            }
+        }
 
     def add_notification_to_queue(
             self,
@@ -343,7 +305,7 @@ class DatabaseManager:
                 'insert_timestamp': self.get_timestamp(),
                 'sending_timestamp': None,
                 'user_id': self.mongodb_handler.user,  # used to identify notifications that belong to the active
-                                                       # settings profile / xroad instance
+                # settings profile / xroad instance
                 'report_name': report_name,
                 'email_info': receivers
             }
