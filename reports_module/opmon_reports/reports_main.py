@@ -23,13 +23,13 @@ def create_translator(args, logger_m):
     return Translator(language_template)
 
 
-def log_report_error(e, subsystem_index, subsystem_count, logger_m, args):
+def log_report_error(e, subsystem_index, subsystem_count, logger_m, target):
     logger_m.log_error(
         'failed_report_generation',
         f'Exception: {repr(e)} {traceback.format_exc()}'.replace("\n", "")
     )
 
-    subsystem_string = f"{args.xroad_instance}:{args.member_class}:{args.member_code}:{args.subsystem_code}"
+    subsystem_string = f"{target.xroad_instance}:{target.member_class}:{target.member_code}:{target.subsystem_code}"
     logger_m.log_error(
         'failed_report_generation',
         f'Failed generating report {subsystem_index}/{subsystem_count} for subsystem {subsystem_string}'
@@ -60,7 +60,7 @@ def generate_reports(args, logger_m):
                 notification_m.add_item_to_queue(args, report_name, emails)
         except Exception as e:
             fail_count += 1
-            log_report_error(e, index, len(xroad_descriptor), logger_m, args)
+            log_report_error(e, index, len(xroad_descriptor), logger_m, target_subsystem)
 
     log_report_generation_finish(len(xroad_descriptor), fail_count, logger_m)
 
