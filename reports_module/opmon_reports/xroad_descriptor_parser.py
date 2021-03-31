@@ -4,22 +4,24 @@ from json import JSONDecodeError
 import jsonschema
 from jsonschema import ValidationError
 
+from .database_manager import DatabaseManager
 from .logger_manager import LoggerManager
 from .reports_arguments import OpmonReportsArguments
 from .xroad_descriptor_schema import xroad_descriptor_schema
 
 
 class OpmonXroadDescriptor:
-    def __init__(self, reports_arguments: OpmonReportsArguments, logger: LoggerManager):
+    def __init__(self, reports_arguments: OpmonReportsArguments, database: DatabaseManager, logger: LoggerManager):
         self.path = reports_arguments.settings['xroad']['descriptor-path']
+        self.database = database
         self.logger = logger
         self._data = []
 
         self._parse_descriptor_file()
         self._process_subsystem_argument(reports_arguments)
 
-        if self._data == []:
-            self._get_subsystems_from_mongo()
+        if not self._data:
+            self._get_subsystems_from_database(reports_arguments)
 
     def __getitem__(self, index):
         return OpmonXroadSubsystemDescriptor(self._data[index])
@@ -41,19 +43,23 @@ class OpmonXroadDescriptor:
 
     def _handle_missing_file(self):
         self.logger.log_warning(
-            "OpmonSubsystemInfo",
+            "OpmonXroadDescriptor",
             f"The info file {self.path} not found. Using default placeholders."
         )
 
     def _handle_parsing_error(self, e):
         self.logger.log_warning(
-            "OpmonSubsystemInfo",
+            "OpmonXroadDescriptor",
             f"Info file {self.path} parsing failed. Using default placeholders. Details: {e}"
         )
         self._data = []
 
     def _parse_descriptor_file(self):
-        self.logger.log_info('OpmonSubsystemInfo', 'Start parsing info file.')
+        if not self.path:
+            self.logger.log_info('OpmonXroadDescriptor', 'X-Road Descriptor file not specified.')
+            return
+
+        self.logger.log_info('OpmonXroadDescriptor', 'Start parsing info file.')
         try:
             with open(self.path, 'r') as f:
                 json_data = f.read()
@@ -70,8 +76,12 @@ class OpmonXroadDescriptor:
             subsystem_descriptor = self._find(args.subsystem)
             self._data = [subsystem_descriptor] if subsystem_descriptor != {} else [args.subsystem]
 
-    def _get_subsystems_from_mongo(self):
-        pass
+    def _get_subsystems_from_database(self, reports_arguments):
+        self.logger.log_info('OpmonXroadDescriptor', 'Fetching subsystem list from database.')
+        self._data = self.database.get_unique_subsystems(
+            reports_arguments.start_time_milliseconds,
+            reports_arguments.end_time_milliseconds
+        )
 
 
 class OpmonXroadSubsystemDescriptor:

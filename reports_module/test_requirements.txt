@@ -1,4 +1,5 @@
 coverage
+mongomock
 pytest
 pytest-mock
 pytest-pycodestyle
