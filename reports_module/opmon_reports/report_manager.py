@@ -115,31 +115,19 @@ class ReportManager:
         return document[new_field_name]
 
     def get_documents(self):
-        """
-
-        :return:
-        """
-        # Get start and end date timestamps
-        start_time_timestamp = time_date_tools.date_to_timestamp_milliseconds(
-            time_date_tools.string_to_date(self.start_date))
-        end_time_timestamp = time_date_tools.date_to_timestamp_milliseconds(
-            time_date_tools.string_to_date(self.end_date), False)
-
-        # Generate report map
         report_map = dict()
 
-        # Query faulty documents
         faulty_doc_set = self.database_manager.get_faulty_documents(
             self.target,
-            start_time_timestamp,
-            end_time_timestamp
+            self.reports_arguments.start_time_milliseconds,
+            self.reports_arguments.end_time_milliseconds
         )
         faulty_docs_found = set()
 
         matching_docs = self.database_manager.get_matching_documents(
             self.target,
-            start_time_timestamp,
-            end_time_timestamp
+            self.reports_arguments.start_time_milliseconds,
+            self.reports_arguments.end_time_milliseconds
         )
 
         # Iterate over all the docs and append to report map
