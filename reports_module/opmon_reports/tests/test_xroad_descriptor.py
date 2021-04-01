@@ -1,10 +1,12 @@
+from json.decoder import JSONDecodeError
+
 import mongomock
 import os
 import pymongo
 import pytest
 
 from opmon_reports.database_manager import DatabaseManager
-from opmon_reports.xroad_descriptor_parser import OpmonXroadDescriptor, OpmonXroadSubsystemDescriptor
+from opmon_reports.xroad_descriptor import OpmonXroadDescriptor, OpmonXroadSubsystemDescriptor
 
 
 @pytest.fixture
@@ -69,34 +71,38 @@ def test_xroad_descriptor_parsing_valid2(mocker, basic_args, dummy_database):
 
 def test_xroad_descriptor_parsing_not_json(mocker, basic_args, dummy_database):
     basic_args.settings['xroad']['descriptor-path'] = get_resource_path("xroad_descriptor_not_json.json")
-    xroad_descriptor = OpmonXroadDescriptor(basic_args, dummy_database, mocker.Mock())
+    logger = mocker.Mock()
 
-    xroad_descriptor.logger.log_warning.assert_called_once()
-    assert "parsing failed" in xroad_descriptor.logger.log_warning.call_args.args[1]
-    xroad_descriptor.logger.log_error.assert_not_called()
-    assert xroad_descriptor._data == []
+    with pytest.raises(JSONDecodeError):
+        OpmonXroadDescriptor(basic_args, dummy_database, logger)
+
+    logger.log_warning.assert_not_called()
+    logger.log_error.assert_called_once()
+    assert "parsing failed" in logger.log_error.call_args.args[1]
 
 
 def test_xroad_descriptor_parsing_schema_fail(mocker, basic_args, dummy_database):
     basic_args.settings['xroad']['descriptor-path'] = get_resource_path("xroad_descriptor_schema_fail.json")
-    xroad_descriptor = OpmonXroadDescriptor(basic_args, dummy_database, mocker.Mock())
+    logger = mocker.Mock()
 
-    xroad_descriptor.logger.log_warning.assert_called_once()
-    assert "parsing failed" in xroad_descriptor.logger.log_warning.call_args.args[1]
-    xroad_descriptor.logger.log_error.assert_not_called()
+    with pytest.raises(JSONDecodeError):
+        OpmonXroadDescriptor(basic_args, dummy_database, logger)
 
-    assert xroad_descriptor._data == []
+    logger.log_warning.assert_not_called()
+    logger.log_error.assert_called_once()
+    assert "parsing failed" in logger.log_error.call_args.args[1]
 
 
 def test_xroad_descriptor_parsing_file_not_found(mocker, basic_args, dummy_database):
     basic_args.settings['xroad']['descriptor-path'] = "/not/found.json"
-    xroad_descriptor = OpmonXroadDescriptor(basic_args, dummy_database, mocker.Mock())
+    logger = mocker.Mock()
 
-    xroad_descriptor.logger.log_warning.assert_called_once()
-    assert "not found" in xroad_descriptor.logger.log_warning.call_args.args[1]
-    xroad_descriptor.logger.log_error.assert_not_called()
+    with pytest.raises(FileNotFoundError):
+        OpmonXroadDescriptor(basic_args, dummy_database, logger)
 
-    assert xroad_descriptor._data == []
+    logger.log_warning.assert_not_called()
+    logger.log_error.assert_called_once()
+    assert "not found" in logger.log_error.call_args.args[1]
 
 
 def test_iteration(mocker, basic_args):
@@ -188,7 +194,7 @@ def test_subsystem_commandline_argument_with_invalid_json(mocker, basic_args):
 
 @mongomock.patch(servers=(('testmongo', 27017),))
 def test_get_subsystems_from_database(mocker, basic_args):
-    basic_args.settings['xroad']['descriptor-path'] = get_resource_path("xroad_descriptor_not_json.json")
+    basic_args.settings['xroad']['descriptor-path'] = ""
     database_manager = DatabaseManager(basic_args, mocker.Mock())
 
     test_docs = get_test_documents()

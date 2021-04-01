@@ -18,7 +18,7 @@ from .report_row import ReportRow
 from . import constants
 from .reports_arguments import OpmonReportsArguments
 from .translator import Translator
-from .xroad_descriptor_parser import OpmonXroadDescriptor, OpmonXroadSubsystemDescriptor
+from .xroad_descriptor import OpmonXroadDescriptor, OpmonXroadSubsystemDescriptor
 
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt

@@ -9,7 +9,7 @@ from .logger_manager import LoggerManager
 from .report_manager import ReportManager
 from .translator import Translator
 from .reports_arguments import OpmonReportsArguments
-from .xroad_descriptor_parser import OpmonXroadDescriptor
+from .xroad_descriptor import OpmonXroadDescriptor
 
 
 def create_translator(args, logger_m):
