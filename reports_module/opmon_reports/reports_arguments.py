@@ -2,6 +2,7 @@ import argparse
 
 from opmon_reports import time_date_tools
 from .settings_parser import OpmonSettingsManager
+from .time_date_tools import date_to_timestamp_milliseconds, string_to_date
 
 
 class OpmonReportsArguments:
@@ -11,9 +12,9 @@ class OpmonReportsArguments:
         self.settings = OpmonSettingsManager(args.profile).settings
         self.action = args.action
 
+        self.xroad_instance = self.settings['xroad']['instance']
         self.subsystem = self._parse_subsystem(args)
 
-        self.xroad_instance = self.settings['xroad']['instance']
         self.start_date = args.start_date
         self.end_date = args.end_date
         self.language = args.language
@@ -22,19 +23,14 @@ class OpmonReportsArguments:
             raise ValueError(f"Start date cannot be after end date.")
 
     @property
-    def member_class(self):
-        return self.subsystem['member_class']
+    def start_time_milliseconds(self):
+        return date_to_timestamp_milliseconds(string_to_date(self.start_date))
 
     @property
-    def member_code(self):
-        return self.subsystem['member_code']
+    def end_time_milliseconds(self):
+        return date_to_timestamp_milliseconds(string_to_date(self.end_date), start_date=False)
 
-    @property
-    def subsystem_code(self):
-        return self.subsystem['subsystem_code']
-
-    @staticmethod
-    def _parse_subsystem(args):
+    def _parse_subsystem(self, args):
         if args.subsystem is None:
             return None
 
@@ -45,6 +41,7 @@ class OpmonReportsArguments:
         keys = ['member_class', 'member_code', 'subsystem_code']
         subsystem_dict = dict(zip(keys, codes))
         subsystem_dict['email'] = [{'email': args.email, 'name': ''}]
+        subsystem_dict['x_road_instance'] = self.xroad_instance
         return subsystem_dict
 
     @staticmethod

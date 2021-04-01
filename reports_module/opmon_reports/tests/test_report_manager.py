@@ -7,6 +7,7 @@ import tempfile
 from opmon_reports.report_manager import ReportManager
 from opmon_reports.report_manager import ReportRow
 from opmon_reports.report_row import AverageValue
+from opmon_reports.xroad_descriptor_parser import OpmonXroadSubsystemDescriptor
 
 
 @pytest.fixture()
@@ -14,31 +15,34 @@ def basic_args(mocker):
     args = mocker.Mock()
     args.start_date = "2017-01-01"
     args.end_date = "2017-01-01"
-
-    args.subsystem_code = "TEST_SUB"
-    args.member_code = "TEST_MEMBER"
-    args.member_class = "TEST_CLASS"
-    args.xroad_instance = "TEST_INSTANCE"
     args.language = "en"
 
     return args
 
 
 @pytest.fixture()
-def basic_document(basic_args):
-    document = dict()
+def target_subsystem():
+    return OpmonXroadSubsystemDescriptor({
+        'subsystem_code': "TEST_SUB",
+        'member_code': "TEST_MEMBER",
+        'member_class': "TEST_CLASS",
+        'x_road_instance': "TEST_INSTANCE"
+    })
 
-    document["serviceSubsystemCode"] = basic_args.subsystem_code
-    document["serviceMemberCode"] = basic_args.member_code
-    document["serviceMemberClass"] = basic_args.member_class
-    document["serviceXRoadInstance"] = basic_args.xroad_instance
 
-    document["clientSubsystemCode"] = basic_args.subsystem_code
-    document["clientMemberCode"] = basic_args.member_code
-    document["clientMemberClass"] = basic_args.member_class
-    document["clientXRoadInstance"] = basic_args.xroad_instance
+@pytest.fixture()
+def basic_document(target_subsystem):
+    return {
+        "serviceSubsystemCode": target_subsystem.subsystem_code,
+        "serviceMemberCode": target_subsystem.member_code,
+        "serviceMemberClass": target_subsystem.member_class,
+        "serviceXRoadInstance": target_subsystem.xroad_instance,
 
-    return document
+        "clientSubsystemCode": target_subsystem.subsystem_code,
+        "clientMemberCode": target_subsystem.member_code,
+        "clientMemberClass": target_subsystem.member_class,
+        "clientXRoadInstance": target_subsystem.xroad_instance,
+    }
 
 
 @pytest.fixture()
@@ -106,8 +110,8 @@ def map_rows_to_consumer_services(rows):
     }
 
 
-def test_is_producer_document(mocker, basic_args, basic_document):
-    report_manager = ReportManager(basic_args, mocker.Mock(), mocker.Mock(), mocker.Mock(), mocker.Mock())
+def test_is_producer_document(mocker, basic_args, target_subsystem, basic_document):
+    report_manager = ReportManager(basic_args, target_subsystem, mocker.Mock(), mocker.Mock(), mocker.Mock())
 
     assert report_manager.is_producer_document(basic_document)
 
@@ -117,8 +121,8 @@ def test_is_producer_document(mocker, basic_args, basic_document):
         assert not report_manager.is_producer_document(invalid_document)
 
 
-def test_is_client_document(mocker, basic_args, basic_document):
-    report_manager = ReportManager(basic_args, mocker.Mock(), mocker.Mock(), mocker.Mock(), mocker.Mock())
+def test_is_client_document(mocker, basic_args, target_subsystem, basic_document):
+    report_manager = ReportManager(basic_args, target_subsystem, mocker.Mock(), mocker.Mock(), mocker.Mock())
 
     assert report_manager.is_client_document(basic_document)
 
@@ -128,8 +132,8 @@ def test_is_client_document(mocker, basic_args, basic_document):
         assert not report_manager.is_client_document(invalid_document)
 
 
-def test_reduce_to_plain_json(mocker, basic_args, basic_document):
-    report_manager = ReportManager(basic_args, mocker.Mock(), mocker.Mock(), mocker.Mock(), mocker.Mock())
+def test_reduce_to_plain_json(mocker, basic_args, target_subsystem, basic_document):
+    report_manager = ReportManager(basic_args, target_subsystem, mocker.Mock(), mocker.Mock(), mocker.Mock())
 
     document = dict()
     document['client'] = basic_document.copy()
@@ -159,8 +163,8 @@ def test_reduce_to_plain_json(mocker, basic_args, basic_document):
         report_manager.reduce_to_plain_json(document)
 
 
-def test_get_service_type(mocker, basic_args, basic_document):
-    report_manager = ReportManager(basic_args, mocker.Mock(), mocker.Mock(), mocker.Mock(), mocker.Mock())
+def test_get_service_type(mocker, basic_args, target_subsystem, basic_document):
+    report_manager = ReportManager(basic_args, target_subsystem, mocker.Mock(), mocker.Mock(), mocker.Mock())
 
     basic_document["clientSubsystemCode"] = "not_producer"
     basic_document["serviceCode"] = "getWsdl"
@@ -169,7 +173,7 @@ def test_get_service_type(mocker, basic_args, basic_document):
     basic_document["serviceCode"] = "FOOBAR"
     assert report_manager.get_service_type(basic_document) == "ps"
 
-    basic_document["clientSubsystemCode"] = basic_args.subsystem_code
+    basic_document["clientSubsystemCode"] = target_subsystem.subsystem_code
     basic_document["serviceSubsystemCode"] = "not_client"
     basic_document["serviceCode"] = "getWsdl"
     assert report_manager.get_service_type(basic_document) == "cms"
@@ -178,8 +182,8 @@ def test_get_service_type(mocker, basic_args, basic_document):
     assert report_manager.get_service_type(basic_document) == "cs"
 
 
-def test_merge_document_fields(mocker, basic_args, basic_document):
-    report_manager = ReportManager(basic_args, mocker.Mock(), mocker.Mock(), mocker.Mock(), mocker.Mock())
+def test_merge_document_fields(mocker, basic_args, target_subsystem, basic_document):
+    report_manager = ReportManager(basic_args, target_subsystem, mocker.Mock(), mocker.Mock(), mocker.Mock())
 
     basic_document["serviceVersion"] = "1.0"
     basic_document["serviceMemberClass"] = ""
@@ -206,8 +210,8 @@ def test_get_min_mean_max():
     assert ReportManager.get_min_mean_max(None, AverageValue(), None) == "None / None / None"
 
 
-def test_get_succeeded_top(mocker, basic_args):
-    report_manager = ReportManager(basic_args, mocker.Mock(), mocker.Mock(), mocker.Mock(), mocker.Mock())
+def test_get_succeeded_top(mocker, basic_args, target_subsystem):
+    report_manager = ReportManager(basic_args, target_subsystem, mocker.Mock(), mocker.Mock(), mocker.Mock())
 
     rows = [ReportRow(None) for _ in range(9)]
     success_counts = [10, 15, 7, 14, 13, 8, 11, 12, 9]
@@ -234,8 +238,8 @@ def test_get_succeeded_top(mocker, basic_args):
     ]
 
 
-def test_get_duration(mocker, basic_args):
-    report_manager = ReportManager(basic_args, mocker.Mock(), mocker.Mock(), mocker.Mock(), mocker.Mock())
+def test_get_duration(mocker, basic_args, target_subsystem):
+    report_manager = ReportManager(basic_args, target_subsystem, mocker.Mock(), mocker.Mock(), mocker.Mock())
 
     rows = [ReportRow(None) for _ in range(9)]
     duration_avgs = [
@@ -272,8 +276,8 @@ def test_get_duration(mocker, basic_args):
     ]
 
 
-def test_generate_report_tempfolder(mocker, basic_args):
-    report_manager = ReportManager(basic_args, mocker.Mock(), mocker.Mock(), mocker.Mock(), mocker.Mock())
+def test_generate_report_tempfolder(mocker, basic_args, target_subsystem):
+    report_manager = ReportManager(basic_args, target_subsystem, mocker.Mock(), mocker.Mock(), mocker.Mock())
 
     mocker.patch('opmon_reports.report_manager.ReportManager.get_documents', return_value={})
     mocker.patch('opmon_reports.report_manager.ReportManager.create_data_frames', return_value=[])

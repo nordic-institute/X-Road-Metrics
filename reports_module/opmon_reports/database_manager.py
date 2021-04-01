@@ -27,9 +27,9 @@ class DatabaseManager:
         """
         return float(time.time())
 
-    def get_matching_documents(self, reports_arguments, start_time, end_time):
+    def get_matching_documents(self, target, start_time, end_time):
         """Query cleaned data for documents based on member_code, subsystem_code, member_class, start_time, end_time.
-        :param reports_arguments: OpmonReportsArguments object to define query scope
+        :param target: OpmonXroadSubsystemDescriptor object to define query scope
         :param start_time: The starting timestamp for the query.
         :param end_time: The ending timestamp for the query.
         :return: Returns the cursor that contains the found documents.
@@ -42,75 +42,80 @@ class DatabaseManager:
             # Producer group
             # ------------------------------------
             # Query matching documents as producer
-            query_a = dict()
-            query_a["producer.serviceXRoadInstance"] = reports_arguments.xroad_instance
-            query_a["producer.serviceMemberCode"] = reports_arguments.member_code
-            query_a["producer.serviceSubsystemCode"] = reports_arguments.subsystem_code
-            query_a["producer.serviceMemberClass"] = reports_arguments.member_class
-            query_a["producer.requestInTs"] = {"$gte": start_time, "$lte": end_time}
+            query_a = {
+                "producer.serviceXRoadInstance": target.xroad_instance,
+                "producer.serviceMemberCode": target.member_code,
+                "producer.serviceSubsystemCode": target.subsystem_code,
+                "producer.serviceMemberClass": target.member_class,
+                "producer.requestInTs": {"$gte": start_time, "$lte": end_time}
+            }
             # Query matching documents as producer from client field
-            query_c = dict()
-            query_c["client.serviceXRoadInstance"] = reports_arguments.xroad_instance
-            query_c["client.serviceMemberCode"] = reports_arguments.member_code
-            query_c["client.serviceSubsystemCode"] = reports_arguments.subsystem_code
-            query_c["client.serviceMemberClass"] = reports_arguments.member_class
-            query_c["producer"] = None
-            query_c["client.requestInTs"] = {"$gte": start_time, "$lte": end_time}
+            query_c = {
+                "client.serviceXRoadInstance": target.xroad_instance,
+                "client.serviceMemberCode": target.member_code,
+                "client.serviceSubsystemCode": target.subsystem_code,
+                "client.serviceMemberClass": target.member_class,
+                "producer": None,
+                "client.requestInTs": {"$gte": start_time, "$lte": end_time}
+            }
             # ------------------------------------
             # Client group
             # ------------------------------------
             # Query matching documents as client
-            query_d = dict()
-            query_d["client.clientXRoadInstance"] = reports_arguments.xroad_instance
-            query_d["client.clientMemberCode"] = reports_arguments.member_code
-            query_d["client.clientSubsystemCode"] = reports_arguments.subsystem_code
-            query_d["client.clientMemberClass"] = reports_arguments.member_class
-            query_d["client.requestInTs"] = {"$gte": start_time, "$lte": end_time}
+            query_d = {
+                "client.clientXRoadInstance": target.xroad_instance,
+                "client.clientMemberCode": target.member_code,
+                "client.clientSubsystemCode": target.subsystem_code,
+                "client.clientMemberClass": target.member_class,
+                "client.requestInTs": {"$gte": start_time, "$lte": end_time}
+            }
             # Query matching documents as client from producer
-            query_b = dict()
-            query_b["producer.clientXRoadInstance"] = reports_arguments.xroad_instance
-            query_b["producer.clientMemberCode"] = reports_arguments.member_code
-            query_b["producer.clientSubsystemCode"] = reports_arguments.subsystem_code
-            query_b["producer.clientMemberClass"] = reports_arguments.member_class
-            query_b["client"] = None
-            query_b["producer.requestInTs"] = {"$gte": start_time, "$lte": end_time}
+            query_b = {
+                "producer.clientXRoadInstance": target.xroad_instance,
+                "producer.clientMemberCode": target.member_code,
+                "producer.clientSubsystemCode": target.subsystem_code,
+                "producer.clientMemberClass": target.member_class,
+                "client": None,
+                "producer.requestInTs": {"$gte": start_time, "$lte": end_time}
+            }
 
             # Define projection
-            projection = dict()
-            projection["_id"] = 1
-            projection["correctorTime"] = 1
-            projection["producerRequestSize"] = 1
-            projection["producerDurationProducerView"] = 1
-            projection["clientRequestSize"] = 1
-            projection["totalDuration"] = 1
-            projection["clientResponseSize"] = 1
-            projection["producerResponseSize"] = 1
-            projection["client.serviceMemberClass"] = 1
-            projection["client.succeeded"] = 1
-            projection["client.serviceMemberCode"] = 1
-            projection["client.requestInTs"] = 1
-            projection["client.serviceCode"] = 1
-            projection["client.serviceSubsystemCode"] = 1
-            projection["client.serviceVersion"] = 1
-            projection["client.clientMemberClass"] = 1
-            projection["client.serviceXRoadInstance"] = 1
-            projection["client.clientXRoadInstance"] = 1
-            projection["client.clientMemberCode"] = 1
-            projection["client.clientSubsystemCode"] = 1
-            projection["client.securityServerType"] = 1
-            projection["producer.serviceMemberClass"] = 1
-            projection["producer.succeeded"] = 1
-            projection["producer.serviceMemberCode"] = 1
-            projection["producer.requestInTs"] = 1
-            projection["producer.serviceCode"] = 1
-            projection["producer.serviceSubsystemCode"] = 1
-            projection["producer.serviceVersion"] = 1
-            projection["producer.clientMemberClass"] = 1
-            projection["producer.serviceXRoadInstance"] = 1
-            projection["producer.clientXRoadInstance"] = 1
-            projection["producer.clientMemberCode"] = 1
-            projection["producer.clientSubsystemCode"] = 1
-            projection["producer.securityServerType"] = 1
+            projection = {
+                "_id": 1,
+                "correctorTime": 1,
+                "producerRequestSize": 1,
+                "producerDurationProducerView": 1,
+                "clientRequestSize": 1,
+                "totalDuration": 1,
+                "clientResponseSize": 1,
+                "producerResponseSize": 1,
+                "client.serviceMemberClass": 1,
+                "client.succeeded": 1,
+                "client.serviceMemberCode": 1,
+                "client.requestInTs": 1,
+                "client.serviceCode": 1,
+                "client.serviceSubsystemCode": 1,
+                "client.serviceVersion": 1,
+                "client.clientMemberClass": 1,
+                "client.serviceXRoadInstance": 1,
+                "client.clientXRoadInstance": 1,
+                "client.clientMemberCode": 1,
+                "client.clientSubsystemCode": 1,
+                "client.securityServerType": 1,
+                "producer.serviceMemberClass": 1,
+                "producer.succeeded": 1,
+                "producer.serviceMemberCode": 1,
+                "producer.requestInTs": 1,
+                "producer.serviceCode": 1,
+                "producer.serviceSubsystemCode": 1,
+                "producer.serviceVersion": 1,
+                "producer.clientMemberClass": 1,
+                "producer.serviceXRoadInstance": 1,
+                "producer.clientXRoadInstance": 1,
+                "producer.clientMemberCode": 1,
+                "producer.clientSubsystemCode": 1,
+                "producer.securityServerType": 1
+            }
 
             queries = [query_a, query_b, query_c, query_d]
             for q in queries:
@@ -120,43 +125,41 @@ class DatabaseManager:
             self.logger_m.log_error('DatabaseManager.get_matching_documents', '{0}'.format(repr(e)))
             raise e
 
-    def get_faulty_documents(self, reports_arguments, start_time, end_time):
+    def get_faulty_documents(self, target, start_time, end_time):
         try:
             db = self.mongodb_handler.get_query_db()
             collection = db[CLEAN_DATA_COLLECTION]
 
-            query_a = dict()
-            query_a["producer.serviceXRoadInstance"] = reports_arguments.xroad_instance
-            query_a["producer.serviceMemberCode"] = reports_arguments.member_code
-            query_a["producer.serviceSubsystemCode"] = reports_arguments.subsystem_code
-            query_a["producer.serviceMemberClass"] = reports_arguments.member_class
-            query_a["producer.requestInTs"] = {"$gte": start_time, "$lte": end_time}
-            query_a["client.clientXRoadInstance"] = reports_arguments.xroad_instance
-            query_a["client.clientMemberCode"] = reports_arguments.member_code
-            query_a["client.clientSubsystemCode"] = reports_arguments.subsystem_code
-            query_a["client.clientMemberClass"] = reports_arguments.member_class
-            query_a["client.requestInTs"] = {"$gte": start_time, "$lte": end_time}
+            query_a = {
+                "producer.serviceXRoadInstance": target.xroad_instance,
+                "producer.serviceMemberCode": target.member_code,
+                "producer.serviceSubsystemCode": target.subsystem_code,
+                "producer.serviceMemberClass": target.member_class,
+                "producer.requestInTs": {"$gte": start_time, "$lte": end_time},
+                "client.clientXRoadInstance": target.xroad_instance,
+                "client.clientMemberCode": target.member_code,
+                "client.clientSubsystemCode": target.subsystem_code,
+                "client.clientMemberClass": target.member_class,
+                "client.requestInTs": {"$gte": start_time, "$lte": end_time}
+            }
 
-            query_b = dict()
-            query_b["client.serviceXRoadInstance"] = reports_arguments.xroad_instance
-            query_b["client.serviceMemberCode"] = reports_arguments.member_code
-            query_b["client.serviceSubsystemCode"] = reports_arguments.subsystem_code
-            query_b["client.serviceMemberClass"] = reports_arguments.member_class
-            query_b["client.requestInTs"] = {"$gte": start_time, "$lte": end_time}
-            query_b["producer.clientXRoadInstance"] = reports_arguments.xroad_instance
-            query_b["producer.clientMemberCode"] = reports_arguments.member_code
-            query_b["producer.clientSubsystemCode"] = reports_arguments.subsystem_code
-            query_b["producer.clientMemberClass"] = reports_arguments.member_class
-            query_b["producer.requestInTs"] = {"$gte": start_time, "$lte": end_time}
-
-            projection = dict()
-            projection["_id"] = 1
+            query_b = {
+                "client.serviceXRoadInstance": target.xroad_instance,
+                "client.serviceMemberCode": target.member_code,
+                "client.serviceSubsystemCode": target.subsystem_code,
+                "client.serviceMemberClass": target.member_class,
+                "client.requestInTs": {"$gte": start_time, "$lte": end_time},
+                "producer.clientXRoadInstance": target.xroad_instance,
+                "producer.clientMemberCode": target.member_code,
+                "producer.clientSubsystemCode": target.subsystem_code,
+                "producer.clientMemberClass": target.member_class,
+                "producer.requestInTs": {"$gte": start_time, "$lte": end_time}
+            }
 
             faulty_set = set()
 
-            queries = [query_a, query_b]
-            for q in queries:
-                for doc in collection.find(q, projection):
+            for q in [query_a, query_b]:
+                for doc in collection.find(q, {"_id": 1}):
                     faulty_set.add(doc['_id'])
 
         except Exception as e:
@@ -216,414 +219,56 @@ class DatabaseManager:
             raise e
         return list(cursor)
 
-    def get_services(self, start_time, end_time):
-        """
-        Get all the unique services and their representing counts for the specified time frame.
-        A service consists of the following values: serviceCode, serviceVersion, serviceMemberCode, serviceMemberClass.
-        :param start_time: The starting timestamp for the query.
-        :param end_time: The ending timestamp for the query.
-        :return: Returns the list of all the services within specified time frame with their counts.
-        """
+    def get_unique_subsystems(self, start_time, end_time):
         try:
             db = self.mongodb_handler.get_query_db()
             collection = db[CLEAN_DATA_COLLECTION]
 
-            # Step_matching: limit the documents range
-            step_matching = {"$match": {"$or": []}}
-            matching_condition_producer = {"producer.requestInTs": {"$gte": start_time, "$lte": end_time}}
-            matching_condition_client = {"client.requestInTs": {"$gte": start_time, "$lte": end_time}}
-            step_matching["$match"]["$or"].append(matching_condition_producer)
-            step_matching["$match"]["$or"].append(matching_condition_client)
-
-            # Step_condition: choose client/producer sub_document
-            step_condition = {"$project": {"document": {}}}
-            step_condition["$project"]["document"]["$cond"] = [{"$ne": ["$client", None]}, "$client", "$producer"]
-
-            # Step_matching_2: Make sure that the request succeeded
-            step_matching_2 = {"$match": {"document.succeeded": True}}
-
-            # Step_grouping: group the data by grouping_criteria
-            step_grouping = {"$group": {}}
-            grouping_criteria = {
-                "serviceCode": "$document.serviceCode",
-                "serviceVersion": "$document.serviceVersion",
-                "serviceMemberCode": "$document.serviceMemberCode",
-                "serviceMemberClass": "$document.serviceMemberClass"
-            }
-            step_grouping["$group"]["_id"] = grouping_criteria
-            step_grouping["$group"]["count"] = {"$sum": 1}
-
-            aggregation_steps = [step_matching, step_condition, step_matching_2, step_grouping]
-            cursor = collection.aggregate(aggregation_steps)
-
-        except Exception as e:
-            self.logger_m.log_error('DatabaseManager.get_services', '{0}'.format(repr(e)))
-            raise e
-        return list(cursor)
-
-    def get_producers(self, start_time, end_time):
-        """
-        Get all the unique services and their representing counts for the specified time frame.
-        A producer consists of the following values: serviceXRoadInstance, serviceMemberClass, serviceMemberCode.
-        :param start_time: The starting timestamp for the query.
-        :param end_time: The ending timestamp for the query.
-        :return: Returns the list of all the producers within specified time frame with their counts.
-        """
-        try:
-            db = self.mongodb_handler.get_query_db()
-            collection = db[CLEAN_DATA_COLLECTION]
-
-            # Step_matching: limit the documents range
-            step_matching = {"$match": {"$or": []}}
-            matching_condition_producer = {"producer.requestInTs": {"$gte": start_time, "$lte": end_time}}
-            matching_condition_client = {"client.requestInTs": {"$gte": start_time, "$lte": end_time}}
-            step_matching["$match"]["$or"].append(matching_condition_producer)
-            step_matching["$match"]["$or"].append(matching_condition_client)
-
-            # Step_condition: choose client/producer sub_document
-            step_condition = {"$project": {"document": {}}}
-            step_condition["$project"]["document"]["$cond"] = [{"$ne": ["$client", None]}, "$client", "$producer"]
-
-            # Step_matching_2: Make sure that the request succeeded
-            step_matching_2 = {"$match": {"document.succeeded": True}}
-
-            # Step_grouping: group the data by grouping_criteria
-            step_grouping = {"$group": {}}
-
-            grouping_criteria = {
-                "serviceXRoadInstance": "$document.serviceXRoadInstance",
-                "serviceMemberClass": "$document.serviceMemberClass",
-                "serviceMemberCode": "$document.serviceMemberCode"
-            }
-
-            step_grouping["$group"]["_id"] = grouping_criteria
-            step_grouping["$group"]["count"] = {"$sum": 1}
-
-            aggregation_steps = [step_matching, step_condition, step_matching_2, step_grouping]
-            cursor = collection.aggregate(aggregation_steps)
-
-        except Exception as e:
-            self.logger_m.log_error('DatabaseManager.get_producers', '{0}'.format(repr(e)))
-            raise e
-        return list(cursor)
-
-    def get_service_members(self, start_time, end_time):
-        """
-        Get all the unique service members and their representing counts for the specified time frame.
-        A service member consists of the following values: serviceXRoadInstance, serviceMemberClass, serviceMemberCode.
-        :param start_time: The starting timestamp for the query.
-        :param end_time: The ending timestamp for the query.
-        :return: Returns the list of all the service members within specified time frame with their counts.
-        """
-        try:
-            db = self.mongodb_handler.get_query_db()
-            collection = db[CLEAN_DATA_COLLECTION]
-
-            # Step_matching: limit the documents range
-            step_matching = {"$match": {"$or": []}}
-            matching_condition_producer = {"producer.requestInTs": {"$gte": start_time, "$lte": end_time}}
-            matching_condition_client = {"client.requestInTs": {"$gte": start_time, "$lte": end_time}}
-            step_matching["$match"]["$or"].append(matching_condition_producer)
-            step_matching["$match"]["$or"].append(matching_condition_client)
-
-            # Step_condition: choose client/producer sub_document
-            step_condition = {"$project": {"document": {}}}
-            step_condition["$project"]["document"]["$cond"] = [{"$ne": ["$client", None]}, "$client", "$producer"]
-
-            # Step_matching_2: Make sure that the request succeeded
-            step_matching_2 = {"$match": {"document.succeeded": True}}
-
-            # Step_grouping: group the data by grouping_criteria
-            step_grouping = {"$group": {}}
-
-            grouping_criteria = {
-                "serviceXRoadInstance": "$document.serviceXRoadInstance",
-                "serviceMemberClass": "$document.serviceMemberClass",
-                "serviceMemberCode": "$document.serviceMemberCode"
-            }
-            step_grouping["$group"]["_id"] = grouping_criteria
-            step_grouping["$group"]["count"] = {"$sum": 1}
-
-            aggregation_steps = [step_matching, step_condition, step_matching_2, step_grouping]
-            cursor = collection.aggregate(aggregation_steps)
-
-        except Exception as e:
-            self.logger_m.log_error('DatabaseManager.get_service_members', '{0}'.format(repr(e)))
-            raise e
-
-        return list(cursor)
-
-    def get_client_members(self, start_time, end_time):
-        """
-        Get all the unique client members and their representing counts for the specified time frame.
-        A client member consists of the following values: clientXRoadInstance, clientMemberClass, clientMemberCode.
-        :param start_time: The starting timestamp for the query.
-        :param end_time: The ending timestamp for the query.
-        :return: Returns the list of all the client members within specified time frame with their counts.
-        """
-        try:
-            db = self.mongodb_handler.get_query_db()
-            collection = db[CLEAN_DATA_COLLECTION]
-
-            # Step_matching: limit the documents range
-            step_matching = {"$match": {"$or": []}}
-            matching_condition_producer = {"producer.requestInTs": {"$gte": start_time, "$lte": end_time}}
-            matching_condition_client = {"client.requestInTs": {"$gte": start_time, "$lte": end_time}}
-            step_matching["$match"]["$or"].append(matching_condition_producer)
-            step_matching["$match"]["$or"].append(matching_condition_client)
-
-            # Step_condition: choose client/producer sub_document
-            step_condition = {"$project": {"document": {}}}
-            step_condition["$project"]["document"]["$cond"] = [{"$ne": ["$client", None]}, "$client", "$producer"]
-
-            # Step_matching_2: Make sure that the request succeeded
-            step_matching_2 = {"$match": {"document.succeeded": True}}
-
-            # Step_grouping: group the data by grouping_criteria
-            step_grouping = {"$group": {}}
-
-            grouping_criteria = {
-                "clientXRoadInstance": "$document.clientXRoadInstance",
-                "clientMemberClass": "$document.clientMemberClass",
-                "clientMemberCode": "$document.clientMemberCode"
-            }
-            step_grouping["$group"]["_id"] = grouping_criteria
-            step_grouping["$group"]["count"] = {"$sum": 1}
-
-            aggregation_steps = [step_matching, step_condition, step_matching_2, step_grouping]
-            cursor = collection.aggregate(aggregation_steps)
-
-        except Exception as e:
-            self.logger_m.log_error('DatabaseManager.get_client_members', '{0}'.format(repr(e)))
-            raise e
-
-        return list(cursor)
-
-    def get_sec_srv_service_count(self, start_time, end_time):
-        """
-        Gets all the unique service "securityServerAddress"-es and their counts.
-        :param start_time: The starting timestamp for the query.
-        :param end_time: The ending timestamp for the query.
-        :return: Returns all the unique service "securityServerAddress"-es and their counts.
-        """
-        try:
-            db = self.mongodb_handler.get_query_db()
-            collection = db[CLEAN_DATA_COLLECTION]
-
-            # Step_matching: limit the documents range
-            step_matching = {"$match": {"$or": []}}
-            matching_condition_producer = {"producer.requestInTs": {"$gte": start_time, "$lte": end_time}}
-            matching_condition_client = {"client.requestInTs": {"$gte": start_time, "$lte": end_time}}
-            step_matching["$match"]["$or"].append(matching_condition_producer)
-            step_matching["$match"]["$or"].append(matching_condition_client)
-
-            # Step_condition: choose client/producer sub_document
-            step_condition = {"$project": {"document": {}}}
-            step_condition["$project"]["document"]["$cond"] = [{"$ne": ["$client", None]}, "$client", "$producer"]
-
-            # Step_matching_2: Make sure that the request succeeded
-            step_matching_2 = {"$match": {"document.succeeded": True}}
-
-            # Step_grouping: group the data by grouping_criteria
-            step_grouping = {"$group": {}}
-
-            # serviceXRoadInstance/serviceMemberClass/serviceMemberCode
-
-            grouping_criteria = {
-                "serviceSecurityServerAddress": "$document.serviceSecurityServerAddress"
-            }
-            step_grouping["$group"]["_id"] = grouping_criteria
-            step_grouping["$group"]["count"] = {"$sum": 1}
-
-            aggregation_steps = [step_matching, step_condition, step_matching_2, step_grouping]
-            cursor = collection.aggregate(aggregation_steps)
-
-        except Exception as e:
-            self.logger_m.log_error('DatabaseManager.get_sec_srv_service_count', '{0}'.format(repr(e)))
-            raise e
-
-        return list(cursor)
-
-    def get_sec_srv_client_count(self, start_time, end_time):
-        """
-        Gets all the unique client "securityServerAddress"-es and their counts.
-        :param start_time: The starting timestamp for the query.
-        :param end_time: The ending timestamp for the query.
-        :return: Returns all the unique client "securityServerAddress"-es and their counts.
-        """
-        try:
-            db = self.mongodb_handler.get_query_db()
-            collection = db[CLEAN_DATA_COLLECTION]
-
-            # Step_matching: limit the documents range
-            step_matching = {"$match": {"$or": []}}
-            matching_condition_producer = {"producer.requestInTs": {"$gte": start_time, "$lte": end_time}}
-            matching_condition_client = {"client.requestInTs": {"$gte": start_time, "$lte": end_time}}
-            step_matching["$match"]["$or"].append(matching_condition_producer)
-            step_matching["$match"]["$or"].append(matching_condition_client)
-
-            # Step_condition: choose client/producer sub_document
-            step_condition = {"$project": {"document": {}}}
-            step_condition["$project"]["document"]["$cond"] = [{"$ne": ["$client", None]}, "$client", "$producer"]
-
-            # Step_matching_2: Make sure that the request succeeded
-            step_matching_2 = {"$match": {"document.succeeded": True}}
-
-            # Step_grouping: group the data by grouping_criteria
-            step_grouping = {"$group": {}}
-
-            # serviceXRoadInstance/serviceMemberClass/serviceMemberCode
-
-            grouping_criteria = {
-                "clientSecurityServerAddress": "$document.clientSecurityServerAddress"
-            }
-            step_grouping["$group"]["_id"] = grouping_criteria
-            step_grouping["$group"]["count"] = {"$sum": 1}
-
-            aggregation_steps = [step_matching, step_condition, step_matching_2, step_grouping]
-            cursor = collection.aggregate(aggregation_steps)
-
-        except Exception as e:
-            self.logger_m.log_error('DatabaseManager.get_sec_srv_client_count', '{0}'.format(repr(e)))
-            raise e
-
-        return list(cursor)
-
-    def get_service_subsystems(self, start_time, end_time):
-        """
-        Gets a list of matching service side subsystems from the MongoDB for the specified time frame.
-        :param start_time: The starting timestamp for the query.
-        :param end_time: The ending timestamp for the query.
-        :return: Returns a list of matching service side subsystems.
-        """
-        try:
-            db = self.mongodb_handler.get_query_db()
-            collection = db[CLEAN_DATA_COLLECTION]
-
-            # Step_matching: limit the documents range
-            step_matching = {"$match": {"$or": []}}
-            # step_matching = {"$match": {"$and": []}}
-            matching_condition_producer = {"producer.requestInTs": {"$gte": start_time, "$lte": end_time}}
-            matching_condition_client = {"client.requestInTs": {"$gte": start_time, "$lte": end_time}}
-            step_matching["$match"]["$or"].append(matching_condition_producer)
-            step_matching["$match"]["$or"].append(matching_condition_client)
-
-            # Step_condition: choose client/producer sub_document
-            step_condition = {"$project": {"document": {}}}
-            step_condition["$project"]["document"]["$cond"] = [{"$ne": ["$client", None]}, "$client", "$producer"]
-
-            # Step_matching_2: Make sure that the request succeeded
-            step_matching_2 = {"$match": {"document.succeeded": True}}
-
-            # Step_grouping: group the data by grouping_criteria
-            step_grouping = {"$group": {}}
-
-            grouping_criteria = {
-                "serviceXRoadInstance": "$document.serviceXRoadInstance",
-                "serviceMemberClass": "$document.serviceMemberClass",
-                "serviceMemberCode": "$document.serviceMemberCode",
-                "serviceSubsystemCode": "$document.serviceSubsystemCode"
-            }
-
-            step_grouping["$group"]["_id"] = grouping_criteria
-            step_grouping["$group"]["count"] = {"$sum": 1}
-
-            aggregation_steps = [step_matching, step_condition, step_matching_2, step_grouping]
-            cursor = collection.aggregate(aggregation_steps)
-
-        except Exception as e:
-            self.logger_m.log_error('DatabaseManager.get_service_subsystems', '{0}'.format(repr(e)))
-            raise e
-
-        return list(cursor)
-
-    def get_client_subsystems(self, start_time, end_time):
-        """
-        Gets a list of matching client side subsystems from the MongoDB for the specified time frame.
-        :param start_time: The starting timestamp for the query.
-        :param end_time: The ending timestamp for the query.
-        :return: Returns a list of matching client side subsystems.
-        """
-        try:
-            db = self.mongodb_handler.get_query_db()
-            collection = db[CLEAN_DATA_COLLECTION]
-
-            # Step_matching: limit the documents range
-            step_matching = {"$match": {"$or": []}}
-            # step_matching = {"$match": {"$and": []}}
-            matching_condition_producer = {"producer.requestInTs": {"$gte": start_time, "$lte": end_time}}
-            matching_condition_client = {"client.requestInTs": {"$gte": start_time, "$lte": end_time}}
-            step_matching["$match"]["$or"].append(matching_condition_producer)
-            step_matching["$match"]["$or"].append(matching_condition_client)
-
-            # Step_condition: choose client/producer sub_document
-            step_condition = {"$project": {"document": {}}}
-            step_condition["$project"]["document"]["$cond"] = [{"$ne": ["$client", None]}, "$client", "$producer"]
-
-            # Step_matching_2: Make sure that the request succeeded
-            step_matching_2 = {"$match": {"document.succeeded": True}}
-
-            # Step_grouping: group the data by grouping_criteria
-            step_grouping = {"$group": {}}
-
-            grouping_criteria = {
-                "clientXRoadInstance": "$document.clientXRoadInstance",
-                "clientMemberClass": "$document.clientMemberClass",
-                "clientMemberCode": "$document.clientMemberCode",
-                "clientSubsystemCode": "$document.clientSubsystemCode"
-            }
-
-            step_grouping["$group"]["_id"] = grouping_criteria
-            step_grouping["$group"]["count"] = {"$sum": 1}
-
-            aggregation_steps = [step_matching, step_condition, step_matching_2, step_grouping]
-            cursor = collection.aggregate(aggregation_steps)
-
-        except Exception as e:
-            self.logger_m.log_error('DatabaseManager.get_client_subsystems', '{0}'.format(repr(e)))
-            raise e
-
-        return list(cursor)
-
-    def get_all_unique_client_subsystems(self):
-        """
-        Query cleaned data to get all the unique memberClass/memberCode/subsystemCode pairs and their counts.
-        :return: Returns a list of all the unique memberClass/memberCode/subsystemCode pairs and their counts.
-        """
-        try:
-            db = self.mongodb_handler.get_query_db()
-            collection = db[CLEAN_DATA_COLLECTION]
-
-            cursor = collection.aggregate(
-                [
-                    {
-                        "$group": {
-                            "_id": {
-                                "clientClientMemberCode": "$client.clientMemberCode",
-                                "clientClientSubsystemCode": "$client.clientSubsystemCode",
-                                "clientServiceMemberCode": "$client.serviceMemberCode",
-                                "clientServiceSubsystemCode": "$client.serviceSubsystemCode",
-                                "producerClientMemberCode": "$producer.clientMemberCode",
-                                "producerClientSubsystemCode": "$producer.clientSubsystemCode",
-                                "producerServiceMemberCode": "$producer.serviceMemberCode",
-                                "producerServiceSubsystemCode": "$producer.serviceSubsystemCode",
-                                "clientClientMemberClass": "$client.clientMemberClass",
-                                "clientServiceMemberClass": "$client.serviceMemberClass",
-                                "producerClientMemberClass": "$producer.clientMemberClass",
-                                "producerServiceMemberClass": "$producer.serviceMemberClass"
-                            },
-                            "count": {
-                                "$sum": 1
-                            }
+            cursor = collection.aggregate([
+                {
+                    "$match": {
+                        "client.requestInTs": {
+                            "$gte": start_time,
+                            "$lte": end_time
                         }
                     }
-                ]
-            )
+                },
+                {
+                    "$group": {
+                        "_id": None,
+                        "clients": self._build_unique_subsystem_query('client'),
+                        "services": self._build_unique_subsystem_query('service')
+                    }
+                },
+                {
+                    "$project": {
+                        "subsystems": {"$setUnion": ["$clients", "$services"]}
+                    }
+                }
+            ])
+
+            return [s for s in cursor.next()['subsystems'] if s is not None]
 
         except Exception as e:
-            self.logger_m.log_error('DatabaseManager.get_all_unique_client_subsystems', '{0}'.format(repr(e)))
+            self.logger_m.log_error('DatabaseManager.get_unique_subsystems', repr(e))
             raise e
-        return list(cursor)
+
+    @staticmethod
+    def _build_unique_subsystem_query(target):
+        return {
+            "$addToSet": {
+                "$cond": [
+                    {"$ne": [f"$client.{target}SubsystemCode", None]},
+                    {
+                        "x_road_instance": f"$client.{target}XRoadInstance",
+                        "member_class": f"$client.{target}MemberClass",
+                        "member_code": f"$client.{target}MemberCode",
+                        "subsystem_code": f"$client.{target}SubsystemCode"
+                    },
+                    None
+                ],
+            }
+        }
 
     def add_notification_to_queue(
             self,
@@ -660,7 +305,7 @@ class DatabaseManager:
                 'insert_timestamp': self.get_timestamp(),
                 'sending_timestamp': None,
                 'user_id': self.mongodb_handler.user,  # used to identify notifications that belong to the active
-                                                       # settings profile / xroad instance
+                # settings profile / xroad instance
                 'report_name': report_name,
                 'email_info': receivers
             }
