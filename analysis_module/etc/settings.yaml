@@ -9,7 +9,37 @@
 #    opmon-analyzer --profile TEST find
 
 analyzer:
-  something: something
+  corrector-buffer-time: 14400      # minutes
+  incident-expiration-time: 14400   # minutes
+  training-period-time: = 3         # months
+
+  failed-request-ratio:
+    hourly-time-window: yes   # 'yes' to use hourly time window instead of daily for anomaly detection
+    threshold: 0.9            # incident reporting threshold as ratio of failed requests in time window
+
+  duplicate-message-ids:
+    hourly-time-window: no    # 'yes' to use hourly time window instead of daily for anomaly detection
+
+  time-sync-errors:
+    hourly-time-window: yes   # 'yes' to use hourly time window instead of daily for anomaly detection
+    thresholds: # relevant fields for monitoring time sync anomalies and the respective minimum value thresholds
+      requestNwDuration: -2000
+      responseNwDuration: -2000
+
+  historic-averages:
+    time-windows:
+      hour-weekday: yes   # compare hourly data to historic data from the same weekday and hour
+      weekday: yes        # compare daily data to historic data from the same weekday
+      hour-monthday: no   # compare hourly data to historic data from same day-of-month and hour
+      monthday: no        # compare daily data to historic data from the same day-of-month
+
+    thresholds: # a confidence threshold for anomaly reporting per data field
+      request_count: 0.95
+      mean_request_size: 0.95
+      mean_response_size: 0.95
+      mean_client_duration: 0.95
+      mean_producer_duration: 0.95
+
 
 xroad:
   instance: <FILL>
