@@ -108,13 +108,31 @@ et - estonian
 
 Report language translation files can be found in path _/etc/opmon/reports/lang_
 
-### Subsystem Info File
+### Report Targets
 
-TODO: Agree on riha.json handling strategy. OPMONDEV-56 
+By default Opmon Reports Module will generate a report for each subsystem that has acted as a client or producer
+of at least one request during the report period. This subsystem list is fetched automatically from the Database Module.
+Since this method relies solely on the operational monitoring data it has following limitations:
+    
+1. e-mail notifications cannot be sent for the generated reports
+2. localized subsystem names are not available in the reports, only codes
 
-The settings.yaml file has a setting named *reports.subsystem_info_path*. This points to a file that contains a list of 
-all X-Road subsystem available in the used X-Road instance. 
-Default file is name _/etc/opmon/reports/riha.json` and it should have the following syntax:
+The report target subsystems can be defined in full detail manually by using a xroad-descriptor json file as 
+described in chapter [X-Road Descriptor File](#x-road-descriptor-file)
+
+If you want to generate a report for a single subsystem it is also possible to use a command line argument like this:
+```bash
+opmon-reports report --subsystem MYCLASS:MYMEMBER:MYSUB
+```
+
+### X-Road Descriptor File
+
+The settings.yaml file has a setting named *xroad.descriptor-path* that is blank by default. 
+This can be set pointing to a file that contains a list of all X-Road subsystems that should be subject to report 
+generation. The file can also contain additional information about the subsystems; currently maintainer e-mail 
+addresses and localized subsystem names are supported.
+ 
+Below is an example of a xroad-descriptor file format:
 
 ```json
 [
@@ -145,14 +163,9 @@ Default file is name _/etc/opmon/reports/riha.json` and it should have the follo
 ]
 ```
 
-This file can be generated within ==> [Collector module](collector_module.md) <== as collector has access to the 
-necessary X-Road Central Server (or Security Server if needed).
-
-The file is used to:
-
-1. define default subsystem set that the reports are generated for
-2. get human readable names for each subsystem
-3. to get e-mail addresses of each subsystem's maintainers
+The file format is based on RIHA (Estonian catalogue of public sector information systems, https://www.riha.ee) 
+interfaces. Currently there is no standardized way to generate this file automatically as it contains information 
+that is not available in the standard X-Road Central Server interfaces.
 
 
 ### Manual usage

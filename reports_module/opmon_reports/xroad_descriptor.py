@@ -11,17 +11,27 @@ from .xroad_descriptor_schema import xroad_descriptor_schema
 
 
 class OpmonXroadDescriptor:
+    """
+    This class is used to hold all X-Road subsystems that the Opmon Reports module should target.
+    The subsystem list can be retrieved from an xroad-descriptor.json file or constructed from opmon database.
+    If user has specified a target subsystem as commandline argument then only that single subsystem is included in
+    the descriptor.
+    """
     def __init__(self, reports_arguments: OpmonReportsArguments, database: DatabaseManager, logger: LoggerManager):
-        self.path = reports_arguments.settings['xroad']['descriptor-path']
+        self.path = reports_arguments.settings['xroad'].get('descriptor-path')
+        self.subsystem_from_arguments = reports_arguments.subsystem
         self.database = database
         self.logger = logger
         self._data = []
 
         self._parse_descriptor_file()
-        self._process_subsystem_argument(reports_arguments)
+        self._process_subsystem_from_arguments()
 
         if not self._data:
-            self._get_subsystems_from_database(reports_arguments)
+            self._get_subsystems_from_database(
+                reports_arguments.start_time_milliseconds,
+                reports_arguments.end_time_milliseconds
+            )
 
     def __getitem__(self, index):
         return OpmonXroadSubsystemDescriptor(self._data[index])
@@ -41,18 +51,33 @@ class OpmonXroadDescriptor:
         keys = ['x_road_instance', 'member_class', 'member_code', 'subsystem_code']
         return {key: subsystem1.get(key) for key in keys} == {key: subsystem2.get(key) for key in keys}
 
-    def _handle_missing_file(self):
-        self.logger.log_warning(
+    def _handle_missing_file(self, e):
+        if self.subsystem_from_arguments:
+            self.logger.log_warning(
+                "OpmonXroadDescriptor",
+                f"X-Road descriptor file {self.path} not found. Proceeding without detailed descriptions."
+            )
+            return
+
+        self.logger.log_error(
             "OpmonXroadDescriptor",
-            f"The info file {self.path} not found. Using default placeholders."
+            f"X-Road descriptor file {self.path} not found but it is defined in the settings. Aborting."
         )
+        raise e
 
     def _handle_parsing_error(self, e):
-        self.logger.log_warning(
+        if self.subsystem_from_arguments:
+            self.logger.log_warning(
+                "OpmonXroadDescriptor",
+                f"X-Road descriptor file {self.path} parsing failed. Proceeding without detailed descriptions."
+            )
+            return
+
+        self.logger.log_error(
             "OpmonXroadDescriptor",
-            f"Info file {self.path} parsing failed. Using default placeholders. Details: {e}"
+            f"X-Road descriptor file {self.path} parsing failed. Check the file syntax. Aborting. Details: {e}"
         )
-        self._data = []
+        raise e
 
     def _parse_descriptor_file(self):
         if not self.path:
@@ -65,23 +90,20 @@ class OpmonXroadDescriptor:
                 json_data = f.read()
                 self._data = json.loads(json_data)
                 jsonschema.validate(instance=self._data, schema=xroad_descriptor_schema)
-        except FileNotFoundError:
-            self._handle_missing_file()
+        except FileNotFoundError as e:
+            self._handle_missing_file(e)
         except (ValidationError, JSONDecodeError) as e:
             self._handle_parsing_error(e)
 
-    def _process_subsystem_argument(self, args):
+    def _process_subsystem_from_arguments(self):
         # If a subsystem was specified on command line, then only that subsystem is included in the descriptor.
-        if args.subsystem is not None:
-            subsystem_descriptor = self._find(args.subsystem)
-            self._data = [subsystem_descriptor] if subsystem_descriptor != {} else [args.subsystem]
+        if self.subsystem_from_arguments is not None:
+            subsystem_descriptor = self._find(self.subsystem_from_arguments)
+            self._data = [subsystem_descriptor] if subsystem_descriptor != {} else [self.subsystem_from_arguments]
 
-    def _get_subsystems_from_database(self, reports_arguments):
+    def _get_subsystems_from_database(self, start_time, end_time):
         self.logger.log_info('OpmonXroadDescriptor', 'Fetching subsystem list from database.')
-        self._data = self.database.get_unique_subsystems(
-            reports_arguments.start_time_milliseconds,
-            reports_arguments.end_time_milliseconds
-        )
+        self._data = self.database.get_unique_subsystems(start_time, end_time)
 
 
 class OpmonXroadSubsystemDescriptor:

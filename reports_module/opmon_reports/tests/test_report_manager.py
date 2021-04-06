@@ -7,7 +7,7 @@ import tempfile
 from opmon_reports.report_manager import ReportManager
 from opmon_reports.report_manager import ReportRow
 from opmon_reports.report_row import AverageValue
-from opmon_reports.xroad_descriptor_parser import OpmonXroadSubsystemDescriptor
+from opmon_reports.xroad_descriptor import OpmonXroadSubsystemDescriptor
 
 
 @pytest.fixture()
