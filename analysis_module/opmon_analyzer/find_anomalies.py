@@ -36,7 +36,10 @@ def find_anomalies(settings):
                       "Add first request timestamps for service calls that have appeared ... Done!")
 
     logger_m.log_info('_tmp_find_anomalies_2', "Anomaly types 4.3.1-4.3.3 ...")
-    for model_type, time_window in analyzer_conf.time_windows.items():
+
+    config = analyzer_conf.DataModelConfiguration(settings)
+
+    for model_type, time_window in config.time_windows.items():
         logger_m.log_info('_tmp_find_anomalies_2', f"Finding {model_type} anomalies, aggregating by {time_window}...")
         logger_m.log_heartbeat(f"Finding {model_type} anomalies, aggregating by {time_window}", 'SUCCEEDED')
 
