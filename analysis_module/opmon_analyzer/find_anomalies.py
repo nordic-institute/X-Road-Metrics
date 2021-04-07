@@ -63,7 +63,7 @@ def find_anomalies(settings):
             n_anomalies = len(anomalies)
 
         elif model_type == "duplicate_message_ids":
-            model = DuplicateMessageIdModel(analyzer_conf)
+            model = DuplicateMessageIdModel()
             data = db_manager.aggregate_data(model_type=model_type,
                                              start_time=last_transform_timestamp,
                                              end_time=current_transform_timestamp,
