@@ -46,7 +46,8 @@ def find_anomalies(settings):
             last_transform_timestamp = last_transform_date.timestamp() * 1000
         else:
             last_transform_timestamp = None
-        current_transform_date = current_time - datetime.timedelta(minutes=analyzer_conf.corrector_buffer_time)
+        buffer_time = settings['analyzer']['corrector-buffer-time']
+        current_transform_date = current_time - datetime.timedelta(minutes=buffer_time)
 
         residual = current_transform_date.timestamp() % (60 * time_window["agg_minutes"])
         current_transform_timestamp = (current_transform_date.timestamp() - residual) * 1000
@@ -124,7 +125,8 @@ def find_anomalies(settings):
             last_transform_timestamp = last_transform_date.timestamp() * 1000
         else:
             last_transform_timestamp = None
-        current_transform_date = current_time - datetime.timedelta(minutes=analyzer_conf.corrector_buffer_time)
+        buffer_time = settings['analyzer']['corrector-buffer-time']
+        current_transform_date = current_time - datetime.timedelta(minutes=buffer_time)
 
         residual = current_transform_date.timestamp() % (60 * time_window["agg_window"]["agg_minutes"])
         current_transform_timestamp = (current_transform_date.timestamp() - residual) * 1000

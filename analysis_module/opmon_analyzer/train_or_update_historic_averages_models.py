@@ -27,9 +27,13 @@ def update_model(settings):
     metric_names = list(analyzer_conf.historic_averages_thresholds.keys())
 
     current_time = datetime.datetime.now()
-    max_incident_creation_time = current_time - datetime.timedelta(minutes=analyzer_conf.incident_expiration_time)
-    first_model_train_time = current_time - relativedelta(months=analyzer_conf.training_period_time)
-    max_request_time = current_time - datetime.timedelta(minutes=analyzer_conf.corrector_buffer_time)
+    buffer_time = settings['analyzer']['corrector-buffer-time']
+    incident_expiration_time = settings['analyzer']['incident-expiration-time']
+    training_period_time = settings['analyzer']['training-period-time']
+
+    max_incident_creation_time = current_time - datetime.timedelta(minutes=incident_expiration_time)
+    first_model_train_time = current_time - relativedelta(months=training_period_time)
+    max_request_time = current_time - datetime.timedelta(minutes=buffer_time)
 
     # retrieve service calls according to stages
     logger_m.log_heartbeat("Determining service call stages", "SUCCEEDED")
@@ -61,8 +65,7 @@ def update_model(settings):
                                                       model_type=model_type)
         last_fit_timestamp = last_fit_timestamp if train_mode != "retrain" else None
 
-        min_incident_creation_timestamp = last_fit_timestamp - datetime.timedelta(
-            minutes=analyzer_conf.incident_expiration_time)
+        min_incident_creation_timestamp = last_fit_timestamp - datetime.timedelta(minutes=incident_expiration_time)
 
         start = time.time()
         logger_m.log_heartbeat(
