@@ -1,6 +1,8 @@
 import pandas as pd
 from datetime import datetime
 
+from analysis_module.opmon_analyzer import constants
+
 
 class FailedRequestRatioModel(object):
 
@@ -19,7 +21,7 @@ class FailedRequestRatioModel(object):
             tmp_succeeded = tmp_succeeded.drop(["request_ids", "succeeded"], axis=1)
             tmp_failed = tmp_failed.drop(["succeeded"], axis=1)
             tmp = tmp_succeeded.merge(tmp_failed,
-                                      on=self._config.service_call_fields + [self._config.timestamp_field],
+                                      on=constants.service_identifier_column_names + [constants.timestamp_field],
                                       how="outer",
                                       suffixes=["_successful", "_failed"])
             tmp = tmp.fillna(0)
@@ -37,7 +39,7 @@ class FailedRequestRatioModel(object):
             anomalies = anomalies.reset_index()
 
             timedelta = pd.to_timedelta(1, unit=time_window['pd_timeunit'])
-            period_end_time = anomalies[self._config.timestamp_field] + timedelta
+            period_end_time = anomalies[constants.timestamp_field] + timedelta
 
             anomalies = anomalies.assign(incident_creation_timestamp=current_time)
             anomalies = anomalies.assign(incident_update_timestamp=current_time)
@@ -61,15 +63,15 @@ class FailedRequestRatioModel(object):
             anomalies = anomalies.assign(description=anomalies.apply(self._generate_description, axis=1))
 
             anomaly_fields = [
-                "anomaly_confidence", self._config.timestamp_field, 'incident_creation_timestamp',
+                "anomaly_confidence", constants.timestamp_field, 'incident_creation_timestamp',
                 'incident_update_timestamp', "request_count", "difference_from_normal",
                 'model_version', 'anomalous_metric', 'aggregation_timeunit', 'period_end_time',
                 'monitored_metric_value', 'model_params', 'description', 'incident_status', "request_ids",
                 "comments"
             ]
 
-            anomalies = anomalies[self._config.service_call_fields + anomaly_fields]
-            anomalies = anomalies.rename(columns={self._config.timestamp_field: 'period_start_time'})
+            anomalies = anomalies[constants.service_identifier_column_names + anomaly_fields]
+            anomalies = anomalies.rename(columns={constants.timestamp_field: 'period_start_time'})
 
             return anomalies
         else:
