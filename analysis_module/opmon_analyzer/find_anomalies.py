@@ -74,7 +74,7 @@ def find_anomalies(settings):
             n_anomalies = len(anomalies)
 
         elif model_type == "time_sync_errors":
-            model = TimeSyncModel(analyzer_conf)
+            model = TimeSyncModel()
             n_anomalies = 0
             for metric, threshold in analyzer_conf.time_sync_monitored_lower_thresholds.items():
                 start = time.time()
