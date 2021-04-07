@@ -8,7 +8,7 @@ pd.options.mode.chained_assignment = None
 
 class AnalyzerDatabaseManager(object):
 
-    def __init__(self, settings, config):
+    def __init__(self, settings):
         xroad = settings['xroad']['instance']
 
         self.client = MongoClient(self.get_mongo_uri(settings))
