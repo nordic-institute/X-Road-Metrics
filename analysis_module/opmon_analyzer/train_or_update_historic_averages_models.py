@@ -4,6 +4,7 @@ from opmon_analyzer.AnalyzerDatabaseManager import AnalyzerDatabaseManager
 from opmon_analyzer.models.AveragesByTimeperiodModel import AveragesByTimeperiodModel
 from opmon_analyzer import analyzer_conf
 
+from . import constants
 from .logger_manager import LoggerManager
 
 import time
@@ -121,17 +122,16 @@ def update_model(settings):
             model_creation_timestamp = dt_model.model_creation_timestamp.iloc[0]
 
             # Discard from the model service calls that will be (re)trained
-            # dt_model = dt_model.merge(data_regular[analyzer_conf.service_call_fields])
-            dt_model.index = dt_model[analyzer_conf.service_call_fields]
+            dt_model.index = dt_model[constants.service_identifier_column_names]
             if len(data_first_train) > 0:
-                data_first_train.index = data_first_train[analyzer_conf.service_call_fields]
+                data_first_train.index = data_first_train[constants.service_identifier_column_names]
                 dt_model = dt_model[~dt_model.index.isin(data_first_train.index)]
             if len(data_first_retrain) > 0:
-                data_first_retrain.index = data_first_retrain[analyzer_conf.service_call_fields]
+                data_first_retrain.index = data_first_retrain[constants.service_identifier_column_names]
                 dt_model = dt_model[~dt_model.index.isin(data_first_retrain.index)]
 
             # Generate the correct index for the model
-            dt_model = dt_model.groupby(analyzer_conf.service_call_fields + ["similar_periods"]).first()
+            dt_model = dt_model.groupby(constants.service_identifier_column_names + ["similar_periods"]).first()
             averages_by_time_period_model = AveragesByTimeperiodModel(
                 time_window,
                 settings,
@@ -156,7 +156,7 @@ def update_model(settings):
             logger_m.log_error(log_activity, "Unknown training mode.")
 
         if len(data) > 0:
-            max_request_time = data[analyzer_conf.timestamp_field].max()
+            max_request_time = data[constants.timestamp_field].max()
 
             logger_m.log_info(log_activity, f"Maximum aggregated request timestamp used: {max_request_time}")
             logger_m.log_heartbeat(f"Updating last train timestamp (model {model_type})", 'SUCCEEDED')
