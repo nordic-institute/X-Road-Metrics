@@ -7,11 +7,19 @@ from datetime import datetime
 import calendar
 
 from analysis_module.opmon_analyzer import constants
+from analysis_module.opmon_analyzer.analyzer_conf import DataModelConfiguration
 
 
 class AveragesByTimeperiodModel(object):
 
-    def __init__(self, time_window, config, dt_avgs=None, version=0, model_creation_timestamp=0):
+    def __init__(
+            self,
+            time_window,
+            config: DataModelConfiguration,
+            dt_avgs=None,
+            version=0,
+            model_creation_timestamp=0
+    ):
 
         self.time_window = time_window
         self._config = config

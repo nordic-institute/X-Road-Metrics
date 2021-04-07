@@ -16,6 +16,7 @@ import pandas as pd
 
 
 def update_model(settings):
+    config = analyzer_conf.DataModelConfiguration(settings)
     log_activity = 'train_or_update_historic_averages_models'
     db_manager = AnalyzerDatabaseManager(settings, analyzer_conf)
     logger_m = LoggerManager(settings['logger'], settings['xroad']['instance'])
@@ -24,7 +25,7 @@ def update_model(settings):
     logger_m.log_heartbeat("Checking if completely new service calls have appeared", 'SUCCEEDED')
     db_manager.add_first_request_timestamps_from_clean_data()
 
-    metric_names = list(analyzer_conf.historic_averages_thresholds.keys())
+    metric_names = list(config.historic_averages_thresholds.keys())
 
     current_time = datetime.datetime.now()
     buffer_time = settings['analyzer']['corrector-buffer-time']

@@ -80,7 +80,7 @@ def find_anomalies(settings):
         elif model_type == "time_sync_errors":
             model = TimeSyncModel()
             n_anomalies = 0
-            for metric, threshold in analyzer_conf.time_sync_monitored_lower_thresholds.items():
+            for metric, threshold in config.time_sync_monitored_lower_thresholds.items():
                 start = time.time()
                 data = db_manager.aggregate_data(model_type=model_type,
                                                  start_time=last_transform_timestamp,
