@@ -122,7 +122,7 @@ class AnalyzerDatabaseManager(object):
                             on=self._config.service_call_fields, how="left")
             res = res[pd.isnull(res.first_request_timestamp)].drop("first_request_timestamp", axis=1)
 
-        res = res.rename(columns={self._config.timestamp_field: "first_request_timestamp"})
+        res = res.rename({self._config.timestamp_field: "first_request_timestamp"}, axis="columns")
         res.first_request_timestamp = pd.to_datetime(res.first_request_timestamp, unit='ms')
         res = res.assign(first_incident_timestamp=None)
         res = res.assign(first_model_retrain_timestamp=None)
@@ -562,12 +562,13 @@ class AnalyzerDatabaseManager(object):
                         ids_to_exclude=ids_to_exclude)
                     data_first_retrain = pd.concat([data_first_retrain, data_first_retrain_current], axis=0)
                 else:  # iterate by every incident for this service call
-                    incidents_current = self.get_incidents(incident_status=["incident"],
-                                                           relevant_anomalous_metrics=relevant_anomalous_metrics,
-                                                           max_incident_creation_timestamp=max_incident_creation_timestamp,
-                                                           min_incident_creation_timestamp=min_incident_creation_timestamp,
-                                                           service_calls=[sc],
-                                                           aggregation_timeunits=aggregation_timeunits)
+                    incidents_current = self.get_incidents(
+                        incident_status=["incident"],
+                        relevant_anomalous_metrics=relevant_anomalous_metrics,
+                        max_incident_creation_timestamp=max_incident_creation_timestamp,
+                        min_incident_creation_timestamp=min_incident_creation_timestamp,
+                        service_calls=[sc],
+                        aggregation_timeunits=aggregation_timeunits)
 
                     last_start_time = None
                     for idd, period_start_time, period_end_time in incidents_current:
@@ -613,12 +614,14 @@ class AnalyzerDatabaseManager(object):
                     data_regular = pd.concat([data_regular, data_regular_current], axis=0)
 
                 else:  # iterate by every incident for this service call
-                    incidents_current = self.get_incidents(incident_status=["incident"],
-                                                           relevant_anomalous_metrics=relevant_anomalous_metrics,
-                                                           max_incident_creation_timestamp=max_incident_creation_timestamp,
-                                                           min_incident_creation_timestamp=min_incident_creation_timestamp,
-                                                           service_calls=[sc],
-                                                           aggregation_timeunits=aggregation_timeunits)
+                    incidents_current = self.get_incidents(
+                        incident_status=["incident"],
+                        relevant_anomalous_metrics=relevant_anomalous_metrics,
+                        max_incident_creation_timestamp=max_incident_creation_timestamp,
+                        min_incident_creation_timestamp=min_incident_creation_timestamp,
+                        service_calls=[sc],
+                        aggregation_timeunits=aggregation_timeunits
+                    )
 
                     last_start_time = last_fit_timestamp
                     for idd, period_start_time, period_end_time in incidents_current:
