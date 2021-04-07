@@ -1,13 +1,14 @@
 from pymongo import MongoClient
 import pandas as pd
 
+from . import constants
+
 pd.options.mode.chained_assignment = None
 
 
 class AnalyzerDatabaseManager(object):
 
     def __init__(self, settings, config):
-        self._config = config
         xroad = settings['xroad']['instance']
 
         self.client = MongoClient(self.get_mongo_uri(settings))
@@ -48,13 +49,13 @@ class AnalyzerDatabaseManager(object):
             id_exclude_query = {'_id': {'$nin': ids_to_exclude}}
             filter_dict_elems.append(id_exclude_query)
         if start_time is not None:
-            start_time_query = {self._config.timestamp_field: {"$gte": start_time}}
+            start_time_query = {constants.timestamp_field: {"$gte": start_time}}
             filter_dict_elems.append(start_time_query)
         if end_time is not None:
-            end_time_query = {self._config.timestamp_field: {"$lt": end_time}}
+            end_time_query = {constants.timestamp_field: {"$lt": end_time}}
             filter_dict_elems.append(end_time_query)
         if service_calls is not None and len(service_calls) > 0:
-            for col in self._config.service_call_fields:
+            for col in constants.service_identifier_column_names:
                 service_calls.loc[service_calls[col] == "-", col] = None
             service_call_query = {"$or": service_calls.to_dict(orient="records")}
             filter_dict_elems.append(service_call_query)
@@ -64,11 +65,11 @@ class AnalyzerDatabaseManager(object):
             filter_dict = {"$and": filter_dict_elems}
 
         # set up elements to group by (service call fields and temporal aggregation window)
-        group_dict = {col: "$%s" % col for col in self._config.service_call_fields}
-        group_dict[self._config.timestamp_field] = {
+        group_dict = {col: "$%s" % col for col in constants.service_identifier_column_names}
+        group_dict[constants.timestamp_field] = {
             "$subtract": [
-                "$%s" % self._config.timestamp_field,
-                {"$mod": ["$%s" % self._config.timestamp_field, 1000 * 60 * agg_minutes]}
+                "$%s" % constants.timestamp_field,
+                {"$mod": ["$%s" % constants.timestamp_field, 1000 * 60 * agg_minutes]}
             ]}
 
         res = self.query_db.clean_data.aggregate([
@@ -93,36 +94,36 @@ class AnalyzerDatabaseManager(object):
         # conditions to filter the data before processing
         filter_dict = {'correctorStatus': 'done'}
         if data is not None:
-            for col in self._config.service_call_fields:
+            for col in constants.service_identifier_column_names:
                 data.loc[data[col] == "-", col] = None
             filter_dict["$or"] = data.to_dict(orient="records")
 
         # set up elements to group by (service call fields and temporal aggregation window)
-        group_dict = {col: "$%s" % col for col in self._config.service_call_fields}
+        group_dict = {col: "$%s" % col for col in constants.service_identifier_column_names}
 
         res = self.query_db.clean_data.aggregate([
             {'$project': project_dict},
             {'$match': filter_dict},
             {'$group': {
                 "_id": group_dict,
-                self._config.timestamp_field: {"$min": "$%s" % self._config.timestamp_field}}}],
+                constants.timestamp_field: {"$min": "$%s" % constants.timestamp_field}}}],
             allowDiskUse=True, maxTimeMS=14400000)
 
         res = list(res)
         if len(res) == 0:
             return
         res = self._generate_dataframe(list(res))
-        res = res.sort_values(self._config.timestamp_field, ascending=True).drop_duplicates(
-            self._config.service_call_fields)
+        res = res.sort_values(constants.timestamp_field, ascending=True).drop_duplicates(
+            constants.service_identifier_column_names)
 
         # exclude service calls that already exist in the first timestamps table
         existing_first_timestamps = self.get_first_timestamps_for_service_calls()
         if len(existing_first_timestamps) > 0:
-            res = res.merge(existing_first_timestamps[self._config.service_call_fields + ["first_request_timestamp"]],
-                            on=self._config.service_call_fields, how="left")
+            res = res.merge(existing_first_timestamps[constants.service_identifier_column_names + ["first_request_timestamp"]],
+                            on=constants.service_identifier_column_names, how="left")
             res = res[pd.isnull(res.first_request_timestamp)].drop("first_request_timestamp", axis=1)
 
-        res = res.rename({self._config.timestamp_field: "first_request_timestamp"}, axis="columns")
+        res = res.rename({constants.timestamp_field: "first_request_timestamp"}, axis="columns")
         res.first_request_timestamp = pd.to_datetime(res.first_request_timestamp, unit='ms')
         res = res.assign(first_incident_timestamp=None)
         res = res.assign(first_model_retrain_timestamp=None)
@@ -146,7 +147,7 @@ class AnalyzerDatabaseManager(object):
         if min_incident_creation_timestamp is not None:
             filter_dict_elems.append({"incident_creation_timestamp": {"$gte": min_incident_creation_timestamp}})
         if service_calls is not None and len(service_calls) > 0:
-            for col in self._config.service_call_fields:
+            for col in constants.service_identifier_column_names:
                 service_calls.loc[service_calls[col] == "-", col] = None
             service_call_query = {"$or": service_calls.to_dict(orient="records")}
             filter_dict_elems.append(service_call_query)
@@ -183,7 +184,7 @@ class AnalyzerDatabaseManager(object):
         if min_incident_creation_timestamp is not None:
             filter_dict_elems.append({"incident_creation_timestamp": {"$gte": min_incident_creation_timestamp}})
         if service_calls is not None and len(service_calls) > 0:
-            for col in self._config.service_call_fields:
+            for col in constants.service_identifier_column_names:
                 service_calls.loc[service_calls[col] == "-", col] = None
             service_call_query = {"$or": service_calls.to_dict(orient="records")}
             filter_dict_elems.append(service_call_query)
@@ -206,12 +207,12 @@ class AnalyzerDatabaseManager(object):
         if len(sc_first_model) > 0:
             self.update_first_timestamps(field="first_model_train_timestamp",
                                          value=current_time,
-                                         service_calls=sc_first_model[self._config.service_call_fields])
+                                         service_calls=sc_first_model[constants.service_identifier_column_names])
 
         if len(sc_second_model) > 0:
             self.update_first_timestamps(field="first_model_retrain_timestamp",
                                          value=current_time,
-                                         service_calls=sc_second_model[self._config.service_call_fields])
+                                         service_calls=sc_second_model[constants.service_identifier_column_names])
 
     def _aggregate_data_for_failed_request_ratio_model(self, agg_minutes=60, start_time=None, end_time=None,
                                                        ids_to_exclude=[]):
@@ -225,10 +226,10 @@ class AnalyzerDatabaseManager(object):
             id_exclude_query = {'_id': {'$nin': ids_to_exclude}}
             filter_dict_elems.append(id_exclude_query)
         if start_time is not None:
-            start_time_query = {self._config.timestamp_field: {"$gte": start_time}}
+            start_time_query = {constants.timestamp_field: {"$gte": start_time}}
             filter_dict_elems.append(start_time_query)
         if end_time is not None:
-            end_time_query = {self._config.timestamp_field: {"$lt": end_time}}
+            end_time_query = {constants.timestamp_field: {"$lt": end_time}}
             filter_dict_elems.append(end_time_query)
         if len(filter_dict_elems) == 1:
             filter_dict = filter_dict_elems[0]
@@ -238,11 +239,11 @@ class AnalyzerDatabaseManager(object):
             filter_dict = {}
 
         # set up elements to group by (service call fields and temporal aggregation window)
-        group_dict = {col: "$%s" % col for col in self._config.service_call_fields}
-        group_dict[self._config.timestamp_field] = {
+        group_dict = {col: "$%s" % col for col in constants.service_identifier_column_names}
+        group_dict[constants.timestamp_field] = {
             "$subtract": [
-                "$%s" % self._config.timestamp_field,
-                {"$mod": ["$%s" % self._config.timestamp_field, 1000 * 60 * agg_minutes]}
+                "$%s" % constants.timestamp_field,
+                {"$mod": ["$%s" % constants.timestamp_field, 1000 * 60 * agg_minutes]}
             ]}
         group_dict['succeeded'] = '$succeeded'
 
@@ -268,10 +269,10 @@ class AnalyzerDatabaseManager(object):
             id_exclude_query = {'_id': {'$nin': ids_to_exclude}}
             filter_dict_elems.append(id_exclude_query)
         if start_time is not None:
-            start_time_query = {self._config.timestamp_field: {"$gte": start_time}}
+            start_time_query = {constants.timestamp_field: {"$gte": start_time}}
             filter_dict_elems.append(start_time_query)
         if end_time is not None:
-            end_time_query = {self._config.timestamp_field: {"$lt": end_time}}
+            end_time_query = {constants.timestamp_field: {"$lt": end_time}}
             filter_dict_elems.append(end_time_query)
         if len(filter_dict_elems) == 1:
             filter_dict = filter_dict_elems[0]
@@ -279,11 +280,11 @@ class AnalyzerDatabaseManager(object):
             filter_dict = {"$and": filter_dict_elems}
 
         # set up elements to group by (service call fields and temporal aggregation window)
-        group_dict = {col: "$%s" % col for col in self._config.service_call_fields}
-        group_dict[self._config.timestamp_field] = {
+        group_dict = {col: "$%s" % col for col in constants.service_identifier_column_names}
+        group_dict[constants.timestamp_field] = {
             "$subtract": [
-                "$%s" % self._config.timestamp_field,
-                {"$mod": ["$%s" % self._config.timestamp_field, 1000 * 60 * agg_minutes]}
+                "$%s" % constants.timestamp_field,
+                {"$mod": ["$%s" % constants.timestamp_field, 1000 * 60 * agg_minutes]}
             ]}
         group_dict['messageId'] = '$messageId'
 
@@ -309,10 +310,10 @@ class AnalyzerDatabaseManager(object):
             id_exclude_query = {'_id': {'$nin': ids_to_exclude}}
             filter_dict_elems.append(id_exclude_query)
         if start_time is not None:
-            start_time_query = {self._config.timestamp_field: {"$gte": start_time}}
+            start_time_query = {constants.timestamp_field: {"$gte": start_time}}
             filter_dict_elems.append(start_time_query)
         if end_time is not None:
-            end_time_query = {self._config.timestamp_field: {"$lt": end_time}}
+            end_time_query = {constants.timestamp_field: {"$lt": end_time}}
             filter_dict_elems.append(end_time_query)
         if len(filter_dict_elems) == 1:
             filter_dict = filter_dict_elems[0]
@@ -320,11 +321,11 @@ class AnalyzerDatabaseManager(object):
             filter_dict = {"$and": filter_dict_elems}
 
         # set up elements to group by (service call fields and temporal aggregation window)
-        group_dict = {col: "$%s" % col for col in self._config.service_call_fields}
-        group_dict[self._config.timestamp_field] = {
+        group_dict = {col: "$%s" % col for col in constants.service_identifier_column_names}
+        group_dict[constants.timestamp_field] = {
             "$subtract": [
-                "$%s" % self._config.timestamp_field,
-                {"$mod": ["$%s" % self._config.timestamp_field, 1000 * 60 * agg_minutes]}
+                "$%s" % constants.timestamp_field,
+                {"$mod": ["$%s" % constants.timestamp_field, 1000 * 60 * agg_minutes]}
             ]}
 
         res = self.query_db.clean_data.aggregate([
@@ -366,7 +367,7 @@ class AnalyzerDatabaseManager(object):
         if min_incident_creation_timestamp is not None:
             filter_dict_elems.append({"incident_creation_timestamp": {"$gte": min_incident_creation_timestamp}})
         if service_calls is not None and len(service_calls) > 0:
-            for col in self._config.service_call_fields:
+            for col in constants.service_identifier_column_names:
                 service_calls.loc[service_calls[col] == "-", col] = None
             service_call_query = {"$or": service_calls.to_dict(orient="records")}
             filter_dict_elems.append(service_call_query)
@@ -494,12 +495,12 @@ class AnalyzerDatabaseManager(object):
                 data_first_train = self.aggregate_data_for_historic_averages_model(agg_minutes=agg_minutes,
                                                                                    end_time=max_request_timestamp)
                 if len(data_first_train) > 0:
-                    data_first_train = data_first_train.merge(sc_first_model[self._config.service_call_fields])
+                    data_first_train = data_first_train.merge(sc_first_model[constants.service_identifier_column_names])
             else:
                 data_first_train = self.aggregate_data_for_historic_averages_model(
                     agg_minutes=agg_minutes,
                     end_time=max_request_timestamp,
-                    service_calls=sc_first_model[self._config.service_call_fields])
+                    service_calls=sc_first_model[constants.service_identifier_column_names])
 
         if n_ids_to_exclude < 1000000:
             # exclude requests that are part of a "true" incident
@@ -519,11 +520,11 @@ class AnalyzerDatabaseManager(object):
                                                                                          ids_to_exclude=ids_to_exclude)
                     if len(data_first_retrain) > 0:
                         data_first_retrain = data_first_retrain.merge(
-                            sc_second_model[self._config.service_call_fields])
+                            sc_second_model[constants.service_identifier_column_names])
                 else:
                     data_first_retrain = self.aggregate_data_for_historic_averages_model(
                         agg_minutes=agg_minutes,
-                        service_calls=sc_second_model[self._config.service_call_fields],
+                        service_calls=sc_second_model[constants.service_identifier_column_names],
                         end_time=max_request_timestamp,
                         ids_to_exclude=ids_to_exclude)
 
@@ -535,10 +536,10 @@ class AnalyzerDatabaseManager(object):
                     end_time=max_request_timestamp,
                     ids_to_exclude=ids_to_exclude)
                 if len(data_regular) > 0:
-                    data_regular = data_regular.merge(sc_regular[self._config.service_call_fields])
+                    data_regular = data_regular.merge(sc_regular[constants.service_identifier_column_names])
         else:
             for sc in sc_second_model:
-                sc = sc[self._config.service_call_fields]
+                sc = sc[constants.service_identifier_column_names]
                 n_ids_to_exclude = self.get_request_id_count_from_incidents(
                     incident_status=["incident"],
                     relevant_anomalous_metrics=relevant_anomalous_metrics,
@@ -588,7 +589,7 @@ class AnalyzerDatabaseManager(object):
                     data_first_retrain = pd.concat([data_first_retrain, data_first_retrain_current], axis=0)
 
             for sc in sc_regular:
-                sc = sc[self._config.service_call_fields]
+                sc = sc[constants.service_identifier_column_names]
                 n_ids_to_exclude = self.get_request_id_count_from_incidents(
                     incident_status=["incident"],
                     relevant_anomalous_metrics=relevant_anomalous_metrics,
@@ -655,43 +656,46 @@ class AnalyzerDatabaseManager(object):
 
         if len(data) > 0:
             # exclude service calls that are not past the training period
-            data_regular = data.merge(sc_regular[self._config.service_call_fields])
+            data_regular = data.merge(sc_regular[constants.service_identifier_column_names])
 
         if len(sc_first_incidents) > 100:
             # for first-time incdent reporting, retrieve all data for these service calls
             data_first_incidents = self.aggregate_data_for_historic_averages_model(agg_minutes=agg_minutes,
                                                                                    end_time=current_transform_timestamp)
             if len(data_first_incidents) > 0:
-                data_first_incidents = data_first_incidents.merge(sc_first_incidents[self._config.service_call_fields])
+                data_first_incidents = data_first_incidents.merge(sc_first_incidents[constants.service_identifier_column_names])
 
         elif len(sc_first_incidents) > 0:
             data_first_incidents = self.aggregate_data_for_historic_averages_model(
                 agg_minutes=agg_minutes,
                 end_time=current_transform_timestamp,
-                service_calls=sc_first_incidents[self._config.service_call_fields])
+                service_calls=sc_first_incidents[constants.service_identifier_column_names])
 
         return pd.concat([data_regular, data_first_incidents])
 
-    def _get_clean_data_projection_dict(self):
+    @staticmethod
+    def _get_clean_data_projection_dict():
         project_dict = {
             col: {"$ifNull": [f"$client.{col}", f"$producer.{col}"]}
-            for col in self._config.relevant_cols_nested
+            for col in constants.all_service_column_names
         }
-        for col, field1, field2 in self._config.relevant_cols_general_alternative:
-            project_dict[col] = {"$ifNull": [f"${field1}", f"${field2}"]}
-        for col in self._config.relevant_cols_general:
+        for size_column in constants.alternative_columns:
+            out_name = size_column['outputName']
+            project_dict[out_name] = {"$ifNull": [f"${size_column['clientName']}", f"${size_column['producerName']}"]}
+        for col in constants.top_level_column_names:
             project_dict[col] = f"${col}"
         return project_dict
 
-    def _generate_dataframe(self, result):
+    @staticmethod
+    def _generate_dataframe(result):
         data = pd.DataFrame(result)
         if len(data) > 0:
             data = pd.concat([data, pd.DataFrame(list(data["_id"]))], axis=1)
             data = data.drop(["_id"], axis=1)
-            data.loc[:, self._config.timestamp_field] = pd.to_datetime(data.loc[:, self._config.timestamp_field],
+            data.loc[:, constants.timestamp_field] = pd.to_datetime(data.loc[:, constants.timestamp_field],
                                                                        unit='ms')
 
-            for col in self._config.service_call_fields:
+            for col in constants.service_identifier_column_names:
                 data.loc[:, col] = data.loc[:, col].fillna("-")
 
         return data

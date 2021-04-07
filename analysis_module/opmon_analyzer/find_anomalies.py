@@ -19,7 +19,7 @@ import numpy as np
 
 
 def find_anomalies(settings):
-    db_manager = AnalyzerDatabaseManager(settings, analyzer_conf)
+    db_manager = AnalyzerDatabaseManager(settings)
     logger_m = LoggerManager(settings['logger'], settings['xroad']['instance'])
 
     logger_m.log_info('_tmp_find_anomalies_start', "Process started ...")
