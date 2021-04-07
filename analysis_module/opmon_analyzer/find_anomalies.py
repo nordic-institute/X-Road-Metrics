@@ -52,7 +52,7 @@ def find_anomalies(settings):
         current_transform_timestamp = (current_transform_date.timestamp() - residual) * 1000
 
         if model_type == "failed_request_ratio":
-            model = FailedRequestRatioModel(analyzer_conf)
+            model = FailedRequestRatioModel(analyzer_conf, settings)
             data = db_manager.aggregate_data(model_type=model_type,
                                              start_time=last_transform_timestamp,
                                              end_time=current_transform_timestamp,

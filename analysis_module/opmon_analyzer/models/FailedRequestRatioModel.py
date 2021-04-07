@@ -6,9 +6,10 @@ from analysis_module.opmon_analyzer import constants
 
 class FailedRequestRatioModel(object):
 
-    def __init__(self, config):
+    def __init__(self, config, settings):
         self.anomaly_type = 'failed_request_ratio'
         self._config = config
+        self.threshold = settings['analyzer']['failed-request-ratio']['threshold']
 
     def fit(self, data):
         return self
@@ -28,8 +29,8 @@ class FailedRequestRatioModel(object):
             tmp = tmp.assign(request_count=tmp["count_successful"] + tmp["count_failed"])
             tmp = tmp.assign(failed_request_ratio=tmp["count_failed"] / tmp["request_count"])
 
-            tmp = tmp.assign(diff=tmp.failed_request_ratio - self._config.failed_request_ratio_threshold)
-            anomalies = tmp[tmp.failed_request_ratio > self._config.failed_request_ratio_threshold]
+            tmp = tmp.assign(diff=tmp.failed_request_ratio - self.threshold)
+            anomalies = tmp[tmp.failed_request_ratio > self.threshold]
 
             if len(anomalies) <= 0:
                 return pd.DataFrame()
@@ -56,7 +57,7 @@ class FailedRequestRatioModel(object):
             anomalies = anomalies.assign(anomaly_confidence=1.0)
             anomalies = anomalies.assign(
                 model_params=[{
-                    "failed_request_ratio_threshold": self._config.failed_request_ratio_threshold
+                    "failed_request_ratio_threshold": self.threshold
                 }] * len(anomalies)
             )
 
@@ -79,7 +80,7 @@ class FailedRequestRatioModel(object):
 
     def _generate_description(self, row):
         desc = "Allowed failed_request_ratio is %s, but observed was %s (%s requests out of %s failed)." % (
-            self._config.failed_request_ratio_threshold,
+            self.threshold,
             round(row.failed_request_ratio, 2),
             int(row["count_failed"]),
             int(row["request_count"]))
