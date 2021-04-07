@@ -8,7 +8,7 @@ from .models.FailedRequestRatioModel import FailedRequestRatioModel
 from .models.DuplicateMessageIdModel import DuplicateMessageIdModel
 from .models.TimeSyncModel import TimeSyncModel
 from .models.AveragesByTimeperiodModel import AveragesByTimeperiodModel
-from . import analyzer_conf
+from . import analyzer_conf, constants
 from .logger_manager import LoggerManager
 
 
@@ -147,7 +147,7 @@ def find_anomalies(settings):
             logger_m.log_info('_tmp_find_anomalies_3', "Loading the %s model" % time_window['timeunit_name'])
             logger_m.log_heartbeat("Loading the %s model" % time_window['timeunit_name'], 'SUCCEEDED')
             dt_model = db_manager.load_model(model_name=time_window['timeunit_name'], version=None)
-            dt_model = dt_model.groupby(analyzer_conf.service_call_fields + ["similar_periods"]).first()
+            dt_model = dt_model.groupby(constants.service_identifier_column_names + ["similar_periods"]).first()
             averages_by_time_period_model = AveragesByTimeperiodModel(time_window, analyzer_conf, dt_model)
 
             logger_m.log_info('_tmp_find_anomalies_3', "Finding anomalies (model %s)" % time_window['timeunit_name'])
@@ -183,7 +183,7 @@ def find_anomalies(settings):
         logger_m.log_heartbeat("Updating first incident timestamps", 'SUCCEEDED')
         db_manager.update_first_timestamps(field="first_incident_timestamp",
                                            value=current_time,
-                                           service_calls=sc_first_incidents[analyzer_conf.service_call_fields])
+                                           service_calls=sc_first_incidents[constants.service_identifier_column_names])
     logger_m.log_info('_tmp_find_anomalies_4', "Incident timestamps ... Done!")
 
     logger_m.log_info('_tmp_find_anomalies_end',
