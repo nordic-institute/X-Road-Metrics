@@ -6,6 +6,8 @@ import time
 from datetime import datetime
 import calendar
 
+from analysis_module.opmon_analyzer import constants
+
 
 class AveragesByTimeperiodModel(object):
 
@@ -25,8 +27,8 @@ class AveragesByTimeperiodModel(object):
 
         dt_agg = self._add_similar_periods_string(dt_agg)
 
-        self.dt_avgs = dt_agg.drop([self._config.timestamp_field, "request_ids"], axis=1)
-        self.dt_avgs = self.dt_avgs.groupby(self._config.service_call_fields + ["similar_periods"])
+        self.dt_avgs = dt_agg.drop([constants.timestamp_field, "request_ids"], axis=1)
+        self.dt_avgs = self.dt_avgs.groupby(constants.service_identifier_column_names + ["similar_periods"])
         self.dt_avgs = self.dt_avgs.agg([np.mean, self.std, 'count', np.sum, self.ssq])
 
         self.dt_avgs.columns = ['_'.join(col) for col in self.dt_avgs.columns.values]
@@ -57,7 +59,7 @@ class AveragesByTimeperiodModel(object):
         dt_agg = self._add_similar_periods_string(dt_agg)
 
         dt_merged = dt_agg.reset_index().merge(self.dt_avgs.reset_index(),
-                                               on=self._config.service_call_fields + ['similar_periods'], how="left")
+                                               on=constants.service_identifier_column_names + ['similar_periods'], how="left")
 
         for metric, threshold in self._config.historic_averages_thresholds.items():
             tmp = dt_merged.dropna(subset=[metric])
@@ -76,7 +78,7 @@ class AveragesByTimeperiodModel(object):
             anomalies = anomalies.reset_index()
 
             timedelta = pd.to_timedelta(1, unit=self.time_window['agg_window']['pd_timeunit'])
-            period_end_time = anomalies[self._config.timestamp_field] + timedelta
+            period_end_time = anomalies[constants.timestamp_field] + timedelta
 
             anomalies = anomalies.assign(incident_creation_timestamp=current_time)
             anomalies = anomalies.assign(incident_update_timestamp=current_time)
@@ -101,15 +103,15 @@ class AveragesByTimeperiodModel(object):
             anomalies = anomalies.assign(description=anomalies.apply(self._generate_description, axis=1))
 
             anomaly_fields = [
-                "anomaly_confidence", self._config.timestamp_field, 'incident_creation_timestamp',
+                "anomaly_confidence", constants.timestamp_field, 'incident_creation_timestamp',
                 'incident_update_timestamp', "request_count", "difference_from_normal",
                 'model_version', 'anomalous_metric', 'aggregation_timeunit', 'period_end_time',
                 'monitored_metric_value', 'model_params', 'description', 'incident_status',
                 "request_ids", "comments"
             ]
 
-            anomalies = anomalies[self._config.service_call_fields + anomaly_fields]
-            anomalies = anomalies.rename(columns={self._config.timestamp_field: 'period_start_time'})
+            anomalies = anomalies[constants.service_identifier_column_names + anomaly_fields]
+            anomalies = anomalies.rename(columns={constants.timestamp_field: 'period_start_time'})
 
             all_anomalies = pd.concat([all_anomalies, anomalies], axis=0)
 
@@ -124,7 +126,7 @@ class AveragesByTimeperiodModel(object):
         data_new_agg = self._add_similar_periods_string(data_new_agg)
 
         # separate time periods that already exist in the model from those that don't
-        data_new_agg = data_new_agg.set_index(self._config.service_call_fields + ['similar_periods'])
+        data_new_agg = data_new_agg.set_index(constants.service_identifier_column_names + ['similar_periods'])
 
         new_periods = data_new_agg.index.difference(self.dt_avgs.index)
         existing_periods = data_new_agg.index.intersection(self.dt_avgs.index)
@@ -165,7 +167,7 @@ class AveragesByTimeperiodModel(object):
         print("Adding new periods...")
         start = time.time()
         data_new_agg_new_periods_grouped = data_new_agg_new_periods.reset_index().groupby(
-            self._config.service_call_fields + ['similar_periods'])
+            self._config.service_identifier_column_names + ['similar_periods'])
         relevant_metrics = list(self._config.historic_averages_thresholds.keys())
         tmp = data_new_agg_new_periods_grouped[relevant_metrics].agg([np.mean, self.std, 'count', np.sum, self.ssq])
 
@@ -229,10 +231,10 @@ class AveragesByTimeperiodModel(object):
 
     def _add_similar_periods_string(self, dt_agg):
         if len(dt_agg) > 0:
-            dt_agg["similar_periods"] = getattr(dt_agg[self._config.timestamp_field].dt,
+            dt_agg["similar_periods"] = getattr(dt_agg[constants.timestamp_field].dt,
                                                 self.time_window['similar_periods'][0]).apply(str)
             for i in range(1, len(self.time_window['similar_periods'])):
                 dt_agg["similar_periods"] += "_"
-                dt_agg["similar_periods"] += getattr(dt_agg[self._config.timestamp_field].dt,
+                dt_agg["similar_periods"] += getattr(dt_agg[constants.timestamp_field].dt,
                                                      self.time_window['similar_periods'][i]).apply(str)
         return dt_agg
