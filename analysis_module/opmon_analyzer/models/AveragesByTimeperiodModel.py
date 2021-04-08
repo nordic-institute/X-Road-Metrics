@@ -6,8 +6,8 @@ import time
 from datetime import datetime
 import calendar
 
-from analysis_module.opmon_analyzer import constants
-from analysis_module.opmon_analyzer.analyzer_conf import DataModelConfiguration
+from opmon_analyzer import constants
+from opmon_analyzer.analyzer_conf import DataModelConfiguration
 
 
 class AveragesByTimeperiodModel(object):
@@ -175,7 +175,7 @@ class AveragesByTimeperiodModel(object):
         print("Adding new periods...")
         start = time.time()
         data_new_agg_new_periods_grouped = data_new_agg_new_periods.reset_index().groupby(
-            self._config.service_identifier_column_names + ['similar_periods'])
+            constants.service_identifier_column_names + ['similar_periods'])
         relevant_metrics = list(self._config.historic_averages_thresholds.keys())
         tmp = data_new_agg_new_periods_grouped[relevant_metrics].agg([np.mean, self.std, 'count', np.sum, self.ssq])
 

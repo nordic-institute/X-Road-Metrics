@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 
-from analysis_module.opmon_analyzer import constants
+from opmon_analyzer import constants
 
 
 class TimeSyncModel(object):

@@ -4,7 +4,7 @@ class DataModelConfiguration:
     def __init__(self, settings):
         self.time_windows = self._init_time_windows(settings)
         self.historic_averages_time_windows = self._init_historic_averages_time_windows(settings)
-        self.historic_averages_thresholds = self._init_historic_averages_thresholds(settings)
+        self.historic_averages_thresholds = settings['analyzer']['historic-averages']['thresholds']
         self.time_sync_monitored_lower_thresholds = self._init_time_sync_monitored_lower_thresholds(settings)
 
     def _init_time_windows(self, settings):
@@ -30,21 +30,8 @@ class DataModelConfiguration:
         return [
             (time_window, "update")
             for key, time_window in map_settings_to_time_windows.items()
-            if settings['analyzer']['historic-averages'][key]
+            if settings['analyzer']['historic-averages']['time-windows'][key]
         ]
-
-    @staticmethod
-    def _init_historic_averages_thresholds(settings):
-        threshold_settings = settings['analyzer']['historic-averages']['thresholds']
-        return {
-            key: threshold_settings[key] for key in [
-                'request_count',
-                'mean_request_size',
-                'mean_response_size',
-                'mean_client_duration',
-                'mean_producer_duration'
-            ]
-        }
 
     @staticmethod
     def _init_time_sync_monitored_lower_thresholds(settings):
@@ -77,4 +64,3 @@ class DataModelConfiguration:
         'agg_window': _day_aggregation_time_window,
         'similar_periods': ['day']
     }
-

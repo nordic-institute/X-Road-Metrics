@@ -1,7 +1,7 @@
 import pandas as pd
 from datetime import datetime
 
-from analysis_module.opmon_analyzer import constants
+from opmon_analyzer import constants
 
 
 class FailedRequestRatioModel(object):

@@ -119,8 +119,9 @@ class AnalyzerDatabaseManager(object):
         # exclude service calls that already exist in the first timestamps table
         existing_first_timestamps = self.get_first_timestamps_for_service_calls()
         if len(existing_first_timestamps) > 0:
-            res = res.merge(existing_first_timestamps[constants.service_identifier_column_names + ["first_request_timestamp"]],
-                            on=constants.service_identifier_column_names, how="left")
+            res = res.merge(
+                existing_first_timestamps[constants.service_identifier_column_names + ["first_request_timestamp"]],
+                on=constants.service_identifier_column_names, how="left")
             res = res[pd.isnull(res.first_request_timestamp)].drop("first_request_timestamp", axis=1)
 
         res = res.rename({constants.timestamp_field: "first_request_timestamp"}, axis="columns")
@@ -663,7 +664,8 @@ class AnalyzerDatabaseManager(object):
             data_first_incidents = self.aggregate_data_for_historic_averages_model(agg_minutes=agg_minutes,
                                                                                    end_time=current_transform_timestamp)
             if len(data_first_incidents) > 0:
-                data_first_incidents = data_first_incidents.merge(sc_first_incidents[constants.service_identifier_column_names])
+                data_first_incidents = data_first_incidents.merge(
+                    sc_first_incidents[constants.service_identifier_column_names])
 
         elif len(sc_first_incidents) > 0:
             data_first_incidents = self.aggregate_data_for_historic_averages_model(
@@ -692,8 +694,10 @@ class AnalyzerDatabaseManager(object):
         if len(data) > 0:
             data = pd.concat([data, pd.DataFrame(list(data["_id"]))], axis=1)
             data = data.drop(["_id"], axis=1)
-            data.loc[:, constants.timestamp_field] = pd.to_datetime(data.loc[:, constants.timestamp_field],
-                                                                       unit='ms')
+            data.loc[:, constants.timestamp_field] = pd.to_datetime(
+                data.loc[:, constants.timestamp_field],
+                unit='ms'
+            )
 
             for col in constants.service_identifier_column_names:
                 data.loc[:, col] = data.loc[:, col].fillna("-")
