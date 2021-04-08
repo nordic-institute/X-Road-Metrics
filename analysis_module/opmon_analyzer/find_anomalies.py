@@ -119,7 +119,7 @@ def find_anomalies(settings):
 
     logger_m.log_info('find_anomalies', f"Number of service calls in regular mode: {len(sc_regular)}")
 
-    for time_window, _ in analyzer_conf.historic_averages_time_windows:
+    for time_window, _ in config.historic_averages_time_windows:
         last_transform_date = db_manager.get_timestamp(ts_type="last_transform_timestamp",
                                                        model_type=time_window['timeunit_name'])
         logger_m.log_info('_tmp_find_anomalies_3', f"Model type: {time_window['timeunit_name']}")

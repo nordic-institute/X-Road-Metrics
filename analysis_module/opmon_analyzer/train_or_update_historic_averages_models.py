@@ -60,7 +60,7 @@ def update_model(settings):
 
     # 4.3.5 - 4.3.9 Comparison with historic averages for:
     # request count, response size, request size, response duration, request duration
-    for time_window, train_mode in analyzer_conf.historic_averages_time_windows:
+    for time_window, train_mode in config.historic_averages_time_windows:
         model_type = time_window['timeunit_name']
         last_fit_timestamp = db_manager.get_timestamp(ts_type="last_fit_timestamp",
                                                       model_type=model_type)
