@@ -18,7 +18,7 @@ import pandas as pd
 def update_model(settings):
     config = analyzer_conf.DataModelConfiguration(settings)
     log_activity = 'train_or_update_historic_averages_models'
-    db_manager = AnalyzerDatabaseManager(settings, analyzer_conf)
+    db_manager = AnalyzerDatabaseManager(settings)
     logger_m = LoggerManager(settings['logger'], settings['xroad']['instance'])
 
     # add first request timestamps for service calls that have appeared
@@ -138,8 +138,7 @@ def update_model(settings):
             dt_model = dt_model.groupby(constants.service_identifier_column_names + ["similar_periods"]).first()
             averages_by_time_period_model = AveragesByTimeperiodModel(
                 time_window,
-                settings,
-                analyzer_conf,
+                config,
                 dt_model,
                 version=model_version,
                 model_creation_timestamp=model_creation_timestamp
