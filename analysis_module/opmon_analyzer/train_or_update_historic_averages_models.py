@@ -102,7 +102,7 @@ def update_model(settings):
 
             # Fit the model
             start = time.time()
-            averages_by_time_period_model = AveragesByTimeperiodModel(time_window, settings, analyzer_conf)
+            averages_by_time_period_model = AveragesByTimeperiodModel(time_window, config)
             averages_by_time_period_model.fit(data)
 
             t0 = np.round(time.time() - start, 2)
