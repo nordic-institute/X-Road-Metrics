@@ -66,7 +66,10 @@ def update_model(settings):
                                                       model_type=model_type)
         last_fit_timestamp = last_fit_timestamp if train_mode != "retrain" else None
 
-        min_incident_creation_timestamp = last_fit_timestamp - datetime.timedelta(minutes=incident_expiration_time)
+        min_incident_creation_timestamp = (
+            None if last_fit_timestamp is None
+            else last_fit_timestamp - datetime.timedelta(minutes=incident_expiration_time)
+        )
 
         start = time.time()
         logger_m.log_heartbeat(
