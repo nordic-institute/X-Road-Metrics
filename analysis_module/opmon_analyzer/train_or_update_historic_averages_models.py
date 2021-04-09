@@ -58,6 +58,10 @@ def update_model(settings):
         f"Number of service calls that will be updated in regular mode: {len(sc_regular)}"
     )
 
+    if len(sc_first_model) == 0 and len(sc_second_model) == 0 and len(sc_regular) == 0:
+        logger_m.log_info(log_activity, "No data to train or update historic average models")
+        return
+
     # 4.3.5 - 4.3.9 Comparison with historic averages for:
     # request count, response size, request size, response duration, request duration
     for time_window, train_mode in config.historic_averages_time_windows:
