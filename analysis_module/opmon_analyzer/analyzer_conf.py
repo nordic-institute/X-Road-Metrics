@@ -1,68 +1,66 @@
-# some specific relevant fields
-timestamp_field = 'requestInTs'
-service_call_fields = ["clientMemberClass", "clientMemberCode", "clientXRoadInstance", "clientSubsystemCode",
-                       "serviceCode", "serviceVersion", "serviceMemberClass", "serviceMemberCode",
-                       "serviceXRoadInstance", "serviceSubsystemCode"]
+class DataModelConfiguration:
+    """Create data model time windows and thresholds based on settings.yaml"""
 
-# Fields to query from the database
+    def __init__(self, settings):
+        self.time_windows = self._init_time_windows(settings)
+        self.historic_averages_time_windows = self._init_historic_averages_time_windows(settings)
+        self.historic_averages_thresholds = settings['analyzer']['historic-averages']['thresholds']
+        self.time_sync_monitored_lower_thresholds = self._init_time_sync_monitored_lower_thresholds(settings)
 
-# 'relevant_cols_general' are fields that are present on the top level
-relevant_cols_general = ["_id", 'totalDuration', 'producerDurationProducerView', 'requestNwDuration',
-                         'responseNwDuration', 'correctorStatus']
+    def _init_time_windows(self, settings):
+        time_windows = {}
+        for key in ["failed_request_ratio", "duplicate_message_ids", "time_sync_errors"]:
+            settings_key = key.replace('_', '-')
+            if settings['analyzer'][settings_key]['hourly-time-window']:
+                time_windows[key] = self._hour_aggregation_time_window
+            else:
+                time_windows[key] = self._day_aggregation_time_window
 
-# 'relevant_cols_nested' are fields that are nested inside 'client' and 'producer'.
-# If 'client' is present, values for these fields will be taken from there, otherwise from 'producer'.
-relevant_cols_nested = service_call_fields + ["succeeded", "messageId", timestamp_field]
+        return time_windows
 
-# 'relevant_cols_general_alternative' are fields that are present on the top level, but exist for both
-# client and producer.
-# The value will be taken from the field assigned in the second position in the triplet if it exists,
-# otherwise from the third field. The first value in the triplet is the name that will be used.
-# Example: metric 'requestSize' will be assigned value from database field 'clientRequestSize' if it exists,
-# otherwise from the database field 'producerRequestSize'.
-relevant_cols_general_alternative = [('requestSize', 'clientRequestSize', 'producerRequestSize'),
-                                     ('responseSize', 'clientResponseSize', 'producerResponseSize')]
+    def _init_historic_averages_time_windows(self, settings):
 
-# some possible aggregation windows
-hour_aggregation_time_window = {'agg_window_name': 'hour', 'agg_minutes': 60, 'pd_timeunit': 'h'}
-day_aggregation_time_window = {'agg_window_name': 'day', 'agg_minutes': 1440, 'pd_timeunit': 'd'}
+        map_settings_to_time_windows = {
+            'hour-weekday': self._hour_weekday_similarity_time_window,
+            'weekday': self._weekday_similarity_time_window,
+            'hour-monthday': self._hour_monthday_similarity_time_window,
+            'monthday': self._hour_monthday_similarity_time_window
+        }
 
-# for historic averages model, we also need to determine which are the "similar" periods
-hour_weekday_similarity_time_window = {'timeunit_name': 'hour_weekday', 'agg_window': hour_aggregation_time_window,
-                                       'similar_periods': ['hour', 'weekday']}
+        return [
+            (time_window, "update")
+            for key, time_window in map_settings_to_time_windows.items()
+            if settings['analyzer']['historic-averages']['time-windows'][key]
+        ]
 
-weekday_similarity_time_window = {'timeunit_name': 'weekday', 'agg_window': day_aggregation_time_window,
-                                  'similar_periods': ['weekday']}
+    @staticmethod
+    def _init_time_sync_monitored_lower_thresholds(settings):
+        threshold_settings = settings['analyzer']['time-sync-errors']['thresholds']
+        return {key: threshold_settings[key] for key in ['requestNwDuration', 'responseNwDuration']}
 
-hour_monthday_similarity_time_window = {'timeunit_name': 'hour_monthday', 'agg_window': hour_aggregation_time_window,
-                                        'similar_periods': ['hour', 'day']}
+    _hour_aggregation_time_window = {'agg_window_name': 'hour', 'agg_minutes': 60, 'pd_timeunit': 'h'}
+    _day_aggregation_time_window = {'agg_window_name': 'day', 'agg_minutes': 1440, 'pd_timeunit': 'd'}
 
-monthday_similarity_time_window = {'timeunit_name': 'monthday', 'agg_window': day_aggregation_time_window,
-                                   'similar_periods': ['day']}
+    _hour_weekday_similarity_time_window = {
+        'timeunit_name': 'hour_weekday',
+        'agg_window': _hour_aggregation_time_window,
+        'similar_periods': ['hour', 'weekday']
+    }
 
-# which windows are actually used
-time_windows = {"failed_request_ratio": hour_aggregation_time_window,
-                "duplicate_message_ids": day_aggregation_time_window,
-                "time_sync_errors": hour_aggregation_time_window}
+    _weekday_similarity_time_window = {
+        'timeunit_name': 'weekday',
+        'agg_window': _day_aggregation_time_window,
+        'similar_periods': ['weekday']
+    }
 
-historic_averages_time_windows = [(hour_weekday_similarity_time_window, "update"),
-                                  (weekday_similarity_time_window, "update")]
+    _hour_monthday_similarity_time_window = {
+        'timeunit_name': 'hour_monthday',
+        'agg_window': _hour_aggregation_time_window,
+        'similar_periods': ['hour', 'day']
+    }
 
-# set the relevant fields (metrics) that will be monitored, aggregation functions to apply
-# and their anomaly confidence thresholds for the historic averages model
-historic_averages_thresholds = {'request_count': 0.95,
-                                'mean_request_size': 0.95,
-                                'mean_response_size': 0.95,
-                                'mean_client_duration': 0.95,
-                                'mean_producer_duration': 0.95}
-
-# set the relevant fields for monitoring time sync anomalies, and the respective minimum value threshold
-time_sync_monitored_lower_thresholds = {'requestNwDuration': -2000,
-                                        'responseNwDuration': -2000}
-
-# set the ratio of allowed failed requests per time window
-failed_request_ratio_threshold = 0.9
-
-corrector_buffer_time = 14400  # minutes
-incident_expiration_time = 14400  # minutes
-training_period_time = 3  # months
+    _monthday_similarity_time_window = {
+        'timeunit_name': 'monthday',
+        'agg_window': _day_aggregation_time_window,
+        'similar_periods': ['day']
+    }

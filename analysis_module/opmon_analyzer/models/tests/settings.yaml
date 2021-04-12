@@ -1,12 +1,4 @@
-# Default settings file for X-Road OpMon analyzer-module.
-# Fill in your MongoDB and X-Road configuration.
-# 
-# To run analyzer for many different X-Road instances, you can create settings
-# profiles. For example to have profiles DEV, TEST and PROD copy this file to
-# settings_DEV.yaml, settings_TEST.yaml and settings_PROD.yaml.
-# Then fill the profile specific settings to each file and use the --profile
-# flag when running opmon-analyzer. For example to run anomaly detection using the TEST profile:
-#    opmon-analyzer --profile TEST find
+# Unit test settings file for X-Road OpMon analyzer-module!
 
 analyzer:
   corrector-buffer-time: 14400      # minutes
@@ -15,7 +7,7 @@ analyzer:
 
   failed-request-ratio:
     hourly-time-window: yes   # 'yes' to use hourly time window instead of daily for anomaly detection
-    threshold: 0.9            # incident reporting threshold as ratio of failed requests in time window
+    threshold: 0.7            # incident reporting threshold as ratio of failed requests in time window
 
   duplicate-message-ids:
     hourly-time-window: no    # 'yes' to use hourly time window instead of daily for anomaly detection
@@ -33,12 +25,9 @@ analyzer:
       hour-monthday: no   # compare hourly data to historic data from same day-of-month and hour
       monthday: no        # compare daily data to historic data from the same day-of-month
 
-    thresholds: # data-fields to monitor and related confidence thresholds
+    thresholds: # a confidence threshold for anomaly reporting per data field
       request_count: 0.95
-      mean_request_size: 0.95
-      mean_response_size: 0.95
-      mean_client_duration: 0.95
-      mean_producer_duration: 0.95
+
 
 
 xroad:

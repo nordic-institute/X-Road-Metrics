@@ -4,6 +4,7 @@ from opmon_analyzer.AnalyzerDatabaseManager import AnalyzerDatabaseManager
 from opmon_analyzer.models.AveragesByTimeperiodModel import AveragesByTimeperiodModel
 from opmon_analyzer import analyzer_conf
 
+from . import constants
 from .logger_manager import LoggerManager
 
 import time
@@ -15,20 +16,25 @@ import pandas as pd
 
 
 def update_model(settings):
+    config = analyzer_conf.DataModelConfiguration(settings)
     log_activity = 'train_or_update_historic_averages_models'
-    db_manager = AnalyzerDatabaseManager(settings, analyzer_conf)
+    db_manager = AnalyzerDatabaseManager(settings)
     logger_m = LoggerManager(settings['logger'], settings['xroad']['instance'])
 
     # add first request timestamps for service calls that have appeared
     logger_m.log_heartbeat("Checking if completely new service calls have appeared", 'SUCCEEDED')
     db_manager.add_first_request_timestamps_from_clean_data()
 
-    metric_names = list(analyzer_conf.historic_averages_thresholds.keys())
+    metric_names = list(config.historic_averages_thresholds.keys())
 
     current_time = datetime.datetime.now()
-    max_incident_creation_time = current_time - datetime.timedelta(minutes=analyzer_conf.incident_expiration_time)
-    first_model_train_time = current_time - relativedelta(months=analyzer_conf.training_period_time)
-    max_request_time = current_time - datetime.timedelta(minutes=analyzer_conf.corrector_buffer_time)
+    buffer_time = settings['analyzer']['corrector-buffer-time']
+    incident_expiration_time = settings['analyzer']['incident-expiration-time']
+    training_period_time = settings['analyzer']['training-period-time']
+
+    max_incident_creation_time = current_time - datetime.timedelta(minutes=incident_expiration_time)
+    first_model_train_time = current_time - relativedelta(months=training_period_time)
+    max_request_time = current_time - datetime.timedelta(minutes=buffer_time)
 
     # retrieve service calls according to stages
     logger_m.log_heartbeat("Determining service call stages", "SUCCEEDED")
@@ -54,14 +60,13 @@ def update_model(settings):
 
     # 4.3.5 - 4.3.9 Comparison with historic averages for:
     # request count, response size, request size, response duration, request duration
-    for time_window, train_mode in analyzer_conf.historic_averages_time_windows:
+    for time_window, train_mode in config.historic_averages_time_windows:
         model_type = time_window['timeunit_name']
         last_fit_timestamp = db_manager.get_timestamp(ts_type="last_fit_timestamp",
                                                       model_type=model_type)
         last_fit_timestamp = last_fit_timestamp if train_mode != "retrain" else None
 
-        min_incident_creation_timestamp = last_fit_timestamp - datetime.timedelta(
-            minutes=analyzer_conf.incident_expiration_time)
+        min_incident_creation_timestamp = last_fit_timestamp - datetime.timedelta(minutes=incident_expiration_time)
 
         start = time.time()
         logger_m.log_heartbeat(
@@ -97,7 +102,7 @@ def update_model(settings):
 
             # Fit the model
             start = time.time()
-            averages_by_time_period_model = AveragesByTimeperiodModel(time_window, settings, analyzer_conf)
+            averages_by_time_period_model = AveragesByTimeperiodModel(time_window, config)
             averages_by_time_period_model.fit(data)
 
             t0 = np.round(time.time() - start, 2)
@@ -121,21 +126,19 @@ def update_model(settings):
             model_creation_timestamp = dt_model.model_creation_timestamp.iloc[0]
 
             # Discard from the model service calls that will be (re)trained
-            # dt_model = dt_model.merge(data_regular[analyzer_conf.service_call_fields])
-            dt_model.index = dt_model[analyzer_conf.service_call_fields]
+            dt_model.index = dt_model[constants.service_identifier_column_names]
             if len(data_first_train) > 0:
-                data_first_train.index = data_first_train[analyzer_conf.service_call_fields]
+                data_first_train.index = data_first_train[constants.service_identifier_column_names]
                 dt_model = dt_model[~dt_model.index.isin(data_first_train.index)]
             if len(data_first_retrain) > 0:
-                data_first_retrain.index = data_first_retrain[analyzer_conf.service_call_fields]
+                data_first_retrain.index = data_first_retrain[constants.service_identifier_column_names]
                 dt_model = dt_model[~dt_model.index.isin(data_first_retrain.index)]
 
             # Generate the correct index for the model
-            dt_model = dt_model.groupby(analyzer_conf.service_call_fields + ["similar_periods"]).first()
+            dt_model = dt_model.groupby(constants.service_identifier_column_names + ["similar_periods"]).first()
             averages_by_time_period_model = AveragesByTimeperiodModel(
                 time_window,
-                settings,
-                analyzer_conf,
+                config,
                 dt_model,
                 version=model_version,
                 model_creation_timestamp=model_creation_timestamp
@@ -156,7 +159,7 @@ def update_model(settings):
             logger_m.log_error(log_activity, "Unknown training mode.")
 
         if len(data) > 0:
-            max_request_time = data[analyzer_conf.timestamp_field].max()
+            max_request_time = data[constants.timestamp_field].max()
 
             logger_m.log_info(log_activity, f"Maximum aggregated request timestamp used: {max_request_time}")
             logger_m.log_heartbeat(f"Updating last train timestamp (model {model_type})", 'SUCCEEDED')

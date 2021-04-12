@@ -1,12 +1,15 @@
 import pandas as pd
 from datetime import datetime
 
+from opmon_analyzer import constants
+
 
 class FailedRequestRatioModel(object):
 
-    def __init__(self, config):
+    def __init__(self, config, settings):
         self.anomaly_type = 'failed_request_ratio'
         self._config = config
+        self.threshold = settings['analyzer']['failed-request-ratio']['threshold']
 
     def fit(self, data):
         return self
@@ -19,15 +22,15 @@ class FailedRequestRatioModel(object):
             tmp_succeeded = tmp_succeeded.drop(["request_ids", "succeeded"], axis=1)
             tmp_failed = tmp_failed.drop(["succeeded"], axis=1)
             tmp = tmp_succeeded.merge(tmp_failed,
-                                      on=self._config.service_call_fields + [self._config.timestamp_field],
+                                      on=constants.service_identifier_column_names + [constants.timestamp_field],
                                       how="outer",
                                       suffixes=["_successful", "_failed"])
             tmp = tmp.fillna(0)
             tmp = tmp.assign(request_count=tmp["count_successful"] + tmp["count_failed"])
             tmp = tmp.assign(failed_request_ratio=tmp["count_failed"] / tmp["request_count"])
 
-            tmp = tmp.assign(diff=tmp.failed_request_ratio - self._config.failed_request_ratio_threshold)
-            anomalies = tmp[tmp.failed_request_ratio > self._config.failed_request_ratio_threshold]
+            tmp = tmp.assign(diff=tmp.failed_request_ratio - self.threshold)
+            anomalies = tmp[tmp.failed_request_ratio > self.threshold]
 
             if len(anomalies) <= 0:
                 return pd.DataFrame()
@@ -37,7 +40,7 @@ class FailedRequestRatioModel(object):
             anomalies = anomalies.reset_index()
 
             timedelta = pd.to_timedelta(1, unit=time_window['pd_timeunit'])
-            period_end_time = anomalies[self._config.timestamp_field] + timedelta
+            period_end_time = anomalies[constants.timestamp_field] + timedelta
 
             anomalies = anomalies.assign(incident_creation_timestamp=current_time)
             anomalies = anomalies.assign(incident_update_timestamp=current_time)
@@ -54,22 +57,22 @@ class FailedRequestRatioModel(object):
             anomalies = anomalies.assign(anomaly_confidence=1.0)
             anomalies = anomalies.assign(
                 model_params=[{
-                    "failed_request_ratio_threshold": self._config.failed_request_ratio_threshold
+                    "failed_request_ratio_threshold": self.threshold
                 }] * len(anomalies)
             )
 
             anomalies = anomalies.assign(description=anomalies.apply(self._generate_description, axis=1))
 
             anomaly_fields = [
-                "anomaly_confidence", self._config.timestamp_field, 'incident_creation_timestamp',
+                "anomaly_confidence", constants.timestamp_field, 'incident_creation_timestamp',
                 'incident_update_timestamp', "request_count", "difference_from_normal",
                 'model_version', 'anomalous_metric', 'aggregation_timeunit', 'period_end_time',
                 'monitored_metric_value', 'model_params', 'description', 'incident_status', "request_ids",
                 "comments"
             ]
 
-            anomalies = anomalies[self._config.service_call_fields + anomaly_fields]
-            anomalies = anomalies.rename(columns={self._config.timestamp_field: 'period_start_time'})
+            anomalies = anomalies[constants.service_identifier_column_names + anomaly_fields]
+            anomalies = anomalies.rename(columns={constants.timestamp_field: 'period_start_time'})
 
             return anomalies
         else:
@@ -77,7 +80,7 @@ class FailedRequestRatioModel(object):
 
     def _generate_description(self, row):
         desc = "Allowed failed_request_ratio is %s, but observed was %s (%s requests out of %s failed)." % (
-            self._config.failed_request_ratio_threshold,
+            self.threshold,
             round(row.failed_request_ratio, 2),
             int(row["count_failed"]),
             int(row["request_count"]))

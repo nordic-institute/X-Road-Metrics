@@ -1,21 +1,20 @@
 import os
 import pytest
-from unittest.mock import MagicMock, Mock
+import pathlib
 
 import pandas as pd
 import numpy as np
 from datetime import datetime
-
-# import os
-# ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
-# os.chdir(os.path.join(ROOT_DIR, '..'))
 
 from opmon_analyzer.models.FailedRequestRatioModel import FailedRequestRatioModel
 from opmon_analyzer.models.DuplicateMessageIdModel import DuplicateMessageIdModel
 from opmon_analyzer.models.TimeSyncModel import TimeSyncModel
 from opmon_analyzer.models.AveragesByTimeperiodModel import AveragesByTimeperiodModel
 
-time_window = {'agg_window_name': 'hour', 'agg_minutes': 60, 'pd_timeunit': 'h'}
+from opmon_analyzer.analyzer_conf import DataModelConfiguration
+from opmon_analyzer.settings_parser import OpmonSettingsManager
+
+time_window = {'agg_window_name': 'hour_monthday', 'agg_minutes': 60, 'pd_timeunit': 'h'}
 
 similarity_time_window = {
     'timeunit_name': 'hour_weekday',
@@ -25,24 +24,27 @@ similarity_time_window = {
 
 
 @pytest.fixture
-def mock_config(mocker):
-    config = mocker.Mock()
-    config.timestamp_field = "timestamp"
-    config.service_call_fields = ["service_call"]
-    config.failed_request_ratio_threshold = 0.7
-    config.historic_averages_thresholds = {'request_count': 0.95}
-    return config
+def unittest_settings():
+    os.chdir(pathlib.Path(__file__).parent.absolute())
+    return OpmonSettingsManager().settings
 
 
-def test_failed_request_ratio_model_empty_dataframe(mock_config):
-    model = FailedRequestRatioModel(mock_config)
+@pytest.fixture
+def unittest_config(unittest_settings):
+    return DataModelConfiguration(unittest_settings)
+
+
+def test_failed_request_ratio_model_empty_dataframe(unittest_config, unittest_settings):
+    model = FailedRequestRatioModel(unittest_config, unittest_settings)
     data = pd.DataFrame()
     anomalies = model.transform(data, time_window)
     assert (len(anomalies) == 0)
 
 
-def test_failed_request_ratio_model_anomaly_found(mock_config):
-    model = FailedRequestRatioModel(mock_config)
+def test_failed_request_ratio_model_anomaly_found(mocker, unittest_config, unittest_settings):
+    patch_constants(mocker, 'FailedRequestRatioModel')
+
+    model = FailedRequestRatioModel(unittest_config, unittest_settings)
     ts = datetime.now()
     service_call = "sc1"
     request_ids = ["id"]
@@ -65,8 +67,10 @@ def test_failed_request_ratio_model_anomaly_found(mock_config):
     assert (len(anomalies) == 1)
 
 
-def test_failed_request_ratio_model_anomaly_not_found(mock_config):
-    model = FailedRequestRatioModel(mock_config)
+def test_failed_request_ratio_model_anomaly_not_found(mocker, unittest_config, unittest_settings):
+    patch_constants(mocker, 'FailedRequestRatioModel')
+
+    model = FailedRequestRatioModel(unittest_config, unittest_settings)
     ts = datetime.now()
     service_call = "sc1"
     request_ids = ["id"]
@@ -87,22 +91,23 @@ def test_failed_request_ratio_model_anomaly_not_found(mock_config):
     assert (len(anomalies) == 0)
 
 
-def test_duplicate_message_id_model_empty_dataframe(mock_config):
-    model = DuplicateMessageIdModel(mock_config)
+def test_duplicate_message_id_model_empty_dataframe():
+    model = DuplicateMessageIdModel()
     data = pd.DataFrame()
     anomalies = model.transform(data, time_window)
     assert (len(anomalies) == 0)
 
 
-def test_duplicate_message_id_model_anomaly_not_found(mock_config):
-    model = DuplicateMessageIdModel(mock_config)
+def test_duplicate_message_id_model_anomaly_not_found():
+    model = DuplicateMessageIdModel()
     data = pd.DataFrame()
     anomalies = model.transform(data, time_window)
     assert (0 == len(anomalies))
 
 
-def test_duplicate_message_id_model_anomaly_found(mock_config):
-    model = DuplicateMessageIdModel(mock_config)
+def test_duplicate_message_id_model_anomaly_found(mocker):
+    patch_constants(mocker, 'DuplicateMessageIdModel')
+    model = DuplicateMessageIdModel()
     ts = datetime.now()
     service_call = "sc1"
     request_ids = ["id"]
@@ -117,8 +122,8 @@ def test_duplicate_message_id_model_anomaly_found(mock_config):
     assert (1 == len(anomalies))
 
 
-def test_time_sync_model_empty_dataframe(mock_config):
-    model = TimeSyncModel(mock_config)
+def test_time_sync_model_empty_dataframe():
+    model = TimeSyncModel()
     data = pd.DataFrame()
     metric = "responseTime"
     threshold = 0
@@ -126,8 +131,8 @@ def test_time_sync_model_empty_dataframe(mock_config):
     assert (0 == len(anomalies))
 
 
-def test_time_sync_model_anomaly_not_found(mock_config):
-    model = TimeSyncModel(mock_config)
+def test_time_sync_model_anomaly_not_found():
+    model = TimeSyncModel()
     metric = "responseTime"
     threshold = 0
     data = pd.DataFrame()
@@ -135,8 +140,9 @@ def test_time_sync_model_anomaly_not_found(mock_config):
     assert (0 == len(anomalies))
 
 
-def test_time_sync_model_anomaly_found(mock_config):
-    model = TimeSyncModel(mock_config)
+def test_time_sync_model_anomaly_found(mocker):
+    patch_constants(mocker, 'TimeSyncModel')
+    model = TimeSyncModel()
     metric = "responseTime"
     threshold = 0
     ts = datetime.now()
@@ -152,14 +158,16 @@ def test_time_sync_model_anomaly_found(mock_config):
     assert (1 == len(anomalies))
 
 
-def test_averages_by_timeperiod_model_fit_empty_dataframe(mock_config):
-    model = AveragesByTimeperiodModel(similarity_time_window, mock_config)
+def test_averages_by_timeperiod_model_fit_empty_dataframe(unittest_config, mocker):
+    patch_constants(mocker, 'AveragesByTimeperiodModel')
+    model = AveragesByTimeperiodModel(similarity_time_window, unittest_config)
     data = pd.DataFrame()
     model.fit(data)
     assert (None is model.dt_avgs)
 
 
-def test_averages_by_timeperiod_model_fit_single_query(mock_config):
+def test_averages_by_timeperiod_model_fit_single_query(unittest_config, mocker):
+    patch_constants(mocker, 'AveragesByTimeperiodModel')
     service_call = "sc1"
     similar_periods = "10_3"  # 10 o'clock on a Wednesday
     ts = datetime.strptime("5/10/2017 10:00:00", "%d/%m/%Y %H:%M:%S")
@@ -169,7 +177,7 @@ def test_averages_by_timeperiod_model_fit_single_query(mock_config):
         [(ts, service_call, request_count, request_ids)],
         columns=["timestamp", "service_call", "request_count", "request_ids"])
 
-    model = AveragesByTimeperiodModel(similarity_time_window, mock_config)
+    model = AveragesByTimeperiodModel(similarity_time_window, unittest_config)
     model.fit(data)
 
     assert (len(model.dt_avgs.index) == 1)
@@ -181,7 +189,8 @@ def test_averages_by_timeperiod_model_fit_single_query(mock_config):
     assert (0 == model.dt_avgs.at[row_label, "request_count_std"])
 
 
-def test_averages_by_timeperiod_model_fit_two_queries(mock_config):
+def test_averages_by_timeperiod_model_fit_two_queries(unittest_config, mocker):
+    patch_constants(mocker, 'AveragesByTimeperiodModel')
     service_call = "sc1"
     similar_periods = "10_3"  # 10 o'clock on a Wednesday
     ts = datetime.strptime("5/10/2017 10:00:00", "%d/%m/%Y %H:%M:%S")
@@ -193,7 +202,7 @@ def test_averages_by_timeperiod_model_fit_two_queries(mock_config):
          ],
         columns=["timestamp", "service_call", "request_count", "request_ids"])
 
-    model = AveragesByTimeperiodModel(similarity_time_window, mock_config)
+    model = AveragesByTimeperiodModel(similarity_time_window, unittest_config)
     model.fit(data)
 
     assert (len(model.dt_avgs.index) == 1)
@@ -205,20 +214,22 @@ def test_averages_by_timeperiod_model_fit_two_queries(mock_config):
     assert (np.std([2, 3], ddof=0) == model.dt_avgs.at[row_label, "request_count_std"])
 
 
-def test_averages_by_timeperiod_model_transform_empty_dataframe(mock_config):
+def test_averages_by_timeperiod_model_transform_empty_dataframe(unittest_config):
     service_call = "sc1"
     similar_periods = "10_3"
     dt_avgs = pd.DataFrame(
         [(service_call, similar_periods, 2.5, 0.5)],
         columns=["service_call", "similar_periods", "request_count_mean", "request_count_std"]
     )
-    model = AveragesByTimeperiodModel(similarity_time_window, mock_config, dt_avgs=dt_avgs)
+    model = AveragesByTimeperiodModel(similarity_time_window, unittest_config, dt_avgs=dt_avgs)
     data = pd.DataFrame()
     anomalies = model.transform(data)
     assert (0 == len(anomalies))
 
 
-def test_averages_by_timeperiod_model_transform_anomaly_found(mock_config):
+def test_averages_by_timeperiod_model_transform_anomaly_found(unittest_config, mocker):
+    patch_constants(mocker, 'AveragesByTimeperiodModel')
+
     service_call = "sc1"
     similar_periods = "10_3"
     request_ids = ["id"]
@@ -228,7 +239,7 @@ def test_averages_by_timeperiod_model_transform_anomaly_found(mock_config):
         [(service_call, similar_periods, 2.5, 0.5, 1)],
         columns=["service_call", "similar_periods", "request_count_mean", "request_count_std", "model_version"]
     )
-    model = AveragesByTimeperiodModel(similarity_time_window, mock_config, dt_avgs=dt_avgs)
+    model = AveragesByTimeperiodModel(similarity_time_window, unittest_config, dt_avgs=dt_avgs)
 
     data = pd.DataFrame(
         [(ts, service_call, 10, request_ids)],
@@ -238,7 +249,9 @@ def test_averages_by_timeperiod_model_transform_anomaly_found(mock_config):
     assert (1 == len(anomalies))
 
 
-def test_averages_by_timeperiod_model_transform_anomaly_not_found(mock_config):
+def test_averages_by_timeperiod_model_transform_anomaly_not_found(unittest_config, mocker):
+    patch_constants(mocker, 'AveragesByTimeperiodModel')
+
     service_call = "sc1"
     similar_periods = "10_3"
     request_ids = ["id"]
@@ -248,7 +261,7 @@ def test_averages_by_timeperiod_model_transform_anomaly_not_found(mock_config):
         [(service_call, similar_periods, 2.5, 0.5, 1)],
         columns=["service_call", "similar_periods", "request_count_mean", "request_count_std", "model_version"]
     )
-    model = AveragesByTimeperiodModel(similarity_time_window, mock_config, dt_avgs=dt_avgs)
+    model = AveragesByTimeperiodModel(similarity_time_window, unittest_config, dt_avgs=dt_avgs)
 
     data = pd.DataFrame(
         [(ts, service_call, 2.5, request_ids)],
@@ -258,7 +271,9 @@ def test_averages_by_timeperiod_model_transform_anomaly_not_found(mock_config):
     assert (0 == len(anomalies))
 
 
-def test_averages_by_timeperiod_model_transform_period_not_in_model(mock_config):
+def test_averages_by_timeperiod_model_transform_period_not_in_model(unittest_config, mocker):
+    patch_constants(mocker, 'AveragesByTimeperiodModel')
+
     service_call = "sc1"
     similar_periods = "11_3"
     request_ids = ["id"]
@@ -268,7 +283,7 @@ def test_averages_by_timeperiod_model_transform_period_not_in_model(mock_config)
         [(service_call, similar_periods, 2.5, 0.5, 1)],
         columns=["service_call", "similar_periods", "request_count_mean", "request_count_std", "model_version"]
     )
-    model = AveragesByTimeperiodModel(similarity_time_window, mock_config, dt_avgs=dt_avgs)
+    model = AveragesByTimeperiodModel(similarity_time_window, unittest_config, dt_avgs=dt_avgs)
 
     data = pd.DataFrame(
         [(ts, service_call, 2.5, request_ids)],
@@ -278,7 +293,7 @@ def test_averages_by_timeperiod_model_transform_period_not_in_model(mock_config)
     assert (1 == len(anomalies))
 
 
-def test_averages_by_timeperiod_model_update_empty_dataframe(mock_config):
+def test_averages_by_timeperiod_model_update_empty_dataframe(unittest_config):
     service_call = "sc1"
     similar_periods = "10_3"
     mean_val = 2.5
@@ -287,13 +302,15 @@ def test_averages_by_timeperiod_model_update_empty_dataframe(mock_config):
         [(service_call, similar_periods, mean_val, std_val, 1)],
         columns=["service_call", "similar_periods", "request_count_mean", "request_count_std", "model_version"]
     )
-    model = AveragesByTimeperiodModel(similarity_time_window, mock_config, dt_avgs=dt_avgs)
+    model = AveragesByTimeperiodModel(similarity_time_window, unittest_config, dt_avgs=dt_avgs)
     data = pd.DataFrame()
     model.update_model(data)
     assert (dt_avgs.equals(model.dt_avgs))
 
 
-def test_averages_by_timeperiod_model_update_existing_period(mock_config):
+def test_averages_by_timeperiod_model_update_existing_period(unittest_config, mocker):
+    patch_constants(mocker, 'AveragesByTimeperiodModel')
+
     service_call = "sc1"
     similar_periods = "10_3"
     request_ids = ["id"]
@@ -308,7 +325,7 @@ def test_averages_by_timeperiod_model_update_existing_period(mock_config):
 
     dt_avgs = dt_avgs.set_index(["service_call", "similar_periods"])
 
-    model = AveragesByTimeperiodModel(similarity_time_window, mock_config, dt_avgs=dt_avgs)
+    model = AveragesByTimeperiodModel(similarity_time_window, unittest_config, dt_avgs=dt_avgs)
 
     data = pd.DataFrame(
         [(ts, service_call, 3, request_ids)],
@@ -331,7 +348,8 @@ def test_averages_by_timeperiod_model_update_existing_period(mock_config):
     assert (2 == model.dt_avgs.at[row_label, "request_count_count"])
 
 
-def test_averages_by_timeperiod_model_add_new_period(mock_config):
+def test_averages_by_timeperiod_model_add_new_period(unittest_config, mocker):
+    patch_constants(mocker, 'AveragesByTimeperiodModel')
     service_call = "sc1"
     similar_periods = "10_3"
     request_ids = ["id"]
@@ -344,7 +362,7 @@ def test_averages_by_timeperiod_model_add_new_period(mock_config):
     )
 
     dt_avgs = dt_avgs.set_index(["service_call", "similar_periods"])
-    model = AveragesByTimeperiodModel(similarity_time_window, mock_config, dt_avgs=dt_avgs)
+    model = AveragesByTimeperiodModel(similarity_time_window, unittest_config, dt_avgs=dt_avgs)
 
     data = pd.DataFrame(
         [(ts, service_call, 3, request_ids)],
@@ -367,3 +385,9 @@ def test_averages_by_timeperiod_model_add_new_period(mock_config):
     assert (3 == model_row.at[row_label, "request_count_sum"])
     assert (9 == model_row.at[row_label, "request_count_ssq"])
     assert (1 == model_row.at[row_label, "request_count_count"])
+
+
+def patch_constants(mocker, model_name):
+    constants_package = f'opmon_analyzer.models.{model_name}.constants'
+    mocker.patch(f'{constants_package}.timestamp_field', 'timestamp')
+    mocker.patch(f'{constants_package}.service_identifier_column_names', ["service_call"])
