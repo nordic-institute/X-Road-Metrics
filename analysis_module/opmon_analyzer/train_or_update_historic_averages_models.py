@@ -30,10 +30,9 @@ def update_model(settings):
     current_time = datetime.datetime.now()
     buffer_time = settings['analyzer']['corrector-buffer-time']
     incident_expiration_time = settings['analyzer']['incident-expiration-time']
-    training_period_time = settings['analyzer']['training-period-time']
 
     max_incident_creation_time = current_time - datetime.timedelta(minutes=incident_expiration_time)
-    first_model_train_time = current_time - relativedelta(weeks=training_period_time)
+    first_model_train_time = get_first_model_train_time(settings, current_time, logger_m)
     max_request_time = current_time - datetime.timedelta(minutes=buffer_time)
 
     # retrieve service calls according to stages
@@ -181,3 +180,19 @@ def update_model(settings):
     logger_m.log_heartbeat("Updating timestamps", 'SUCCEEDED')
     db_manager.update_first_train_retrain_timestamps(sc_first_model, sc_second_model, current_time)
     logger_m.log_heartbeat("Finished training", 'SUCCEEDED')
+
+
+def get_first_model_train_time(settings, current_time, logger_m):
+    length = settings['analyzer']['training-period']['length']
+    unit = settings['analyzer']['training-period']['unit']
+    deltas = {
+        "MONTHS": relativedelta(months=length),
+        "WEEKS": relativedelta(weeks=length),
+        "DAYS": relativedelta(days=length)
+    }
+
+    if unit not in deltas:
+        logger_m("get_first_model_train_time", f"Invalid unit for training-period. Options are: {deltas.keys()}")
+        raise ValueError("Invalid unit for training-period.")
+
+    return current_time - deltas[unit]

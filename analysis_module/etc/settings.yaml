@@ -11,7 +11,9 @@
 analyzer:
   corrector-buffer-time: 14400      # minutes
   incident-expiration-time: 14400   # minutes
-  training-period-time: 3           # months
+  training-period:
+    length: 3
+    unit: MONTHS  # supported options are DAYS, WEEKS or MONTHS
 
   failed-request-ratio:
     hourly-time-window: yes   # 'yes' to use hourly time window instead of daily for anomaly detection
