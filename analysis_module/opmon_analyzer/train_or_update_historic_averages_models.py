@@ -33,11 +33,15 @@ def update_model(settings):
     training_period_time = settings['analyzer']['training-period-time']
 
     max_incident_creation_time = current_time - datetime.timedelta(minutes=incident_expiration_time)
-    first_model_train_time = current_time - relativedelta(months=training_period_time)
+    first_model_train_time = current_time - relativedelta(weeks=training_period_time)
     max_request_time = current_time - datetime.timedelta(minutes=buffer_time)
 
     # retrieve service calls according to stages
     logger_m.log_heartbeat("Determining service call stages", "SUCCEEDED")
+    logger_m.log_info(
+        log_activity,
+        f"Getting service calls for trains stages, t1: {first_model_train_time} t2: {max_incident_creation_time}"
+    )
     sc_regular, sc_first_model, sc_second_model = db_manager.get_service_calls_for_train_stages(
         time_first_model=first_model_train_time,
         time_second_model=max_incident_creation_time
