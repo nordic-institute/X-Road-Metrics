@@ -30,14 +30,17 @@ def update_model(settings):
     current_time = datetime.datetime.now()
     buffer_time = settings['analyzer']['corrector-buffer-time']
     incident_expiration_time = settings['analyzer']['incident-expiration-time']
-    training_period_time = settings['analyzer']['training-period-time']
 
     max_incident_creation_time = current_time - datetime.timedelta(minutes=incident_expiration_time)
-    first_model_train_time = current_time - relativedelta(months=training_period_time)
+    first_model_train_time = get_first_model_train_time(settings, current_time, logger_m)
     max_request_time = current_time - datetime.timedelta(minutes=buffer_time)
 
     # retrieve service calls according to stages
     logger_m.log_heartbeat("Determining service call stages", "SUCCEEDED")
+    logger_m.log_info(
+        log_activity,
+        f"Getting service calls for trains stages, t1: {first_model_train_time} t2: {max_incident_creation_time}"
+    )
     sc_regular, sc_first_model, sc_second_model = db_manager.get_service_calls_for_train_stages(
         time_first_model=first_model_train_time,
         time_second_model=max_incident_creation_time
@@ -58,6 +61,10 @@ def update_model(settings):
         f"Number of service calls that will be updated in regular mode: {len(sc_regular)}"
     )
 
+    if len(sc_first_model) == 0 and len(sc_second_model) == 0 and len(sc_regular) == 0:
+        logger_m.log_info(log_activity, "No data to train or update historic average models")
+        return
+
     # 4.3.5 - 4.3.9 Comparison with historic averages for:
     # request count, response size, request size, response duration, request duration
     for time_window, train_mode in config.historic_averages_time_windows:
@@ -66,7 +73,10 @@ def update_model(settings):
                                                       model_type=model_type)
         last_fit_timestamp = last_fit_timestamp if train_mode != "retrain" else None
 
-        min_incident_creation_timestamp = last_fit_timestamp - datetime.timedelta(minutes=incident_expiration_time)
+        min_incident_creation_timestamp = (
+            None if last_fit_timestamp is None
+            else last_fit_timestamp - datetime.timedelta(minutes=incident_expiration_time)
+        )
 
         start = time.time()
         logger_m.log_heartbeat(
@@ -170,3 +180,19 @@ def update_model(settings):
     logger_m.log_heartbeat("Updating timestamps", 'SUCCEEDED')
     db_manager.update_first_train_retrain_timestamps(sc_first_model, sc_second_model, current_time)
     logger_m.log_heartbeat("Finished training", 'SUCCEEDED')
+
+
+def get_first_model_train_time(settings, current_time, logger_m):
+    length = settings['analyzer']['training-period']['length']
+    unit = settings['analyzer']['training-period']['unit']
+    deltas = {
+        "MONTHS": relativedelta(months=length),
+        "WEEKS": relativedelta(weeks=length),
+        "DAYS": relativedelta(days=length)
+    }
+
+    if unit not in deltas:
+        logger_m("get_first_model_train_time", f"Invalid unit for training-period. Options are: {deltas.keys()}")
+        raise ValueError("Invalid unit for training-period.")
+
+    return current_time - deltas[unit]

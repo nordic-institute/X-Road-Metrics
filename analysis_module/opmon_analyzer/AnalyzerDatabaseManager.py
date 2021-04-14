@@ -13,7 +13,7 @@ class AnalyzerDatabaseManager(object):
 
         self.client = MongoClient(self.get_mongo_uri(settings))
         self.query_db = self.client[f"query_db_{xroad}"]
-        self.analyzer_db = self.client[f"analyzer_db_{xroad}"]
+        self.analyzer_db = self.client[f"analyzer_database_{xroad}"]
 
     @staticmethod
     def get_mongo_uri(settings):
