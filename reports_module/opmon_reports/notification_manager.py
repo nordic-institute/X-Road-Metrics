@@ -30,6 +30,7 @@ class NotificationManager:
         self.smtp_host = email_settings['smtp']['host']
         self.smtp_port = email_settings['smtp']['port']
         self.smtp_password = email_settings['smtp'].get('password')
+        self.smtp_user = email_settings['smtp'].get('user') or email_settings['sender']
 
     def add_item_to_queue(
             self,
@@ -102,7 +103,7 @@ class NotificationManager:
             if encryption == 'STARTTLS':
                 server.starttls(context=ssl.SSLContext(ssl.PROTOCOL_TLS))
             if self.smtp_password and encryption in ['TLS', 'STARTTLS']:
-                server.login(self.settings['sender'], self.smtp_password)
+                server.login(self.smtp_user, self.smtp_password)
             server.send_message(msg)
 
     def mark_as_sent(self, object_id):

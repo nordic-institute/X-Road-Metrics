@@ -37,6 +37,7 @@ email:
     sender: <FILL>  # e-mail address shown in sender field of notifications
     smtp:
       host: <FILL>
+      user: <FILL>
       password: ""  # only needed if encryption is selected
       port: 25
       encryption: None  # possible values: None, TLS, STARTTLS
