@@ -1,5 +1,4 @@
 import smtplib
-import socket
 import ssl
 from typing import Iterable
 from email.header import Header
@@ -32,24 +31,15 @@ class NotificationManager:
         self.smtp_password = email_settings['smtp'].get('password')
         self.smtp_user = email_settings['smtp'].get('user') or email_settings['sender']
 
-    def add_item_to_queue(
-            self,
-            reports_arguments,
-            report_name,
-            receivers: Iterable[dict]
-    ):
+    def add_item_to_queue(self, target, report_name, receivers: Iterable[dict]):
         """
         Add notification to the queue (database).
-        :param reports_arguments: OpmonReportsArguments object specifying target subsystem
+        :param target: target subsystem
         :param report_name: Name of the report.
         :param receivers: The list of emails and receiver names.
         :return:
         """
-        self.database_manager.add_notification_to_queue(
-            reports_arguments,
-            report_name,
-            receivers
-        )
+        self.database_manager.add_notification_to_queue(target, report_name, receivers)
 
     def get_items_from_queue(self):
         """
