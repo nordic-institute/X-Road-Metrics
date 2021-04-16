@@ -33,7 +33,6 @@ reports:
     - '/etc/opmon/reports/template/pdf_report_style.css'
   image-path: /etc/opmon/reports/template/header_images
   email:
-email:
     sender: <FILL>  # e-mail address shown in sender field of notifications
     smtp:
       host: <FILL>
