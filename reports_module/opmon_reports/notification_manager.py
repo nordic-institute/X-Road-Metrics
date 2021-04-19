@@ -1,5 +1,5 @@
 import smtplib
-import socket
+import ssl
 from typing import Iterable
 from email.header import Header
 from email.mime.text import MIMEText
@@ -26,25 +26,20 @@ class NotificationManager:
         self.database_manager = database_manager
         self.logger_manager = logger_manager
         self.settings = email_settings
+        self.smtp_host = email_settings['smtp']['host']
+        self.smtp_port = email_settings['smtp']['port']
+        self.smtp_password = email_settings['smtp'].get('password')
+        self.smtp_user = email_settings['smtp'].get('user') or email_settings['sender']
 
-    def add_item_to_queue(
-            self,
-            reports_arguments,
-            report_name,
-            receivers: Iterable[dict]
-    ):
+    def add_item_to_queue(self, target, report_name, receivers: Iterable[dict]):
         """
         Add notification to the queue (database).
-        :param reports_arguments: OpmonReportsArguments object specifying target subsystem
+        :param target: target subsystem
         :param report_name: Name of the report.
         :param receivers: The list of emails and receiver names.
         :return:
         """
-        self.database_manager.add_notification_to_queue(
-            reports_arguments,
-            report_name,
-            receivers
-        )
+        self.database_manager.add_notification_to_queue(target, report_name, receivers)
 
     def get_items_from_queue(self):
         """
@@ -81,13 +76,25 @@ class NotificationManager:
 
         msg['From'] = self.settings['sender']
         msg['To'] = formataddr((str(Header(f'{receiver["name"]}', 'utf-8')), receiver["email"]))
-        msg['Message-ID'] = make_msgid(domain=self.settings['smtp-host'])
+        msg['Message-ID'] = make_msgid(domain=self.settings['smtp']['host'])
         msg['Date'] = formatdate(localtime=True)
 
-        s = smtplib.SMTP(host=self.settings['smtp-host'], port=self.settings['smtp-port'], timeout=15)
-        s.helo(socket.gethostname())
-        s.send_message(msg)
-        s.quit()
+        self._send_over_smtp(msg)
+
+    def _get_smtp_server(self):
+        if self.settings['smtp']['encryption'] == 'TLS':
+            context = ssl.SSLContext(ssl.PROTOCOL_TLS)
+            return smtplib.SMTP_SSL(self.smtp_host, self.smtp_port, context=context, timeout=15)
+        return smtplib.SMTP(self.smtp_host, self.smtp_port, timeout=15)
+
+    def _send_over_smtp(self, msg):
+        encryption = self.settings['smtp']['encryption']
+        with self._get_smtp_server() as server:
+            if encryption == 'STARTTLS':
+                server.starttls(context=ssl.SSLContext(ssl.PROTOCOL_TLS))
+            if self.smtp_password and encryption in ['TLS', 'STARTTLS']:
+                server.login(self.smtp_user, self.smtp_password)
+            server.send_message(msg)
 
     def mark_as_sent(self, object_id):
         """

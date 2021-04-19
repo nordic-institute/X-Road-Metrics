@@ -33,9 +33,13 @@ reports:
     - '/etc/opmon/reports/template/pdf_report_style.css'
   image-path: /etc/opmon/reports/template/header_images
   email:
-    sender: <FILL>
-    smtp-host: <FILL>
-    smtp-port: <FILL>
+    sender: <FILL>  # e-mail address shown in sender field of notifications
+    smtp:
+      host: <FILL>
+      user: <FILL>
+      password: ""  # only needed if encryption is selected
+      port: 25
+      encryption: None  # possible values: None, TLS, STARTTLS
     message: >
       Dear {EMAIL_NAME},
 

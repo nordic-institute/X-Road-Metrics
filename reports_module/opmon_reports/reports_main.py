@@ -57,7 +57,7 @@ def generate_reports(args, logger_m):
             report_name = report_manager.generate_report()
             emails = target_subsystem.get_emails()
             if emails:
-                notification_m.add_item_to_queue(args, report_name, emails)
+                notification_m.add_item_to_queue(target_subsystem, report_name, emails)
         except Exception as e:
             fail_count += 1
             log_report_error(e, index, len(xroad_descriptor), logger_m, target_subsystem)
