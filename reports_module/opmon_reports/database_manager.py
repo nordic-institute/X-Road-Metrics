@@ -18,6 +18,7 @@ class DatabaseManager:
         logger_manager.log_info('create_database_manager', 'Prepare database manager.')
         self.mongodb_handler = MongoDBHandler(reports_arguments.settings['mongodb'], reports_arguments.xroad_instance)
         self.logger_m = logger_manager
+        self.arguments = reports_arguments
 
     @staticmethod
     def get_timestamp():
@@ -270,16 +271,11 @@ class DatabaseManager:
             }
         }
 
-    def add_notification_to_queue(
-            self,
-            reports_arguments,
-            report_name,
-            receivers: Iterable[dict]
-    ):
+    def add_notification_to_queue(self, target, report_name, receivers: Iterable[dict]):
 
         """
         Add notification to the queue (database).
-        :param reports_arguments: OpmonReportsArguments object
+        :param target: target subsystem
         :param report_name: Name of the report.
         :param receivers: List of receiver dictionaries
         :return:
@@ -294,13 +290,13 @@ class DatabaseManager:
                 status = 'not_sent'
 
             document = {
-                'member_code': reports_arguments.member_code,
-                'subsystem_code': reports_arguments.subsystem_code,
-                'member_class': reports_arguments.member_class,
-                'x_road_instance': reports_arguments.xroad_instance,
-                'start_date': reports_arguments.start_date,
-                'end_date': reports_arguments.end_date,
-                'language': reports_arguments.language,
+                'member_code': target.member_code,
+                'subsystem_code': target.subsystem_code,
+                'member_class': target.member_class,
+                'x_road_instance': target.xroad_instance,
+                'start_date': self.arguments.start_date,
+                'end_date': self.arguments.end_date,
+                'language': self.arguments.language,
                 'status': status,
                 'insert_timestamp': self.get_timestamp(),
                 'sending_timestamp': None,
