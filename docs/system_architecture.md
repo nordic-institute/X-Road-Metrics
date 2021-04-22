@@ -1,27 +1,24 @@
 
-| [![Republic of Estonia Information System Authority](img/ria_100_en.png)](https://www.ria.ee/en.html) [![X-ROAD](img/xroad_100_en.png)](https://www.ria.ee/en/state-information-system/x-tee.html) | ![European Union / European Regional Development Fund / Investing in your future](img/eu_rdf_100_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.11.2022. If it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
+| [![X-ROAD](img/xroad_100_en.png)](https://www.ria.ee/en/state-information-system/x-tee.html) | ![European Union / European Regional Development Fund / Investing in your future](img/eu_rdf_100_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.11.2022. If it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
 | :-------------------------------------------------- | -------------------------: |
 
-# X-Road v6 monitor project - System Architecture
+# X-Road Metrics - System Architecture
 
-The system is distributed over 7 servers, organized as follows:
+X-Road Metrics is a collection of tools that can be used to collect, process and present operational monitoring data
+collected from X-Road security servers. The system consists of several modules:
 
-* [Database Module (MongoDB)](#database-module)
+* [Central Database Module (MongoDB)](#database-module)
 * [Collector Module](#collector-module)
 * [Corrector Module](#corrector-module)
 * [Reports Module](#reports-module)
 * [Analyzer Module](#analyzer-module)
-* [Opendata Module (on 2 nodes)](#opendata-module)
+* [Opendata Database Module (PostgreSQL)](#opendata-module)
+* [Opendata Module](#opendata-module)
 * [Networking/Visualizer Module](#networking-visualizer-module)
 
-The System Architecture is part of [X-Road v6 monitor project](../README.md), which includes modules of [Database module](database_module.md), [Collector module](collector_module.md), [Corrector module](corrector_module.md), [Analysis module](analysis_module.md), [Reports module](reports_module.md), [Opendata module](opendata_module.md) and [Networking/Visualizer module](networking_module.md).
-
-Overall system, its users and rights, processes and directories are designed in a way, that all modules can reside in one server (different users but in same group 'opmon') but also in separate servers. 
-
-Overall system is also designed in a way, that allows to monitor data from different X-Road v6 instances (in Estonia `ee-dev`, `ee-test`, `EE`, see also [X-Road v6 environments](https://moodle.ria.ee/mod/page/view.php?id=700).
-
-Overall system is also designed in a way, that can be used by X-Road Centre for all X-Road members as well as for Member own monitoring (includes possibilities to monitor also members data exchange partners).
-
+This document contains an architecture overview of the interfaces between the modules. 
+Also, the document presents some possible hardware infrastructure options that can be used to run X-Road Metrics tools.
+The operational specifications and hardware recommendations in this documentation are based on the Estonian production X-Road instance.
 
 ![System overview](img/system_overview.svg "System overview")
 
@@ -31,7 +28,9 @@ Expectations and limits below are calculated based on actual usage of X-Road v5 
 They might reviewed and updated according to future usage of X-Road v6 in Estonia.
 
 Expectations below are valid for overall X-Road usage by all its member organizations.
-Usage of X-Road in particular organization or hosted in particular hosting or X-Road security servers farm differs significantly, therefor other architecture, hardware and software might used to fulfill particular organization requirements.
+Usage of X-Road in particular organization or hosted in particular hosting or X-Road security servers farm differs 
+significantly, therefore other architecture, hardware and software might used to fulfill particular organization 
+requirements.
 
 ### Data flow expectation
 
@@ -55,36 +54,35 @@ Usage of X-Road in particular organization or hosted in particular hosting or X-
 
 ### Modules operational specifications
 
-* Collector: runs every 2 hours, collect recent data from security servers and stores them in Database (or alternatively in HDD and then into Database).
+* Collector: runs every 2 hours, collect recent data from security servers and stores them in Database.
 * Corrector: runs continuously as a service, use recent data in MongoDB.
 * Analyzer: runs every hour, uses MongoDB and local cache in disk.
 * Report creator: runs monthly, uses MongoDB, stores reports in disk, publish them on public server and sends out notifications about reports available.
 * Open Data Module: runs every day, uses MongoDB recent data, uses PostgreSQL as main database.
 * Networking Module: runs every day, uses last 30 days data from Opendata PostgresSQL, produces X-Road networking diagram with R Shiny.
 
-## Database Module
+## Recommended Infrastructure for Production Use
+Taking to account the operational requirements above, it is recommended to install each X-Road Metrics module on a
+dedicated server or virtual machine. Also, it is recommended to set up the networking so that all the hosts that need
+access to MongoDB are in one private network as MongoDB's data should be accessible only by the X-Road administrators. 
+Hosts that run the Opendata and Networking modules that are accessible by wider audience should be in another network 
+that is blocked from accessing MongoDB's network. This documentation does not provide detailed instructions on
+setting up the networks or firewalls.
 
-The Database Module is responsible to store queries data using MongoDB. 
-It uses the following configuration:
-
-```
-Host: opmon
-```
-
-### Data objects
-
-Estimated size for 1 year documents (1 billion X-Road v6 service calls (queries)):
-
-| Collection Name | Documents     | Avg.Document Size (B) | Total Document Size (GB) | Num.Indexes | Total Index Size (GB) |
-|-----------------|---------------|-----------------------|--------------------------|-------------|-----------------------|
-| raw_messages    | 2,000,000,000 | 900	                  | 1,500                    | 6           | 170                   |
-| clean_data      | 1,400,000,000 | 2000                  | 2,500                    | 44          | 530                   |
-| **TOTAL**       | **3,400,000,000** |                       | **4,000**                    |             | **700**                   |
+Diagram below shows an example setup:
+TODO: add diagram 
 
 
-**Note**: index size depends on indexes set up and use.
+Specifications for each host in the example setup is in the following chapters.
+Ubuntu Server 20.04 is currently the only supported OS to run X-Road Metrics. 
 
-### Hardware Specification
+### Database Module
+
+The Database Module is responsible to store queries data using MongoDB. In the example setup it is installed on
+the host *xroad-metrics-centraldb* and it is used only to run MongoDB. 
+Detailed installation instructions can be found in the [Database module's documentation](database_module.md).
+
+#### Hardware Specification
 
 ```
 * 32 GB RAM per Node
@@ -94,11 +92,23 @@ Estimated size for 1 year documents (1 billion X-Road v6 service calls (queries)
 * Scalability: Addition of Nodes (8 nodes to support 1 week data in RAM in 2021)
 ```
 
-### Software Specification
+Estimated size for 1 year documents (1 billion X-Road v6 service calls (queries)):
+
+| Collection Name | Documents         | Avg.Document Size (B) | Total Document Size (GB) | Num.Indexes | Total Index Size (GB) |
+|-----------------|-------------------|-----------------------|--------------------------|-------------|-----------------------|
+| raw_messages    | 2,000,000,000     | 900	                  | 1,500                    | 6           | 170                   |
+| clean_data      | 1,400,000,000     | 2000                  | 2,500                    | 44          | 530                   |
+| **TOTAL**       | **3,400,000,000** |                       | **4,000**                |             | **700**               |
+
+
+**Note**: index size depends on indexes set up and use.
+
+
+#### Software Specification
 
 ```
-* Ubuntu LTS 16.04 with EXT4 or XFS
-* MongoDB 3.4
+* Ubuntu Server LTS 20.04 with EXT4 or XFS filesystem
+* MongoDB 4.4
 ```
 
 Please note about warnings and recommendations of MongoDB:
@@ -115,70 +125,46 @@ CONTROL  [initandlisten] ** WARNING: /sys/kernel/mm/transparent_hugepage/defrag 
 CONTROL  [initandlisten] **        We suggest setting it to 'never'
 ```
 
-### Network Specification
+#### Network Specification
 
 ```
 * port 27017 (default)
 * allow access from: collector IP, corrector IP, analyzer IP, reports IP, opendata anonymizer IP
 ```
 
-Read more about ==> [Database module](database_module.md) <==.
 
-## Collector Module
+### Collector Module
 
 The Collector Module is responsible for querying servers and storing the data into MongoDB database.
-It uses the following configuration: 
+In the example setup it is installed on the host *xroad-metrics-collector*. 
+Detailed installation instructions can be found in the [Collector module's documentation](collector_module.md).
 
-```
-Host: opmon-collector
-System User: collector
-# export APPDIR="/srv/app"; export INSTANCE="sample" # X-Road instances in Estonia: 'ee-dev' or 'ee-test' or 'EE'
-Path: ${APPDIR]/${INSTANCE}/collector_module
-```
-
-### Hardware Specification
-
+#### Hardware Specification
 ```
 * 2 GB RAM
 * 10 GB storage
 * 2 CPU
 ```
 
-### Software Specification
-
+#### Software Specification
 ```
-* Ubuntu LTS 16.04 with EXT4 or XFS
-* Python 3.5
+* Ubuntu Server LTS 20.04
 ```
 
-### Network Specification
+#### Network Specification
 
 ```
 * allow access to: X-Road central server port 80, monitoring security server port 80
-* allow access to: opmon:27017 (default, MongoDB)
+* allow access to: xroad-metrics-centraldb:27017 (default, MongoDB)
 ```
 
-Read more about ==> [Collector module](collector_module.md) <==.
-
-## Corrector Module
+### Corrector Module
 
 The Corrector Module is responsible for transforming the raw data in MongoDB to cleaning data.
-It uses the following configuration: 
+In the example setup it is installed on the host *xroad-metrics-corrector*. 
+Detailed installation instructions can be found in the [Corrector module's documentation](corrector_module.md).
 
-```
-Host: opmon-corrector
-System User: corrector
-# export APPDIR="/srv/app"; export INSTANCE="sample" # X-Road instances in Estonia: 'ee-dev' or 'ee-test' or 'EE'
-Path: ${APPDIR]/${INSTANCE}/corrector_module
-```
-
-### Data objects
-
-The corrector module stores in RAM query documents during duplication removal and client-producer pair matching. The amount of used memory is estimated to:
-
-* 60 MB of RAM memory for 20k batch messages. 
-
-### Hardware Specification
+#### Hardware Specification
 
 ```
 * 8 GB RAM
@@ -186,40 +172,28 @@ The corrector module stores in RAM query documents during duplication removal an
 * 4 CPU
 ```
 
-### Software Specification
+The corrector module stores in RAM query documents during duplication removal and client-producer pair matching. 
+The amount of used memory is estimated to 60 MB of RAM memory for 20k batch messages. 
+
+#### Software Specification
 
 ```
-* Ubuntu LTS 16.04 with EXT4 or XFS
-* Python 3.5
+* Ubuntu Server LTS 20.04
 ```
 
-### Network Specification
-
+#### Network Specification
 ```
-* allow access to: opmon:27017 (default, MongoDB)
+* allow access to: xroad-metrics-centraldb:27017 (default, MongoDB)
 ```
 
-Read more about ==> [Corrector module](corrector_module.md) <==.
-
-## Reports Module
+### Reports Module
 
 The Reports Module is responsible to generate periodical reports, accordingly to user configuration.
-It uses the following configuration: 
+In the example setup it is installed on
+the host *xroad-metrics-reports*. 
+Detailed installation instructions can be found in the [Reports module's documentation](reports_module.md).
 
-```
-Host: opmon-reports
-System User: reports
-# export APPDIR="/srv/app"; export INSTANCE="sample" # X-Road instances in Estonia: 'ee-dev' or 'ee-test' or 'EE'
-Path: ${APPDIR]/${INSTANCE}/reports_module
-```
-
-### Data objects
-
-The reports module loads in memory query data for the time period considered in the report. For 1 month of data, a maximum of 10 millions queries are considered for one subsystem code. The amount of used memory is estimated to:
-
-* 30 GB for 10M messages in a report.
-
-### Hardware Specification
+#### Hardware Specification
 
 ```
 * 16 GB RAM
@@ -227,35 +201,56 @@ The reports module loads in memory query data for the time period considered in 
 * 2 CPU
 ```
 
-### Software Specification
+The reports module loads in memory query data for the time period considered in the report. 
+For 1 month of data, a maximum of 10 millions queries are considered for one subsystem code. 
+The amount of used memory is estimated to 30 GB for 10M messages in a report.
+
+#### Software Specification
 
 ```
-* Ubuntu LTS 16.04 with EXT4 or XFS
-* Python 3.5
+* Ubuntu Server LTS 20.04
 ```
 
-### Network Specification
+#### Network Specification
+```
+* allow access to: xroad-metrics-centraldb:27017 (default, MongoDB)
+* optionally allow access to a public fileserve, e.g. port 22 for scp, rsync
+* optionally allow access to an smtp server, e.g. port 25, 465 or 587
+```
+
+### Opendata module
+
+Opendata module is used to publish the X-Road operational monitoring data as open data. 
+In the example setup it is installed on the host *xroad-metrics-opendata*.
+Opendata module uses a PostgreSQL database to store the published data which is installed on the same host.
+Detailed installation instructions for Opendata module and the PostgreSQL database can be found in the 
+[Opendata module's documentation](opendata_module.md).
+
+#### Hardware Specification
 
 ```
-* allow access to: opmon:27017 (default, MongoDB)
-* allow access to: public web:22 (scp, rsync)
-* allow access to: smtp:25 (email)
+* 32 GB RAM
+* 5 TB storage
+* 4 CPU
 ```
 
-Read more about ==> [Reports module](reports_module.md) <==.
-
-## Opendata Module
-
-Components: Anonymizer, Opendata UI, Opendata API
-
-### Node 1 - Anonymizer
+#### Software Specification
 
 ```
-Host: opmon-anonymizer
-System User: anonymizer
-# export APPDIR="/srv/app"; export INSTANCE="sample" # X-Road instances in Estonia: 'ee-dev' or 'ee-test' or 'EE'
-Path: ${APPDIR]/${INSTANCE}/opendata_module/anonymizer
+* Ubuntu Server LTS 20.04
+* PostgreSQL 12.6
 ```
+
+#### Network Specification
+
+```
+* allow access from: 0.0.0.0/0:443 (public, https)
+```
+
+### Anonymizer Module
+Anonymizer module is responsible for preparing the operational monitoring data for publication 
+through the Opendata module. In the example setup it is installed on the host *xroad-metrics-anonymizer*.
+Detailed installation instructions can be found in the [Anonymizer module's documentation](anonymizer_module.md).
 
 #### Hardware Specification
 
@@ -268,66 +263,24 @@ Path: ${APPDIR]/${INSTANCE}/opendata_module/anonymizer
 #### Software Specification
 
 ```
-* Ubuntu LTS 16.04 with EXT4 or XFS
-* Python 3.5
+* Ubuntu Server LTS 20.04
 ```
 
 #### Network Specification
 
 ```
-* allow access to: opmon:27017 (default, MongoDB)
-* allow access to: opmon-opendata:5432 (default, PostgreSQL)
+* allow access to: xroad-metrics-centraldb:27017 (default, MongoDB)
+* allow access to: xroad-metrics-opendata:5432 (default, PostgreSQL)
 ```
 
-### Node 2 - PostgreSQL, Interface and API 
+### Analysis Module
 
-```
-Host: opmon-opendata
-System User: opendata
-# export APPDIR="/srv/app"; export INSTANCE="sample" # X-Road instances in Estonia: 'ee-dev' or 'ee-test' or 'EE'
-Path: ${APPDIR]/${INSTANCE}/opendata_module/interface
-```
+Analysis module detects anomalies in the operational monitoring data and provides a UI to present the analysis results.
+The actual analyzer and the UI are packaged separately but on the example setup they are both
+installed on the host *xroad-metrics-analyzer*. 
+Detailed installation instructions can be found in the [Analysis module's documentation](analysis_module.md).
 
 #### Hardware Specification
-
-```
-* 32 GB RAM
-* 5 TB storage ( ~30 TB in 2021)
-* 4 CPU
-```
-
-#### Software Specification
-
-```
-* Ubuntu LTS 16.04 with EXT4 or XFS
-* Python 3.5
-* PostgreSQL
-```
-
-#### Network Specification
-
-```
-* allow access from: 0.0.0.0/0:80 (public, http)
-* allow access from: 0.0.0.0/0:443 (public, https)
-```
-Read more about ==> [Opendata module](opendata_module.md) <==.
-
-## Analyzer Module
-
-Components: Analyzer, Analyzer UI
-
-```
-Host: opmon-analyzer
-System User: analyzer
-# export APPDIR="/srv/app"; export INSTANCE="sample" # X-Road instances in Estonia: 'ee-dev' or 'ee-test' or 'EE'
-Path: ${APPDIR]/${INSTANCE}/analyzer_module
-```
-
-### Data objects
-
-The analyzer module uses MongoDB aggregation functions and therefore has a relatively small memory footprint. The memory usage is dependent of number of X-Road services. The amount of used memory is estimated to: 250 MB for 1 000 X-Road service call logs.
-
-### Hardware Specification
 
 ```
 * 32 GB RAM
@@ -335,34 +288,32 @@ The analyzer module uses MongoDB aggregation functions and therefore has a relat
 * 4 CPU
 ```
 
-### Software Specification
+The analyzer module uses MongoDB aggregation functions and therefore has a relatively small memory footprint. 
+The memory usage is dependent of number of X-Road services. 
+The estimated memory usage is 250 MB for 1 000 X-Road service call logs.
+
+#### Software Specification
 
 ```
-* Ubuntu LTS 16.04 with EXT4 or XFS
-* Python 3.5
+* Ubuntu Server LTS 20.04
 ```
 
-### Network Specification
+#### Network Specification
 
 ```
-* allow access to: opmon:27017 (default, MongoDB)
-* allow access from: internal administrative network:80 (private, http)
+* allow access to: xroad-metrics-centraldb:27017 (default, MongoDB)
+* allow access from: internal administrative network:443 (private, https)
 ```
 
-Read more about ==> [Analysis module](analysis_module.md) <==.
+### Networking/Visualizer Module
 
-## Networking/Visualizer Module
+The Networking visualizer module provides a web UI to display graphical representations of X-Road queries based on
+the operational monitoring data.
+In the example setup it is installed on the host *xroad-metrics-networking*. 
+Detailed installation instructions can be found in the [Networking module's documentation](networking_module.md).
 
-Components: Data preparation script, Visualization web application
 
-```
-Host: opmon-networking
-System User: networking
-# export APPDIR="/srv/app"; export INSTANCE="sample" # X-Road instances in Estonia: 'ee-dev' or 'ee-test' or 'EE'
-Path: ${APPDIR]/${INSTANCE}/networking_module
-```
-
-### Hardware Specification
+#### Hardware Specification
 
 ```
 * 8 GB RAM
@@ -370,12 +321,14 @@ Path: ${APPDIR]/${INSTANCE}/networking_module
 * 2 CPU
 ```
 
-### Software Specification
-
+#### Software Specification
 ```
-* Ubuntu LTS 16.04 with EXT4 or XFS
-* R 3.4
-* RStudio Shiny Server v1.5
+* Ubuntu Server LTS 20.04
+* RStudio Shiny Server 1.5.16
 ```
 
-Read more about ==> [Networking/Visualizer module](networking_module.md) <==.
+#### Networking Specification
+```
+* allow access to: xroad-metrics-opendata:5432 (default, PostgreSQL)
+* allow access from: 0.0.0.0/0:3838 (public, http (shiny-server))
+```
