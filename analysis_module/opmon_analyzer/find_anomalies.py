@@ -1,14 +1,13 @@
-#
-# 2018-01-15 by Toomas Mölder
-# Some temporary logging (activity includes _tmp_ added for all steps to better understand, what steps take how long and what indexes to create
 # TODO: add exception handling
 #
+from opmon_analyzer.analyzer_conf import DataModelConfiguration
+
 from .AnalyzerDatabaseManager import AnalyzerDatabaseManager
 from .models.FailedRequestRatioModel import FailedRequestRatioModel
 from .models.DuplicateMessageIdModel import DuplicateMessageIdModel
 from .models.TimeSyncModel import TimeSyncModel
 from .models.AveragesByTimeperiodModel import AveragesByTimeperiodModel
-from . import analyzer_conf, constants
+from . import constants
 from .logger_manager import LoggerManager
 
 
@@ -37,7 +36,8 @@ def find_anomalies(settings):
 
     logger_m.log_info('_tmp_find_anomalies_2', "Anomaly types 4.3.1-4.3.3 ...")
 
-    config = analyzer_conf.DataModelConfiguration(settings)
+    config = DataModelConfiguration(settings)
+    n_anomalies = 0
 
     for model_type, time_window in config.time_windows.items():
         logger_m.log_info('_tmp_find_anomalies_2', f"Finding {model_type} anomalies, aggregating by {time_window}...")
@@ -56,7 +56,7 @@ def find_anomalies(settings):
         current_transform_timestamp = (current_transform_date.timestamp() - residual) * 1000
 
         if model_type == "failed_request_ratio":
-            model = FailedRequestRatioModel(analyzer_conf, settings)
+            model = FailedRequestRatioModel(settings)
             data = db_manager.aggregate_data(model_type=model_type,
                                              start_time=last_transform_timestamp,
                                              end_time=current_transform_timestamp,
@@ -153,7 +153,7 @@ def find_anomalies(settings):
             logger_m.log_heartbeat("Loading the %s model" % time_window['timeunit_name'], 'SUCCEEDED')
             dt_model = db_manager.load_model(model_name=time_window['timeunit_name'], version=None)
             dt_model = dt_model.groupby(constants.service_identifier_column_names + ["similar_periods"]).first()
-            averages_by_time_period_model = AveragesByTimeperiodModel(time_window, analyzer_conf, dt_model)
+            averages_by_time_period_model = AveragesByTimeperiodModel(time_window, config, dt_model)
 
             logger_m.log_info('_tmp_find_anomalies_3', "Finding anomalies (model %s)" % time_window['timeunit_name'])
             logger_m.log_heartbeat("Finding anomalies (model %s)" % time_window['timeunit_name'], 'SUCCEEDED')

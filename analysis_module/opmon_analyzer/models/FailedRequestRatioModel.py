@@ -6,9 +6,8 @@ from opmon_analyzer import constants
 
 class FailedRequestRatioModel(object):
 
-    def __init__(self, config, settings):
+    def __init__(self, settings):
         self.anomaly_type = 'failed_request_ratio'
-        self._config = config
         self.threshold = settings['analyzer']['failed-request-ratio']['threshold']
 
     def fit(self, data):

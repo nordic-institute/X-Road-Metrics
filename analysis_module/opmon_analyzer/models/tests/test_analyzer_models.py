@@ -35,7 +35,7 @@ def unittest_config(unittest_settings):
 
 
 def test_failed_request_ratio_model_empty_dataframe(unittest_config, unittest_settings):
-    model = FailedRequestRatioModel(unittest_config, unittest_settings)
+    model = FailedRequestRatioModel(unittest_settings)
     data = pd.DataFrame()
     anomalies = model.transform(data, time_window)
     assert (len(anomalies) == 0)
@@ -44,7 +44,7 @@ def test_failed_request_ratio_model_empty_dataframe(unittest_config, unittest_se
 def test_failed_request_ratio_model_anomaly_found(mocker, unittest_config, unittest_settings):
     patch_constants(mocker, 'FailedRequestRatioModel')
 
-    model = FailedRequestRatioModel(unittest_config, unittest_settings)
+    model = FailedRequestRatioModel(unittest_settings)
     ts = datetime.now()
     service_call = "sc1"
     request_ids = ["id"]
@@ -70,7 +70,7 @@ def test_failed_request_ratio_model_anomaly_found(mocker, unittest_config, unitt
 def test_failed_request_ratio_model_anomaly_not_found(mocker, unittest_config, unittest_settings):
     patch_constants(mocker, 'FailedRequestRatioModel')
 
-    model = FailedRequestRatioModel(unittest_config, unittest_settings)
+    model = FailedRequestRatioModel(unittest_settings)
     ts = datetime.now()
     service_call = "sc1"
     request_ids = ["id"]
