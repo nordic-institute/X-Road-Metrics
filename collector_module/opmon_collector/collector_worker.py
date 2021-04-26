@@ -58,7 +58,7 @@ class CollectorWorker:
             f"[{self.thread_name}] Message: {message} Server: {self.server_key} Cause: {cause} \n")
 
     def log_info(self, message):
-        self.logger_m.log_warning(
+        self.logger_m.log_info(
             'collector_worker',
             f"[{self.thread_name}] Message: {message} Server: {self.server_key} \n")
 
