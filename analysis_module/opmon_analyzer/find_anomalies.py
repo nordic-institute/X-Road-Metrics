@@ -1,5 +1,5 @@
-# TODO: add exception handling
-#
+import traceback
+
 from opmon_analyzer.analyzer_conf import DataModelConfiguration
 
 from .AnalyzerDatabaseManager import AnalyzerDatabaseManager
@@ -10,20 +10,27 @@ from .models.AveragesByTimeperiodModel import AveragesByTimeperiodModel
 from . import constants
 from .logger_manager import LoggerManager
 
-
 import time
 import datetime
 
 import numpy as np
 
 
-def find_anomalies(settings):
-    db_manager = AnalyzerDatabaseManager(settings)
+def find_anomalies_main(settings):
     logger_m = LoggerManager(settings['logger'], settings['xroad']['instance'])
 
-    logger_m.log_info('_tmp_find_anomalies_start', "Process started ...")
+    try:
+        db_manager = AnalyzerDatabaseManager(settings)
+        logger_m.log_info('_tmp_find_anomalies_start', "Process started ...")
+        find_anomalies(settings, db_manager, logger_m)
+    except Exception:
+        logger_m.log_error("find_anomalies_main", traceback.format_exc())
 
+
+def find_anomalies(settings, db_manager, logger_m):
     current_time = datetime.datetime.now()
+    n_anomalies = 0
+    config = DataModelConfiguration(settings)
 
     # add first request timestamps for service calls that have appeared
     logger_m.log_info('_tmp_find_anomalies_1', "Add first request timestamps for service calls that have appeared ...")
@@ -31,13 +38,8 @@ def find_anomalies(settings):
 
     db_manager.add_first_request_timestamps_from_clean_data()
 
-    logger_m.log_info('_tmp_find_anomalies_1',
-                      "Add first request timestamps for service calls that have appeared ... Done!")
-
+    logger_m.log_info('_tmp_find_anomalies_1', "Add first request timestamps ... Done!")
     logger_m.log_info('_tmp_find_anomalies_2', "Anomaly types 4.3.1-4.3.3 ...")
-
-    config = DataModelConfiguration(settings)
-    n_anomalies = 0
 
     for model_type, time_window in config.time_windows.items():
         logger_m.log_info('_tmp_find_anomalies_2', f"Finding {model_type} anomalies, aggregating by {time_window}...")

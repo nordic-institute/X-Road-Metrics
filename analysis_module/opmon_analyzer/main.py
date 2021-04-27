@@ -4,7 +4,7 @@ import argparse
 
 from .settings_parser import OpmonSettingsManager
 from .train_or_update_historic_averages_models import update_model
-from .find_anomalies import find_anomalies
+from .find_anomalies import find_anomalies_main
 
 
 def main():
@@ -14,7 +14,7 @@ def main():
 
     actions = {
         'update': (update_model, [settings]),
-        'find': (find_anomalies, [settings])
+        'find': (find_anomalies_main, [settings])
     }
 
     action = actions[args.action]
