@@ -63,15 +63,20 @@ requirements.
 
 ## Recommended Infrastructure for Production Use
 Taking to account the operational requirements above, it is recommended to install each X-Road Metrics module on a
-dedicated server or virtual machine. Also, it is recommended to set up the networking so that all the hosts that need
-access to MongoDB are in one private network as MongoDB's data should be accessible only by the X-Road administrators. 
-Hosts that run the Opendata and Networking modules that are accessible by wider audience should be in another network 
-that is blocked from accessing MongoDB's network. This documentation does not provide detailed instructions on
-setting up the networks or firewalls.
+dedicated server or virtual machine. 
 
-Diagram below shows an example setup:
-TODO: add diagram 
+In a usual X-Road Metrics setup there is data on two privacy levels. The MongoDb contains data that might contain
+sensitivie information like IP-addresses or personal data. That should be accessible only by the X-Road administrators.
+The open data stored in the PostgreSQL is anonymized and intended for public distribution.
 
+Thus, it is recommended to configure the network infrastructure so that the modules handling and serving the open data
+are strictly isolated from the confidential data in MongoDb. This can be achieved for example by setting up separate
+virtual LANs for the public and private modules and setting a firewalled routing between the networks that allows only
+for the anonymized data to be uploaded to the PostgreSQL database. Always consult your network administrator for 
+environment specific details.
+
+Diagram below shows an example setup where private modules are on hosts in VLAN1 and open data modules in VLAN2:
+![Example Production Networking Infrastructure](img/xroad-metrics-prod-infra.png)
 
 Specifications for each host in the example setup is in the following chapters.
 Ubuntu Server 20.04 is currently the only supported OS to run X-Road Metrics. 
@@ -332,3 +337,11 @@ Detailed installation instructions can be found in the [Networking module's docu
 * allow access to: xroad-metrics-opendata:5432 (default, PostgreSQL)
 * allow access from: 0.0.0.0/0:3838 (public, http (shiny-server))
 ```
+
+## Simplified Infrastructure for Testing
+To test out X-Road Metrics in a simple X-Road environment, the number of hosts can be reduced.
+The example diagram below shows an example setup where the X-Road Metrics modules are installed on two hosts, named
+*xroad-metrics-private* and *xroad-metrics-opendata*. As with the recommended production setup, also here the private
+data in MongoDb and Opendata in PostgreSQL are isolated by a firewall setup between the hosts.
+
+![Example Networking Infrastructure for Testing](img/xroad-metrics-test-infra.png)
