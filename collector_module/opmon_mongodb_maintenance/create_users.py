@@ -46,8 +46,8 @@ def _create_admin_users(args, client, passwords):
 
 def _create_opmon_users(args, client, passwords):
     for user, roles in user_roles.items():
-        user_name = '{}_{}'.format(user, args.xroad)
-        role_list = _roles_to_list(roles)
+        user_name = f'{user}_{args.xroad}'
+        role_list = [{'db': f'{db}_{args.xroad}', 'role': role} for db, role in roles.items()]
         password = user_name if args.dummy_passwords else _generate_password()
 
         try:
@@ -55,10 +55,6 @@ def _create_opmon_users(args, client, passwords):
             passwords[user_name] = password
         except Exception as e:
             print(f"Failed to create user {user_name}: {e}")
-
-
-def _roles_to_list(roles):
-    return [{'db': db, 'role': role} for db, role in roles.items()]
 
 
 def _print_users(passwords: dict):
