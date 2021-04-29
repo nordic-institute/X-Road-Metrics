@@ -1,3 +1,4 @@
+import urllib.parse
 import pymongo
 
 
@@ -10,7 +11,7 @@ class MongoDBHandler:
         self.db_reports_state_name = f'reports_state_{xroad_instance}'
 
         self.user = mongo_settings['user']
-        pwd = mongo_settings['password']
+        pwd = urllib.parse.quote(mongo_settings['password'], safe='')
         server = mongo_settings['host']
         self.uri = f"mongodb://{self.user}:{pwd}@{server}/auth_db"
 

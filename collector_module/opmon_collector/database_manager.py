@@ -2,6 +2,7 @@
 """
 
 import time
+import urllib.parse
 import pymongo
 from pymongo import ReturnDocument
 
@@ -9,12 +10,18 @@ from pymongo import ReturnDocument
 class DatabaseManager:
 
     def __init__(self, mongo_settings, xroad_instance, logger_manager):
-        self.mongo_uri = \
-            f"mongodb://{mongo_settings['user']}:{mongo_settings['password']}@{mongo_settings['host']}/auth_db"
+        self.mongo_uri = self.get_mongo_uri(mongo_settings)
         self.db_name = f'query_db_{xroad_instance}'
         self.db_collector_state = f'collector_state_{xroad_instance}'
         self.collector_id = f'collector_{xroad_instance}'
         self.logger_m = logger_manager
+
+    @staticmethod
+    def get_mongo_uri(mongo_settings):
+        user = mongo_settings['user']
+        password = urllib.parse.quote(mongo_settings['password'], safe='')
+        host = mongo_settings['host']
+        return f"mongodb://{user}:{password}@{host}/auth_db"
 
     @staticmethod
     def get_timestamp():

@@ -1,6 +1,7 @@
 from pymongo import MongoClient
 import pymongo
 from datetime import datetime, timedelta
+import urllib.parse
 from . import constants
 
 operator_map = {"=": "$eq",
@@ -24,7 +25,7 @@ class IncidentDatabaseManager(object):
     @staticmethod
     def get_mongo_uri(settings):
         user = settings['mongodb']['user']
-        password = settings['mongodb']['password']
+        password = urllib.parse.quote(settings['mongodb']['password'], safe='')
         host = settings['mongodb']['host']
         return f"mongodb://{user}:{password}@{host}/auth_db"
     

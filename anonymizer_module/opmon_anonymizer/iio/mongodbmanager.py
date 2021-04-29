@@ -2,7 +2,7 @@ from pymongo import MongoClient
 import pymongo
 import datetime
 import traceback
-from opmon_anonymizer.utils import logger_manager
+import urllib.parse
 import sys
 
 
@@ -22,7 +22,7 @@ class MongoDbManager(object):
     @staticmethod
     def get_mongo_uri(settings):
         user = settings['mongodb']['user']
-        password = settings['mongodb']['password']
+        password = urllib.parse.quote(settings['mongodb']['password'], safe='')
         host = settings['mongodb']['host']
         return f"mongodb://{user}:{password}@{host}/auth_db"
 
