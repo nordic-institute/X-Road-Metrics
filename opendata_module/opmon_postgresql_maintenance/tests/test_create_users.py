@@ -1,6 +1,7 @@
 from unittest.mock import call
 
 from psycopg2.extensions import QuotedString
+import yaml
 import opmon_postgresql_maintenance.create_users as create_users
 from argparse import Namespace
 
@@ -125,3 +126,17 @@ def test_grant_priviledges(mocker):
     assert postgres.execute.call_count == len(create_users.full_users) + len(create_users.read_only_users)
     for call in postgres.execute.call_args_list:
         assert call.args[0].startswith('GRANT')
+
+
+def test_password_escaping():
+    password = """:/foo'"\\_*{}[]''"""
+    escaped_password = create_users._escape_password(password)
+    assert escaped_password == '":/foo\'\\"\\\\_*{}[]\'\'"'
+    assert yaml.safe_load(escaped_password) == password
+
+
+def test_print_users():
+    create_users._print_users({
+        'foo': '123456789012',
+        'bar': """:/o'"\\_*{}''"""
+    })

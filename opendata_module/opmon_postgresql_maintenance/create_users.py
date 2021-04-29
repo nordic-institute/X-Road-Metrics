@@ -7,6 +7,7 @@ Script to create PostgreSQL users for X-Road OpMon tools.
 import argparse
 import getpass
 import psycopg2
+import yaml
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from psycopg2.extensions import QuotedString
 import string
@@ -117,11 +118,12 @@ def _parse_args():
 
 def _print_users(passwords):
     width = max([len(k) for k in passwords.keys()]) + 1
+    width = max(width, len("Username"))
 
     print("\nGenerated following users: \n")
-    print(f'{"Username":<{width}}| Password')
-    print(f'{width * "-"}+{"-" * 20}')
-    [print(f'{user:<{width}}| {password}') for user, password in passwords.items()]
+    print(f'{"Username":<{width}}| {"Password":<{13}}| Escaped Password')
+    print(f'{width * "-"}+{"-" * 14}+{"-" * 20}')
+    [print(f'{user:<{width}}| {password} | {_escape_password(password)}') for user, password in passwords.items()]
 
 
 def _generate_password():
@@ -139,6 +141,10 @@ def _generate_password():
                 and sum(c.isdigit() for c in password) >= 3
                 and any(c in string.punctuation for c in password)):
             return password
+
+
+def _escape_password(password):
+    return yaml.dump(password, default_style='"').strip()
 
 
 if __name__ == '__main__':

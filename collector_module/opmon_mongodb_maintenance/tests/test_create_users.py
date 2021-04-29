@@ -4,7 +4,9 @@
 Unit tests for create_users.py
 """
 from argparse import Namespace
+import yaml
 import opmon_mongodb_maintenance.create_users as create_users
+
 
 
 opmon_user_names = ['analyzer', 'analyzer_interface', 'anonymizer', 'collector', 'corrector', 'reports']
@@ -89,3 +91,17 @@ def test_opmon_user_generation_without_passwords(mocker):
     for user in opmon_user_names:
         to_find = f'{user}_{args.xroad}'
         assert to_find in passwords.keys()
+
+
+def test_password_escaping():
+    password = """:/foo'"\\_*{}[]''"""
+    escaped_password = create_users._escape_password(password)
+    assert escaped_password == '":/foo\'\\"\\\\_*{}[]\'\'"'
+    assert yaml.safe_load(escaped_password) == password
+
+
+def test_print_users():
+    create_users._print_users({
+        'foo': '123456789012',
+        'bar': """:/o'"\\_*{}''"""
+    })
