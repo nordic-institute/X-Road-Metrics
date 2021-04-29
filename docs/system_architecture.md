@@ -34,19 +34,22 @@ requirements.
 
 ### Data flow expectation
 
-* It is expected to have maximum 1 billion (1 000 000 000) X-Road v6 service calls (queries) in production environment (Estonia: EE) in 1 year period
-* Each query log might collected from both query partners (Client and Producer), id est maximum 2 billion (2 000 000 000) X-Road v6 service call logs in production environment in 1 year period. This means:
-  * 165 000 000 logs per month
-  * 40 000 000 logs per week
-  * 5 500 000 logs per day
-  * 230 000 logs per hour 
-  * 60 000 logs per 15 minute
-* Each of log records in JSON-format takes approximately 900 B (bytes).
-* Each query log is uploaded into MongoDB as 'raw_messages' and after correction kept there as 'clean_data'. Raw messages are purged periodically. Alternatively, log might kept in Collector HDD as disk file and loaded into system from there.
-* Each query log is published in PostgreSQL as open-data after anonymization.
-    
-### Database operational specifications
+* It is expected to have maximum 1 billion (1 000 000 000) X-Road v6 service calls (queries) 
+  in production environment (Estonia: EE) in 1 year period
+* Each query results in two operational monitoring data entries to be collected 
+  (from both query partners Client and Producer), id est maximum 2 billion (2 000 000 000) operational monitoring data 
+  entries in production environment in 1 year period. This means:
+  * 165 000 000 operational monitoring data entries per month
+  * 40 000 000 operational monitoring data entries per week
+  * 5 500 000 operational monitoring data entries per day
+  * 230 000 operational monitoring data entries per hour 
+  * 60 000 operational monitoring data entries per 15 minute
+* Each of operational monitoring data entry in JSON-format takes approximately 900 B (bytes).
+* Each data entry is uploaded into MongoDB as 'raw_messages' and after correction kept there as 'clean_data'. 
+  Raw messages are purged periodically.
+* Each data entry is published in PostgreSQL as open-data after anonymization.
 
+### Database operational specifications
 * MongoDB shall retain 1 year data in disk memory.
 * MongoDB shall retain 1 week data in RAM memory for efficient query.
 * MongoDB shall run in a replication set for availability.
@@ -156,7 +159,6 @@ CONTROL  [initandlisten] ** WARNING: /sys/kernel/mm/transparent_hugepage/defrag 
 CONTROL  [initandlisten] **        We suggest setting it to 'never'
 ```
 
-
 ### Collector Module
 
 The Collector Module is responsible for querying servers and storing the data into MongoDB database.
@@ -207,7 +209,7 @@ Detailed installation instructions can be found in the [Analysis module's docume
 
 The analyzer module uses MongoDB aggregation functions and therefore has a relatively small memory footprint. 
 The memory usage is dependent of number of X-Road services. 
-The estimated memory usage is 250 MB for 1 000 X-Road service call logs.
+The estimated memory usage is 250 MB for 1 000 X-Road operational monitoring data entries.
 
 ### Networking/Visualizer Module
 
