@@ -25,7 +25,7 @@ The operational specifications and hardware recommendations in this documentatio
 ## Operational specifications, X-Road instance EE (production)
 
 Expectations and limits below are calculated based on actual usage of X-Road v5 in Estonia. 
-They might reviewed and updated according to future usage of X-Road v6 in Estonia.
+They might be reviewed and updated according to future usage of X-Road v6 in Estonia.
 
 Expectations below are valid for overall X-Road usage by all its member organizations.
 Usage of X-Road in particular organization or hosted in particular hosting or X-Road security servers farm differs 
@@ -81,23 +81,23 @@ Diagram below shows an example setup where private modules are on hosts in VLAN1
 Specifications for each host in the example setup is in the following chapters.
 Ubuntu Server 20.04 is currently the only supported OS to run X-Road Metrics. 
 
-### Database Module
+### Hardware Recommendations
+Table below lists the recommended hardware specifications for the hosts in the
+example setup.
 
-The Database Module is responsible to store queries data using MongoDB. In the example setup it is installed on
-the host *xroad-metrics-centraldb* and it is used only to run MongoDB. 
-Detailed installation instructions can be found in the [Database module's documentation](database_module.md).
+| Host/Module      | CPU cores | RAM     | Storage                  | Notes                                                                    |
+|------------------|-----------|---------|--------------------------|--------------------------------------------------------------------------|
+| centraldb        |  4        | 32 GB   | 5 TB (XFS recommended)   | It is recommended to set up minimum 3 MongoDb replication nodes and to use RAID-0 or RAID-10 storage setup for redundancy. |
+| collector        |  2        | 2 GB    | 10 GB                    | |
+| corrector        |  4        | 8 GB    | 10 GB                    | |
+| reports          |  2        | 16 GB   | 10 GB                    | |
+| analyzer         |  4        | 32 GB   | 10 GB                    | |
+| anonymizer       |  2        | 4 GB    | 10 GB                    | |
+| opendata         |  4        | 32 GB   | 5 TB                     | |
+| networking       |  2        | 8 GB    | 10 GB                    | |
 
-#### Hardware Specification
-
-```
-* 32 GB RAM per Node
-* 5 TB storage (RAID-0 or RAID-10)
-* 4 CPU
-* Minimum 1 Node, Recommended 3 Nodes for redundancy
-* Scalability: Addition of Nodes (8 nodes to support 1 week data in RAM in 2021)
-```
-
-Estimated size for 1 year documents (1 billion X-Road v6 service calls (queries)):
+Disk size estimates for the databases are based on 
+estimated size for 1 year of documents (1 billion X-Road v6 service calls (queries)):
 
 | Collection Name | Documents         | Avg.Document Size (B) | Total Document Size (GB) | Num.Indexes | Total Index Size (GB) |
 |-----------------|-------------------|-----------------------|--------------------------|-------------|-----------------------|
@@ -106,18 +106,44 @@ Estimated size for 1 year documents (1 billion X-Road v6 service calls (queries)
 | **TOTAL**       | **3,400,000,000** |                       | **4,000**                |             | **700**               |
 
 
-**Note**: index size depends on indexes set up and use.
+### Software Specifications
+X-Road Metrics is currently supported on Ubuntu Server 20.04 LTS operating systems so that should be
+used on all hosts.
+
+In addition to the X-Road Metrics packages, following 3rd party software is used:
+ - MongoDb 4.4
+ - PostgreSQL 12.6
+ - RStudio Shiny Server 1.5.16
+
+Please refer to the module specific documentation for detailed installation instructions.
+
+### Network Ports
+Table below shows the network connections in the X-Road Metrics system and can be used as a reference for firewall configurations:
+
+| Server                   | Client(s)                                           | Port       | Description                                     |
+|--------------------------|-----------------------------------------------------|------------|-------------------------------------------------|
+| centraldb                | collector, corrector, reports, analyzer, anonymizer | 27017      | MongoDb                                         |
+| analyzer                 | clients in private network                          | 443        | HTTPS to Analyzer web UI                        |
+| opendata                 | 0.0.0.0/0                                           | 443        | HTTPS to Opendata web UI                        |
+| opendata                 | anonymizer, networking                              | 5432       | PostgreSQL                                      |
+| networking               | 0.0.0.0/0                                           | 443        | HTTPS to Networking Visualizer UI               |
+| X-Road Central Server    | collector                                           | 80/443     | internalconf API to list security servers       |
+| X-Road Monitoring Client | collector                                           | 80/443     | getSecurityServerOperationalData X-Road service |
+| SMTP server              | reports                                             | 25/465/587 | (Optional) SMTP server to send report e-mail notifications |
+| Reports file server      | reports                                             | e.g. 22    | (Optional) Sync report files to some public file server using e.g. scp or rsync |
 
 
-#### Software Specification
+### Database Module
 
-```
-* Ubuntu Server LTS 20.04 with EXT4 or XFS filesystem
-* MongoDB 4.4
-```
+The Database Module is responsible to store queries data using MongoDB. In the example setup it is installed on
+the host *xroad-metrics-centraldb* and it is used only to run MongoDB. 
+Detailed installation instructions can be found in the [Database module's documentation](database_module.md).
+
+Scalability: Addition of Nodes (8 nodes to support 1 week data in RAM in 2021 in Estonia)
+
+**Note**: index size depends on how indexes are set up and used.
 
 Please note about warnings and recommendations of MongoDB:
-
 ```
 # mongo admin --username root --password
 STORAGE  [initandlisten] ** WARNING: Using the XFS filesystem is strongly recommended with the WiredTiger storage engine
@@ -130,13 +156,6 @@ CONTROL  [initandlisten] ** WARNING: /sys/kernel/mm/transparent_hugepage/defrag 
 CONTROL  [initandlisten] **        We suggest setting it to 'never'
 ```
 
-#### Network Specification
-
-```
-* port 27017 (default)
-* allow access from: collector IP, corrector IP, analyzer IP, reports IP, opendata anonymizer IP
-```
-
 
 ### Collector Module
 
@@ -144,52 +163,14 @@ The Collector Module is responsible for querying servers and storing the data in
 In the example setup it is installed on the host *xroad-metrics-collector*. 
 Detailed installation instructions can be found in the [Collector module's documentation](collector_module.md).
 
-#### Hardware Specification
-```
-* 2 GB RAM
-* 10 GB storage
-* 2 CPU
-```
-
-#### Software Specification
-```
-* Ubuntu Server LTS 20.04
-```
-
-#### Network Specification
-
-```
-* allow access to: X-Road central server port 80, monitoring security server port 80
-* allow access to: xroad-metrics-centraldb:27017 (default, MongoDB)
-```
-
 ### Corrector Module
 
 The Corrector Module is responsible for transforming the raw data in MongoDB to cleaning data.
 In the example setup it is installed on the host *xroad-metrics-corrector*. 
 Detailed installation instructions can be found in the [Corrector module's documentation](corrector_module.md).
 
-#### Hardware Specification
-
-```
-* 8 GB RAM
-* 10 GB storage
-* 4 CPU
-```
-
 The corrector module stores in RAM query documents during duplication removal and client-producer pair matching. 
 The amount of used memory is estimated to 60 MB of RAM memory for 20k batch messages. 
-
-#### Software Specification
-
-```
-* Ubuntu Server LTS 20.04
-```
-
-#### Network Specification
-```
-* allow access to: xroad-metrics-centraldb:27017 (default, MongoDB)
-```
 
 ### Reports Module
 
@@ -198,30 +179,10 @@ In the example setup it is installed on
 the host *xroad-metrics-reports*. 
 Detailed installation instructions can be found in the [Reports module's documentation](reports_module.md).
 
-#### Hardware Specification
-
-```
-* 16 GB RAM
-* 10 GB storage
-* 2 CPU
-```
-
 The reports module loads in memory query data for the time period considered in the report. 
 For 1 month of data, a maximum of 10 millions queries are considered for one subsystem code. 
 The amount of used memory is estimated to 30 GB for 10M messages in a report.
 
-#### Software Specification
-
-```
-* Ubuntu Server LTS 20.04
-```
-
-#### Network Specification
-```
-* allow access to: xroad-metrics-centraldb:27017 (default, MongoDB)
-* optionally allow access to a public fileserve, e.g. port 22 for scp, rsync
-* optionally allow access to an smtp server, e.g. port 25, 465 or 587
-```
 
 ### Opendata module
 
@@ -231,52 +192,11 @@ Opendata module uses a PostgreSQL database to store the published data which is 
 Detailed installation instructions for Opendata module and the PostgreSQL database can be found in the 
 [Opendata module's documentation](opendata_module.md).
 
-#### Hardware Specification
-
-```
-* 32 GB RAM
-* 5 TB storage
-* 4 CPU
-```
-
-#### Software Specification
-
-```
-* Ubuntu Server LTS 20.04
-* PostgreSQL 12.6
-```
-
-#### Network Specification
-
-```
-* allow access from: 0.0.0.0/0:443 (public, https)
-```
 
 ### Anonymizer Module
 Anonymizer module is responsible for preparing the operational monitoring data for publication 
 through the Opendata module. In the example setup it is installed on the host *xroad-metrics-anonymizer*.
 Detailed installation instructions can be found in the [Anonymizer module's documentation](anonymizer_module.md).
-
-#### Hardware Specification
-
-```
-* 4 GB RAM
-* 10 GB storage
-* 2 CPU
-```
-
-#### Software Specification
-
-```
-* Ubuntu Server LTS 20.04
-```
-
-#### Network Specification
-
-```
-* allow access to: xroad-metrics-centraldb:27017 (default, MongoDB)
-* allow access to: xroad-metrics-opendata:5432 (default, PostgreSQL)
-```
 
 ### Analysis Module
 
@@ -285,30 +205,9 @@ The actual analyzer and the UI are packaged separately but on the example setup 
 installed on the host *xroad-metrics-analyzer*. 
 Detailed installation instructions can be found in the [Analysis module's documentation](analysis_module.md).
 
-#### Hardware Specification
-
-```
-* 32 GB RAM
-* 10 GB storage
-* 4 CPU
-```
-
 The analyzer module uses MongoDB aggregation functions and therefore has a relatively small memory footprint. 
 The memory usage is dependent of number of X-Road services. 
 The estimated memory usage is 250 MB for 1 000 X-Road service call logs.
-
-#### Software Specification
-
-```
-* Ubuntu Server LTS 20.04
-```
-
-#### Network Specification
-
-```
-* allow access to: xroad-metrics-centraldb:27017 (default, MongoDB)
-* allow access from: internal administrative network:443 (private, https)
-```
 
 ### Networking/Visualizer Module
 
@@ -317,26 +216,6 @@ the operational monitoring data.
 In the example setup it is installed on the host *xroad-metrics-networking*. 
 Detailed installation instructions can be found in the [Networking module's documentation](networking_module.md).
 
-
-#### Hardware Specification
-
-```
-* 8 GB RAM
-* 1 GB storage
-* 2 CPU
-```
-
-#### Software Specification
-```
-* Ubuntu Server LTS 20.04
-* RStudio Shiny Server 1.5.16
-```
-
-#### Networking Specification
-```
-* allow access to: xroad-metrics-opendata:5432 (default, PostgreSQL)
-* allow access from: 0.0.0.0/0:3838 (public, http (shiny-server))
-```
 
 ## Simplified Infrastructure for Testing
 To test out X-Road Metrics in a simple X-Road environment, the number of hosts can be reduced.
