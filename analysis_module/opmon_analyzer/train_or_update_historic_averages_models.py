@@ -1,8 +1,8 @@
-# TODO: add exception handling
-#
-from opmon_analyzer.AnalyzerDatabaseManager import AnalyzerDatabaseManager
-from opmon_analyzer.models.AveragesByTimeperiodModel import AveragesByTimeperiodModel
-from opmon_analyzer import analyzer_conf
+import traceback
+
+from .AnalyzerDatabaseManager import AnalyzerDatabaseManager
+from .models.AveragesByTimeperiodModel import AveragesByTimeperiodModel
+from .analyzer_conf import DataModelConfiguration
 
 from . import constants
 from .logger_manager import LoggerManager
@@ -15,11 +15,21 @@ import numpy as np
 import pandas as pd
 
 
-def update_model(settings):
-    config = analyzer_conf.DataModelConfiguration(settings)
+def update_model_main(settings):
+    logger_m = LoggerManager(settings['logger'], settings['xroad']['instance'])
+    try:
+        update_model(settings, logger_m)
+
+    except Exception:
+        trace = traceback.format_exc()
+        logger_m.log_error("find_anomalies_main", trace)
+        logger_m.log_heartbeat(f"Error: {trace}", 'FAILED')
+
+
+def update_model(settings, logger_m):
+    config = DataModelConfiguration(settings)
     log_activity = 'train_or_update_historic_averages_models'
     db_manager = AnalyzerDatabaseManager(settings)
-    logger_m = LoggerManager(settings['logger'], settings['xroad']['instance'])
 
     # add first request timestamps for service calls that have appeared
     logger_m.log_heartbeat("Checking if completely new service calls have appeared", 'SUCCEEDED')
