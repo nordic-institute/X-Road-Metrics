@@ -3,7 +3,7 @@
 
 import time
 from datetime import datetime
-
+import urllib.parse
 import pymongo
 
 from .logger_manager import LoggerManager
@@ -46,7 +46,7 @@ class DatabaseManager:
     @staticmethod
     def get_mongo_uri(settings):
         user = settings['mongodb']['user']
-        password = settings['mongodb']['password']
+        password = urllib.parse.quote(settings['mongodb']['password'], safe='')
         host = settings['mongodb']['host']
         return f"mongodb://{user}:{password}@{host}/auth_db"
 
