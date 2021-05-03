@@ -43,15 +43,19 @@ sudo apt install opmon-networking
 ```
 
 The package installs the following components:
-- Linux user and group opmon that has the priviledges to run the opmon programs
+- Linux user and group opmon that has the privileges to run the opmon programs
 - opmon-networking command that runs the data preparation script
 - static data files and helper scripts under /usr/share/opmon/networking
 - settings files under /etc/opmon/networking
 - cron configuration to run the data preparation periodically in /etc/cron.d/opmon-networking-cron
 - shiny web app files under /usr/share/opmon/networking/shiny
 - Shiny Server configuration file /etc/shiny-server/shiny-server.conf
+- Apache web server and dependencies
+- Apache configuration file for the web-app _/etc/apache2/conf-available/opmon-analyzer-ui.conf_
+- a self signed SSL certificate
 
 Note that the package does not install Shiny Server itself. See next chapter for further instructions.
+Apache is used as a reverse proxy in front of Shiny Server to add SSL encryption.
 
 ### Install Shiny Server
 Shiny Server is an open source, free of charge webserver that serves web-apps written using the R-language Shiny 
@@ -108,6 +112,50 @@ name (TEST in this case).
 In the UI you can view the data of different settings profiles by providing the *profile* query parameter.
 E.g. if the Shiny Server is running on host *myshiny* and port 3838 then you can view the data prepared using settings
 profile TEST by browsing to http://myshiny:3838?profile=TEST
+
+### Apache Configuration
+#### Configuration of Production Certificates
+By default Networking module uses self signed SSL certificate that is created during the installation.
+To replace these with proper certificates in production, you need to set your certificate file paths to
+*/etc/apache2/conf-available/xroad-metrics-networking.conf* file.
+
+The self signed certificates and default dhparams file are installed to these paths:
+    - */etc/ssl/certs/xroad-metrics-dhparam.pem*
+    - */etc/ssl/certs/xroad-metrics-selfsigned.crt*
+    - */etc/ssl/private/xroad-metrics-selfsigned.key*
+
+After configuration changes restart Apache:
+```bash
+sudo systemctl restart apache2.service
+```
+
+#### Networking Module and Opendata Module on Same Host
+It is possible to install Networking module and Opendata module on same host. This configuration
+is not recommended for production use but can be used e.g. when testing X-Road Metrics.
+If Networking and Opendata modules are on the same host, Apache configuration needs to be adjusted to
+route traffic to each service. Simplest way is to set up two DNS names for the host and set configure
+one Apache virtual host for each module.
+
+So assume that the host has two DNS names: *xroad-metrics-networking.mydomain.org* and 
+*xroad-metrics-opendata.mydomain.org* then you can simply change check that the domain names
+are set in Apache site configurations.
+
+For Networking module edit file */etc/apache2/sites-available/xroad-metrics-networking.conf* and
+set contents to
+```
+Use XroadMetricsNetworkingVHost xroad-metrics-networking.mydomain.org
+```
+
+For Opendata module edit file */etc/apache2/sites-available/xroad-metrics-opendata.conf* and
+set contents to
+```
+Use XroadMetricsOpendataVHost xroad-metrics-opendata.mydomain.org
+```
+
+After configuration changes restart Apache:
+```bash
+sudo systemctl restart apache2.service
+```
 
 ## Data preparation script, overview
 
