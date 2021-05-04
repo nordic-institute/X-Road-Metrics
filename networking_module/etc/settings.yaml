@@ -11,7 +11,7 @@ networking:
     - "getSecurityServerMetrics"
     - "getSecurityServerOperationalData"
     - "getSecurityServerHealthData"
-  subsystem-info-path: /etc/opmon/networking/riha.json
+  xroad-descriptor-file: /etc/opmon/networking/xroad-descriptor.json
 
 postgres:
   host: localhost

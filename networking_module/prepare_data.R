@@ -35,7 +35,7 @@ cat('{"module":"networking_module", ',
 path.data <- paste0('/var/lib/opmon/networking/dat', profile.suffix,'.rds')
 path.dates <- paste0('/var/lib/opmon/networking/dates', profile.suffix, '.rds')
 path.membernames <- paste0('/usr/share/opmon/networking/membernames', profile.suffix, '.rds')
-riha <- settings$networking$"subsystem-info-path"
+xroad.descriptor <- settings$networking$"xroad-descriptor-file"
 days <- (settings$networking$interval + settings$networking$buffer)
 
 tryCatch(
@@ -64,32 +64,36 @@ tryCatch(
   }
 )
 
-#dbExistsTable(con, 'logs')
+membernames <- NULL
 
-tryCatch(
-  membernames <- flatten(fromJSON(file(riha))) %>% distinct(member_code, member_name),
-  error = function(err.msg) {
-    cat('{"module":"networking_module", ',
-        '"local_timestamp":"', as.character(Sys.time()), '", ',
-        '"timestamp":', as.numeric(Sys.time()), ', ',
-        duration(),
-        '"level":"ERROR", ',
-        '"activity":"read riha.json", ',
-        '"msg":"', gsub("[\r\n]", "", toString(err.msg)), '"}\n',
-        file = logfile, append = T, sep = '')
-    cat('{"module":"networking_module", ',
-        '"local_timestamp":"', as.character(Sys.time()), '", ',
-        '"timestamp":', as.numeric(Sys.time()), ', ',
-        '"msg":"FAILED"}',
-        file = heartbeatfile, append = F, sep = '')
-  }
-)
+if (file.exists(xroad.descriptor)) {
+  tryCatch(
+    membernames <- flatten(fromJSON(file(xroad.descriptor))) %>% distinct(member_code, member_name),
+    error = function(err.msg) {
+      cat('{"module":"networking_module", ',
+          '"local_timestamp":"', as.character(Sys.time()), '", ',
+          '"timestamp":', as.numeric(Sys.time()), ', ',
+          duration(),
+          '"level":"ERROR", ',
+          '"activity":"read X-Road descriptor file", ',
+          '"msg":"', gsub("[\r\n]", "", toString(err.msg)), '"}\n',
+          file = logfile, append = T, sep = '')
+      cat('{"module":"networking_module", ',
+          '"local_timestamp":"', as.character(Sys.time()), '", ',
+          '"timestamp":', as.numeric(Sys.time()), ', ',
+          '"msg":"FAILED"}',
+          file = heartbeatfile, append = F, sep = '')
+    }
+  )
+}
 
-membernames$member_name <- ifelse(
-  is.na(membernames$member_name),
-  membernames$member_code,
-  membernames$member_name
-)
+if (!is.null(membernames)) {
+  membernames$member_name <- ifelse(
+    is.na(membernames$member_name),
+    membernames$member_code,
+    membernames$member_name
+  )
+}
 
 tryCatch(
   last.date <- dbGetQuery(con, "select requestindate from logs order by requestindate desc limit 1") %>% .[1, 1],
@@ -158,10 +162,15 @@ if (!is.null(last.date)) {
 
     dat2$metaservice <- as.integer(ifelse(dat2$servicecode %in% settings$networking$metaservices, 1, 0))
 
-    dat2 <- left_join(dat2, membernames, by = c('clientmembercode' = 'member_code')) %>%
-      rename(clientmembername = member_name) %>%
-      left_join(., membernames, by = c('servicemembercode' = 'member_code')) %>%
-      rename(servicemembername = member_name)
+    if (!is.null(membernames)) {
+      dat2 <- left_join(dat2, membernames, by = c('clientmembercode' = 'member_code')) %>%
+        rename(clientmembername = member_name) %>%
+        left_join(., membernames, by = c('servicemembercode' = 'member_code')) %>%
+        rename(servicemembername = member_name)
+    } else {
+      dat2$clientmembername <- dat2$clientmembercode
+      dat2$servicemembername <- dat2$servicemembercode
+    }
 
     dat2 <- dat2 %>%
       mutate(
