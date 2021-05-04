@@ -60,14 +60,12 @@ def _create_opmon_users(args, client, passwords):
 
 
 def _print_users(passwords: dict):
-
     if len(passwords) == 0:
         print("No users created.")
         return
 
     width = max([len(k) for k in passwords.keys()]) + 1
     width = max(width, len("Username"))
-
 
     print("\nGenerated following users: \n")
     print(f'{"Username":<{width}}| {"Password":<{13}}| Escaped Password')
@@ -84,7 +82,7 @@ def _generate_password():
     """
     alphabet = string.ascii_letters + string.digits + string.punctuation
     while True:
-        password = ''.join(secrets.choice(alphabet) for i in range(12))
+        password = ''.join(secrets.choice(alphabet) for _ in range(12))
         if (any(c.islower() for c in password)
                 and any(c.isupper() for c in password)
                 and sum(c.isdigit() for c in password) >= 3

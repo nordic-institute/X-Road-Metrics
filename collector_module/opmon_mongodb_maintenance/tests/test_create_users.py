@@ -7,8 +7,6 @@ from argparse import Namespace
 import yaml
 import opmon_mongodb_maintenance.create_users as create_users
 
-
-
 opmon_user_names = ['analyzer', 'analyzer_interface', 'anonymizer', 'collector', 'corrector', 'reports']
 admin_user_names = ['root', 'backup', 'superuser']
 
