@@ -1,12 +1,12 @@
-# Default settings file for X-Road OpMon collector-module.
+# Default settings file for X-Road Metrics Collector-module.
 # Fill in your MongoDB and X-Road configuration.
 # 
 # To run collector for many different X-Road instances, you can create settings
 # profiles. For example to have profiles DEV, TEST and PROD copy this file to
 # settings_DEV.yaml, settings_TEST.yaml and settings_PROD.yaml.
 # Then fill the profile specific settings to each file and use the --profile
-# flag when running opmon-collector. For example to run using the TEST profile:
-#    opmon-collector --profile TEST collect
+# flag when running xroad-metrics-collector. For example to run using the TEST profile:
+#    xroad-metrics-collector --profile TEST collect
 
 collector:
   # Match thread-count with number of cores * CPUs available to ensure best performance
@@ -39,7 +39,7 @@ collector:
   # Directory where collector creates a PID-file.
   # PID stores the Unix Process Id of the collector instance that is running.
   # Only one collector instance can be running at a time.
-  pid-directory: /var/run/opmon/collector
+  pid-directory: /var/run/xroad-metrics/collector
 
 xroad:
   instance: <FILL>
@@ -50,13 +50,13 @@ xroad:
     host: <FILL>
     timeout: 10
   
-  # Security server used to send the opmon requests to other security servers.
+  # Security server used to contact
   security-server:
     protocol: http://
     host: <FILL>
     timeout: 60.0
   
-  # Client configuration used for opmon requests.
+  # X-Road service configuration used to fetch operational monitoring requests.
   monitoring-client:
     memberclass: <FILL>
     membercode: <FILL>
@@ -77,5 +77,5 @@ logger:
 
   # Logs and heartbeat files are stored under these paths.
   # Also configure external log rotation and app monitoring accordingly.
-  log-path: /var/log/opmon/collector/logs
-  heartbeat-path: /var/log/opmon/collector/heartbeat
+  log-path: /var/log/xroad-metrics/collector/logs
+  heartbeat-path: /var/log/xroad-metrics/collector/heartbeat

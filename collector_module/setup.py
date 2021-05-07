@@ -20,15 +20,15 @@ classifiers = [
 ]
 
 
-setup(name='opmon-collector',
+setup(name='xroad-metrics-collector',
       version='0.1',
-      description='X-Road Operational Monitoring Collector Module',
+      description='X-Road Metrics Collector Module',
       long_description='',
       author='NIIS',
       author_email='info@niis.org',
       packages=['opmon_collector', 'opmon_mongodb_maintenance'],
       package_dir={'opmon_collector': 'opmon_collector', 'opmon_mongodb_maintenance': 'opmon_mongodb_maintenance'},
-      scripts=['bin/opmon-collector', 'bin/opmon-init-mongo'],
+      scripts=['bin/xroad-metrics-collector', 'bin/xroad-metrics-init-mongo'],
       install_requires=requirements,
       classifiers=classifiers,
       platforms='POSIX',
