@@ -1,12 +1,12 @@
-# Default settings file for X-Road OpMon corrector-module.
+# Default settings file for X-Road Metrics Corrector-module.
 # Fill in your MongoDB and X-Road configuration.
 # 
 # To run corrector for many different X-Road instances, you can create settings
 # profiles. For example to have profiles DEV, TEST and PROD copy this file to
 # settings_DEV.yaml, settings_TEST.yaml and settings_PROD.yaml.
 # Then fill the profile specific settings to each file and use the --profile
-# flag when starting opmon-corrector. For example to run using the TEST profile:
-#    opmon-correctord --profile TEST
+# flag when starting xroad-metrics-corrector. For example to run using the TEST profile:
+#    xroad-metrics-correctord --profile TEST
 
 corrector:
   thread-count: 8
@@ -108,5 +108,5 @@ logger:
 
   # Logs and heartbeat files are stored under these paths.
   # Also configure external log rotation and app monitoring accordingly.
-  log-path: /var/log/opmon/corrector/logs
-  heartbeat-path: /var/log/opmon/corrector/heartbeat
+  log-path: /var/log/xroad-metrics/corrector/logs
+  heartbeat-path: /var/log/xroad-metrics/corrector/heartbeat

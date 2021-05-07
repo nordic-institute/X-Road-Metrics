@@ -18,7 +18,7 @@ classifiers = [
 ]
 
 setup(
-    name='opmon-corrector',
+    name='xroad-metrics-corrector',
     version='0.1',
     description='X-Road Operational Monitoring Corrector Module',
     long_description='',
@@ -26,7 +26,7 @@ setup(
     author_email='info@niis.org',
     packages=['opmon_corrector'],
     package_dir={'opmon_corrector': 'opmon_corrector'},
-    scripts=['bin/opmon-correctord'],
+    scripts=['bin/xroad-metrics-correctord'],
     install_requires=requirements,
     classifiers=classifiers,
     platforms='POSIX',
