@@ -1,0 +1,10 @@
+# Default cronjob for X-Road Metrics Analyzer module
+# Runs the historic average model train/update and anomaly finder every three hours.
+# Uses default analyzer settings file /etc/xroad-metrics/analyzer/settings.yaml
+
+
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# m   h  dom mon dow  user              command
+  40 */2  *   *   *   xroad-metrics     xroad-metrics-analyzer update && xroad-metrics-analyzer find
