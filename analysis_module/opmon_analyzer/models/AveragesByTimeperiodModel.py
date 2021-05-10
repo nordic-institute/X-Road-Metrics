@@ -35,9 +35,9 @@ class AveragesByTimeperiodModel(object):
 
         dt_agg = self._add_similar_periods_string(dt_agg)
 
-        self.dt_avgs = dt_agg.drop([constants.timestamp_field, "request_ids"], axis=1)
-        self.dt_avgs = self.dt_avgs.groupby(constants.service_identifier_column_names + ["similar_periods"])
-        self.dt_avgs = self.dt_avgs.agg([np.mean, self.std, 'count', np.sum, self.ssq])
+        self.dt_avgs = dt_agg.drop([constants.timestamp_field, "request_ids"], axis=1) \
+            .groupby(constants.service_identifier_column_names + ["similar_periods"]) \
+            .agg([np.mean, self.std, 'count', np.sum, self.ssq])
 
         self.dt_avgs.columns = ['_'.join(col) for col in self.dt_avgs.columns.values]
 
