@@ -1,4 +1,4 @@
-# Default settings file for X-Road OpMon Analyzer UI module.
+# Default settings file for X-Road X-Road Metrics Analyzer UI module.
 # Fill in your MongoDB and X-Road configuration.
 
 xroad:
@@ -19,8 +19,8 @@ logger:
 
   # Logs and heartbeat files are stored under these paths.
   # Also configure external log rotation and app monitoring accordingly.
-  log-path: /var/log/opmon/analyzer_ui/logs
-  heartbeat-path: /var/log/opmon/analyzer_ui/heartbeat
+  log-path: /var/log/xroad-metrics/analyzer_ui/logs
+  heartbeat-path: /var/log/xroad-metrics/analyzer_ui/heartbeat
 
 django:
   secret-key: <FILL>

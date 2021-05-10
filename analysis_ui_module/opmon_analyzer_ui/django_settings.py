@@ -17,7 +17,7 @@ from .settings_parser import OpmonSettingsManager
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# Load user specified settings from opmon settings.yaml file. Only default profile is supported for django settings.
+# Load user specified settings from X-Road Metrics settings.yaml file. Only default profile is supported for django settings.
 opmon_settings = OpmonSettingsManager().settings
 
 # Quick-start development settings - unsuitable for production
@@ -77,7 +77,7 @@ TEMPLATES = [
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join('/var/lib/opmon/analyzer_ui', 'database', 'db.sqlite3'),
+        'NAME': os.path.join('/var/lib/xroad-metrics/analyzer_ui', 'database', 'db.sqlite3'),
     }
 }
 
@@ -103,4 +103,4 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join('/usr/share/opmon/analyzer_ui/www', 'static')
+STATIC_ROOT = os.path.join('/usr/share/xroad-metrics/analyzer_ui/www', 'static')

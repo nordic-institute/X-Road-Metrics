@@ -12,7 +12,7 @@ class OpmonSettingsManager:
     Class to hold OpMon user settings.
 
     Can parse settings from a YAML file.
-    Settings file is searched from the current working directory and /etc/opmon/analyzer_ui/.
+    Settings file is searched from the current working directory and /etc/xroad-metrics/analyzer_ui/.
     Settings file must have extension .yaml or .yml.
     If profile argument is set, settings are fetched from settings_{profile}.yaml.
     If no profile is defined, settings are fetched from settings.yaml.
@@ -37,7 +37,7 @@ class OpmonSettingsManager:
 
     @staticmethod
     def _find_settings_file(profile):
-        search_paths = ['./', '/etc/opmon/analyzer_ui/']
+        search_paths = ['./', '/etc/xroad-metrics/analyzer_ui/']
         files = []
         for p in search_paths:
             files.extend(OpmonSettingsManager._get_all_files(p))
