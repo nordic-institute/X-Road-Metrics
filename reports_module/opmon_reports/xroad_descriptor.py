@@ -12,8 +12,8 @@ from .xroad_descriptor_schema import xroad_descriptor_schema
 
 class OpmonXroadDescriptor:
     """
-    This class is used to hold all X-Road subsystems that the Opmon Reports module should target.
-    The subsystem list can be retrieved from an xroad-descriptor.json file or constructed from opmon database.
+    This class is used to hold all X-Road subsystems that the X-Road Metrics Reports module should target.
+    The subsystem list can be retrieved from an xroad-descriptor.json file or constructed from xroad-metrics database.
     If user has specified a target subsystem as commandline argument then only that single subsystem is included in
     the descriptor.
     """
