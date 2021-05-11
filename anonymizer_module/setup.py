@@ -20,7 +20,7 @@ classifiers = [
 ]
 
 setup(
-    name='opmon-anonymizer',
+    name='xroad-metrics-anonymizer',
     version='0.1',
     description='X-Road Operational Monitoring anonymizer Module',
     long_description='',
@@ -28,7 +28,7 @@ setup(
     author_email='info@niis.org',
     packages=find_packages(),
     include_package_data=True,
-    scripts=['bin/opmon-anonymizer'],
+    scripts=['bin/xroad-metrics-anonymizer'],
     install_requires=requirements,
     classifiers=classifiers,
     platforms='POSIX',

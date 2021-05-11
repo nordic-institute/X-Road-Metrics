@@ -1,19 +1,19 @@
-# Default settings file for X-Road OpMon anonymizer-module.
+# Default settings file for X-Road Metrics Anonymizer-module.
 # Fill in your network configuration and anonymization rules.
 #
 # To run anonymizer for many different X-Road instances, you can create settings
 # profiles. For example to have profiles DEV, TEST and PROD copy this file to
 # settings_DEV.yaml, settings_TEST.yaml and settings_PROD.yaml.
 # Then fill the profile specific settings to each file and use the --profile
-# flag when running opmon-anonymizer. For example to run using the TEST profile:
-#    opmon-anonymizer --profile TEST
+# flag when running xroad-metrics-anonymizer. For example to run using the TEST profile:
+#    xroad-metrics-anonymizer --profile TEST
 
 xroad:
   instance: <FILL>
 
 anonymizer:
-  field-translations-file: /etc/opmon/anonymizer/field_translations.list
-  field-data-file: /etc/opmon/anonymizer/field_data.yaml
+  field-translations-file: /etc/xroad-metrics/anonymizer/field_translations.list
+  field-data-file: /etc/xroad-metrics/anonymizer/field_data.yaml
   transformers:
     reduce-request-in-ts-precision: true
     force-durations-to-integer-range: true
@@ -78,5 +78,5 @@ logger:
 
   # Logs and heartbeat files are stored under these paths.
   # Also configure external log rotation and app monitoring accordingly.
-  log-path: /var/log/opmon/anonymizer/logs
-  heartbeat-path: /var/log/opmon/anonymizer/heartbeat
+  log-path: /var/log/xroad-metrics/anonymizer/logs
+  heartbeat-path: /var/log/xroad-metrics/anonymizer/heartbeat
