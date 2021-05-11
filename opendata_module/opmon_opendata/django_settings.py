@@ -75,7 +75,7 @@ TEMPLATES = [
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join('/var/lib/opmon/opendata', 'database', 'db.sqlite3'),
+        'NAME': os.path.join('/var/lib/xroad-metrics/opendata', 'database', 'db.sqlite3'),
     }
 }
 
@@ -102,7 +102,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join('/usr/share/opmon/opendata/www', 'static')
+STATIC_ROOT = os.path.join('/usr/share/xroad-metrics/opendata/www', 'static')
 
 # Ignore Django internal logging mechanisms
 LOGGING = None
