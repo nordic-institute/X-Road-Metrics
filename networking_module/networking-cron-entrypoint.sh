@@ -1,14 +1,8 @@
 #!/bin/bash 
 #
-# Part of X-Road v6 Operational Monitoring, https://github.com/ria-ee/X-Road-opmonitor
-# Run ${0}
-# From command line or from crontab
-# Actual stuff is marked below
+# X-Road Metrics Networking script to update data periodically using cron
 #
-# All the rest is about logging command stdout and stderr into screen and into ${LOG}
-#   and dealing with ${LOCK}
-#
-# Author: Toomas Mölder <toomas.molder@ria.ee>, skype: toomas.molder, phone: +372 5522000
+# Maintained by NIIS (info@niis.org)
 
 PROFILE=${1:-""}
 
@@ -23,8 +17,8 @@ if [[ -n "$PROFILE" ]]; then PROFILE_SUFFIX="_$PROFILE"; fi;
 PID=$$
 filename=$(basename -- "${0}")
 filename="${filename%.*}${PROFILE_SUFFIX}"
-LOG=/var/log/opmon/networking/logs/${filename}.log
-LOCK=/var/log/opmon/networking/heartbeat/${filename}.lock
+LOG=/var/log/xroad-metrics/networking/logs/${filename}.log
+LOCK=/var/log/xroad-metrics/networking/heartbeat/${filename}.lock
 
 # Begin
 echo "${PID}: Start of ${0}"  2>&1 | awk '{ print strftime("%Y-%m-%dT%H:%M:%S\t"), $0; fflush(); }' | tee -a ${LOG}
@@ -41,7 +35,7 @@ fi
 #
 # Actual stuff
 #
-Rscript /usr/bin/opmon-networking "$PROFILE_FLAG" 2>&1 | awk '{ print strftime("%Y-%m-%dT%H:%M:%S\t"), $0; fflush(); }' | tee -a ${LOG}
+Rscript /usr/bin/xroad-metrics-networking "$PROFILE_FLAG" 2>&1 | awk '{ print strftime("%Y-%m-%dT%H:%M:%S\t"), $0; fflush(); }' | tee -a ${LOG}
 
 # Remove ${LOCK}
 /bin/rm ${LOCK} 2>&1 | awk '{ print strftime("%Y-%m-%dT%H:%M:%S\t"), $0; fflush(); }' | tee -a ${LOG}

@@ -8,7 +8,7 @@ library(dplyr)
 library(RPostgreSQL)
 library(jsonlite)
 
-settingsScript <- "/usr/share/opmon/networking/prepare_data_settings.R"
+settingsScript <- "/usr/share/xroad-metrics/networking/prepare_data_settings.R"
 if (file.exists("./prepare_data_settings.R")){
   settingsScript <- "./prepare_data_settings.R"
 }
@@ -32,9 +32,9 @@ cat('{"module":"networking_module", ',
     '"msg":"data preparation script started"}\n',
     file = logfile, append = T, sep = '')
 
-path.data <- paste0('/var/lib/opmon/networking/dat', profile.suffix,'.rds')
-path.dates <- paste0('/var/lib/opmon/networking/dates', profile.suffix, '.rds')
-path.membernames <- paste0('/usr/share/opmon/networking/membernames', profile.suffix, '.rds')
+path.data <- paste0('/var/lib/xroad-metrics/networking/dat', profile.suffix,'.rds')
+path.dates <- paste0('/var/lib/xroad-metrics/networking/dates', profile.suffix, '.rds')
+path.membernames <- paste0('/usr/share/xroad-metrics/networking/membernames', profile.suffix, '.rds')
 xroad.descriptor <- settings$networking$"xroad-descriptor-file"
 days <- (settings$networking$interval + settings$networking$buffer)
 

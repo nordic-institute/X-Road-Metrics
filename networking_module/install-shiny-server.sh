@@ -3,7 +3,7 @@
 SHINY_VERSION=1.5.16.958
 PACKAGE_SHA=330e4e1c11251a2bd362de39063efaa3dbc87a6b06eced8472522147ad276ee4
 PACKAGE_NAME=shiny-server-${SHINY_VERSION}-amd64.deb
-TMP_DIR=$(mktemp --tmp  --directory "opmon-install-shiny-server-XXXXXXX")
+TMP_DIR=$(mktemp --tmp  --directory "xroad-metrics-install-shiny-server-XXXXXXX")
 
 confirm_version_change() {
     echo "Another shiny-server version is already installed:"
