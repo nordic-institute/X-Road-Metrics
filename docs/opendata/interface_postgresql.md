@@ -1,34 +1,19 @@
 
-| [![Republic of Estonia Information System Authority](../img/ria_100_en.png)](https://www.ria.ee/en.html) [![X-ROAD](../img/xroad_100_en.png)](https://www.ria.ee/en/state-information-system/x-tee.html) | ![European Union / European Regional Development Fund / Investing in your future](../img/eu_rdf_100_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.11.2022. If it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
+| [![X-ROAD](../img/xroad_100_en.png)](https://x-road.global/) | ![European Union / European Regional Development Fund / Investing in your future](../img/eu_rdf_100_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.11.2022. If it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
 | :-------------------------------------------------- | -------------------------: |
 
-# X-Road v6 monitor project - Open Data Module, Interface and PostgreSQL Node
+# X-Road Metrics - Open Data Module, Interface and PostgreSQL Node
 
 ## About
 
-Opendata module is part of [X-Road v6 monitor project](../../README.md), which includes modules of [Database module](../database_module.md), [Collector module](../collector_module.md), [Corrector module](../corrector_module.md), [Analysis module](../analysis_module.md), [Reports module](../reports_module.md), Opendata module (this document) and [Networking/Visualizer module](../networking_module.md).
+Opendata module is part of [X-Road Metrics](../../README.md), which includes modules of [Database module](../database_module.md), [Collector module](../collector_module.md), [Corrector module](../corrector_module.md), [Reports module](../reports_module.md), Opendata module (this document) and [Networking/Visualizer module](../networking_module.md).
 
 **Interface** is an API and a GUI to access the already anonymized data by [Anonymizer Node](anonymizer.md).
 
 The module source code can be found at:
 
 ```
-https://github.com/ria-ee/X-Road-opmonitor
-```
-
-and can be downloaded into server:
-
-```bash
-# If HOME not set, set it to /tmp default.
-export TMP_DIR=${HOME:=/tmp}
-export PROJECT="X-Road-opmonitor"
-export PROJECT_URL="https://github.com/ria-ee/${PROJECT}.git"
-export SOURCE="${TMP_DIR}/${PROJECT}"
-if [ ! -d "${TMP_DIR}/${PROJECT}" ]; then \
-    cd ${TMP_DIR}; git clone ${PROJECT_URL}; \
-else \
-  cd ${SOURCE}; git pull ${PROJECT_URL}; \
-fi
+TODO: add link
 ```
 
 ## Networking
@@ -44,6 +29,8 @@ No **outgoing** connection is needed in the interface module.
 - The Interface and PostgreSQL node is protected by Estonian ID-card authentication, but no specific roles or user rights during pilot stage.
 
 ## Installation
+
+TODO: Update installation instructions to use new deb packages!
 
 Interface and PostgreSQL node has 3 main components:
 

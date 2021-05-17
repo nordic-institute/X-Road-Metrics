@@ -1,14 +1,24 @@
 
-| [![Republic of Estonia Information System Authority](../img/ria_100_en.png)](https://www.ria.ee/en.html) [![X-ROAD](../img/xroad_100_en.png)](https://www.ria.ee/en/state-information-system/x-tee.html) | ![European Union / European Regional Development Fund / Investing in your future](../img/eu_rdf_100_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.11.2022. If it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
+| [![X-ROAD](../img/xroad_100_en.png)](https://x-road.global/) | ![European Union / European Regional Development Fund / Investing in your future](../img/eu_rdf_100_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.11.2022. If it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
 | :-------------------------------------------------- | -------------------------: |
 
-# X-Road v6 monitor project - Open Data Module, Anonymizer Node
+# X-Road Metrics - Anonymizer Module
 
 ## About
 
-Opendata module is part of [X-Road v6 monitor project](../../README.md), which includes modules of [Database module](../database_module.md), [Collector module](../collector_module.md), [Corrector module](../corrector_module.md), [Analysis module](../analysis_module.md), [Reports module](../reports_module.md), Opendata module (this document) and [Networking/Visualizer module](../networking_module.md).
+Anonymizer module is part of [X-Road Metrics](../../README.md), which includes the following modules: 
+ - [Database module](../database_module.md)
+ - [Collector module](../collector_module.md)
+ - [Corrector module](../corrector_module.md) 
+ - [Reports module](../reports_module.md) 
+ - [Anonymizer module](../anonymizer_module.md)
+ - [Opendata module](../opendata_module.md) 
+ - [Networking/Visualizer module](../networking_module.md)
 
-**Anonymizer** is a pipeline for making X-Road v6 logs suitable for public use. It is achieved by fetching still unprocessed - but corrected data - from the [Corrector Module's](../corrector_module.md) output, applying the defined anonymization procedures, and outputting the already anonymized data available through [Interface and PostgreSQL Node](interface_postgresql.md).
+**Anonymizer** is a pipeline for making X-Road logs suitable for public use. 
+It is achieved by fetching still unprocessed - but corrected data - from the 
+[Corrector Module's](../corrector_module.md) output, applying the defined anonymization procedures, 
+and outputting the already anonymized data available through [Opendata module interfaces](interface_postgresql.md).
 
 ### Anonymization process
 
@@ -47,23 +57,7 @@ Elapsed time in format `H:MM:SS`
 The module source code can be found at:
 
 ```
-https://github.com/ria-ee/X-Road-opmonitor
-```
-
-and can be downloaded into server:
-
-```bash
-sudo su - anonymizer
-# If HOME not set, set it to /tmp default.
-export TMP_DIR=${HOME:=/tmp}
-export PROJECT="X-Road-opmonitor"
-export PROJECT_URL="https://github.com/ria-ee/${PROJECT}.git"
-export SOURCE="${TMP_DIR}/${PROJECT}"
-if [ ! -d "${TMP_DIR}/${PROJECT}" ]; then \
-    cd ${TMP_DIR}; git clone ${PROJECT_URL}; \
-else \
-  cd ${SOURCE}; git pull ${PROJECT_URL}; \
-fi
+TODO: add link
 ```
 
 ## Networking
@@ -78,6 +72,8 @@ fi
 No **incoming** connection is needed in the anonymizer module.
 
 ## Installation
+
+TODO: Update installattion instructions to use deb packages
 
 This sections describes the necessary steps to install the **anonymizer module** in a Linux Ubuntu 16.04. 
 To a complete overview of different modules and machines, please refer to the [System Architecture](../system_architecture.md) and [Opendata module](../opendata_module.md) documentation.

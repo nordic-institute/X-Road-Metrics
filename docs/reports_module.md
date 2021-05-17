@@ -1,26 +1,33 @@
 
-| [![Republic of Estonia Information System Authority](img/ria_100_en.png)](https://www.ria.ee/en.html) [![X-ROAD](img/xroad_100_en.png)](https://www.ria.ee/en/state-information-system/x-tee.html) | ![European Union / European Regional Development Fund / Investing in your future](img/eu_rdf_100_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.11.2022. If it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
+|  [![X-ROAD](img/xroad_100_en.png)](https://x-road.global/) | ![European Union / European Regional Development Fund / Investing in your future](img/eu_rdf_100_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.11.2022. If it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
 | :-------------------------------------------------- | -------------------------: |
 
-# X-Road v6 monitor project - Reports Module
+# X-Road Metrics - Reports Module
 
 ## About
 
-The **Reports module** is part of [X-Road v6 monitor project](../README.md), which includes modules of [Database module](database_module.md), [Collector module](collector_module.md), [Corrector module](corrector_module.md), [Analysis module](analysis_module.md), Reports module (this document), [Opendata module](opendata_module.md) and [Networking/Visualizer module](networking_module.md).
+The **Reports module** is part of [X-Road Metrics](../README.md), which includes the following modules:
+ - [Database module](../database_module.md)
+ - [Collector module](../collector_module.md)
+ - [Corrector module](../corrector_module.md) 
+ - [Reports module](../reports_module.md) 
+ - [Anonymizer module](../anonymizer_module.md)
+ - [Opendata module](../opendata_module.md) 
+ - [Networking/Visualizer module](../networking_module.md)
 
-The **Reports module** is responsible for creating monthly reports about X-Road v6 members subsystems (datasets usage).
+The **Reports module** is responsible for creating monthly reports about subsystems of X-Road members (datasets usage).
 The execution of the reports module can be either performed automatically (via **cron job**) or manually.
 
 Overall system, its users and rights, processes and directories are designed in a way, that all modules can reside in one server (different users but in same group 'opmon') but also in separate servers.  
 
-Overall system is also designed in a way, that allows to monitor data from different X-Road v6 instances (in Estonia `ee-dev`, `ee-test`, `EE`, see also [X-Road v6 environments](https://moodle.ria.ee/mod/page/view.php?id=700).
+Overall system is also designed in a way, that allows to monitor data from different X-Road instances (e.g. in Estonia there are three instances: `ee-dev`, `ee-test` and `EE`.)
 
 Overall system is also designed in a way, that can be used by X-Road Centre for all X-Road members as well as for Member own monitoring (includes possibilities to monitor also members data exchange partners).
 
 The module source code can be found at:
 
 ```
-https://github.com/ria-ee/X-Road-opmonitor
+TODO: add link
 ```
 
 ## Diagram
