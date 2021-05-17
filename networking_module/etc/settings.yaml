@@ -11,7 +11,7 @@ networking:
     - "getSecurityServerMetrics"
     - "getSecurityServerOperationalData"
     - "getSecurityServerHealthData"
-  xroad-descriptor-file: /etc/opmon/networking/xroad-descriptor.json
+  xroad-descriptor-file: /etc/xroad-metrics/networking/xroad-descriptor.json
 
 postgres:
   host: localhost
@@ -20,5 +20,5 @@ postgres:
   password: <FILL>
 
 logger:
-  log-path: /var/log/opmon/networking/logs
-  heartbeat-path: /var/log/opmon/networking/heartbeat
+  log-path: /var/log/xroad-metrics/networking/logs
+  heartbeat-path: /var/log/xroad-metrics/networking/heartbeat

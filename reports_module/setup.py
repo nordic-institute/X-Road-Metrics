@@ -26,7 +26,7 @@ classifiers = [
 ]
 
 setup(
-    name='opmon-reports',
+    name='xroad-metrics-reports',
     version='0.1',
     description='X-Road Operational Monitoring Reports Module',
     long_description='',
@@ -35,7 +35,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     install_requires=requirements,
-    scripts=['bin/opmon-reports'],
+    scripts=['bin/xroad-metrics-reports'],
     classifiers=classifiers,
     platforms='POSIX',
     license='MIT License'

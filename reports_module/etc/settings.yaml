@@ -3,7 +3,7 @@ xroad:
 
   # X-Road descriptor file that lists all subsystems available.
   # Optionally the file may include localized subsystem names and maintainer e-mail addresses.
-  descriptor-path: /etc/opmon/reports/xroad-descriptor.json
+  descriptor-path: /etc/xroad-metrics/reports/xroad-descriptor.json
 
 mongodb:
   host: localhost
@@ -20,18 +20,18 @@ logger:
 
   # Logs and heartbeat files are stored under these paths.
   # Also configure external log rotation and app monitoring accordingly.
-  log-path: /var/log/opmon/reports/logs
-  heartbeat-path: /var/log/opmon/reports/heartbeat
+  log-path: /var/log/xroad-metrics/reports/logs
+  heartbeat-path: /var/log/xroad-metrics/reports/heartbeat
 
 reports:
-  report-path: /var/lib/opmon/reports
-  translation-path: /etc/opmon/reports/lang
+  report-path: /var/lib/xroad-metrics/reports
+  translation-path: /etc/xroad-metrics/reports/lang
   html-template:
-    dir: /etc/opmon/reports/template
+    dir: /etc/xroad-metrics/reports/template
     file: pdf_report_template.html
   css-paths:
-    - '/etc/opmon/reports/template/pdf_report_style.css'
-  image-path: /etc/opmon/reports/template/header_images
+    - '/etc/xroad-metrics/reports/template/pdf_report_style.css'
+  image-path: /etc/xroad-metrics/reports/template/header_images
   email:
     sender: <FILL>  # e-mail address shown in sender field of notifications
     smtp:
@@ -44,7 +44,7 @@ reports:
       Dear {EMAIL_NAME},
 
 
-      There's a new operational monitoring report available for an X-Road subsystem where
+      There's a new X-Road Metrics report available for an X-Road subsystem where
       you are listed as a contact person.
 
 
@@ -57,6 +57,6 @@ reports:
 
       Best regards,
 
-      Operational Monitoring Administration
+      X-Road Metrics Administration
 
-    subject: "X-Road operational monitoring report for {X_ROAD_INSTANCE}:{MEMBER_CLASS}:{MEMBER_CODE}:{SUBSYSTEM_CODE}"
+    subject: "X-Road Metrics report for {X_ROAD_INSTANCE}:{MEMBER_CLASS}:{MEMBER_CODE}:{SUBSYSTEM_CODE}"

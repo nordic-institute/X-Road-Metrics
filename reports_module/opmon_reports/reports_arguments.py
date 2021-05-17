@@ -56,7 +56,7 @@ class OpmonReportsArguments:
             "action",
             metavar="ACTION",
             choices=actions,
-            help=f"OpMon reports action to execute. Supported actions are {actions}"
+            help=f"X-Road Metrics Reports action to execute. Supported actions are {actions}"
         )
 
         parser.add_argument(
@@ -67,7 +67,7 @@ class OpmonReportsArguments:
                 Optional settings file profile.
                 For example with '--profile PROD' settings_PROD.yaml will be used as settings file.
                 If no profile is defined, settings.yaml will be used by default.
-                Settings file is searched from current working directory and /etc/opmon/reports/
+                Settings file is searched from current working directory and /etc/xroad-metrics/reports/
             """
         )
 

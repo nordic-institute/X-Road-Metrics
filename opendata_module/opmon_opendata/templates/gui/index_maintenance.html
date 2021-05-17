@@ -1,97 +1,63 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>X-Road Operational Monitoring logs, OpenData</title>
+<head>
+    <title>X-Road Metrics, OpenData</title>
 
-        <script type="text/javascript" src="/javascript/jquery/jquery.min.js"></script>
-        <script type="text/javascript" src="/javascript/bootstrap/js/bootstrap.min.js"></script>
-        <script type="text/javascript" src="/javascript/jquery-datatables/jquery.dataTables.min.js"></script>
-        <script type="text/javascript" src="/javascript/moment/moment.min.js"></script>
-        <script type="text/javascript" src="/javascript/eonasdan-bootstrap-datetimepicker/bootstrap-datetimepicker.min.js"></script>
+    <script type="text/javascript" src="/javascript/jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="/javascript/bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/javascript/jquery-datatables/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="/javascript/moment/moment.min.js"></script>
+    <script type="text/javascript"
+            src="/javascript/eonasdan-bootstrap-datetimepicker/bootstrap-datetimepicker.min.js"></script>
 
-        <link rel="stylesheet" type="text/css" href="{% static 'gui/index.css' %}" />
-        <link rel="stylesheet" type="text/css" href="/javascript/bootstrap/css/bootstrap.min.css"/>
-        <link rel="stylesheet" type="text/css" href="/javascript/jquery-datatables/css/jquery.dataTables.min.css"/>
-        <link rel="stylesheet" type="text/css" href="/javascript/eonasdan-bootstrap-datetimepicker/bootstrap-datetimepicker.min.css"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'gui/index.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="/javascript/bootstrap/css/bootstrap.min.css"/>
+    <link rel="stylesheet" type="text/css" href="/javascript/jquery-datatables/css/jquery.dataTables.min.css"/>
+    <link rel="stylesheet" type="text/css"
+          href="/javascript/eonasdan-bootstrap-datetimepicker/bootstrap-datetimepicker.min.css"/>
 
-    </head>
-    <body>
-        <div class="container-fluid">
+</head>
+<body>
+<div class="container-fluid">
 
-            <div class="header">
-                <table width="100%" align= "center" border= "0" cellpadding= "0" cellspacing= "0" style= "margin:0 auto">
-<tbody>
-<tr bgcolor= "#ffffff">
-<td width="66%" align= "left">
-<a href="https://www.ria.ee/en/">
-<img src= "/static/gui/ria_100_en.png" alt= "Republic of Estonia Information System Authority"
-style= "display:block; height:auto;" height= "auto" align="left" valign="top">
-</a>
-<a href="https://www.ria.ee/en/x-road.html">
-<img src= "/static/gui/xroad_100_en.png" alt= "X-ROAD" style= "display:block; height:auto;" height= "auto" align="left" valign="top"></a>
-</td>
-<td width="33%" align= "right"><img src= "/static/gui/eu_rdf_100_en.png" alt= "European Union / European Regional Development Fund / Investing in your future"
-style= "display:block; height:auto;" height= "auto" align="right" valign="top">
-</td>
-</tr>
-</tbody>
-</table>
+    <div class="header">
+        <table width="100%" align="center" border="0" cellpadding="0" cellspacing="0" style="margin:0 auto">
+            <tbody>
+            <tr bgcolor="#ffffff">
+                <td width="66%" align="left">
+                    <a href="https://x-road.global/">
+                        <img src="/static/gui/xroad_100_en.png" alt="X-ROAD" style="display:block; height:auto;"
+                             height="auto" align="left" valign="top">
+                    </a>
+                </td>
+                <td width="33%" align="right"><img src="/static/gui/eu_rdf_100_en.png"
+                                                   alt="European Union / European Regional Development Fund / Investing in your future"
+                                                   style="display:block; height:auto;" height="auto" align="right"
+                                                   valign="top">
+                </td>
+            </tr>
+            </tbody>
+        </table>
 
-            </div>
+    </div>
 
-            <div class="page-header">
-                <h1>Sorry, currently under maintenance (Fri Jan  5 12:45:00 EET 2018 - Fri Jan  5 16:00:00 EET 2018)</h1>
-                <h3>X-Road Operational Monitoring logs, OpenData</h3>
-            </div>
+    <div class="page-header">
+        <h1>Sorry, currently under maintenance</h1>
+        <h3>X-Road Metrics, OpenData</h3>
+    </div>
 
-            <div class="clearfix"></div>
+    <div class="clearfix"></div>
+    <div id="datatable"></div>
 
-            <div id="datatable"></div>
-
-            <hr />
-
-            <div style="font-size: 12px; color: #666666">
-                <b>DISCLAIMER</b>:
-                <p>X-Road monitoring data is collected from Estonian X-Road members security servers available
-by X-Road Center (Republic of Estonia Information System Authority, Riigi Infosüsteemi Amet, RIA)
-and published as opendata with a delay of 10 days from actual transaction execution time.</p>
-<p>Data is renewed nightly, between 0:00-6:00 (EET UTC+2h / EEST UTC+3h).</p>
-<p>Timestamps (specifically <em>requestInTs</em>) are rounded to hour precision and presented in form of Unix timstamp (epoch time).</p>
-<p>According to Security Authorities Act [1] §5 the security authorities are the
-Estonian Internal Security Service and the Estonian Foreign Intelligence Service. Their authorizations are described in
-chapter 4 (§21 - 35) of the above mentioned act. Based on aspects stated in the State Secrets and
-Classified Information of Foreign States Act [2] §11 section 3, §7 p 10 and § 8 p 1 and in the
-Public Information Act [3] §35 section 1 p 1, 31, 51 the X-Road usage statistics of security authorities is
-considered to be for internal use only. X-Road data that is being published as open data by RIA does not contain
-information about the security authorities.</p>
-
-<ul style="list-style-type: none;">
-<li>[1] <a href="https://www.riigiteataja.ee/en/eli/521062017015/consolide" target="_new">Security Authorities Act</a></li>
-<li>[2] <a href="https://www.riigiteataja.ee/en/eli/519062017007/consolide" target="_new">Foreign States Act</a></li>
-<li>[3] <a href="https://www.riigiteataja.ee/en/eli/518012016001/consolide" target="_new">Public Information Act</li>
-</ul>
-
-            </div>
-
-            <div class="footer">
-                <hr />
-<p class="text-left" style="font-family:Roboto,Helvetica Neue,Helvetica,Arial,sans-serif;font-weight:bold;line-height:16px;color:#999">
-<a href="https://github.com/ria-ee/X-Road-opmonitor/blob/master/docs/opendata/user_guide/ug_opendata_interface.md" target="_new" style="font-family:Roboto,Helvetica Neue,Helvetica,Arial,sans-serif;font-weight:bold;line-height:16px;color:#999">User Guide</a> |
-<a href="https://github.com/ria-ee/X-Road-opmonitor/blob/master/docs/opendata/user_guide/ug_opendata_api.md" target="_new" style="font-family:Roboto,Helvetica Neue,Helvetica,Arial,sans-serif;font-weight:bold;line-height:16px;color:#999">API documentation</a> |
-<a href="https://github.com/ria-ee/X-Road-opmonitor/blob/master/docs/opendata/user_guide/cfg_lists/field_data.yaml" target="_new" style="font-family:Roboto,Helvetica Neue,Helvetica,Arial,sans-serif;font-weight:bold;line-height:16px;color:#999">Fields</a></p>
-<p class="text-left" style="font-family:Roboto,Helvetica Neue,Helvetica,Arial,sans-serif;font-weight:bold;line-height:16px;color:#999"><a href="https://www.ria.ee/en/contact.html" target_"new" style="font-family:Roboto,Helvetica Neue,Helvetica,Arial,sans-serif;font-weight:bold;line-height:16px;color:#999">Contact</a> |
-<a href="mailto:help@ria.ee?subject=X-Road v6 usage statistics, Opendata" style="font-family:Roboto,Helvetica Neue,Helvetica,Arial,sans-serif;font-weight:bold;line-height:16px;color:#999">Helpdesk</a></p>
-<hr />
-<p class="text-left" style="font-family:Roboto,Helvetica Neue,Helvetica,Arial,sans-serif;line-height:12px;color:#999">The Opendata application was developed by <a target="_new" href="https://www.stacc.ee/" style="font-family:Roboto,Helvetica Neue,Helvetica,Arial,sans-serif;line-height:12px;color:#999">Tarkvara Tehnoloogia Arenduskeskus OÜ (STACC)</a></p>
-
-            </div>
-        </div>
+    <hr/>
+</div>
 
 
-
-        <script>$("#date").datetimepicker({format : "YYYY-MM-DD",
-                minDate: moment("April 25, 2017", "MMM DD, YYYY"), maxDate: moment("Dec. 24, 2017", "MMM DD, YYYY")});
-        </script>
-        <script src="/static/gui/index.js"></script>
-    </body>
+<script>$("#date").datetimepicker({
+    format: "YYYY-MM-DD",
+    minDate: moment("April 25, 2017", "MMM DD, YYYY"), maxDate: moment("Dec. 24, 2017", "MMM DD, YYYY")
+});
+</script>
+<script src="/static/gui/index.js"></script>
+</body>
 </html>

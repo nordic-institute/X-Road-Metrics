@@ -14,7 +14,7 @@ settings <- tryCatch(
   error=function(cond) {
     message(cond)
     return(
-      yaml.load_file(paste0("/etc/opmon/networking/", settings_file_name))
+      yaml.load_file(paste0("/etc/xroad-metrics/networking/", settings_file_name))
     )
   }
 )

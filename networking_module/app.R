@@ -4,7 +4,7 @@ library(shinycssloaders)
 library(qgraph)
 library(ggplot2)
 
-rdsPath <- "/var/lib/opmon/networking"
+rdsPath <- "/var/lib/xroad-metrics/networking"
 
 ####ui####
 ui <- fluidPage(
@@ -13,7 +13,6 @@ ui <- fluidPage(
 
   fluidRow(
     tags$div(
-      tags$img(src = "ria_100_en.png", align = "left"),
       tags$img(src = "xroad_100_en.png", align = "left"),
       tags$img(src = "eu_rdf_100_en.png", align = "right")
     )
@@ -38,7 +37,7 @@ ui <- fluidPage(
   plotOutput('net1', height = "800px") %>% withSpinner(color = '#663cdc'),
   br(),
   plotOutput('ggplot1', height = "800px") %>% withSpinner(color = '#663cdc'),
-  wellPanel("The visualization application was developed by ", tags$a(href = "https://www.stacc.ee", "Tarkvara Tehnoloogia Arenduskeskus OÜ (STACC)", target = "_blank"), style = "padding: 5px;")
+  wellPanel("The X-Road Metrics tools are developed by  ", tags$a(href = "https://www.niis.org", "NIIS.", target = "_blank"), style = "padding: 5px;")
 )
 
 ####server####
@@ -75,17 +74,13 @@ server <- function(input, output, session) {
   })
 
   output$heading <- renderText({
-    paste0('X-Road v6 usage statistics: members networking visualization, instance ', reactives$xroadInstance)
+    paste0('X-Road Metrics: X-Road Networking Visualization for instance ', reactives$xroadInstance)
   })
 
   output$text1 <- renderText({
     paste0(
-      'The visualization is based on the X-road monitoring data, instance ',
-      tags$a(
-        href = paste0('https://logs.x-tee.ee/', reactives$xroadInstance, '/gui/'),
-        reactives$xroadInstance,
-        target = "_blank"
-      ),
+      'X-Road Metrics: X-Road Networking Visualization for instance ',
+      reactives$xroadInstance,
       ', from ', reactives$dates[1], ' to ', reactives$dates[2], '.')
   })
 

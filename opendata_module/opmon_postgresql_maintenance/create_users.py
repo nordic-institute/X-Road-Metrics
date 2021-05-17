@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-Script to create PostgreSQL users for X-Road OpMon tools.
+Script to create PostgreSQL users for X-Road Metrics tools.
 """
 
 import argparse

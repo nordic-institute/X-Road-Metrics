@@ -7,7 +7,7 @@ class OpmonPidFileHandler:
     def __init__(self, settings):
         self.pid_file = os.path.join(
             settings['collector']['pid-directory'],
-            f"opmon_collector_{settings['xroad']['instance']}.pid"
+            f"xroad_metrics_collector_{settings['xroad']['instance']}.pid"
         )
 
         self.file_created = False

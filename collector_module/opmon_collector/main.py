@@ -31,7 +31,7 @@ def parse_args():
     parser.add_argument("action",
                         metavar="ACTION",
                         choices=actions,
-                        help=f"OpMon collector action to execute. Supported actions are {actions}")
+                        help=f"X-Road Metrics collector action to execute. Supported actions are {actions}")
 
     parser.add_argument('extra',
                         metavar="ARGS",
@@ -46,7 +46,7 @@ def parse_args():
                             Optional settings file profile.
                             For example with '--profile PROD' settings_PROD.yaml will be used as settings file.
                             If no profile is defined, settings.yaml will be used by default.
-                            Settings file is searched from current working directory and /etc/opmon/collector/
+                            Settings file is searched from current working directory and /etc/xroad-metrics/collector/
                         """.strip()
                         )
     args = parser.parse_args()

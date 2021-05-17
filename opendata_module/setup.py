@@ -22,14 +22,14 @@ classifiers = [
 ]
 
 setup(
-    name='opmon-opendata',
+    name='xroad-metrics-opendata',
     version='0.1',
-    description='X-Road Operational Monitoring Opendata Module',
+    description='X-Road Metrics Opendata Module',
     long_description='',
     author='NIIS',
     author_email='info@niis.org',
     packages=find_packages(exclude=("*.tests", "tests",)),
-    scripts=['bin/opmon-init-postgresql'],
+    scripts=['bin/xroad-metrics-init-postgresql'],
     include_package_data=True,
     install_requires=requirements,
     classifiers=classifiers,

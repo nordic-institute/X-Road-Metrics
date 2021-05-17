@@ -4,11 +4,11 @@ xroad:
 opendata:
   delay-days: 10
   preview-limit: 10
-  field-data-path: /etc/opmon/opendata/field_data.yaml
+  field-data-path: /etc/xroad-metrics/opendata/field_data.yaml
   maintenance-mode: false
-  disclaimer: "<p>add disclaimer here</p>"
-  header: "<p>add header here</p>"
-  footer: "<p>add footer here</p>"
+  disclaimer: "<!--insert your custom HTML disclaimer here-->"
+  header: "<!--insert your custom HTML header here-->"
+  footer: "<!--insert your custom HTML footer here-->"
 
 postgres:
   host: localhost
@@ -28,8 +28,8 @@ logger:
 
   # Logs and heartbeat files are stored under these paths.
   # Also configure external log rotation and app monitoring accordingly.
-  log-path: /var/log/opmon/opendata/logs
-  heartbeat-path: /var/log/opmon/opendata/heartbeat
+  log-path: /var/log/xroad-metrics/opendata/logs
+  heartbeat-path: /var/log/xroad-metrics/opendata/heartbeat
 
 django:
   secret-key: <FILL>

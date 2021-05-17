@@ -22,7 +22,7 @@ classifiers = [
 ]
 
 setup(
-    name='opmon-analysis',
+    name='xroad-metrics-analysis',
     version='0.1',
     description='X-Road Operational Monitoring Analysis Module',
     long_description='',
@@ -30,7 +30,7 @@ setup(
     author_email='info@niis.org',
     packages=find_packages(exclude=("tests", "analyzer_ui")),
     package_dir={'opmon_analyzer': 'opmon_analyzer'},
-    scripts=['bin/opmon-analyzer'],
+    scripts=['bin/xroad-metrics-analyzer'],
     install_requires=requirements,
     classifiers=classifiers,
     platforms='POSIX',
