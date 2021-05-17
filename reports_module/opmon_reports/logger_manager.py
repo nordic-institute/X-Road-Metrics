@@ -33,11 +33,12 @@ class LoggerManager:
         logger = logging.getLogger(self.name)
         logger.setLevel(self.level)
 
-        formatter = logging.Formatter("%(message)s")
-        log_file = os.path.join(self.log_path, self.log_filename)
-        file_handler = WatchedFileHandler(log_file)
-        file_handler.setFormatter(formatter)
-        logger.addHandler(file_handler)
+        if not logger.hasHandlers():
+            formatter = logging.Formatter("%(message)s")
+            log_file = os.path.join(self.log_path, self.log_filename)
+            file_handler = WatchedFileHandler(log_file)
+            file_handler.setFormatter(formatter)
+            logger.addHandler(file_handler)
 
     def log_info(self, activity, msg):
         logger = logging.getLogger(self.name)
