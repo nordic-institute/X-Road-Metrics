@@ -23,9 +23,9 @@ def main():
             raise e
 
 
-def run_batch(settings, logger_m):
+def run_batch(settings, logger_m: LoggerManager):
     corrector_version = logger_m.__version__
-    c_batch = CorrectorBatch(settings)
+    c_batch = CorrectorBatch(settings, logger_m)
     manager = Manager()
     process_dict = manager.dict()
     process_dict['doc_len'] = -1

@@ -10,10 +10,9 @@ from .logger_manager import LoggerManager
 
 
 class CorrectorBatch:
-    def __init__(self, settings):
+    def __init__(self, settings, logger_m: LoggerManager):
         self.settings = settings
-        xroad = settings['xroad']['instance']
-        self.logger_m = LoggerManager(settings['logger'], xroad)
+        self.logger_m = logger_m
 
     def run(self, process_dict):
         """
