@@ -1,3 +1,5 @@
+import logging
+
 import pytest
 import os
 import shutil
@@ -65,6 +67,8 @@ def test_logging_without_limits(log_path, logger_settings):
     instance = 'INFOTEST'
     logger = LoggerManager(logger_settings, instance)
     log_on_every_level(logger)
+
+    assert logger.file_handler in logging.getLogger(logger_settings['name']).handlers
 
     rows = read_log_rows(log_path, instance)
     assert (len(rows) == 3)

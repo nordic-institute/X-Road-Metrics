@@ -1,6 +1,3 @@
-""" Logger Manager - Collector Module
-"""
-
 import json
 import logging
 import os
@@ -26,22 +23,27 @@ class LoggerManager:
 
         self.log_path = logger_settings['log-path']
         self.log_filename = f'log_{self.name}_{xroad_instance}.json'
-        
+
         self.heartbeat_path = logger_settings['heartbeat-path']
         self.heartbeat_filename = f'heartbeat_{self.name}_{xroad_instance}.json'
 
+        self.file_handler = self._create_file_handler()
+
         self._setup_logger()
+
+    def _create_file_handler(self):
+        formatter = logging.Formatter("%(message)s")
+        log_file = os.path.join(self.log_path, self.log_filename)
+        file_handler = WatchedFileHandler(log_file)
+        file_handler.setFormatter(formatter)
+        return file_handler
 
     def _setup_logger(self):
         logger = logging.getLogger(self.name)
         logger.setLevel(self.level)
 
-        if not logger.hasHandlers():
-            formatter = logging.Formatter("%(message)s")
-            log_file = os.path.join(self.log_path, self.log_filename)
-            file_handler = WatchedFileHandler(log_file)
-            file_handler.setFormatter(formatter)
-            logger.addHandler(file_handler)
+        if self.file_handler not in logger.handlers:
+            logger.addHandler(self.file_handler)
 
     def log_info(self, activity, msg):
         logger = logging.getLogger(self.name)
