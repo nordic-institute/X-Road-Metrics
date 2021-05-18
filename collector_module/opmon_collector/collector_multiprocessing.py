@@ -1,11 +1,11 @@
 import time
 from multiprocessing import Pool
 
-from opmon_collector.database_manager import DatabaseManager
-from opmon_collector.logger_manager import LoggerManager
-from opmon_collector.collector_worker import run_collector_thread
-from opmon_collector.pid_file_handler import OpmonPidFileHandler
-
+from .database_manager import DatabaseManager
+from .logger_manager import LoggerManager
+from .collector_worker import run_collector_thread
+from .pid_file_handler import OpmonPidFileHandler
+from . import __version__
 
 def prepare_thread_inputs(settings, server_list, server_m, logger_m):
     inputs = []
@@ -30,7 +30,7 @@ def process_thread_pool(settings, inputs):
 
 
 def run_threaded_collector(logger_m, settings):
-    logger_m.log_info('collector_start', f'Starting collector - Version {LoggerManager.__version__}')
+    logger_m.log_info('collector_start', f'Starting collector')
 
     OpmonPidFileHandler(settings).create_pid_file()
 
@@ -48,7 +48,7 @@ def run_threaded_collector(logger_m, settings):
 
 
 def collector_main(settings):
-    logger_m = LoggerManager(settings['logger'], settings['xroad']['instance'])
+    logger_m = LoggerManager(settings['logger'], settings['xroad']['instance'], __version__)
 
     try:
         run_threaded_collector(logger_m, settings)

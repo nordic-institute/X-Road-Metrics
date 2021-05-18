@@ -2,10 +2,11 @@
     Stores updated list into collector_state.server_list
 """
 
-from opmon_collector.central_server_client import CentralServerClient
-from opmon_collector.database_manager import DatabaseManager
-from opmon_collector.logger_manager import LoggerManager
-from opmon_collector.pid_file_handler import OpmonPidFileHandler
+from .central_server_client import CentralServerClient
+from .database_manager import DatabaseManager
+from .logger_manager import LoggerManager
+from .pid_file_handler import OpmonPidFileHandler
+from . import __version__
 
 
 def _init_clients(settings, logger_m):
@@ -15,7 +16,7 @@ def _init_clients(settings, logger_m):
 
 
 def update_database_server_list(settings):
-    logger_m = LoggerManager(settings['logger'], settings['xroad']['instance'])
+    logger_m = LoggerManager(settings['logger'], settings['xroad']['instance'], __version__)
 
     try:
         OpmonPidFileHandler(settings).create_pid_file()
@@ -36,7 +37,7 @@ def update_database_server_list(settings):
 
 
 def print_server_list(settings):
-    logger_m = LoggerManager(settings['logger'], settings['xroad']['instance'])
+    logger_m = LoggerManager(settings['logger'], settings['xroad']['instance'], __version__)
     cs_client, _ = _init_clients(settings, logger_m)
     server_list = cs_client.get_security_servers()
     for s in server_list:
