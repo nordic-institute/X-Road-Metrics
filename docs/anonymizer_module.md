@@ -1,11 +1,20 @@
-# X-Road v6 monitor project - Anonymizer Module
+
+|  [![X-ROAD](img/xroad_100_en.png)](https://x-road.global/) | ![European Union / European Regional Development Fund / Investing in your future](img/eu_rdf_100_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.11.2022. If it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
+| :-------------------------------------------------- | -------------------------: |
+
+# X-Road Metrics - Anonymizer Module
 
 ## About
 
-The **Anonymizer module** is part of [X-Road v6 monitor project](../README.md), 
-which includes modules of [Database module](database_module.md), [Collector module](collector_module.md), 
-[Corrector module](corrector_module.md), [Analysis module](analysis_module.md), [Reports module](reports_module.md), 
-[Opendata module](opendata_module.md) and [Networking/Visualizer module](networking_module.md).
+The **Anonymizer module** is part of [X-Road Metrics](../README.md), 
+which include following modules:
+ - [Database module](../database_module.md)
+ - [Collector module](../collector_module.md)
+ - [Corrector module](../corrector_module.md) 
+ - [Reports module](../reports_module.md) 
+ - [Anonymizer module](../anonymizer_module.md)
+ - [Opendata module](../opendata_module.md) 
+ - [Networking/Visualizer module](../networking_module.md)
 
 The **Anonymizer module** is responsible of preparing the operational monitoring data for publication through 
 the [Opendata module](opendata_module.md). Anonymizer configuration allows opmon extension administrator to set 

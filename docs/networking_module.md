@@ -1,18 +1,19 @@
 
-| [![Republic of Estonia Information System Authority](img/ria_100_en.png)](https://www.ria.ee/en.html) [![X-ROAD](img/xroad_100_en.png)](https://www.ria.ee/en/state-information-system/x-tee.html) | ![European Union / European Regional Development Fund / Investing in your future](img/eu_rdf_100_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.11.2022. If it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
+|  [![X-ROAD](img/xroad_100_en.png)](https://x-road.global/) | ![European Union / European Regional Development Fund / Investing in your future](img/eu_rdf_100_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.11.2022. If it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
 | :-------------------------------------------------- | -------------------------: |
 
-# X-Road v6 monitor project - Networking / Visualizer Module
+# X-Road Metrics - Networking / Visualizer Module
 
 ## About
 
-The Networking module is part of [X-Road v6 monitor project](../README.md). All other modules in X-Road Operational Monitoring are:
-- [Database module](database_module.md) 
-- [Collector module](collector_module.md) 
-- [Corrector module](corrector_module.md) 
-- [Analysis module](analysis_module.md) 
-- [Reports module](reports_module.md) 
-- [Opendata module](opendata_module.md) 
+The Networking module is part of [X-Road Metrics](../README.md). All other modules in X-Road Operational Monitoring are:
+ - [Database module](../database_module.md)
+ - [Collector module](../collector_module.md)
+ - [Corrector module](../corrector_module.md) 
+ - [Reports module](../reports_module.md) 
+ - [Anonymizer module](../anonymizer_module.md)
+ - [Opendata module](../opendata_module.md) 
+ - [Networking/Visualizer module](../networking_module.md)
 
 The purpose of the **Networking module** is to visualize the networking activity between the X-Road members. 
 It consists of:

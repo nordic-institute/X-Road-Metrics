@@ -1,5 +1,5 @@
 
-| [![X-ROAD](img/xroad_100_en.png)](https://www.ria.ee/en/state-information-system/x-tee.html) | ![European Union / European Regional Development Fund / Investing in your future](img/eu_rdf_100_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.11.2022. If it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
+| [![X-ROAD](img/xroad_100_en.png)](https://x-road.global/) | ![European Union / European Regional Development Fund / Investing in your future](img/eu_rdf_100_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.11.2022. If it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
 | :-------------------------------------------------- | -------------------------: |
 
 # X-Road Metrics - System Architecture
@@ -11,10 +11,12 @@ collected from X-Road security servers. The system consists of several modules:
 * [Collector Module](#collector-module)
 * [Corrector Module](#corrector-module)
 * [Reports Module](#reports-module)
-* [Analyzer Module](#analyzer-module)
 * [Opendata Database Module (PostgreSQL)](#opendata-module)
 * [Opendata Module](#opendata-module)
 * [Networking/Visualizer Module](#networking-visualizer-module)
+
+In addition to the above modules, the source code includes an [experimental Analyzer Module](#analyzer-module), 
+which is not yet released.
 
 This document contains an architecture overview of the interfaces between the modules. 
 Also, the document presents some possible hardware infrastructure options that can be used to run X-Road Metrics tools.
