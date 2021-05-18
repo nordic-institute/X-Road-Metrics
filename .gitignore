@@ -68,3 +68,5 @@ target/
 
 *.sqlite3
 
+# PID files from tests
+xroad_metrics*.pid
