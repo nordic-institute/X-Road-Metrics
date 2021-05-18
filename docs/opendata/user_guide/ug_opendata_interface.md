@@ -6,7 +6,7 @@
 
 The project maintains X-Road v6 log of service calls (queries), published as opendata.
 
-X-Road Metrics colleects X-Road operational monitoring data X-Road members security servers available 
+X-Road Metrics collects X-Road operational monitoring data X-Road members security servers available 
 and publishes it as opendata with a delay of 10 days from actual transaction execution time.
 
 Data is renewed nightly, between 0:00-6:00 (EET UTC+2h / EEST UTC+3h).
