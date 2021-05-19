@@ -20,25 +20,32 @@ class LoggerManager:
         self.name = logger_settings['name']
         self.module = logger_settings['module']
         self.level = logger_settings['level']
-
-        self.log_path = logger_settings['log-path']
-        self.log_filename = f'log_{self.name}_{xroad_instance}.json'
+        self.log_path = os.path.join(logger_settings['log-path'], f'log_{self.name}_{xroad_instance}.json')
 
         self.heartbeat_path = logger_settings['heartbeat-path']
         self.heartbeat_filename = f'heartbeat_{self.name}_{xroad_instance}.json'
 
         self._setup_logger()
 
+    def _create_file_handler(self):
+        formatter = logging.Formatter("%(message)s")
+
+        file_handler = WatchedFileHandler(self.log_path)
+        file_handler.setFormatter(formatter)
+        return file_handler
+
+    def _handler_is_set(self, handlers):
+        for handler in handlers:
+            if handler is WatchedFileHandler and os.path.abspath(self.log_path) == handler.baseFilename:
+                return True
+        return False
+
     def _setup_logger(self):
         logger = logging.getLogger(self.name)
         logger.setLevel(self.level)
 
-        if not logger.hasHandlers():
-            formatter = logging.Formatter("%(message)s")
-            log_file = os.path.join(self.log_path, self.log_filename)
-            file_handler = WatchedFileHandler(log_file)
-            file_handler.setFormatter(formatter)
-            logger.addHandler(file_handler)
+        if not self._handler_is_set(logger.handlers):
+            logger.addHandler(self._create_file_handler())
 
     def log_info(self, activity, msg):
         logger = logging.getLogger(self.name)

@@ -1,3 +1,5 @@
+import logging
+
 import pytest
 import os
 import shutil
