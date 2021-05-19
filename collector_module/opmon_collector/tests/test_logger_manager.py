@@ -68,8 +68,6 @@ def test_logging_without_limits(log_path, logger_settings):
     logger = LoggerManager(logger_settings, instance)
     log_on_every_level(logger)
 
-    assert logger.file_handler in logging.getLogger(logger_settings['name']).handlers
-
     rows = read_log_rows(log_path, instance)
     assert (len(rows) == 3)
     assert_levels(rows, ['INFO', 'WARNING', 'ERROR'])
