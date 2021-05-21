@@ -61,7 +61,7 @@ We have every reason to believe this X-Road Metrics tool will not corrupt your d
 But if we were you, we would suggest to test thoroughly before use it in a production environment.
 
 Developed by: [STACC (Software Technology and Applications Competence Center)](https://www.stacc.ee/en/) according to procurement [RHR 183990](https://riigihanked.riik.ee/register/hange/183990)
-Maintained and released by [Nordic Institute for Interoperability Solutions (NIIS)](https://niis.org), under the [MIT License](http://www.opensource.org/licenses/MIT).
+Maintained and released by [Nordic Institute for Interoperability Solutions (NIIS)](https://niis.org), under the [MIT License](LICENSE.MD).
 
 ## Contact
 [info@niis.org](mailto:info@niis.org)
