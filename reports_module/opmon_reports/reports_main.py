@@ -10,6 +10,7 @@ from .report_manager import ReportManager
 from .translator import Translator
 from .reports_arguments import OpmonReportsArguments
 from .xroad_descriptor import OpmonXroadDescriptor
+from . import __version__
 
 
 def create_translator(args, logger_m):
@@ -66,7 +67,7 @@ def generate_reports(args, logger_m):
 
 
 def report_main(args: OpmonReportsArguments):
-    logger_m = LoggerManager(args.settings['logger'], args.xroad_instance)
+    logger_m = LoggerManager(args.settings['logger'], args.xroad_instance, __version__)
 
     try:
         start_processing_time = time.time()

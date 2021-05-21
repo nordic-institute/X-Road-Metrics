@@ -6,6 +6,7 @@ from opmon_analyzer import analyzer_conf
 
 from . import constants
 from .logger_manager import LoggerManager
+from . import __version__
 
 import time
 import datetime
@@ -19,7 +20,7 @@ def update_model(settings):
     config = analyzer_conf.DataModelConfiguration(settings)
     log_activity = 'train_or_update_historic_averages_models'
     db_manager = AnalyzerDatabaseManager(settings)
-    logger_m = LoggerManager(settings['logger'], settings['xroad']['instance'])
+    logger_m = LoggerManager(settings['logger'], settings['xroad']['instance'], __version__)
 
     # add first request timestamps for service calls that have appeared
     logger_m.log_heartbeat("Checking if completely new service calls have appeared", 'SUCCEEDED')

@@ -21,7 +21,6 @@ classifiers = [
 
 setup(
     name='xroad-metrics-anonymizer',
-    version='0.1',
     description='X-Road Operational Monitoring anonymizer Module',
     long_description='',
     author='NIIS',

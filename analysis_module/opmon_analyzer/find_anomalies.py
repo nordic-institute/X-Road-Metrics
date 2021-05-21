@@ -9,6 +9,7 @@ from .models.TimeSyncModel import TimeSyncModel
 from .models.AveragesByTimeperiodModel import AveragesByTimeperiodModel
 from . import constants
 from .logger_manager import LoggerManager
+from . import __version__
 
 import time
 import datetime
@@ -17,7 +18,7 @@ import numpy as np
 
 
 def find_anomalies_main(settings):
-    logger_m = LoggerManager(settings['logger'], settings['xroad']['instance'])
+    logger_m = LoggerManager(settings['logger'], settings['xroad']['instance'], __version__)
 
     try:
         db_manager = AnalyzerDatabaseManager(settings)

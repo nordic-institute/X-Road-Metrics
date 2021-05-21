@@ -7,6 +7,7 @@ import urllib.parse
 import pymongo
 
 from .logger_manager import LoggerManager
+from . import __version__
 
 RAW_DATA_COLLECTION = 'raw_messages'
 CLEAN_DATA_COLLECTION = 'clean_data'
@@ -38,7 +39,7 @@ class DatabaseManager:
     def __init__(self, settings):
         self.settings = settings
         xroad = settings['xroad']['instance']
-        self.logger_m = LoggerManager(settings['logger'], xroad)
+        self.logger_m = LoggerManager(settings['logger'], xroad, __version__)
 
         self.client = pymongo.MongoClient(self.get_mongo_uri(settings))
         self.mdb_database = f"query_db_{xroad}"

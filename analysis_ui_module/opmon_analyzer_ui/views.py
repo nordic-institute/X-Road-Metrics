@@ -12,6 +12,7 @@ from .settings_parser import OpmonSettingsManager
 from .db_manager import IncidentDatabaseManager
 from .logger_manager import LoggerManager
 from . import constants
+from . import __version__
 
 
 def index(request, profile=None):
@@ -273,4 +274,4 @@ def _get_settings(profile=None):
 
 
 def _get_logger(settings):
-    return LoggerManager(settings['logger'], settings['xroad']['instance'])
+    return LoggerManager(settings['logger'], settings['xroad']['instance'], __version__)

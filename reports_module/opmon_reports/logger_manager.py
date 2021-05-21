@@ -14,9 +14,7 @@ def get_local_timestamp():
 
 
 class LoggerManager:
-    __version__ = 'v1.6'
-
-    def __init__(self, logger_settings, xroad_instance):
+    def __init__(self, logger_settings, xroad_instance, version):
         self.name = logger_settings['name']
         self.module = logger_settings['module']
         self.level = logger_settings['level']
@@ -24,6 +22,8 @@ class LoggerManager:
 
         self.heartbeat_path = logger_settings['heartbeat-path']
         self.heartbeat_filename = f'heartbeat_{self.name}_{xroad_instance}.json'
+
+        self.version = version
 
         self._setup_logger()
 
@@ -57,7 +57,7 @@ class LoggerManager:
         data['module'] = self.module
         data['activity'] = activity
         data['msg'] = msg
-        data['version'] = self.__version__
+        data['version'] = self.version
         # Log to file
         logger.info(json.dumps(data))
 
@@ -71,7 +71,7 @@ class LoggerManager:
         data['module'] = self.module
         data['activity'] = activity
         data['msg'] = msg
-        data['version'] = self.__version__
+        data['version'] = self.version
         # Log to file
         logger.warning(json.dumps(data))
 
@@ -85,7 +85,7 @@ class LoggerManager:
         data['module'] = self.module
         data['activity'] = activity
         data['msg'] = msg
-        data['version'] = self.__version__
+        data['version'] = self.version
         # Log to file
         logger.error(json.dumps(data))
 
@@ -97,7 +97,7 @@ class LoggerManager:
         data['local_timestamp'] = get_local_timestamp()
         data['module'] = self.module
         data['msg'] = msg
-        data['version'] = self.__version__
+        data['version'] = self.version
         # Log to file
         if not os.path.isdir(self.heartbeat_path):
             os.makedirs(self.heartbeat_path)

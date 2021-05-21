@@ -2,15 +2,16 @@ import argparse
 import time
 from multiprocessing import Manager, Process
 
-from opmon_corrector.corrector_batch import CorrectorBatch
-from opmon_corrector.logger_manager import LoggerManager
-from opmon_corrector.settings_parser import OpmonSettingsManager
+from .corrector_batch import CorrectorBatch
+from .logger_manager import LoggerManager
+from .settings_parser import OpmonSettingsManager
+from . import __version__
 
 
 def main():
     args = parse_args()
     settings = OpmonSettingsManager(args.profile).settings
-    logger_m = LoggerManager(settings['logger'], settings['xroad']['instance'])
+    logger_m = LoggerManager(settings['logger'], settings['xroad']['instance'], __version__)
     # Runs Corrector in infinite Loop
     while True:
         try:
@@ -24,13 +25,12 @@ def main():
 
 
 def run_batch(settings, logger_m: LoggerManager):
-    corrector_version = logger_m.__version__
     c_batch = CorrectorBatch(settings, logger_m)
     manager = Manager()
     process_dict = manager.dict()
     process_dict['doc_len'] = -1
 
-    print('Corrector Service [{0}] - Batch timestamp: {1}'.format(corrector_version, int(time.time())))
+    print('Corrector Service [{0}] - Batch timestamp: {1}'.format(__version__, int(time.time())))
     p = Process(target=c_batch.run, args=(process_dict,))
     p.start()
     p.join()

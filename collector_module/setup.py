@@ -21,7 +21,6 @@ classifiers = [
 
 
 setup(name='xroad-metrics-collector',
-      version='0.1',
       description='X-Road Metrics Collector Module',
       long_description='',
       author='NIIS',

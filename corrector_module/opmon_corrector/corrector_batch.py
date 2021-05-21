@@ -42,7 +42,7 @@ class CorrectorBatch:
         self.logger_m.log_heartbeat("processing", "SUCCEEDED")
         self.logger_m.log_info(
             'corrector_batch_start',
-            f'Starting corrector - Version {LoggerManager.__version__}'
+            f'Starting corrector'
         )
 
         db_m = database_manager.DatabaseManager(self.settings)

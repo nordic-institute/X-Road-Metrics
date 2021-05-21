@@ -5,13 +5,14 @@ import collections
 import hashlib
 
 from .logger_manager import LoggerManager
+from . import __version__
 
 
 class DocumentManager:
     def __init__(self, settings):
 
         self.calc = settings['corrector']['calc']
-        self.logger_m = LoggerManager(settings['logger'], settings['xroad']['instance'])
+        self.logger_m = LoggerManager(settings['logger'], settings['xroad']['instance'], __version__)
         self.TIME_WINDOW = settings['corrector']['time-window']
         self.COMPARISON_LIST = settings['corrector']['comparison-list']
         self.orphan_comparison_list = settings['corrector']['comparison_list_orphan']

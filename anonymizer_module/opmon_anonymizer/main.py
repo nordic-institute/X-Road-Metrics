@@ -5,13 +5,14 @@ from datetime import datetime
 import argparse
 import traceback
 from .settings_parser import OpmonSettingsManager
-from opmon_anonymizer.utils import logger_manager
+from .utils import logger_manager
+from . import __version__
 
 
 def main():
     args = parse_args()
     settings = OpmonSettingsManager(args.profile).settings
-    logger = logger_manager.LoggerManager(settings['logger'], settings['xroad']['instance'])
+    logger = logger_manager.LoggerManager(settings['logger'], settings['xroad']['instance'], __version__)
 
     try:
         start_time = datetime.now()
@@ -20,6 +21,8 @@ def main():
         logger.log_info('anonymization_session_finished',
                         f"Anonymization finished in {elapsed} seconds. Processed {record_count} entries from MongoDB.")
     except Exception:
+        trace = traceback.format_exc().replace('\n', '')
+        logger.log_error('anonymization_process_failed', f'Failed to anonymize. ERROR: {trace}')
         raise
 
 
@@ -90,16 +93,14 @@ def run_anonymizer(settings, logger, anonymization_limit):
         logger.log_heartbeat('Started anonymizing logs.', 'SUCCEEDED')
         anonymizer_instance = Anonymizer(reader, writer, settings, logger)
         records = anonymizer_instance.anonymize(anonymization_limit)
+        logger.log_heartbeat('Finished anonymization session', 'SUCCEEDED')
+        return records
 
     except Exception:
         trace = traceback.format_exc().replace('\n', '')
         logger.log_error('anonymization_process_failed', f'Failed to anonymize. ERROR: {trace}')
         save_reader_state_on_error(reader, logger)
         logger.log_heartbeat('Error occurred during log anonymization', 'FAILED')
-        raise
-
-    logger.log_heartbeat('Finished anonymization session', 'SUCCEEDED')
-    return records
 
 
 def save_reader_state_on_error(reader: MongoDbManager, logger):

@@ -16,11 +16,12 @@ from .input_validator import OpenDataInputValidator
 from .postgresql_manager import PostgreSQL_Manager
 from ..logger_manager import LoggerManager
 from ..opendata_settings_parser import OpenDataSettingsParser
+from .. import __version__
 
 
 def heartbeat(request, profile=None):
     settings = OpenDataSettingsParser(profile).settings
-    logger = LoggerManager(settings['logger'], settings['xroad']['instance'])
+    logger = LoggerManager(settings['logger'], settings['xroad']['instance'], __version__)
 
     heartbeat_status = 'FAILED'
     heartbeat_message = 'Opendata heartbeat'
@@ -42,7 +43,7 @@ def heartbeat(request, profile=None):
 @csrf_exempt
 def get_daily_logs(request, profile=None):
     settings = OpenDataSettingsParser(profile).settings
-    logger = LoggerManager(settings['logger'], settings['xroad']['instance'])
+    logger = LoggerManager(settings['logger'], settings['xroad']['instance'], __version__)
 
     try:
         postgres = PostgreSQL_Manager(settings)
@@ -83,7 +84,7 @@ def get_daily_logs(request, profile=None):
 @csrf_exempt
 def get_preview_data(request, profile=None):
     settings = OpenDataSettingsParser(profile).settings
-    logger = LoggerManager(settings['logger'], settings['xroad']['instance'])
+    logger = LoggerManager(settings['logger'], settings['xroad']['instance'], __version__)
 
     try:
         postgres = PostgreSQL_Manager(settings)
@@ -120,7 +121,7 @@ def get_preview_data(request, profile=None):
 @csrf_exempt
 def get_date_range(request, profile=None):
     settings = OpenDataSettingsParser(profile).settings
-    logger = LoggerManager(settings['logger'], settings['xroad']['instance'])
+    logger = LoggerManager(settings['logger'], settings['xroad']['instance'], __version__)
 
     try:
         min_date, max_date = PostgreSQL_Manager(settings).get_min_and_max_dates()
@@ -138,7 +139,7 @@ def get_date_range(request, profile=None):
 @csrf_exempt
 def get_column_data(request, profile=None):
     settings = OpenDataSettingsParser(profile).settings
-    logger = LoggerManager(settings['logger'], settings['xroad']['instance'])
+    logger = LoggerManager(settings['logger'], settings['xroad']['instance'], __version__)
 
     postgres_to_python_type = {'varchar(255)': 'string', 'bigint': 'integer', 'integer': 'integer',
                                'date': 'date (YYYY-MM-DD)', 'boolean': 'boolean'}
