@@ -22,7 +22,6 @@ classifiers = [
 
 setup(
     name='xroad-metrics-analysis-ui',
-    version='0.1',
     description='X-Road Operational Monitoring Analysis UI Module',
     long_description='',
     author='NIIS',
