@@ -5,6 +5,7 @@ from .database_manager import DatabaseManager
 from .logger_manager import LoggerManager
 from .notification_manager import NotificationManager
 from .reports_arguments import OpmonReportsArguments
+from . import __version__
 
 
 def send_notifications(notification_manager, logger_m):
@@ -43,7 +44,7 @@ def notify_main(args: OpmonReportsArguments):
     :param args: OpmonReportsArguments object with command line arguments and settings file data
     :return:
     """
-    logger_m = LoggerManager(args.settings['logger'], args.xroad_instance)
+    logger_m = LoggerManager(args.settings['logger'], args.xroad_instance, __version__)
     try:
         logger_m.log_info('send_notifications', 'starting to send notifications')
         start_processing_time = time.time()

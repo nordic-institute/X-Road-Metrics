@@ -1,6 +1,3 @@
-""" Logger Manager
-"""
-
 import json
 import logging
 import os
