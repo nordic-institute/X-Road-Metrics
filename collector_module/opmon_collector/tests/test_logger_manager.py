@@ -1,5 +1,3 @@
-import logging
-
 import pytest
 import os
 import shutil
@@ -65,7 +63,7 @@ def assert_heartbeat_fields(rows):
 
 def test_logging_without_limits(log_path, logger_settings):
     instance = 'INFOTEST'
-    logger = LoggerManager(logger_settings, instance)
+    logger = LoggerManager(logger_settings, instance, '1')
     log_on_every_level(logger)
 
     rows = read_log_rows(log_path, instance)
@@ -77,7 +75,7 @@ def test_logging_without_limits(log_path, logger_settings):
 def test_logging_with_warning_limit(log_path, logger_settings):
     logger_settings['level'] = 'WARNING'
     instance = 'WARNTEST'
-    logger = LoggerManager(logger_settings, instance)
+    logger = LoggerManager(logger_settings, instance, '1')
     log_on_every_level(logger)
 
     rows = read_log_rows(log_path, instance)
@@ -90,7 +88,7 @@ def test_logging_with_warning_limit(log_path, logger_settings):
 def test_logging_with_error_limit(log_path, logger_settings):
     logger_settings['level'] = 'ERROR'
     instance = 'ERRORTEST'
-    logger = LoggerManager(logger_settings, instance)
+    logger = LoggerManager(logger_settings, instance, '')
     log_on_every_level(logger)
 
     rows = read_log_rows(log_path, instance)
@@ -102,7 +100,7 @@ def test_logging_with_error_limit(log_path, logger_settings):
 
 def test_heartbeat(logger_settings, log_path):
     instance = 'HEARTBEATTEST'
-    logger = LoggerManager(logger_settings, instance)
+    logger = LoggerManager(logger_settings, instance, '')
     logger.log_heartbeat('hb-test-msg', 'hb-test-status')
     logger.log_heartbeat('hb-test-msg2', 'hb-test-status2')
     rows = read_log_rows(log_path, instance, 'heartbeat')

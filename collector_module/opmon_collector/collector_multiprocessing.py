@@ -7,6 +7,7 @@ from .collector_worker import run_collector_thread
 from .pid_file_handler import OpmonPidFileHandler
 from . import __version__
 
+
 def prepare_thread_inputs(settings, server_list, server_m, logger_m):
     inputs = []
 
