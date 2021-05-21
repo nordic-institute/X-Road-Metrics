@@ -23,7 +23,6 @@ classifiers = [
 
 setup(
     name='xroad-metrics-opendata',
-    version='0.1',
     description='X-Road Metrics Opendata Module',
     long_description='',
     author='NIIS',
