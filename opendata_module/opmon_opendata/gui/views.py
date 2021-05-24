@@ -81,7 +81,7 @@ def index(request, profile=None):
 
 def get_datatable_frame(request, profile=None):
     settings = get_settings(profile)
-    logger = LoggerManager(settings['logger'], settings['xroad']['instance'])
+    logger = LoggerManager(settings['logger'], settings['xroad']['instance'], __version__)
 
     try:
         postgres = PostgreSQL_Manager(settings)
