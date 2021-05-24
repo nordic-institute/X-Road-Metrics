@@ -140,6 +140,7 @@ def get_preview_data(request, profile=None):
             status=500
         )
 
+
 @csrf_exempt
 def get_date_range(request, profile=None):
     settings = OpenDataSettingsParser(profile).settings

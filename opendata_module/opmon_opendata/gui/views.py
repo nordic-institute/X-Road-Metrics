@@ -61,7 +61,7 @@ def index(request, profile=None):
                 'footer': settings['opendata']['footer'],
                 'x_road_instance': settings['xroad']['instance'],
             })
-    except:
+    except Exception:
         logger.log_error('gui_index_page_loading_failed', 'Failed loading index page. ERROR: {0}'.format(
             traceback.format_exc().replace('\n', '')
         ))

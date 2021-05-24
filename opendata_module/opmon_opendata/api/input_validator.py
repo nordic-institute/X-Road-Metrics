@@ -55,11 +55,10 @@ class OpenDataInputValidator:
         if date_str:
             try:
                 date = datetime.strptime(date_str, '%Y-%m-%d')
-            except:
+            except Exception:
                 raise Exception(f'Date {date_str} is not in required format YYYY-MM-DD.')
         else:
             raise Exception('Missing "date" field.')
-
 
         if datetime.now() - logs_time_buffer < date:
             raise Exception(
@@ -73,7 +72,7 @@ class OpenDataInputValidator:
         if isinstance(columns, str):
             try:
                 columns = json.loads(columns)
-            except:
+            except Exception:
                 raise Exception('Unable to parse columns as a list of field names.')
         elif not isinstance(columns, list):
             raise Exception('Unable to parse columns as a list of field names.')
@@ -90,7 +89,7 @@ class OpenDataInputValidator:
         if isinstance(constraints, str):
             try:
                 constraints = json.loads(constraints)
-            except:
+            except Exception:
                 raise Exception(
                     'Unable to parse constraints as a list of objects with the schema {"column": null, "operator": null, "value": null}.')
         elif not isinstance(constraints, list):
@@ -131,7 +130,7 @@ class OpenDataInputValidator:
         if isinstance(order_clauses, str):
             try:
                 order_clauses = json.loads(order_clauses)
-            except:
+            except Exception:
                 raise Exception(
                     'Unable to parse order clauses as a list of objects with the schema {"column": null, "order": null}.')
         elif not isinstance(order_clauses, list):

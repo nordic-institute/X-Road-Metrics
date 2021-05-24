@@ -42,6 +42,7 @@ def get_data():
         reader = csv.reader(data_file, delimiter='\t')
         return [[value if value != '\\N' else None for value in row] for row in reader]
 
+
 connection_string = get_connection_string(**POSTGRES_CONFIG)
 
 schema_command = get_schema_command()
