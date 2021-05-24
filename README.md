@@ -64,6 +64,6 @@ But if we were you, we would suggest to test thoroughly before use it in a produ
 ## Contact
 X-Road Metrics was initially developed by: [STACC (Software Technology and Applications Competence Center)](https://www.stacc.ee/en/) according to procurement [RHR 183990](https://riigihanked.riik.ee/register/hange/183990)
 
-Currently X-Road Metrics is released and maintained by [Nordic Institute for Interoperability Solutions (NIIS)](https://niis.org), under the [MIT License](http://www.opensource.org/licenses/MIT).
+Currently X-Road Metrics is released and maintained by [Nordic Institute for Interoperability Solutions (NIIS)](https://niis.org), under the [MIT License](LICENSE.MD).
 
 We appreciate your feedback: [info@niis.org](mailto:info@niis.org?subject=Feedback on X-Road Metrics)
