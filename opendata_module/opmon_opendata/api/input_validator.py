@@ -51,7 +51,6 @@ class OpenDataInputValidator:
 
         self.settings = settings
 
-
     def load_and_validate_date(self, date_str, logs_time_buffer):
         if date_str:
             try:
@@ -60,6 +59,7 @@ class OpenDataInputValidator:
                 raise Exception(f'Date {date_str} is not in required format YYYY-MM-DD.')
         else:
             raise Exception('Missing "date" field.')
+
 
         if datetime.now() - logs_time_buffer < date:
             raise Exception(

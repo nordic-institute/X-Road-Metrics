@@ -20,122 +20,140 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
 
-import unittest
 import datetime
+import pytest
 
-from opendata_module.opmon_opendata.api.input_validator import load_and_validate_date, load_and_validate_columns, load_and_validate_constraints,\
-    load_and_validate_order_clauses
-
-
-class TestDateValidation(unittest.TestCase):
-
-    def test_empty(self):
-        self.assertRaisesRegex(Exception, 'Missing "date" field.', load_and_validate_date, '')
-        self.assertRaisesRegex(Exception, 'Missing "date" field.', load_and_validate_date, None)
-
-    def test_wrong_format(self):
-        self.assertRaisesRegex(Exception, 'Date must be in the format "YYYY-MM-DD".',
-                               load_and_validate_date, '01-02-2003')
-        self.assertRaisesRegex(Exception, 'Date must be in the format "YYYY-MM-DD".',
-                               load_and_validate_date, 'SELECT * FROM')
-
-    def test_too_recent(self):
-        self.assertRaisesRegex(Exception, 'The latest available date is',
-                               load_and_validate_date,
-                               datetime.datetime.now().strftime('%Y-%m-%d'))
-
-    def test_loading(self):
-        expected_date = datetime.datetime(year=1993, month=5, day=17)
-
-        self.assertEqual(expected_date, load_and_validate_date('1993-05-17'))
+from opmon_opendata.api.input_validator import OpenDataInputValidator
 
 
-class TestColumnsValidation(unittest.TestCase):
-
-    def test_no_columns(self):
-        self.assertCountEqual([], load_and_validate_columns('[]'))
-
-    def test_non_existent_columns(self):
-        self.assertRaisesRegex(Exception, 'Column "a" does not exist.', load_and_validate_columns, '["a", "b", "c"]')
-
-    def test_wrong_format(self):
-        self.assertRaisesRegex(Exception, 'Unable to parse columns as a list of field names.',
-                               load_and_validate_columns, 'SELECT * FROM')
-        self.assertRaisesRegex(Exception, 'Unable to parse columns as a list of field names.',
-                               load_and_validate_columns, '{"a", "b"}')
-
-    def test_loading(self):
-        self.assertCountEqual(["requestInDate", "clientMemberCode"],
-                              load_and_validate_columns('["requestInDate", "clientMemberCode"]'))
+@pytest.fixture
+def input_validator(mocker):
+    postgres = mocker.Mock()
+    postgres.get_column_names_and_types = lambda: [('foo', 'integer'), ('bar', 'date')]
+    return OpenDataInputValidator(postgres, mocker.Mock())
 
 
-class TestOrderValidation(unittest.TestCase):
+def test_empty_date(input_validator):
+    with pytest.raises(Exception, match=r'Missing "date" field.'):
+        input_validator.load_and_validate_date('', '')
 
-    def test_no_order(self):
-        self.assertCountEqual([], load_and_validate_order_clauses('[]'))
-
-    def test_wrong_format(self):
-        self.assertRaisesRegex(Exception, 'Unable to parse order clauses as a list of objects',
-                               load_and_validate_order_clauses, 'SELECT * FROM')
-
-    def test_wrong_inner_datatypes(self):
-        self.assertRaisesRegex(Exception, 'Every constraint must be with the schema',
-                               load_and_validate_order_clauses, '[["a", "b"], ["c", "d"]]')
-
-    def test_missing_attribute(self):
-        self.assertRaisesRegex(Exception, 'Order clause at index 0 is missing "order" key.',
-                               load_and_validate_order_clauses, '[{"column": "requestInDate"}, {"order": "asc"}]')
-        self.assertRaisesRegex(Exception, 'Order clause at index 1 is missing "column" key.',
-                               load_and_validate_order_clauses,
-                               '[{"column": "requestInDate", "order": "desc"}, {"order": "asc"}]')
-
-    def test_non_existent_columns(self):
-        self.assertRaisesRegex(Exception, 'Column "mystery" in order clause at index 0 does not exist.',
-                               load_and_validate_order_clauses, '[{"column": "mystery", "order": "asc"}]')
-
-    def test_non_existent_orders(self):
-        self.assertRaisesRegex(Exception,
-                               'Can not order data in ascii order in order clause at index 1.',
-                               load_and_validate_order_clauses,
-                               '[{"column": "requestInDate", "order": "asc"}, {"column": "requestInDate", "order": "ascii"}]', )
-
-    def test_loading(self):
-        self.assertCountEqual([{'column': 'requestInDate', 'order': 'asc'}],
-                              load_and_validate_order_clauses('[{"column": "requestInDate", "order": "asc"}]'))
+    with pytest.raises(Exception, match=r'Missing "date" field.'):
+        input_validator.load_and_validate_date(None, None)
 
 
-class TestConstraintsValidation(unittest.TestCase):
+def test_wrong_date_format(input_validator):
+    with pytest.raises(Exception, match=r'Date .* is not in required format YYYY-MM-DD.'):
+        input_validator.load_and_validate_date('01-02-2003', '')
 
-    def test_no_constraints(self):
-        self.assertCountEqual([], load_and_validate_constraints('[]'))
+    with pytest.raises(Exception, match=r'Date .* is not in required format YYYY-MM-DD.'):
+        input_validator.load_and_validate_date('SELECT * FROM', '')
 
-    def test_wrong_format(self):
-        self.assertRaisesRegex(Exception, 'Unable to parse constraints as a list of objects',
-                               load_and_validate_constraints, 'SELECT * FROM')
 
-    def test_missing_attribute(self):
-        self.assertRaisesRegex(Exception,
-                               'Constraint at index 0 is missing "column" key.',
-                               load_and_validate_constraints, '[{"operator": null, "value": null}]')
-        self.assertRaisesRegex(Exception,
-                               'Constraint at index 0 is missing "operator" key.',
-                               load_and_validate_constraints, '[{"column": null, "value": null}]')
-        self.assertRaisesRegex(Exception,
-                               'Constraint at index 0 is missing "value" key.',
-                               load_and_validate_constraints, '[{"column": null, "operator": null}]')
+def test_too_recent_date(input_validator):
+    with pytest.raises(Exception, match=r'The latest available date is'):
+        input_validator.load_and_validate_date(datetime.datetime.now().strftime('%Y-%m-%d'), datetime.timedelta(100))
 
-    def test_non_existent_columns(self):
-        self.assertRaisesRegex(Exception,
-                               'Column "hack" in constraint at index 0 does not exist.',
-                               load_and_validate_constraints, '[{"column": "hack", "operator": "<", "value": "5"}]')
 
-    def test_non_existent_operators(self):
-        self.assertRaisesRegex(Exception,
-                               'Invalid operator "add" in constraint at index 0 for numeric data.',
-                               load_and_validate_constraints,
-                               '[{"column": "requestInDate", "operator": "add", "value": "5"}]')
+def test_loading_date(input_validator):
+    expected_date = datetime.datetime(year=1993, month=5, day=17)
+    assert expected_date == input_validator.load_and_validate_date('1993-05-17', datetime.timedelta(1))
 
-    def test_loading(self):
-        self.assertCountEqual([{"column": "requestInDate", "operator": "<", "value": "1999-10-11"}],
-                              load_and_validate_constraints(
-                                  '[{"column": "requestInDate", "operator": "<", "value": "1999-10-11"}]'))
+
+def test_no_columns(input_validator):
+    assert 0 == len(input_validator.load_and_validate_columns('[]'))
+
+
+def test_non_existent_columns(input_validator):
+    with pytest.raises(Exception, match=r'Column "a" does not exist.'):
+        input_validator.load_and_validate_columns(["a", "b", "c"])
+
+
+def test_wrong_columns_format(input_validator):
+    with pytest.raises(Exception, match=r'Unable to parse columns as a list of field names.'):
+        input_validator.load_and_validate_columns('SELECT * FROM')
+
+        with pytest.raises(Exception, match=r'Unable to parse columns as a list of field names.'):
+            input_validator.load_and_validate_columns('{"a", "b"}')
+
+
+def test_loading_columns(input_validator):
+    assert ["foo", "bar"] == input_validator.load_and_validate_columns('["foo", "bar"]')
+
+
+def test_no_order(input_validator):
+    assert 0 == len(input_validator.load_and_validate_order_clauses('[]'))
+
+
+def test_wrong_order_format(input_validator):
+    with pytest.raises(Exception, match=r'Unable to parse order clauses as a list of objects'):
+        input_validator.load_and_validate_order_clauses('SELECT * FROM')
+
+
+def test_wrong_inner_order_data_types(input_validator):
+    with pytest.raises(Exception, match=r'Every constraint must be with the schema'):
+        input_validator.load_and_validate_order_clauses('[["a", "b"], ["c", "d"]]')
+
+
+def test_missing_order_attributes(input_validator):
+    with pytest.raises(Exception, match=r'Order clause at index 0 is missing "order" key.'):
+        input_validator.load_and_validate_order_clauses('[{"column": "foo"}, {"order": "asc"}]')
+
+    with pytest.raises(Exception, match=r'Order clause at index 1 is missing "column" key.'):
+        input_validator.load_and_validate_order_clauses(
+            '[{"column": "foo", "order": "desc"}, {"order": "asc"}]'
+        )
+
+
+def test_non_existent_column_in_order_clause(input_validator):
+    with pytest.raises(Exception, match=r'Column "mystery" in order clause at index 0 does not exist.'):
+        input_validator.load_and_validate_order_clauses('[{"column": "mystery", "order": "asc"}]')
+
+
+def test_non_existent_orders(input_validator):
+    with pytest.raises(Exception, match=r'Can not order data in ascii order in order clause at index 1.'):
+        input_validator.load_and_validate_order_clauses(
+            '[{"column": "foo", "order": "asc"}, {"column": "foo", "order": "ascii"}]'
+        )
+
+
+def test_loading_orders(input_validator):
+    assert [{'column': 'foo', 'order': 'asc'}] == input_validator.load_and_validate_order_clauses(
+        '[{"column": "foo", "order": "asc"}]'
+    )
+
+
+def test_no_constraints(input_validator):
+    assert [] == input_validator.load_and_validate_constraints('[]')
+
+
+def test_wrong_constraints_format(input_validator):
+    with pytest.raises(Exception, match=r'Unable to parse constraints as a list of objects'):
+        input_validator.load_and_validate_constraints('SELECT * FROM')
+
+
+def test_missing_constraints_attribute(input_validator):
+    with pytest.raises(Exception, match=r'Constraint at index 0 is missing "column" key.'):
+        input_validator.load_and_validate_constraints('[{"operator": null, "value": null}]')
+
+    with pytest.raises(Exception, match=r'Constraint at index 0 is missing "operator" key.'):
+        input_validator.load_and_validate_constraints('[{"column": null, "value": null}]')
+
+    with pytest.raises(Exception, match=r'Constraint at index 0 is missing "value" key.'):
+        input_validator.load_and_validate_constraints('[{"column": null, "operator": null}]')
+
+
+def test_non_existent_constraints_columns(input_validator):
+    with pytest.raises(Exception, match=r'Column "hack" in constraint at index 0 does not exist.'):
+        input_validator.load_and_validate_constraints('[{"column": "hack", "operator": "<", "value": "5"}]')
+
+
+def test_non_existent_constraints_operators(input_validator):
+    with pytest.raises(Exception, match=r'Invalid operator "add" in constraint at index 0 for numeric data.'):
+        input_validator.load_and_validate_constraints('[{"column": "foo", "operator": "add", "value": "5"}]')
+
+
+def test_loading_constraints(input_validator):
+    expected = [{"column": "foo", "operator": "<", "value": "1999-10-11"}]
+    assert expected == input_validator.load_and_validate_constraints(
+        '[{"column": "foo", "operator": "<", "value": "1999-10-11"}]'
+    )
