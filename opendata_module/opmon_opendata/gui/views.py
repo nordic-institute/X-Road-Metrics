@@ -22,6 +22,7 @@
 
 from django.shortcuts import render
 from django.http import HttpResponse
+from django.core.cache import cache
 import json
 import traceback
 
@@ -29,12 +30,22 @@ from ..logger_manager import LoggerManager
 from ..api.postgresql_manager import PostgreSQL_Manager
 from ..api.input_validator import OpenDataInputValidator
 from ..opendata_settings_parser import OpenDataSettingsParser
+from .. import __version__
+
+
+def get_settings(profile):
+    profile_suffix = f'-{profile}' if profile else ''
+    cache_key = f'xroad-metrics-opendata-settings{profile_suffix}'
+    if cache_key not in cache:
+        settings = OpenDataSettingsParser(profile).settings
+        cache.add(cache_key, settings)
+
+    return cache.get(cache_key)
 
 
 def index(request, profile=None):
-
-    settings = OpenDataSettingsParser(profile).settings
-    logger = LoggerManager(settings['logger'], settings['xroad']['instance'])
+    settings = get_settings(profile)
+    logger = LoggerManager(settings['logger'], settings['xroad']['instance'], __version__)
 
     try:
         if settings['opendata']['maintenance-mode']:
@@ -69,8 +80,7 @@ def index(request, profile=None):
 
 
 def get_datatable_frame(request, profile=None):
-
-    settings = OpenDataSettingsParser(profile).settings
+    settings = get_settings(profile)
     logger = LoggerManager(settings['logger'], settings['xroad']['instance'])
 
     try:

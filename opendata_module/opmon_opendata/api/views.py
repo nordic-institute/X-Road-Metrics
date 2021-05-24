@@ -19,7 +19,7 @@
 #  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
-
+from django.core.cache import cache
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
@@ -41,8 +41,18 @@ from ..opendata_settings_parser import OpenDataSettingsParser
 from .. import __version__
 
 
+def get_settings(profile):
+    profile_suffix = f'-{profile}' if profile else ''
+    cache_key = f'xroad-metrics-opendata-settings{profile_suffix}'
+    if cache_key not in cache:
+        settings = OpenDataSettingsParser(profile).settings
+        cache.add(cache_key, settings)
+
+    return cache.get(cache_key)
+
+
 def heartbeat(request, profile=None):
-    settings = OpenDataSettingsParser(profile).settings
+    settings = get_settings(profile)
     logger = LoggerManager(settings['logger'], settings['xroad']['instance'], __version__)
 
     heartbeat_status = 'FAILED'
@@ -64,7 +74,7 @@ def heartbeat(request, profile=None):
 
 @csrf_exempt
 def get_daily_logs(request, profile=None):
-    settings = OpenDataSettingsParser(profile).settings
+    settings = get_settings(profile)
     logger = LoggerManager(settings['logger'], settings['xroad']['instance'], __version__)
 
     try:
@@ -105,7 +115,7 @@ def get_daily_logs(request, profile=None):
 
 @csrf_exempt
 def get_preview_data(request, profile=None):
-    settings = OpenDataSettingsParser(profile).settings
+    settings = get_settings(profile)
     logger = LoggerManager(settings['logger'], settings['xroad']['instance'], __version__)
 
     try:
@@ -143,7 +153,7 @@ def get_preview_data(request, profile=None):
 
 @csrf_exempt
 def get_date_range(request, profile=None):
-    settings = OpenDataSettingsParser(profile).settings
+    settings = get_settings(profile)
     logger = LoggerManager(settings['logger'], settings['xroad']['instance'], __version__)
 
     try:
@@ -161,7 +171,7 @@ def get_date_range(request, profile=None):
 
 @csrf_exempt
 def get_column_data(request, profile=None):
-    settings = OpenDataSettingsParser(profile).settings
+    settings = get_settings(profile)
     logger = LoggerManager(settings['logger'], settings['xroad']['instance'], __version__)
 
     postgres_to_python_type = {'varchar(255)': 'string', 'bigint': 'integer', 'integer': 'integer',

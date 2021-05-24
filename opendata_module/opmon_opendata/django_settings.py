@@ -47,6 +47,12 @@ SECRET_KEY = opmon_settings['django']['secret-key']
 DEBUG = 'debug' in opmon_settings['django'].keys() and opmon_settings['django']['debug']
 ALLOWED_HOSTS = opmon_settings['django']['allowed-hosts']
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'xroad-metrics-opendata',
+    }
+}
 # Application definition
 
 INSTALLED_APPS = [
