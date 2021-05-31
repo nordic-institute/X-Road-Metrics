@@ -19,7 +19,6 @@
 #  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
-from anonymizer_module.opmon_anonymizer.utils.logger_manager import LoggerManager
 from .anonymizer import Anonymizer
 from .iio.mongodbmanager import MongoDbManager
 from .iio.opendata_writer import OpenDataWriter
@@ -103,7 +102,7 @@ def setup_writer(settings, logger):
         raise
 
 
-def run_anonymizer(settings, logger: LoggerManager, anonymization_limit):
+def run_anonymizer(settings, logger: logger_manager.LoggerManager, anonymization_limit):
     logger.log_info('anonymization_session_started', 'Started anonymization session')
     logger.log_heartbeat('Started anonymization session', 'SUCCEEDED')
 
