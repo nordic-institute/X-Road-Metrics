@@ -24,22 +24,39 @@ logger:
   heartbeat-path: /var/log/xroad-metrics/reports/heartbeat
 
 reports:
+  # Generated report pdf-files will be stored in this path
   report-path: /var/lib/xroad-metrics/reports
+
+  # Language translation config files are stored in this path
   translation-path: /etc/xroad-metrics/reports/lang
+
+  # Report template is stored in this path
   html-template:
     dir: /etc/xroad-metrics/reports/template
     file: pdf_report_template.html
+
+  # These CSS files are used to set the report styles
   css-paths:
     - '/etc/xroad-metrics/reports/template/pdf_report_style.css'
+
+  # Report image files are in this path:
   image-path: /etc/xroad-metrics/reports/template/header_images
+
+  # Settings for e-mail notifications about new reports.
   email:
     sender: <FILL>  # e-mail address shown in sender field of notifications
     smtp:
       host: <FILL>
-      user: <FILL>
-      password: ""  # only needed if encryption is selected
+      user: ""      # only needed if SMTP server is using authentication
+      password: ""  # only needed if SMTP server is using authentication
       port: 25
       encryption: None  # possible values: None, TLS, STARTTLS
+
+    # Template for the notification e-mail subject
+    subject: "X-Road Metrics report for {X_ROAD_INSTANCE}:{MEMBER_CLASS}:{MEMBER_CODE}:{SUBSYSTEM_CODE}"
+
+    # Template for the notification e-mail body.
+    # The default template demonstrates all the variables that can be used to generate the notification e-mails.
     message: >
       Dear {EMAIL_NAME},
 
@@ -58,5 +75,3 @@ reports:
       Best regards,
 
       X-Road Metrics Administration
-
-    subject: "X-Road Metrics report for {X_ROAD_INSTANCE}:{MEMBER_CLASS}:{MEMBER_CODE}:{SUBSYSTEM_CODE}"

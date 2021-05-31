@@ -12,44 +12,63 @@ xroad:
   instance: <FILL>
 
 anonymizer:
-  field-translations-file: /etc/xroad-metrics/anonymizer/field_translations.list
+  # Field data file is a schema file for the data format used by Opendata module.
+  # Opendata UI has similar config file that should be identical with this one.
   field-data-file: /etc/xroad-metrics/anonymizer/field_data.yaml
+
+  # Field translations file is used to map data fields cleaned by corrector into format used by the Open-data module
+  field-translations-file: /etc/xroad-metrics/anonymizer/field_translations.list
+
+  # Transformer settings can be used to activate data filed transformations.
   transformers:
     reduce-request-in-ts-precision: true
     force-durations-to-integer-range: true
+
+  # Number of threads used to run Anonymizer
   threads: 1
 
-  hiding-rules:
-    -   # exclude all records where client id is "foo" and service id is bar.
-      - feature: 'clientMemberCode'
-        regex: '^(foo)$'
-      - feature: 'serviceMemberCode'
-        regex: '^(bar)$'
+  # Detailed regex based rules can be defined to hide certain records from the anonymized data.
+  # Below are some examples of hiding rules:
+  # hiding-rules:
+  #   - # exclude all records where client id is "foo" and service id is bar.
+  #     - feature: 'clientMemberCode'
+  #       regex: '^(foo)$'
+  #     - feature: 'serviceMemberCode'
+  #       regex: '^(bar)$'
+  #
+  #   - # exclude all records where service member class is not "GOV".
+  #     - feature: 'serviceMemberClass'
+  #       regex: '^(?!GOV$).*$'
+  #
+  # By default no rules are defined and all records are included in the anonymized data.
+  hiding-rules: []
 
-    -   # exclude all records where service member class is not "GOV".
-      - feature: 'serviceMemberClass'
-        regex: '^(?!GOV$).*$'
-
-  substitution-rules:
-    - conditions:  # substitute client and service member codes with "N/A" if the client member code is "foo2"
-        - feature: 'clientMemberCode'
-          regex: '^foo2$'
-
-      substitutes:
-        - feature: 'clientMemberCode'
-          value: 'N/A'
-        - feature: 'serviceMemberCode'
-          value: 'N/A'
-
-    - conditions:  # substitute message id with 0, if service client member code is "bar2"
-        - feature: 'clientMemberCode'
-          regex: '^bar2$'
-        - feature: 'clientMemberCode'
-          regex: '^foo2$'
-
-      substitutes:
-        - feature: 'messageId'
-          value: '0'
+  # Detailed regex based rules can be defined to replace selected fields from records that meet a set of conditions.
+  # Some examples of substitution rules are included below:
+  #
+  #  substitution-rules:
+  #    - conditions:  # substitute client and service member codes with "N/A" if the client member code is "foo2"
+  #        - feature: 'clientMemberCode'
+  #          regex: '^foo2$'
+  #
+  #      substitutes:
+  #        - feature: 'clientMemberCode'
+  #          value: 'N/A'
+  #        - feature: 'serviceMemberCode'
+  #          value: 'N/A'
+  #
+  #    - conditions:  # substitute message id with 0, if service client member code is "bar2"
+  #        - feature: 'clientMemberCode'
+  #          regex: '^bar2$'
+  #        - feature: 'clientMemberCode'
+  #          regex: '^foo2$'
+  #
+  #      substitutes:
+  #        - feature: 'messageId'
+  #          value: '0'
+  #
+  # By default no rules are defined and all fields are included in the anonymized records.
+  substitution-rules: []
 
 mongodb:
   host: localhost

@@ -10,8 +10,14 @@
 
 corrector:
   thread-count: 8
+
+  # Maximum number of records to process in one corrector batch
   documents-max: 20000
+
+  # Minimum number of unprocessed records available to start new corrector batch
   documents-min: 20000
+
+  # Number of days to wait before a record can be corrected
   timeout-days: 3
 
   # seconds to wait after batch if batch size was less than documents-min
@@ -23,6 +29,7 @@ corrector:
   # Time window to match documents (in milliseconds)
   time-window: 600000 # 10 minutes
 
+  # Select the metrics that corrector should calculate and include in the cleaned data records:
   calc:
     total-duration: true
     client-request-duration: true
@@ -37,6 +44,7 @@ corrector:
     request-size: true
     response-size: true
 
+  # Data fields that need to match in both a client records and a service record to mark the records as a match:
   comparison-list:
     - 'clientMemberClass'
     - 'requestMimeSize'
@@ -66,6 +74,8 @@ corrector:
     - 'responseMimeSize'
     - 'messageId'
 
+  # If no match is found for a record using the above criteria, it will be matched again as an "orphan".
+  # Data fields that need to match in both a client record and a service record to mark the records as an orphan-match:
   comparison_list_orphan:
     - 'clientMemberClass'
     - 'serviceSubsystemCode'

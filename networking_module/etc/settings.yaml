@@ -2,8 +2,14 @@ xroad:
   instance: <FILL>
 
 networking:
-  interval: 5
+  # Time period to be included in the visualisation as number of days back from the most recent request-in date.
+  interval: 30
+
+  # Time period to be excluded from the visualization as number of days back from the most recent request-in date.
+  # This allows collector and corrector to finish processing before publishing results.
   buffer: 10
+
+  # X-Road service names that are treated as meta-services
   metaservices:
     - "getWsdl"
     - "listMethods"
@@ -11,6 +17,8 @@ networking:
     - "getSecurityServerMetrics"
     - "getSecurityServerOperationalData"
     - "getSecurityServerHealthData"
+
+  # Optional descriptor file that can be used to specify localized names of X-Road subsystems etc. in json format.
   xroad-descriptor-file: /etc/xroad-metrics/networking/xroad-descriptor.json
 
 postgres:
