@@ -335,12 +335,15 @@ class AnonymizationJob(object):
     def _get_agent_record(self, agent, dual_record):
         # Translate the record
         agent_translation_table = self._field_translations[agent]
-        record = {agent_translation_table[record_key]: dual_record[agent][record_key] for record_key in
-                  dual_record[agent]}
+        record = {
+            agent_translation_table[record_key]: dual_record[agent][record_key]
+            for record_key in dual_record[agent]
+            if record_key in agent_translation_table
+        }
         translation_table = self._field_translations
 
         for record_key, record_value in dual_record.items():
-            if record_key not in ['client', 'producer']:
+            if record_key not in ['client', 'producer'] and record_key in translation_table:
                 record[translation_table[record_key]] = record_value
 
         # Mask the record

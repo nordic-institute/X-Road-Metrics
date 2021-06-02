@@ -19,7 +19,6 @@
 #  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
-
 from .anonymizer import Anonymizer
 from .iio.mongodbmanager import MongoDbManager
 from .iio.opendata_writer import OpenDataWriter
@@ -103,7 +102,7 @@ def setup_writer(settings, logger):
         raise
 
 
-def run_anonymizer(settings, logger, anonymization_limit):
+def run_anonymizer(settings, logger: logger_manager.LoggerManager, anonymization_limit):
     logger.log_info('anonymization_session_started', 'Started anonymization session')
     logger.log_heartbeat('Started anonymization session', 'SUCCEEDED')
 
@@ -130,7 +129,7 @@ def save_reader_state_on_error(reader: MongoDbManager, logger):
         reader.set_last_processed_timestamp()
         logger.log_info('anonymization_process_failed', 'Reader state saved successfully after error.')
     except Exception:
-        logger.log_warn('anonymization_process_failed', 'Failed to save reader state after error.')
+        logger.log_warning('anonymization_process_failed', 'Failed to save reader state after error.')
 
 
 if __name__ == "__main__":

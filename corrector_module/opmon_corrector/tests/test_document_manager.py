@@ -65,9 +65,9 @@ test_doc = {
         'requestOutTs': 91,
         'responseInTs': 107,
         'responseOutTs': 110,
-        'requestSoapSize': 1234,
+        'requestSize': 1234,
         'requestAttachmentCount': 0,
-        'responseSoapSize': 4321,
+        'responseSize': 4321,
         'responseAttachmentCount': 0
     },
     'producer': {
@@ -75,9 +75,9 @@ test_doc = {
         'requestOutTs': 100,
         'responseInTs': 103,
         'responseOutTs': 105,
-        'requestSoapSize': 2345,
+        'requestSize': 2345,
         'requestAttachmentCount': 0,
-        'responseSoapSize': 5432,
+        'responseSize': 5432,
         'responseAttachmentCount': 0
     }
 }
@@ -329,7 +329,7 @@ def test_pair_calculation_with_invalid_data(mock_logger_manager, basic_settings)
             'requestOutTs': None,
             'responseInTs': 'abc',
             'responseOutTs': 110,
-            'requestSoapSize': 'def'
+            'requestSize': 'def'
         },
         'producer': {
             'requestInTs': 'abc',
@@ -528,7 +528,7 @@ def test_correct_structure(mock_logger_manager, basic_settings):
     dm = DocumentManager(basic_settings)
     doc = dm.correct_structure({})
 
-    assert tuple(doc.keys()) == dm.must_fields
+    assert set(doc.keys()) == set(dm.must_fields)
     assert all([v is None for v in doc.values()])
 
 

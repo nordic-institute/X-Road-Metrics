@@ -45,6 +45,9 @@ fields:
     serviceVersion:
         description: Version of the service
         type: varchar(255)
+    serviceType:
+        description: Type of service, possible values are WSDL, REST, OPENAPI3
+        type: varchar(255)
     messageProtocolVersion:
         description: X-Road message protocol version
         type: varchar(255)
@@ -56,7 +59,7 @@ fields:
         description: The time it takes for a producer to generate a response and send it, once the request has arrived
         type: integer
         agent: producer
-    requestSoapSize:
+    requestSize:
         description: Size of the request (bytes)
         type: bigint
     requestMimeSize:
@@ -65,11 +68,11 @@ fields:
     requestAttachmentCount:
         description: Number of attachments of the request
         type: integer
-    responseSoapSize:
+    responseSize:
         description: Size of the response (bytes)
         type: bigint
     responseMimeSize:
-        description: Size of the MIME-container of the response (sum of the SOAP response message and attachments data size in bytes)
+        description: Size of the MIME-container of the response (sum of the SOAP/REST response message and attachments data size in bytes)
         type: bigint
     responseAttachmentCount:
         description: Number of attachments of the response
@@ -82,12 +85,6 @@ fields:
         type: varchar(255)
     representedPartyCode:
         description: Code of the represented party
-        type: varchar(255)
-    serviceSecurityServerAddress:
-        description: Security server address
-        type: varchar(255)
-    clientSecurityServerAddress:
-        description: Security server address
         type: varchar(255)
     messageId:
         description: Identifier of the message

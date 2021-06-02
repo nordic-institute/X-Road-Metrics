@@ -40,14 +40,41 @@ class DocumentManager:
         self.orphan_comparison_list = settings['corrector']['comparison_list_orphan']
 
         self.must_fields = (
-            'monitoringDataTs', 'securityServerInternalIp', 'securityServerType', 'requestInTs', 'requestOutTs',
-            'responseInTs', 'responseOutTs', 'clientXRoadInstance', 'clientMemberClass', 'clientMemberCode',
-            'clientSubsystemCode', 'serviceXRoadInstance', 'serviceMemberClass', 'serviceMemberCode',
-            'serviceSubsystemCode', 'serviceCode', 'serviceVersion', 'representedPartyClass', 'representedPartyCode',
-            'messageId', 'messageUserId', 'messageIssue', 'messageProtocolVersion', 'clientSecurityServerAddress',
-            'serviceSecurityServerAddress', 'requestSoapSize', 'requestMimeSize', 'requestAttachmentCount',
-            'responseSoapSize', 'responseMimeSize', 'responseAttachmentCount', 'succeeded', 'soapFaultCode',
-            'soapFaultString'
+            'monitoringDataTs',
+            'securityServerInternalIp',
+            'securityServerType',
+            'requestInTs',
+            'requestOutTs',
+            'responseInTs',
+            'responseOutTs',
+            'clientXRoadInstance',
+            'clientMemberClass',
+            'clientMemberCode',
+            'clientSubsystemCode',
+            'serviceXRoadInstance',
+            'serviceMemberClass',
+            'serviceMemberCode',
+            'serviceSubsystemCode',
+            'serviceCode',
+            'serviceVersion',
+            'representedPartyClass',
+            'representedPartyCode',
+            'messageId',
+            'messageUserId',
+            'messageIssue',
+            'messageProtocolVersion',
+            'clientSecurityServerAddress',
+            'serviceSecurityServerAddress',
+            'requestSize',
+            'requestMimeSize',
+            'requestAttachmentCount',
+            'responseSize',
+            'responseMimeSize',
+            'responseAttachmentCount',
+            'succeeded',
+            'faultCode',
+            'faultString',
+            'serviceType'
         )
 
     @staticmethod
@@ -146,7 +173,7 @@ class DocumentManager:
 
         try:
             if document_member[f'{transaction_type}AttachmentCount'] in [0, None]:
-                size = document_member[f'{transaction_type}SoapSize']
+                size = document_member[f'{transaction_type}Size']
             elif document_member[f'{transaction_type}AttachmentCount'] > 0:
                 size = document_member[f'{transaction_type}MimeSize']
         except (TypeError, ValueError, KeyError):
@@ -287,10 +314,24 @@ class DocumentManager:
 
     def correct_structure(self, doc):
         """
-        Adds missing fields for the documents and sets their value to None.
+        Check that documents have all required fields.
+        Try to fill in missing fields by heuristics or set them to None as last resort.
         :param doc: The input document.
         :return: Returns the corrected document.
         """
+
+        if 'requestSize' not in doc:
+            doc['requestSize'] = doc.get('requestSoapSize') or doc.get('requestRestSize')
+
+        if 'responseSize' not in doc:
+            doc['responseSize'] = doc.get('responseSoapSize') or doc.get('responseRestSize')
+
+        if 'serviceType' not in doc and doc.get('responseSoapSize') is not None:
+            doc['serviceType'] = 'WSDL'
+
+        if 'serviceType' not in doc and doc.get('responseRestSize') is not None:
+            doc['serviceType'] = 'REST'
+
         for f in self.must_fields:
             if f not in doc:
                 doc[f] = None
