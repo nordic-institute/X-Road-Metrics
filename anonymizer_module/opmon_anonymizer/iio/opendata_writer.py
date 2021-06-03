@@ -37,9 +37,9 @@ class OpenDataWriter(object):
         if not field_data_path.startswith('/'):
             field_data_path = os.path.join(ROOT_DIR, '..', 'cfg_lists', field_data_path)
 
-        schema = self._get_schema(field_data_path)
+        schema, index_columns = self._get_schema(field_data_path)
 
-        self.db_manager = PostgreSqlManager(settings['postgres'], schema, logger)
+        self.db_manager = PostgreSqlManager(settings['postgres'], schema, index_columns, logger)
 
     def write_records(self, records):
         self.db_manager.add_data(records)
@@ -53,11 +53,14 @@ class OpenDataWriter(object):
     def _get_schema(field_data_file_path):
         with open(field_data_file_path) as field_data_file:
             schema = []
+            index_columns = []
 
             for field_name, field_data in yaml.safe_load(field_data_file)['fields'].items():
                 if field_name not in ['id']:
                     schema.append((field_name, field_data['type']))
+                    if field_data.get('index'):
+                        index_columns.append(field_name)
 
             schema.sort()
 
-        return schema
+        return schema, index_columns
