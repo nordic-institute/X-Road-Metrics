@@ -27,7 +27,7 @@ import traceback
 
 class PostgreSqlManager(object):
 
-    def __init__(self, postgres_settings, table_schema, logger):
+    def __init__(self, postgres_settings, table_schema, index_columns, logger):
         self._logger = logger
         self._settings = postgres_settings
         self._table_name = postgres_settings['table-name']
@@ -36,7 +36,7 @@ class PostgreSqlManager(object):
 
         self._field_order = [field_name for field_name, _ in table_schema]
         if table_schema:
-            self._ensure_table(table_schema)
+            self._ensure_table(table_schema, index_columns)
             self._ensure_privileges()
 
     def add_data(self, data):
@@ -84,24 +84,40 @@ class PostgreSqlManager(object):
 
             return False
 
-    def _ensure_table(self, schema):
+    def _ensure_table(self, schema, index_columns):
         try:
             with pg.connect(self._connection_string) as connection:
                 cursor = connection.cursor()
-                column_schema = ', '.join(' '.join(column_name_and_type) for column_name_and_type in schema + [])
-                if column_schema:
-                    column_schema = ', ' + column_schema
+                if not self._table_exists(cursor):
+                    self._create_table(cursor, schema, index_columns)
 
-                try:
-                    cursor.execute(f"CREATE TABLE {self._table_name} (id SERIAL PRIMARY KEY{column_schema})")
-                except Exception:
-                    pass  # Table exists
         except Exception:
             trace = traceback.format_exc().replace('\n', '')
             error = f"Failed to ensure postgres table {self._table_name} " \
                     + f"existence with connection {self._connection_string}. ERROR: {trace}"
             self._logger.log_error('failed_ensuring_postgres_table', error)
             raise
+
+    def _table_exists(self, cursor):
+        cursor.execute(f"""
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables 
+                WHERE  table_schema = 'public' 
+                AND table_name = '{self._table_name}'
+            );
+        """)
+
+        return cursor.fetchone()[0]
+
+    def _create_table(self, cursor, schema, index_columns):
+        column_schema = ', '.join(' '.join(column_name_and_type) for column_name_and_type in schema + [])
+        if column_schema:
+            column_schema = ', ' + column_schema
+
+            cursor.execute(f"CREATE TABLE {self._table_name} (id SERIAL PRIMARY KEY{column_schema});")
+
+            for column_name in index_columns:
+                cursor.execute(f"CREATE INDEX {column_name}_idx ON {self._table_name} ({column_name});")
 
     def _ensure_privileges(self):
         try:

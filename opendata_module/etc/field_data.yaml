@@ -12,6 +12,7 @@ fields:
     requestInDate:
         description: YYYY-MM-DD of the requestInTs
         type: date
+        index: yes
     securityServerType:
         description: Type of the security server
         type: varchar(255)
