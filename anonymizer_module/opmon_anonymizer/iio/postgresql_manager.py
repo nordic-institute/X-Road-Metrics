@@ -101,8 +101,8 @@ class PostgreSqlManager(object):
     def _table_exists(self, cursor):
         cursor.execute(f"""
             SELECT EXISTS (
-                SELECT FROM information_schema.tables 
-                WHERE  table_schema = 'public' 
+                SELECT FROM information_schema.tables
+                WHERE  table_schema = 'public'
                 AND table_name = '{self._table_name}'
             );
         """)
