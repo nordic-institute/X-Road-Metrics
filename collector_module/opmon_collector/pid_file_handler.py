@@ -65,7 +65,9 @@ class OpmonPidFileHandler:
 
     def create_pid_file(self):
         if self.another_instance_is_running():
-            raise RuntimeError(f"Found PID-file {self.pid_file}. Another opmon-collector instance is already running.")
+            raise RuntimeError(
+                f"Found PID-file {self.pid_file}. Another xroad-metrics-collector instance is already running."
+            )
 
         os.makedirs(os.path.dirname(self.pid_file), exist_ok=True)
 
