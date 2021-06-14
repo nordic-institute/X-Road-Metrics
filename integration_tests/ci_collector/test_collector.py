@@ -16,7 +16,7 @@ def test_update_server_list():
     _, timestamp_0 = data['server_list'], data['timestamp']
     assert timestamp_0 < time.time()
 
-    command = f"opmon-collector update".split(' ')
+    command = f"xroad-metrics-collector update".split(' ')
     proc = subprocess.run(command, capture_output=True)
     assert proc.stderr == b''
     assert proc.returncode == 0
@@ -39,7 +39,7 @@ def test_collect():
 
     start_time = time.time()
 
-    command = f"opmon-collector collect".split(' ')
+    command = f"xroad-metrics-collector collect".split(' ')
     proc = subprocess.run(command, capture_output=True)
     assert proc.stderr == b''
     assert proc.returncode == 0
@@ -68,21 +68,21 @@ def test_collect():
 def test_execution_is_blocked_by_pid_file():
     xroad = get_parameter('xroad.instance')
     pid_dir = get_parameter('collector.pid-directory')
-    pid_file = f'{pid_dir}/opmon_collector_{xroad}.pid'
+    pid_file = f'{pid_dir}/xroad_metrics_collector_{xroad}.pid'
     assert not os.path.isfile(pid_file)
 
     with open(pid_file, 'w') as f:
         f.write(str(os.getpid()))  # write test-executor's pid to collector pidfile
 
-    command = f"opmon-collector update".split(' ')
+    command = f"xroad-metrics-collector update".split(' ')
     proc = subprocess.run(command, capture_output=True)
 
-    message_to_find = "Another opmon-collector instance is already running."
+    message_to_find = "Another xroad-metrics-collector instance is already running."
 
     assert proc.stderr.decode('utf-8').find(message_to_find) > 0
     assert proc.returncode == 1
 
-    command = f"opmon-collector collect".split(' ')
+    command = f"xroad-metrics-collector collect".split(' ')
     proc = subprocess.run(command, capture_output=True)
 
     assert proc.stderr.decode('utf-8').find(message_to_find) > 0
@@ -92,14 +92,14 @@ def test_execution_is_blocked_by_pid_file():
 
 
 def test_pid_file_creation_and_deletion():
-    assert_action_creates_and_deletes_pid_file(f"opmon-collector collect".split(' '))
-    assert_action_creates_and_deletes_pid_file(f"opmon-collector update".split(' '))
+    assert_action_creates_and_deletes_pid_file(f"xroad-metrics-collector collect".split(' '))
+    assert_action_creates_and_deletes_pid_file(f"xroad-metrics-collector update".split(' '))
 
 
 def assert_action_creates_and_deletes_pid_file(command):
     xroad = get_parameter('xroad.instance')
     pid_dir = get_parameter('collector.pid-directory')
-    pid_file = f'{pid_dir}/opmon_collector_{xroad}.pid'
+    pid_file = f'{pid_dir}/xroad_metrics_collector_{xroad}.pid'
 
     assert not os.path.isfile(pid_file)
 
@@ -125,7 +125,7 @@ def assert_action_creates_and_deletes_pid_file(command):
 
 
 def get_parameter(parameter_name):
-    command = f"opmon-collector settings get {parameter_name}".split(' ')
+    command = f"xroad-metrics-collector settings get {parameter_name}".split(' ')
     proc = subprocess.run(command, capture_output=True)
     assert len(proc.stdout) > 0
     assert proc.stderr == b''
