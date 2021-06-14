@@ -86,7 +86,7 @@ def get_daily_logs(request, profile=None):
                          'Failed to validate daily logs query. {0} ERROR: {1}'.format(
                              str(exception), traceback.format_exc().replace('\n', '')
                          ))
-        return HttpResponse(json.dumps({'error': str(exception)}), status=400)
+        return HttpResponse(json.dumps({'error': escape(str(exception))}), status=400)
 
     try:
         gzipped_file = _generate_gzipped_file(
@@ -127,7 +127,7 @@ def get_preview_data(request, profile=None):
                          'Failed to validate daily preview data query. {0} ERROR: {1}'.format(
                              str(exception), traceback.format_exc().replace('\n', '')
                          ))
-        return HttpResponse(json.dumps({'error': str(exception)}), status=400)
+        return HttpResponse(json.dumps({'error': escape(str(exception))}), status=400)
 
     try:
         rows, _, _ = _get_content(
