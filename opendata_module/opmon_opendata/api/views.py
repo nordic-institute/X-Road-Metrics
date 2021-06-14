@@ -22,6 +22,7 @@
 from django.core.cache import cache
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.utils.html import escape
 
 from gzip import GzipFile
 import tarfile
@@ -138,7 +139,7 @@ def get_preview_data(request, profile=None):
             settings['opendata']['preview-limit']
         )
 
-        return_value = {'data': [[str(element) for element in row] for row in rows]}
+        return_value = {'data': [[escape(str(element)) for element in row] for row in rows]}
 
         return HttpResponse(json.dumps(return_value))
     except Exception as exception:
