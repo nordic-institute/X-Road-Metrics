@@ -2,8 +2,9 @@ xroad:
   instance: <FILL>
 
   # X-Road descriptor file that lists all subsystems available.
-  # Optionally the file may include localized subsystem names and maintainer e-mail addresses.
-  descriptor-path: /etc/xroad-metrics/reports/xroad-descriptor.json
+  # The file is optional and can be used to define localized subsystem names and maintainer e-mail addresses.
+  # Refer to documentation on the file format. To use a descriptor file uncomment the setting below.
+  # descriptor-path: /etc/xroad-metrics/reports/xroad-descriptor.json
 
 mongodb:
   host: localhost
