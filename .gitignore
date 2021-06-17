@@ -70,3 +70,6 @@ target/
 
 # PID files from tests
 xroad_metrics*.pid
+
+#pyenv
+.python-version
