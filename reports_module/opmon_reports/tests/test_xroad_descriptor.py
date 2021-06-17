@@ -226,6 +226,20 @@ def test_get_subsystems_from_database(mocker, basic_args):
     ]
 
 
+@mongomock.patch(servers=(('emptymongo', 27017),))
+def test_get_subsystems_from_database_with_empty_response(mocker, basic_args):
+    basic_args.settings['xroad']['descriptor-path'] = ""
+    basic_args.settings["mongodb"]["host"] = "emptymongo"
+
+    basic_args.start_time_milliseconds = 2009459200000  # 2021-01-01T00:00:00Z
+    basic_args.end_time_milliseconds = 2009545600000  # 2021-01-02T00:00:00Z
+
+    database_manager = DatabaseManager(basic_args, mocker.Mock())
+
+    xroad_descriptor = OpmonXroadDescriptor(basic_args, database_manager, mocker.Mock())
+    assert xroad_descriptor._data == []
+
+
 def get_test_documents():
     valid_timestamp = 1609502400000  # 2021-01-01T12:00:00Z
     old_timestamp = 1600000000000

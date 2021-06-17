@@ -269,8 +269,11 @@ class DatabaseManager:
                     }
                 }
             ])
-
-            return [s for s in cursor.next()['subsystems'] if s is not None]
+            try:
+                doc = cursor.next()
+                return [s for s in doc['subsystems'] if s is not None]
+            except StopIteration:
+                return []
 
         except Exception as e:
             self.logger_m.log_error('DatabaseManager.get_unique_subsystems', repr(e))
