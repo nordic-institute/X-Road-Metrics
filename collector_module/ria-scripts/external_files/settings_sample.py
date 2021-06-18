@@ -37,7 +37,7 @@ SECURITY_SERVER_TIMEOUT = 60.0
 # Sample: MEMBERCLASS = "GOV"
 MEMBERCLASS = "GOV"
 # MEMBERCODE is registry code of institution
-# Sample: MEMBERCODE = "70006317" # RIA, Riigi Infosüsteemi Amet, Republic of Estonia, Information System Authority
+# Sample: MEMBERCODE = "70006317" # RIA, Riigi InfosÃ¼steemi Amet, Republic of Estonia, Information System Authority
 MEMBERCODE = ""
 # SUBSYSTEMCODE is X-Road subsystem code, to be registered in RIHA, www.riha.ee
 # Sample: SUBSYSTEMCODE = "monitoring"
