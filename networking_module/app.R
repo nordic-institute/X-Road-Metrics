@@ -59,7 +59,7 @@ ui <- fluidPage(
   plotOutput('net1', height = "800px") %>% withSpinner(color = '#663cdc'),
   br(),
   plotOutput('ggplot1', height = "800px") %>% withSpinner(color = '#663cdc'),
-  wellPanel("The X-Road Metrics tools are developed by  ", tags$a(href = "https://www.niis.org", "NIIS.", target = "_blank"), style = "padding: 5px;")
+  wellPanel("X-Road Metrics software is maintained by  ", tags$a(href = "https://www.niis.org", "Nordic Institute of Interoperability Solutions (NIIS).", target = "_blank"), style = "padding: 5px;")
 )
 
 ####server####
