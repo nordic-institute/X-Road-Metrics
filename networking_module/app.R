@@ -35,7 +35,7 @@ ui <- fluidPage(
 
   fluidRow(
     tags$div(
-      tags$img(src = "xroad_100_en.png", align = "left"),
+      tags$img(src = "xroad-metrics-100.png", align = "left"),
       tags$img(src = "eu_rdf_100_en.png", align = "right")
     )
   ),
