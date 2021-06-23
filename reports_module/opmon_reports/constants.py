@@ -70,7 +70,6 @@ CONSUMER_MERGED_FIELDS_1 = (["serviceCode", "serviceVersion"], ".", "service")
 CONSUMER_MERGED_FIELDS_2 = (
     ["serviceXRoadInstance", "serviceMemberClass", "serviceMemberCode", "serviceSubsystemCode"], "/", "producer")
 
-# RIA image paths
-RIA_IMAGE_1 = os.path.join("{IMAGE_PATH}", "ria_75_{LANGUAGE}.png")
-RIA_IMAGE_2 = os.path.join("{IMAGE_PATH}", "eu_rdf_75_{LANGUAGE}.png")
-RIA_IMAGE_3 = os.path.join("{IMAGE_PATH}", "xroad_75_{LANGUAGE}.png")
+# Report logo image paths
+LOGO_IMAGE_1 = os.path.join("{IMAGE_PATH}", "xroad-metrics-vertical.png")
+LOGO_IMAGE_2 = os.path.join("{IMAGE_PATH}", "eu_rdf_100_{LANGUAGE}.png")

@@ -37,7 +37,11 @@ body {
     text-align: right
 }
 
-
+.logo_image {
+    margin: 15px;
+    height: 100px;
+    width: auto;
+}
 
 /* Headings
 -------------------------------------------------------------- */

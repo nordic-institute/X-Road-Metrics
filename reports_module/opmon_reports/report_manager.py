@@ -439,9 +439,8 @@ class ReportManager:
         # Load RIA images
         language = self.reports_arguments.language
         image_path = settings['image-path']
-        image_header_first = constants.RIA_IMAGE_1.format(IMAGE_PATH=image_path, LANGUAGE=language)
-        image_header_second = constants.RIA_IMAGE_2.format(IMAGE_PATH=image_path, LANGUAGE=language)
-        image_header_third = constants.RIA_IMAGE_3.format(IMAGE_PATH=image_path, LANGUAGE=language)
+        image_header_first = constants.LOGO_IMAGE_1.format(IMAGE_PATH=image_path, LANGUAGE=language)
+        image_header_second = constants.LOGO_IMAGE_2.format(IMAGE_PATH=image_path, LANGUAGE=language)
 
         member_name = tools.truncate(self.target.get_member_name())
         subsystem_name = tools.truncate(self.target.get_subsystem_name(language))
@@ -481,7 +480,6 @@ class ReportManager:
             "produced_metaservices_translation": self.translator.get_translation('PRODUCED_META_SERVICES'),
             "image_header_first": image_header_first,
             "image_header_second": image_header_second,
-            "image_header_third": image_header_third,
             "xroadEnv": self.translator.get_translation('X_ROAD_ENV'),
             "xroad_instance": self.target.xroad_instance
         }
