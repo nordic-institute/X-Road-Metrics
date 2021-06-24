@@ -50,7 +50,7 @@ This sections describes the necessary steps to install the **collector module** 
 ### Add X-Road OpMon Package Repository for Ubuntu
 ````bash
 wget -qO - https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
-sudo add-apt-repository 'deb [arch=amd64] https://artifactory.niis.org/xroad-extensions-release-deb focal main'
+sudo add-apt-repository 'https://artifactory.niis.org/xroad-extensions-release-deb main'
 ````
 
 ### Install Collector Package
