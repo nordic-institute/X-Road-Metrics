@@ -19,18 +19,18 @@ that allow filtering the anonymized operational monitoring data and downloading 
 ## Architecture
 
 Opendata module serves data that has been prepared by the [Anonymizer module](anonymizer_module.md)  
-Overview of the module architecture related to publishing opmon data
+Overview of the module architecture related to publishing operational monitoring data
 through is in the diagram below:
  ![system diagram](img/opendata/opendata_overview.png "System overview")
 
 ## Networking
 
-MongoDb is used to store "non-anonymized" opmon data that should be accessible only by the X-Road administrators.
-Anonymized opmon data that can be published for wider audience is stored in the PostgreSQL. The opendata UI needs
+MongoDb is used to store "non-anonymized" operational monitoring data that should be accessible only by the X-Road administrators.
+Anonymized operational monitoring data that can be published for wider audience is stored in the PostgreSQL. The opendata UI needs
 access only to the PostgreSQL. To follow the "principal of least priviledge" it is recommended to
-install opmon UI on a dedicated host that has no access at all to MongoDb.
+install Opendata UI on a dedicated host that has no access at all to MongoDb.
 
-The opendata module UI is served by Apache web server using HTTPS protocol (default port 443).
+The Opendata UI is served by Apache web server using HTTPS protocol (default port 443).
 
 ## Installation
 
@@ -46,25 +46,25 @@ sudo add-apt-repository 'https://artifactory.niis.org/xroad-extensions-release-d
 ````
 
 ### Install Opendata Package
-To install opmon-opendata and all dependencies execute the commands below:
+To install xroad-metrics-opendata and all dependencies execute the commands below:
 
 ```bash
 sudo apt-get update
-sudo apt-get install opmon-opendata
+sudo apt-get install xroad-metrics-opendata
 ```
 
 The installation package automatically installs following items:
- * Linux users _opmon_ and _www-data_
- * opmon-opendata Django web-application package
+ * Linux users _xroad-metrics_ and _www-data_
+ * xroad-metrics-opendata Django web-application package
  * Apache web server and dependencies
- * Apache configuration file template for the web-app _/etc/apache2/conf-available/opmon-opendata.conf_
+ * Apache configuration file template for the web-app _/etc/apache2/conf-available/xroad-metrics-opendata.conf_
  * a self signed SSL certificate
- * web-app static content under _/usr/share/opmon/opendata_
- * web-app dynamic content under _/var/lib/opmon/opendata_
- * settings file _/etc/opmon/opendata/settings.yaml_
- * log folders to _/var/log/opmon/opendata/_
+ * web-app static content under _/usr/share/xroad-metrics/opendata_
+ * web-app dynamic content under _/var/lib/xroad-metrics/opendata_
+ * settings file _/etc/xroad-metrics/opendata/settings.yaml_
+ * log folders to _/var/log/xroad-metrics/opendata/_
 
-Only users in _opmon_ group can access the settings files.
+Only users in _xroad-metrics_ group can access the settings files.
 
 You have to fill in some environment specific settings to the settings file to make the Opendata module work properly.
 Refer to section [Opendata Module Configuration](#opendata-module-configuration)
@@ -76,7 +76,7 @@ To use opendata module you need to fill in your X-Road, PostgreSQL and Django co
 (here, **vi** is used):
 
 ```bash
-sudo vi /etc/opmon/opendata/settings.yaml
+sudo vi /etc/xroad-metrics/opendata/settings.yaml
 ```
 
 Settings that the user must fill in:
@@ -92,10 +92,10 @@ The Apache Virtual Host configuration defines the hostname for the Opendata serv
 The Opendata module installer fills in the current hostname to Apache config file automatically.
 
 If your hostname changes, or the installer used wrong hostname, you can change the value by editing the Apache config
-file `/etc/apache2/sites-available/opmon-opendata.conf`. For example if your hostname is `myhost.mydomain.org` 
+file `/etc/apache2/sites-available/xroad-metrics-opendata.conf`. For example if your hostname is `myhost.mydomain.org` 
 change the contents of the file to:
 ```
-Use OpmonOpendataVHost myhost.mydomain.org
+Use XRoadMetricsOpendataVHost myhost.mydomain.org
 ```
 
 After these changes you must restart Apache:
@@ -103,11 +103,11 @@ After these changes you must restart Apache:
 sudo apache2ctl restart
 ```
 
-And then you can test accessing the Opmon Opendata UI by pointing your browser to `https://myhost.mydomain.org/`
+And then you can test accessing the Opendata UI by pointing your browser to `https://myhost.mydomain.org/`
 
 The instructions above should be sufficient for simple use cases. 
 For more advanced Apache configurations, e.g. to add more allowed alias names for the host, 
-you need to modify the apache configuration template in `/etc/apache2/conf-available/opmon-opendata.conf`.
+you need to modify the apache configuration template in `/etc/apache2/conf-available/xroad-metrics-opendata.conf`.
 
 ### Settings profiles
 The opendata module can show data for multiple X-Road instances using settings profiles. 
@@ -154,24 +154,24 @@ logger:
 
   # Logs and heartbeat files are stored under these paths.
   # Also configure external log rotation and app monitoring accordingly.
-  log-path: /var/log/opmon/opendata/logs
+  log-path: /var/log/xroad-metrics/opendata/logs
 
 ```
 
 The log file is written to `log-path` and log file name contains the X-Road instance name. 
-The above example configuration would write logs to `/var/log/opmon/opendata/logs/log_opendata_EXAMPLE.json`.
+The above example configuration would write logs to `/var/log/xroad-metrics/opendata/logs/log_opendata_EXAMPLE.json`.
 
 
 The **opendata module** log handler is compatible with the logrotate utility. 
 To configure log rotation for the example setup above, create the file:
 
 ```
-sudo vi /etc/logrotate.d/opmon-opendata
+sudo vi /etc/logrotate.d/xroad-metrics-opendata
 ```
 
 and add the following content :
 ```
-/var/log/opmon/opendata/logs/log_opendata_EXAMPLE.json {
+/var/log/xroad-metrics/opendata/logs/log_opendata_EXAMPLE.json {
     rotate 10
     size 2M
 }
@@ -195,13 +195,13 @@ xroad:
 
 logger:
   #  ...
-  heartbeat-path: /var/log/opmon/opendata/heartbeat
+  heartbeat-path: /var/log/xroad-metrics/opendata/heartbeat
 
 ```
 
 The heartbeat file is written to `heartbeat-path` and hearbeat file name contains the X-Road instance name. 
 The above example configuration would write logs to
- `/var/log/opmon/opendata/heartbeat/heartbeat_opendata_EXAMPLE.json`.
+ `/var/log/xroad-metrics/opendata/heartbeat/heartbeat_opendata_EXAMPLE.json`.
 
 The heartbeat file consists last message of log file and status
 

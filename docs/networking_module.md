@@ -38,23 +38,23 @@ wget -qO - https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
 sudo add-apt-repository 'https://artifactory.niis.org/xroad-extensions-release-deb main'
 ````
 
-### Install opmon-networking package
-When the repository is added to Ubuntu you can install opmon-networking module package by running these commands:
+### Install xroad-metrics-networking package
+When the repository is added to Ubuntu you can install xroad-metrics-networking module package by running these commands:
 ```bash
 sudo apt update
-sudo apt install opmon-networking
+sudo apt install xroad-metrics-networking
 ```
 
 The package installs the following components:
-- Linux user and group opmon that has the privileges to run the opmon programs
-- opmon-networking command that runs the data preparation script
-- static data files and helper scripts under /usr/share/opmon/networking
-- settings files under /etc/opmon/networking
-- cron configuration to run the data preparation periodically in /etc/cron.d/opmon-networking-cron
-- shiny web app files under /usr/share/opmon/networking/shiny
+- Linux user and group xroad-metrics that has the privileges to run the xroad-metrics programs
+- xroad-metrics-networking command that runs the data preparation script
+- static data files and helper scripts under /usr/share/xroad-metrics/networking
+- settings files under /etc/xroad-metrics/networking
+- cron configuration to run the data preparation periodically in /etc/cron.d/xroad-metrics-networking-cron
+- shiny web app files under /usr/share/xroad-metrics/networking/shiny
 - Shiny Server configuration file /etc/shiny-server/shiny-server.conf
 - Apache web server and dependencies
-- Apache configuration file for the web-app _/etc/apache2/conf-available/opmon-analyzer-ui.conf_
+- Apache configuration file for the web-app _/etc/apache2/conf-available/xroad-metrics-analyzer-ui.conf_
 - a self signed SSL certificate
 
 Note that the package does not install Shiny Server itself. See next chapter for further instructions.
@@ -62,23 +62,23 @@ Apache is used as a reverse proxy in front of Shiny Server to add SSL encryption
 
 ### Install Shiny Server
 Shiny Server is an open source, free of charge webserver that serves web-apps written using the R-language Shiny 
-framework. Opmon Networking module UI is a Shiny app and requires Shiny Server to run. 
+framework. The Networking module UI is a Shiny app and requires Shiny Server to run. 
 Shiny Server is developed and distributed by RStudio (https://rstudio.com/products/shiny/shiny-server/),
 and currently they don't provide an Ubuntu repository for it. Therefore, Shiny Server is not included as a dependency
-of the opmon-networking package installed above.
+of the xroad-metrics-networking package installed above.
 
-However,the opmon-networking package includes a utility script that can be used to download and install Shiny Server
+However,the xroad-metrics-networking package includes a utility script that can be used to download and install Shiny Server
 from the RStudio website. To install Shiny Server via this utility script, run:
 ```bash
-sudo /usr/share/opmon/networking/install-shiny-server.sh
+sudo /usr/share/xroad-metrics/networking/install-shiny-server.sh
 ```
 
-A default configuration file for Shiny Server is included in opmon-networking package and Shiny Server will
+A default configuration file for Shiny Server is included in xroad-metrics-networking package and Shiny Server will
 use it automatically.
 
 ## Configuration
 ### Default settings file
-Default settings file for opmon-networking data preparation step is /etc/opmon/networking/settings.yaml
+Default settings file for xroad-metrics-networking data preparation step is /etc/xroad-metrics/networking/settings.yaml
 
 Before running the data preparation, user should fill in the following configuration:
   - X-Road instance name
@@ -93,23 +93,23 @@ Additionally, the following parameters can be adjusted in the settings file:
 ### Subsystem-info file
 During the data preparation step networking module adds subsystem names to the data.
 Subsystem names are fetched from a json file that holds the subsystem info.
-Default location for this file is /etc/opmon/networking/riha.json
+Default location for this file is /etc/xroad-metrics/networking/riha.json
 
 TODO: solve riha.json handling: OPMONDEV-90, OPMONDEV-91
 
 ### Settings profiles
-The opmon-networking module supports displaying data for multiple X-Road instances via settings profiles. 
+The xroad-metrics-networking module supports displaying data for multiple X-Road instances via settings profiles. 
 For example to have profiles DEV, TEST and PROD create three copies of `setting.yaml` 
 file named `settings_DEV.yaml`, `settings_TEST.yaml` and `settings_PROD.yaml`.
 Then fill the profile specific settings to each file and use the --profile
-flag when running opmon-networking command. For example to run using the TEST profile:
+flag when running xroad-metrics-networking command. For example to run using the TEST profile:
 ```
-opmon-networking --profile TEST
+xroad-metrics-networking --profile TEST
 ```
 
-Now the opmon-networking data preparation program will get configuration settings from a settings file named
+Now the xroad-metrics-networking data preparation program will get configuration settings from a settings file named
 settings_TEST.yaml. The command searches the settings file first in current working direcrtory, 
-then in _/etc/opmon/networking/_. opmon-networking command will then tag the generated output files with the profile
+then in _/etc/xroad-metrics/networking/_. xroad-metrics-networking command will then tag the generated output files with the profile
 name (TEST in this case).
 
 In the UI you can view the data of different settings profiles by providing the *profile* query parameter.
@@ -162,10 +162,10 @@ sudo systemctl restart apache2.service
 
 ## Data preparation script, overview
 
-The data preparation step can be started by the command `opmon-networking`. It does the following: 
+The data preparation step can be started by the command `xroad-metrics-networking`. It does the following: 
 
-1. Read configuration parameters from a settings-file. Default settings-file is `/etc/opmon/networking/settings.yaml`.
-2. Read instance specific complementary files `/etc/opmon/networking/riha.json` 
+1. Read configuration parameters from a settings-file. Default settings-file is `/etc/xroad-metrics/networking/settings.yaml`.
+2. Read instance specific complementary files `/etc/xroad-metrics/networking/riha.json` 
    in order to link `clientmembercode` and `servicemembercode` to the names of the X-Road members.
 3. Establishes a connection to Open data PostgreSQL and queries the most recent date in field `requestindate`.
 4. Queries the most recent data from Open data dating back to certain number of days 
@@ -195,16 +195,16 @@ The data preparation step can be started by the command `opmon-networking`. It d
 
 7. Parses member names from `riha.json` and adds the names to the output data.
 8. Writes the resulting table to RDS-file (R-specific binary file) 
-   in the shiny application's dynamic data directory (`/var/lib/opmon/networking`)
+   in the shiny application's dynamic data directory (`/var/lib/xroad-metrics/networking`)
 
-The `opmon-networking` data preparation command is set up to run periodically using cron.
+The `xroad-metrics-networking` data preparation command is set up to run periodically using cron.
 
 ## Visualization web application
 
-After the opmon-networking package and Shiny Server are installed and the data-preparation has been executed for the
+After the xroad-metrics-networking package and Shiny Server are installed and the data-preparation has been executed for the
 first time, the Visualization Web App UI can be accessed using a browser.
 
-By default the Shiny Server is configured to run on port 3838, so if the host where opmon-networking and Shiny Server 
+By default the Shiny Server is configured to run on port 3838, so if the host where xroad-metrics-networking and Shiny Server 
 are installed is named e.g. *myshiny* you can access the UI by pointing your browser to http://myshiny:3838.
 
 The visualization web application enables the end-user to get visually illustrated information on the networking 
@@ -231,7 +231,7 @@ The visualization output includes two different graphs:
 The numbers of queries between the members are logarithmed (log10) in both graphs in order to enable color and 
 line thickness graduations.
 
-The back-end of the web application a Shiny-framework web-app installed into `/usrr/share/opmon/networking/shiny/app.R`. 
+The back-end of the web application a Shiny-framework web-app installed into `/usrr/share/xroad-metrics/networking/shiny/app.R`. 
 In addition to setting up the user interface, the script also does service call counting and logarithming. 
 The data file prepared by `prepare_data.R` includes counts of service calls on the service level. 
 For displaying X-road member networking on the higher levels (member, subsystem), the `app.R` script reactively 
@@ -242,7 +242,7 @@ sums the query counts.
 
 ### Data preparation script
 
-The log files are stored by default at `/var/log/opmon/networking/logs`. 
+The log files are stored by default at `/var/log/xroad-metrics/networking/logs`. 
 The local timestamp (YYYY-MM-DD hh:mm:ss), Unix timestamp, duration (hh:mm:ss), log information level (INFO, ERROR), 
 activity and message are recorded in JSON structure:
 
@@ -257,7 +257,7 @@ activity and message are recorded in JSON structure:
 }
 ```
 
-Heartbeat info is stored by default at `/var/log/opmon/networking/heartbeat`. 
+Heartbeat info is stored by default at `/var/log/xroad-metrics/networking/heartbeat`. 
 Heartbeat has two statuses: SUCCEEDED and FAILED
 
 ```
@@ -275,7 +275,7 @@ Rstudio Shiny Server Open Source has its own built-in logging.
 All information related to Shiny Server itself, rather than a particular Shiny application, 
 is logged in the global system log stored in `/var/log/shiny-server.log`. 
 Any errors and warnings that Shiny Server needs to communicate will be written here. 
-The application-specific logs, in this case the applications residing in `/usr/share/opmon/networking/shiny` subfolders, 
+The application-specific logs, in this case the applications residing in `/usr/share/xroad-metrics/networking/shiny` subfolders, 
 are logged separately and stored in `/var/log/shiny-server`. The log files are created in the following format:
 `<application directory name>-YYYMMDD-HHmmss-<port number or socket ID>.log`, e.g. `sample-shiny-20171021-232458-41093.log`.
 
