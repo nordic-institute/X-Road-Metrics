@@ -7,15 +7,15 @@
 X-Road Metrics is a collection of tools that can be used to collect, process and present operational monitoring data
 collected from X-Road security servers. The system consists of several modules:
 
-* [Central Database Module (MongoDB)](#database-module)
-* [Collector Module](#collector-module)
-* [Corrector Module](#corrector-module)
-* [Reports Module](#reports-module)
-* [Opendata Database Module (PostgreSQL)](#opendata-module)
-* [Opendata Module](#opendata-module)
-* [Networking/Visualizer Module](#networking-visualizer-module)
+ - [Database module](./database_module.md)
+ - [Collector module](./collector_module.md)
+ - [Corrector module](./corrector_module.md) 
+ - [Reports module](./reports_module.md) 
+ - [Anonymizer module](./anonymizer_module.md)
+ - [Opendata module](./opendata_module.md) 
+ - [Networking/Visualizer module](./networking_module.md)
 
-In addition to the above modules, the source code includes an [experimental Analyzer Module](#analyzer-module), 
+In addition to the above modules, the source code includes an [experimental Analysis Module](./experimental/analysis_module.md), 
 which is not yet released.
 
 This document contains an architecture overview of the interfaces between the modules. 
