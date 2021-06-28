@@ -38,18 +38,20 @@
         <link rel="stylesheet" type="text/css" href="/javascript/bootstrap/css/bootstrap.min.css"/>
         <link rel="stylesheet" type="text/css" href="/javascript/jquery-datatables/css/jquery.dataTables.min.css"/>
         <link rel="stylesheet" type="text/css" href="/javascript/eonasdan-bootstrap-datetimepicker/bootstrap-datetimepicker.min.css"/>
+        <link rel="shortcut icon" type="image/png" href="/static/favicon-32x32.png"/>
+
     </head>
     <body>
         <div id='settings_profile' style="display:none;">{{settings_profile}}</div>
         <div class="container-fluid">
-            <div class="header" style="display:flex; flex-direction:row;">
+            <div class="header" style="display:flex; flex-direction:column;">
                 <div style="font-family:Roboto,Helvetica Neue,Helvetica,Arial,sans-serif;font-weight:normal;font-size:12px;line-height:16px;color:#9fb1c1">
                     {{header | safe}}
                 </div>
-                <div style="display:flex; flex-direction:row; flex:1; justify-content:flex-end">
+                <div style="display:flex; flex-direction:row; flex:1; justify-content:space-between">
                     <a href="https://x-road.global/">
                         <img
-                                src="static/gui/xroad_100_en.png"
+                                src="static/gui/xroad-metrics-100.png"
                                 alt="X-ROAD"
                                 style="display:block; height:auto;"
                                 height="auto"
@@ -194,7 +196,8 @@
 
             <div class="footer" style="font-family:Roboto,Helvetica Neue,Helvetica,Arial,sans-serif;font-weight:normal;font-size:12px;line-height:16px;color:#9fb1c1">
                 <div>{{footer | safe}}</div>
-                <p>X-Road Metrics software is maintained by <a href="https://niis.org">Nordic Institute of Interoperability Solutions</a>.</p>
+                <p>X-Road Metrics software is maintained by <a href="https://niis.org" target="_blank">Nordic Institute of Interoperability Solutions (NIIS)</a>.</p>
+                <p>X-Road Metrics <a href="https://x-road.global/xroad-metrics-licence-info" target="_blank">licence info</a>.</p>
                 <p>Feedback about X-Road Metrics can be sent to <a href="mailto:info@niis.org?subject=Feedback on X-Road Metrics">info@niis.org</a>.</p>
             </div>
         </div>

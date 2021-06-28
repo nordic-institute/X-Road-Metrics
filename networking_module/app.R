@@ -35,9 +35,10 @@ ui <- fluidPage(
 
   fluidRow(
     tags$div(
-      tags$img(src = "xroad_100_en.png", align = "left"),
+      tags$img(src = "xroad-metrics-100.png", align = "left"),
       tags$img(src = "eu_rdf_100_en.png", align = "right")
-    )
+    ),
+    style = "margin: 0"
   ),
 
   fluidRow(
@@ -59,7 +60,10 @@ ui <- fluidPage(
   plotOutput('net1', height = "800px") %>% withSpinner(color = '#663cdc'),
   br(),
   plotOutput('ggplot1', height = "800px") %>% withSpinner(color = '#663cdc'),
-  wellPanel("The X-Road Metrics tools are developed by  ", tags$a(href = "https://www.niis.org", "NIIS.", target = "_blank"), style = "padding: 5px;")
+  wellPanel(
+    div("The X-Road Metrics tools are developed by  ", tags$a(href = "https://www.niis.org", "NIIS.", target = "_blank"), style = "padding: 5px;"),
+    div("X-Road Metrics  ", tags$a(href = "https://x-road.global/xroad-metrics-licence-info", "licence info.", target = "_blank"), style = "padding: 5px;")
+  )
 )
 
 ####server####
