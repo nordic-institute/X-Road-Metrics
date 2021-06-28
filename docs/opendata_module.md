@@ -72,6 +72,8 @@ Refer to section [Opendata Module Configuration](#opendata-module-configuration)
 ## Usage
 ### Opendata Module Configuration
 
+Before configuring Opendata module for use, you need to [install the PostgreSQL database](./opendata_database.md).
+
 To use opendata module you need to fill in your X-Road, PostgreSQL and Django configuration into the settings file.
 (here, **vi** is used):
 
@@ -123,6 +125,9 @@ https://myhost.mydomain.org/TEST/  # settings from settings_TEST.yaml
 https://myhost.mydomain.org/PROD/  # settings from settings_PROD.yaml
 ```
 
+### Anonymizer Module
+After a fresh installation the PostgreSQL database is empty.
+Setup and run [Anonymizer module](./anonymizer_module.md) to upload anonymized data into the database.
 
 ## Opendata Interface documentation
 
