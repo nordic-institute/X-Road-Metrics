@@ -19,7 +19,7 @@ The **Corrector module** is responsible to clean the raw data from corrector and
 
 It is important to note that it can take up to 7 days for the [Collector module](collector_module.md) to receive X-Road v6 operational data from (all available) security server(s) and up to 3 days for the Corrector_module to clean the raw data and derive monitoring metrics in a clean database collection.
 
-Overall system, its users and rights, processes and directories are designed in a way, that all modules can reside in one server (different users but in same group 'opmon') but also in separate servers. 
+Overall system, its users and rights, processes and directories are designed in a way, that all modules can reside in one server (different users but in same group 'xroad-metrics') but also in separate servers. 
 
 Overall system is also designed in a way, that allows to monitor data from different X-Road instances (e.g. in Estonia there are three instances: `ee-dev`, `ee-test` and `EE`.)
 
@@ -128,21 +128,21 @@ sudo add-apt-repository 'https://artifactory.niis.org/xroad-extensions-release-d
 ````
 
 ### Install Corrector Package
-To install opmon-corrector and all dependencies execute the commands below:
+To install xroad-metrics-corrector and all dependencies execute the commands below:
 
 ```bash
 sudo apt-get update
-sudo apt-get install opmon-corrector
+sudo apt-get install xroad-metrics-corrector
 ```
 
 The installation package automatically installs following items:
- * opmon-correctord daemon
- * Linux user named _opmon_ and group _opmon_
- * settings file _/etc/opmon/corrector/settings.yaml_
- * systemd service unit configuration _/lib/systemd/system/opmon-corrector.service_
- * log folders to _/var/log/opmon/corrector/_
+ * xroad-metrics-correctord daemon
+ * Linux user named _xroad-metrics_ and group _xroad-metrics_
+ * settings file _/etc/xroad-metrics/corrector/settings.yaml_
+ * systemd service unit configuration _/lib/systemd/system/xroad-metrics-corrector.service_
+ * log folders to _/var/log/xroad-metrics/corrector/_
 
-Only _opmon_ user can access the settings files and run opmon-correctord command.
+Only _xroad-metrics_ user can access the settings files and run xroad-metrics-correctord command.
 
 To use corrector you need to fill in your X-Road and MongoDB configuration into the settings file.
 Then you corrector daemon can be run manually or as a systemd service. Next chapter provides detailed instructions about corrector configuration and usage.
@@ -151,11 +151,14 @@ Then you corrector daemon can be run manually or as a systemd service. Next chap
 
 ### Corrector Configuration
 
+Before configuring the Corrector module, make sure that you have installed and configured the [Database_Module](database_module.md)
+and created the MongoDB credentials.
+
 To use corrector you need to fill in your X-Road and MongoDB configuration into the settings file.
 (here, **vi** is used):
 
 ```bash
-sudo vi /etc/opmon/corrector/settings.yaml
+sudo vi /etc/xroad-metrics/corrector/settings.yaml
 ```
 
 Settings that the user must fill in:
@@ -171,14 +174,14 @@ Corrector operation can be tested by running the corrector daemon manually. For 
 Make sure the corrector is not running as a systemd service with:
 
 ```bash
-sudo systemctl stop opmon-corrector
-systemctl status opmon-corrector
+sudo systemctl stop xroad-metrics-corrector
+systemctl status xroad-metrics-corrector
 ```
 
-To run corrector manually in the foreground as opmon user, just execute:
+To run corrector manually in the foreground as xroad-metrics user, just execute:
 
 ```bash
-opmon-correctord
+xroad-metrics-correctord
 ```
 
 **Note**: Corrector module has a current limit of documents controlled by **CORRECTOR_DOCUMENTS_LIMIT** (by default set to CORRECTOR_DOCUMENTS_LIMIT = 20000) to ensure RAM and CPU is not overloaded during calculations. The CORRECTOR_DOCUMENTS_LIMIT defines the processing batch size, and is executed continuously until the total of documents left is smaller than **CORRECTOR_DOCUMENTS_MIN** documents (default set to CORRECTOR_DOCUMENTS_MIN = 1). The estimated amount of memory per processing batch is indicated at [System Architecture](system_architecture.md) documentation.
@@ -186,52 +189,52 @@ opmon-correctord
 ### sysetmd Service
 To run the corrector as a continuous background service under systemd execute the following commands:
 ```
-sudo systemctl enable opmon-corrector
-sudo systemctl start opmon-corrector
+sudo systemctl enable xroad-metrics-corrector
+sudo systemctl start xroad-metrics-corrector
 ```
 
 To check the service status:
 ```
-systemctl status opmon-corrector
+systemctl status xroad-metrics-corrector
 ```
 
 ### Settings Profiles
 To run corrector for multiple X-Road instances, a settings profile for each instance can be created. For example to have profiles DEV, TEST and PROD create three copies of `setting.yaml` 
 file named `settings_DEV.yaml`, `settings_TEST.yaml` and `settings_PROD.yaml`.
 Then fill the profile specific settings to each file and use the --profile
-flag when running opmon-correctord. For example to run corrector manually using the TEST profile:
+flag when running xroad-metrics-correctord. For example to run corrector manually using the TEST profile:
 ```
-opmon-correctord --profile TEST
+xroad-metrics-correctord --profile TEST
 ```
 
-`opmon-corrector` command searches the settings file first in current working direcrtory, then in
-_/etc/opmon/corrector/_
+`xroad-metrics-corrector` command searches the settings file first in current working direcrtory, then in
+_/etc/xroad-metrics/corrector/_
 
 To run corrector as a systemd service using a specific settings profile you need to create a service configuration.
 For example to create a service using "PROD" profile, the default service configuration can be used as a starting point:
 ```
-sudo cp  /lib/systemd/system/opmon-corrector.service /lib/systemd/system/opmon-corrector-PROD.service
+sudo cp  /lib/systemd/system/xroad-metrics-corrector.service /lib/systemd/system/xroad-metrics-corrector-PROD.service
 ```
 
 Then edit the config file e.g. with vi
 ```
-sudo vi /lib/systemd/system/opmon-corrector-PROD.service
+sudo vi /lib/systemd/system/xroad-metrics-corrector-PROD.service
 ```
 
 Modify the ExecStart line in the config file to use the wanted settings profile (PROD in this example):
 ```
-ExecStart=/usr/bin/opmon-correctord --profile PROD
+ExecStart=/usr/bin/xroad-metrics-correctord --profile PROD
 ```
 
 Enable and start the new service:
 ```
-sudo systemctl enable opmon-corrector-PROD
-sudo systemctl start opmon-corrector-PROD
+sudo systemctl enable xroad-metrics-corrector-PROD
+sudo systemctl start xroad-metrics-corrector-PROD
 ```
 
 To check the service status:
 ```
-systemctl status opmon-corrector-PROD
+systemctl status xroad-metrics-corrector-PROD
 ```
 
 
@@ -262,12 +265,12 @@ logger:
 
   # Logs and heartbeat files are stored under these paths.
   # Also configure external log rotation and app monitoring accordingly.
-  log-path: /var/log/opmon/corrector/logs
+  log-path: /var/log/xroad-metrics/corrector/logs
 
 ```
 
 The log file is written to `log-path` and log file name contains the X-Road instance name. 
-The above example configuration would write logs to `/var/log/opmon/collector/logs/log_corrector_EXAMPLE.json`.
+The above example configuration would write logs to `/var/log/xroad-metrics/collector/logs/log_corrector_EXAMPLE.json`.
 
 Every log line includes:
 
@@ -288,12 +291,12 @@ In case of "activity": "corrector_batch_end", the "msg" includes values separate
 The **corrector module** log handler is compatible with the logrotate utility. To configure log rotation for the example setup above, create the file:
 
 ```
-sudo vi /etc/logrotate.d/opmon-corrector
+sudo vi /etc/logrotate.d/xroad-metrics-corrector
 ```
 
 and add the following content :
 ```
-/var/log/opmon/corrector/logs/log_corrector_EXAMPLE.json {
+/var/log/xroad-metrics/corrector/logs/log_corrector_EXAMPLE.json {
     rotate 10
     size 2M
 }
@@ -317,12 +320,12 @@ xroad:
 
 logger:
   #  ...
-  heartbeat-path: /var/log/opmon/corrector/heartbeat
+  heartbeat-path: /var/log/xroad-metrics/corrector/heartbeat
 
 ```
 
 The heartbeat file is written to `heartbeat-path` and hearbeat file name contains the X-Road instance name. 
-The above example configuration would write logs to `/var/log/opmon/corrector/heartbeat/heartbeat_corrector_EXAMPLE.json`.
+The above example configuration would write logs to `/var/log/xroad-metrics/corrector/heartbeat/heartbeat_corrector_EXAMPLE.json`.
 
 The heartbeat file consists last message of log file and status
 

@@ -17,26 +17,26 @@ which include following modules:
  - [Networking/Visualizer module](../networking_module.md)
 
 The **Anonymizer module** is responsible of preparing the operational monitoring data for publication through 
-the [Opendata module](opendata_module.md). Anonymizer configuration allows opmon extension administrator to set 
-fine-grained rules for excluding whole opmon records or to modify selected data fields before the data is published.
+the [Opendata module](opendata_module.md). Anonymizer configuration allows xroad-metrics extension administrator to set 
+fine-grained rules for excluding whole operatinal monitoring data records or to modify selected data fields before the data is published.
 
-The anonymizer module uses the opmon data that [Corrector module](corrector_module.md) has prepared and stored 
+The anonymizer module uses the operational monitoring data that [Corrector module](corrector_module.md) has prepared and stored 
 to MongoDb as input. The anonymizer processes the data using the configured ruleset and stores the output to the
 opendata PostgreSQL database for publication.
 
 ## Architecture
 
-Anonymizer prepares data for the opendata module. Overview of the module architecture related to publishing opmon data
+Anonymizer prepares data for the Ppendata module. Overview of the module architecture related to publishing operational monitoring data
 through  [Opendata module](opendata_module.md) is diagram below:
  ![system diagram](img/opendata/opendata_overview.png "System overview")
 
 ## Networking
 
-MongoDb is used to store "non-anonymized" opmon data that should be accessible only by the X-Road administrators.
-Anonymized opmon data that can be published for wider audience is stored in the PostgreSQL. The opendata UI needs
+MongoDb is used to store "non-anonymized" operational monitoring data that should be accessible only by the X-Road administrators.
+Anonymized operational monitoring data that can be published for wider audience is stored in the PostgreSQL. The Opendata UI needs
 access only to the PostgreSQL. To follow the "principal of least priviledge" it is recommended to
-install opmon UI on a dedicated host that has no access at all to MongoDb.
-However, the Anonymizer module needs access also to the "not-public" data so it should
+install Opendata UI on a dedicated host that has no access at all to MongoDb.
+However, the Anonymizer module needs access also to the "not-public" data, so it should
 run on a host that has access to both MongoDb and PostgreSQL.
 
 The anonymizer module provides no incoming network interfaces.
@@ -55,24 +55,24 @@ sudo add-apt-repository 'https://artifactory.niis.org/xroad-extensions-release-d
 ````
 
 ### Install Anonymizer Package
-To install opmon-anonymizer and all dependencies execute the commands below:
+To install xroad-metrics-anonymizer and all dependencies execute the commands below:
 
 ```bash
 sudo apt-get update
-sudo apt-get install opmon-anonymizer
+sudo apt-get install xroad-metrics-anonymizer
 ```
 
 The installation package automatically installs following items:
- * opmon-anonymizer command
- * Linux user named _opmon_ and group _opmon_
+ * xroad-metrics-anonymizer command
+ * Linux user named _xroad-metrics_ and group _xroad-metrics_
  * configuration files: 
-   * _/etc/opmon/anonymizer/settings.yaml_
-   * _/etc/opmon/anonymizer/field_data.yaml_
-   * _/etc/opmon/anonymizer/field_translations.yaml_
- * cron job _/etc/cron.d/opmon-anonymizer-cron_ to run anonymizer periodically
- * log folders to _/var/log/opmon/anonymizer/_
+   * _/etc/xroad-metrics/anonymizer/settings.yaml_
+   * _/etc/xroad-metrics/anonymizer/field_data.yaml_
+   * _/etc/xroad-metrics/anonymizer/field_translations.yaml_
+ * cron job _/etc/cron.d/xroad-metrics-anonymizer-cron_ to run anonymizer periodically
+ * log folders to _/var/log/xroad-metrics/anonymizer/_
 
-Only _opmon_ user can access the settings files and run opmon-anonymizer command.
+Only _xroad-metrics_ user can access the settings files and run xroad-metrics-anonymizer command.
 
 To use corrector you need to fill in your X-Road, MongoDb and PostgreSQL configuration into the settings file.
 Next chapter has detailed instructions on how to configure the anonymizer module.
@@ -81,11 +81,17 @@ Next chapter has detailed instructions on how to configure the anonymizer module
 
 ### Anonymizer General Settings
 
+Before configuring the Anonymizer module, make sure you have done the following:
+- installed and configured the [Database_Module](database_module.md)
+- created the MongoDB user accounts
+- installed and configured the [Opendata database](opendata_module.md)
+- created the Opendata database user accounts
+
 To use anonymizer you need to fill in your X-Road, MongoDB and PostgreSQL configuration into the settings file.
 (here, **vi** is used):
 
 ```bash
-sudo vi /etc/opmon/corrector/settings.yaml
+sudo vi /etc/xroad-metrics/corrector/settings.yaml
 ```
 
 Settings that the user must fill in:
@@ -109,7 +115,7 @@ _settings.yaml_ file.
 A hiding rule consists of list of feature - regular expression pairs. If the contents of the field matches the regex,
 then the record is excluded from opendata set.
 
-A typical example is to exclude all opmon data records related to specific clients, services or member types. 
+A typical example is to exclude all operational monitoring data records related to specific clients, services or member types. 
 The example below defines two hiding rules. 
 First rule will exclude all records where client id is _"foo"_ **and** service id is _"bar"_.
 The second rule will exclude all records where service member class is not _"GOV"_.
@@ -179,37 +185,37 @@ To run anonymizer for multiple X-Road instances, a settings profile for each ins
 For example to have profiles DEV, TEST and PROD create three copies of `setting.yaml` 
 file named `settings_DEV.yaml`, `settings_TEST.yaml` and `settings_PROD.yaml`.
 Then fill the profile specific settings to each file and use the --profile
-flag when running opmon-anonymizer. For example to run anonymizer manually using the TEST profile:
+flag when running xroad-metrics-anonymizer. For example to run anonymizer manually using the TEST profile:
 ```
-opmon-correctord --profile TEST
+xroad-metrics-correctord --profile TEST
 ```
 
-`opmon-anonymizer` command searches the settings file first in current working direcrtory, then in
-_/etc/opmon/anonymizer/_
+`xroad-metrics-anonymizer` command searches the settings file first in current working direcrtory, then in
+_/etc/xroad-metrics/anonymizer/_
 
 ### Manual usage
 
-All anonymizer module can be executed by calling the `opmon-anonymizer` command.
-Command should be executed as user `opmon` so change to that user:
+All anonymizer module can be executed by calling the `xroad-metrics-anonymizer` command.
+Command should be executed as user `xroad-metrics` so change to that user:
 ```bash
-sudo su opmon
+sudo su xroad-metrics
 ```
 
 Currently following command line arguments are supported:
 ```bash
-opmon-anonymizer --help                     # Show description of the command line argumemts
-opmon-anonymizer --limit <number>           # Optional flag to limit the number of records to process. 
-opmon-anonymizer --profile <profile name>   # Run with a non-default settings profile
+xroad-metrics-anonymizer --help                     # Show description of the command line argumemts
+xroad-metrics-anonymizer --limit <number>           # Optional flag to limit the number of records to process. 
+xroad-metrics-anonymizer --profile <profile name>   # Run with a non-default settings profile
 ```
 
 
 ### Cron settings
-Default installation includes a cronjob in _/etc/cron.d/opmon-anonymizer-cron_ that runs anonymizer monthly. 
-This job runs anonymizer using default settings profile (_/etc/opmon/collector/settings.yaml_)
+Default installation includes a cronjob in _/etc/cron.d/xroad-metrics-anonymizer-cron_ that runs anonymizer monthly. 
+This job runs anonymizer using default settings profile (_/etc/xroad-metrics/collector/settings.yaml_)
 
 If you want to change the collector cronjob scheduling or settings profiles, edit the file e.g. with vi
 ```
-vi /etc/cron.d/opmon-anonymizer-cron
+vi /etc/cron.d/xroad-metrics-anonymizer-cron
 ```
 and make your changes. For example to run collector bi-weekly using settings profiles PROD and TEST:
 ```bash
@@ -217,14 +223,14 @@ SHELL=/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 # m   h  dom    mon dow  user       command
-  15  30  1,15   *   *   opmon      opmon-anonymizer --profile TEST
-  16  15  1,15   *   *   opmon      opmon-anonymizer --profile PROD
+  15  30  1,15   *   *   xroad-metrics      xroad-metrics-anonymizer --profile TEST
+  16  15  1,15   *   *   xroad-metrics      xroad-metrics-anonymizer --profile PROD
 
 ```
 
 If collector is to be run only manually, comment out the default cron task:
 ```bash
-# 15 30 15 * * opmon opmon-anonymizer
+# 15 30 15 * * xroad-metrics xroad-metrics-anonymizer
 ```
 
 ## Monitoring and Status
@@ -249,24 +255,24 @@ logger:
 
   # Logs and heartbeat files are stored under these paths.
   # Also configure external log rotation and app monitoring accordingly.
-  log-path: /var/log/opmon/anonymizer/logs
+  log-path: /var/log/xroad-metrics/anonymizer/logs
 
 ```
 
 The log file is written to `log-path` and log file name contains the X-Road instance name. 
-The above example configuration would write logs to `/var/log/opmon/collector/logs/log_collector_EXAMPLE.json`.
+The above example configuration would write logs to `/var/log/xroad-metrics/collector/logs/log_collector_EXAMPLE.json`.
 
 
 The **anonymizer module** log handler is compatible with the logrotate utility. 
 To configure log rotation for the example setup above, create the file:
 
 ```
-sudo vi /etc/logrotate.d/opmon-anonymizer
+sudo vi /etc/logrotate.d/xroad-metrics-anonymizer
 ```
 
 and add the following content :
 ```
-/var/log/opmon/collector/logs/log_anonymizer_EXAMPLE.json {
+/var/log/xroad-metrics/collector/logs/log_anonymizer_EXAMPLE.json {
     rotate 10
     size 2M
 }
@@ -290,13 +296,13 @@ xroad:
 
 logger:
   #  ...
-  heartbeat-path: /var/log/opmon/anonymizer/heartbeat
+  heartbeat-path: /var/log/xroad-metrics/anonymizer/heartbeat
 
 ```
 
 The heartbeat file is written to `heartbeat-path` and hearbeat file name contains the X-Road instance name. 
 The above example configuration would write logs to
- `/var/log/opmon/anonymizer/heartbeat/heartbeat_anonymizer_EXAMPLE.json`.
+ `/var/log/xroad-metrics/anonymizer/heartbeat/heartbeat_anonymizer_EXAMPLE.json`.
 
 The heartbeat file consists last message of log file and status
 
