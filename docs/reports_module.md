@@ -55,8 +55,11 @@ Reports-module doesn't need any **incoming** connections.
 This sections describes the necessary steps to install the **reports module** on an Ubuntu 20.04 Linux host.
 To a complete overview of different modules and machines, please refer to the ==> [System Architecture](system_architecture.md) <== documentation.
 
-### Add X-Road OpMon Package Repository for Ubuntu
-TODO
+### Add X-Road Extensions Package Repository for Ubuntu
+````bash
+wget -qO - https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
+sudo add-apt-repository 'https://artifactory.niis.org/xroad-extensions-release-deb main'
+````
 
 ### Install Reports Package
 To install opmon-reports and all dependencies execute the commands below:

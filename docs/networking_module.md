@@ -32,9 +32,11 @@ The general scheme of processes in the Networkin module is as follows:
 
 ![networking module diagram](img/Networking_module_diagram.png "Networking module diagram")
 
-## Installation
-### Add opmon repository
-TODO
+### Add X-Road Extensions Package Repository for Ubuntu
+````bash
+wget -qO - https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
+sudo add-apt-repository 'https://artifactory.niis.org/xroad-extensions-release-deb main'
+````
 
 ### Install opmon-networking package
 When the repository is added to Ubuntu you can install opmon-networking module package by running these commands:

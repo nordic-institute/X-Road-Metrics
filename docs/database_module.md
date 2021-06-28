@@ -34,8 +34,7 @@ Add the MongoDB repository key and location:
 ```bash
 # Key rsa4096/20691eec35216c63caf66ce1656408e390cfb1f5 [expires: 2024-05-26]
 sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 656408e390cfb1f5
-echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/4.4 multiverse" \
-    | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
+sudo apt-add-repository "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/4.4 multiverse"
 ```
 
 Install MongoDB server and client tools (shell)

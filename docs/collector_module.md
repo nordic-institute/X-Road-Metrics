@@ -47,7 +47,7 @@ No incoming connection is needed in the collector module.
 This sections describes the necessary steps to install the **collector module** on a Ubuntu 20.04 Linux host. For a complete overview of different modules and machines, please refer to the ==> [System Architecture](system_architecture.md) <== documentation.
 
 
-### Add X-Road OpMon Package Repository for Ubuntu
+### Add X-Road Extensions Package Repository for Ubuntu
 ````bash
 wget -qO - https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
 sudo add-apt-repository 'https://artifactory.niis.org/xroad-extensions-release-deb main'

@@ -121,8 +121,11 @@ No **incoming** connection is needed in the corrector module.
 This sections describes the necessary steps to install the **corrector module** on a Ubuntu 20.04 Linux host. For a complete overview of different modules and machines, please refer to the ==> [System Architecture](system_architecture.md) <== documentation.
 
 
-### Add X-Road OpMon Package Repository for Ubuntu
-TODO
+### Add X-Road Extensions Package Repository for Ubuntu
+````bash
+wget -qO - https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
+sudo add-apt-repository 'https://artifactory.niis.org/xroad-extensions-release-deb main'
+````
 
 ### Install Corrector Package
 To install opmon-corrector and all dependencies execute the commands below:
