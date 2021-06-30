@@ -25,10 +25,6 @@ The operational specifications and hardware recommendations in this documentatio
 ![System overview](img/system_overview.svg "System overview")
 
 ## Operational specifications
-
-Expectations and limits below are calculated based on actual usage of X-Road v5 in Estonia. 
-They might be reviewed and updated according to future usage of X-Road v6 in Estonia.
-
 Expectations below are valid for overall X-Road usage by all its member organizations.
 Usage of X-Road in particular organization or hosted in particular hosting or X-Road security servers farm differs 
 significantly, therefore other architecture, hardware and software might used to fulfill particular organization 
@@ -109,7 +105,7 @@ Table below shows the network connections in the X-Road Metrics system and can b
 | opendata                 | 0.0.0.0/0                                           | 443        | HTTPS to Opendata web UI (Apache)               |
 | opendata                 | anonymizer, networking                              | 5432       | PostgreSQL                                      |
 | networking               | 0.0.0.0/0                                           | 443        | HTTPS to Networking Visualizer UI (Apache)      |
-| X-Road Central Server    | collector                                           | 80/443     | internalconf API to list security servers       |
+| X-Road Central Server    | collector                                           | 80         | internalconf API to list security servers       |
 | X-Road Monitoring Client | collector                                           | 80/443     | getSecurityServerOperationalData X-Road service |
 | SMTP server              | reports                                             | 25/465/587 | (Optional) SMTP server to send report e-mail notifications |
 | Reports file server      | reports                                             | e.g. 22    | (Optional) Sync report files to some public file server using e.g. scp or rsync |
@@ -198,7 +194,7 @@ For 1 month of data, a maximum of 10 millions queries are considered for one sub
 The amount of used memory is estimated to 30 GB for 10M messages in a report.
 
 
-### Opendata module
+### Opendata Module
 
 Opendata module is used to publish the X-Road operational monitoring data as open data. 
 In the example setup it is installed on the host *xroad-metrics-opendata*.
@@ -212,7 +208,9 @@ Anonymizer module is responsible for preparing the operational monitoring data f
 through the Opendata module. In the example setup it is installed on the host *xroad-metrics-anonymizer*.
 Detailed installation instructions can be found in the [Anonymizer module's documentation](anonymizer_module.md).
 
-### Analysis Module
+### Analysis Module (experimental)
+
+**NOTE!** Analysis module has not been released and is only included in the source code repository.
 
 Analysis module detects anomalies in the operational monitoring data and provides a UI to present the analysis results.
 The actual analyzer and the UI are packaged separately but on the example setup they are both
