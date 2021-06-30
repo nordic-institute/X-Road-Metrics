@@ -15,7 +15,7 @@ The **Collector module** is part of [X-Road Metrics](../README.md), which includ
  - [Opendata module](../opendata_module.md) 
  - [Networking/Visualizer module](../networking_module.md)
 
-The **Collector module** is responsible to retrieve data from X-Road v6 security servers and insert into the database module. The execution of the collector module is performed automatically via a **cron job** task.
+The **Collector module** is responsible to retrieve data from X-Road security servers and insert into the database module. The execution of the collector module is performed automatically via a **cron job** task.
 
 It is important to note that it can take up to 7 days for the Collector module to receive X-Road v6 operational data from (all available) security server(s).
 
@@ -52,6 +52,12 @@ This sections describes the necessary steps to install the **collector module** 
 wget -qO - https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
 sudo add-apt-repository 'https://artifactory.niis.org/xroad-extensions-release-deb main'
 ````
+
+The following information can be used to verify the key:
+- key hash: 935CC5E7FA5397B171749F80D6E3973B
+- key fingerprint: A01B FE41 B9D8 EAF4 872F A3F1 FB0D 532C 10F6 EC5B
+- 3rd party key server: [SKS key servers](http://pool.sks-keyservers.net/pks/lookup?op=vindex&hash=on&fingerprint=on&search=0xFB0D532C10F6EC5B)
+
 
 ### Install Collector Package
 To install xroad-metrics-collector and all dependencies execute the commands below:

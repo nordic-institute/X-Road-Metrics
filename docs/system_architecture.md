@@ -27,7 +27,7 @@ The operational specifications and hardware recommendations in this documentatio
 ## Operational specifications
 
 Expectations and limits below are calculated based on actual usage of X-Road v5 in Estonia. 
-They might be reviewed and updated according to future usage of X-Road v6 in Estonia.
+They might be reviewed and updated according to future usage of X-Road in Estonia.
 
 Expectations below are valid for overall X-Road usage by all its member organizations.
 Usage of X-Road in particular organization or hosted in particular hosting or X-Road security servers farm differs 

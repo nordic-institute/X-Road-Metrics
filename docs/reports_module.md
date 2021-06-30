@@ -18,23 +18,15 @@ The **Reports module** is part of [X-Road Metrics](../README.md), which includes
 The **Reports module** is responsible for creating monthly reports about subsystems of X-Road members (datasets usage).
 The execution of the reports module can be either performed automatically (via **cron job**) or manually.
 
-Overall system, its users and rights, processes and directories are designed in a way, that all modules can reside in one server (different users but in same group 'xroad-metrics') but also in separate servers.  
+Overall system, its users and rights, processes and directories are designed in a way, that all modules can reside in
+one server (different users but in same group 'xroad-metrics') but also in separate servers.  
 
-Overall system is also designed in a way, that allows to monitor data from different X-Road instances (e.g. in Estonia there are three instances: `ee-dev`, `ee-test` and `EE`.)
+Overall system is also designed in a way, that allows to monitor data from different X-Road instances 
+(e.g. in Estonia there are three instances: `ee-dev`, `ee-test` and `EE`.)
 
-Overall system is also designed in a way, that can be used by X-Road Centre for all X-Road members as well as for Member own monitoring (includes possibilities to monitor also members data exchange partners).
+Overall system is also designed in a way, that can be used by X-Road Centre for all X-Road members as well as for 
+Member own monitoring (includes possibilities to monitor also members data exchange partners).
 
-The module source code can be found at:
-
-```
-TODO: add link
-```
-
-## Diagram
-
-TODO: add new diagram, this is outdated! OPMONDEV-63.
-
-![reports module diagram](img/Reports_module_diagram_v6.png "Reports module diagram")
 
 ## Networking
 
@@ -60,6 +52,12 @@ To a complete overview of different modules and machines, please refer to the ==
 wget -qO - https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
 sudo add-apt-repository 'https://artifactory.niis.org/xroad-extensions-release-deb main'
 ````
+
+The following information can be used to verify the key:
+- key hash: 935CC5E7FA5397B171749F80D6E3973B
+- key fingerprint: A01B FE41 B9D8 EAF4 872F A3F1 FB0D 532C 10F6 EC5B
+- 3rd party key server: [SKS key servers](http://pool.sks-keyservers.net/pks/lookup?op=vindex&hash=on&fingerprint=on&search=0xFB0D532C10F6EC5B)
+
 
 ### Install Reports Package
 To install xroad-metrics-reports and all dependencies execute the commands below:

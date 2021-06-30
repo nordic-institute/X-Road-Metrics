@@ -19,7 +19,7 @@ The purpose of the **Networking module** is to visualize the networking activity
 It consists of:
  
 1. **Data preparation** R script that queries the Open data PostgreSQL database, 
-does relevant calculations (query counts between X-road members) and writes a table file to be used in the 
+does relevant calculations (query counts between X-Road members) and writes a table file to be used in the 
 visualization web application;
 
 2. RStudio Shiny-based **web application** to visualize the networking activity between the X-Road members.
@@ -37,6 +37,11 @@ The general scheme of processes in the Networkin module is as follows:
 wget -qO - https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
 sudo add-apt-repository 'https://artifactory.niis.org/xroad-extensions-release-deb main'
 ````
+
+The following information can be used to verify the key:
+- key hash: 935CC5E7FA5397B171749F80D6E3973B
+- key fingerprint: A01B FE41 B9D8 EAF4 872F A3F1 FB0D 532C 10F6 EC5B
+- 3rd party key server: [SKS key servers](http://pool.sks-keyservers.net/pks/lookup?op=vindex&hash=on&fingerprint=on&search=0xFB0D532C10F6EC5B)
 
 ### Install xroad-metrics-networking package
 When the repository is added to Ubuntu you can install xroad-metrics-networking module package by running these commands:
@@ -123,9 +128,9 @@ To replace these with proper certificates in production, you need to set your ce
 */etc/apache2/conf-available/xroad-metrics-networking.conf* file.
 
 The self signed certificates and default dhparams file are installed to these paths:
-    - */etc/ssl/certs/xroad-metrics-dhparam.pem*
-    - */etc/ssl/certs/xroad-metrics-selfsigned.crt*
-    - */etc/ssl/private/xroad-metrics-selfsigned.key*
+- */etc/ssl/certs/xroad-metrics-dhparam.pem*
+- */etc/ssl/certs/xroad-metrics-selfsigned.crt*
+- */etc/ssl/private/xroad-metrics-selfsigned.key*
 
 After configuration changes restart Apache:
 ```bash

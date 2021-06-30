@@ -17,7 +17,7 @@ The **Database module** is part of [X-Road Metrics](../README.md), which include
 
 The **Database module** provides storage and synchronization between the other modules. 
 
-Overall system, its users and rights, processes and directories are designed in a way, that all modules can reside in one server (different users but in same group 'opmon') but also in separate servers. 
+Overall system, its users and rights, processes and directories are designed in a way, that all modules can reside in one server (different users but in same group 'xroad-metrics') but also in separate servers. 
 
 Overall system is also designed in a way, that allows to monitor data from different X-Road instances (e.g. in Estonia there are three instances: `ee-dev`, `ee-test` and `EE`.)
 
@@ -369,7 +369,8 @@ After saving the alterations, the MongoDB service needs to be restarted. This ca
 sudo service mongod restart
 ```
 
-To make mongod instance as master, the following commands are needed in mongod shell (in this example, if the machine running MongoDB (`opmon`) has the Ethernet IP `10.11.22.33`):
+To make mongod instance as master, the following commands are needed in mongod shell 
+(in this example, if the machine running MongoDB has the Ethernet IP `10.11.22.33`):
 
 ```
 > rs.initiate()

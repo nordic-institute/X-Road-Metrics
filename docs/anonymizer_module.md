@@ -17,7 +17,7 @@ which include following modules:
  - [Networking/Visualizer module](../networking_module.md)
 
 The **Anonymizer module** is responsible of preparing the operational monitoring data for publication through 
-the [Opendata module](opendata_module.md). Anonymizer configuration allows xroad-metrics extension administrator to set 
+the [Opendata module](opendata_module.md). Anonymizer configuration allows X-Road Metrics extension administrator to set 
 fine-grained rules for excluding whole operatinal monitoring data records or to modify selected data fields before the data is published.
 
 The anonymizer module uses the operational monitoring data that [Corrector module](corrector_module.md) has prepared and stored 
@@ -26,13 +26,13 @@ opendata PostgreSQL database for publication.
 
 ## Architecture
 
-Anonymizer prepares data for the Ppendata module. Overview of the module architecture related to publishing operational monitoring data
+Anonymizer prepares data for the Opendata module. Overview of the module architecture related to publishing operational monitoring data
 through  [Opendata module](opendata_module.md) is diagram below:
  ![system diagram](img/opendata/opendata_overview.png "System overview")
 
 ## Networking
 
-MongoDb is used to store "non-anonymized" operational monitoring data that should be accessible only by the X-Road administrators.
+MongoDb is used to store "non-anonymized" operational monitoring data that should be accessible only by the X-Road Metrics administrators.
 Anonymized operational monitoring data that can be published for wider audience is stored in the PostgreSQL. The Opendata UI needs
 access only to the PostgreSQL. To follow the "principal of least priviledge" it is recommended to
 install Opendata UI on a dedicated host that has no access at all to MongoDb.
@@ -53,6 +53,11 @@ please refer to the ==> [System Architecture](system_architecture.md) <== docume
 wget -qO - https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
 sudo add-apt-repository 'https://artifactory.niis.org/xroad-extensions-release-deb main'
 ````
+
+The following information can be used to verify the key:
+- key hash: 935CC5E7FA5397B171749F80D6E3973B
+- key fingerprint: A01B FE41 B9D8 EAF4 872F A3F1 FB0D 532C 10F6 EC5B
+- 3rd party key server: [SKS key servers](http://pool.sks-keyservers.net/pks/lookup?op=vindex&hash=on&fingerprint=on&search=0xFB0D532C10F6EC5B)
 
 ### Install Anonymizer Package
 To install xroad-metrics-anonymizer and all dependencies execute the commands below:
