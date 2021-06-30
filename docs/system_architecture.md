@@ -29,11 +29,7 @@ The operational specifications and hardware recommendations in this documentatio
 This document is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License.
 To view a copy of this license, visit <https://creativecommons.org/licenses/by-sa/4.0/>
 
-## Operational specifications, X-Road instance EE (production)
-
-Expectations and limits below are calculated based on actual usage of X-Road v5 in Estonia. 
-They might be reviewed and updated according to future usage of X-Road v6 in Estonia.
-
+## Operational specifications
 Expectations below are valid for overall X-Road usage by all its member organizations.
 Usage of X-Road in particular organization or hosted in particular hosting or X-Road security servers farm differs 
 significantly, therefore other architecture, hardware and software might used to fulfill particular organization 
@@ -88,8 +84,45 @@ environment specific details.
 Diagram below shows an example setup where private modules are on hosts in VLAN1 and open data modules in VLAN2:
 ![Example Production Networking Infrastructure](img/xroad-metrics-prod-infra.png)
 
+The diagram includes also the experimental Analyzer module that has not been published yet.
+
 Specifications for each host in the example setup is in the following chapters.
-Ubuntu Server 20.04 is currently the only supported OS to run X-Road Metrics. 
+Ubuntu Server 20.04 is currently the only supported OS to run X-Road Metrics.
+
+
+### Software Specifications
+Ubuntu Server 20.04 is currently the only supported OS to run X-Road Metrics.
+
+In addition to the X-Road Metrics packages, following 3rd party software needs to be installed:
+ - MongoDb 4.4
+ - PostgreSQL 12.6
+ - RStudio Shiny Server 1.5.16
+
+Please refer to the module specific documentation for detailed installation instructions.
+
+
+### Network Ports
+Table below shows the network connections in the X-Road Metrics system and can be used as a reference for firewall configurations:
+
+| Server                   | Client(s)                                           | Port       | Description                                     |
+|--------------------------|-----------------------------------------------------|------------|-------------------------------------------------|
+| centraldb                | collector, corrector, reports, anonymizer           | 27017      | MongoDb                                         |
+| opendata                 | 0.0.0.0/0                                           | 443        | HTTPS to Opendata web UI (Apache)               |
+| opendata                 | anonymizer, networking                              | 5432       | PostgreSQL                                      |
+| networking               | 0.0.0.0/0                                           | 443        | HTTPS to Networking Visualizer UI (Apache)      |
+| X-Road Central Server    | collector                                           | 80         | internalconf API to list security servers       |
+| X-Road Monitoring Client | collector                                           | 80/443     | getSecurityServerOperationalData X-Road service |
+| SMTP server              | reports                                             | 25/465/587 | (Optional) SMTP server to send report e-mail notifications |
+| Reports file server      | reports                                             | e.g. 22    | (Optional) Sync report files to some public file server using e.g. scp or rsync |
+
+
+### HTTPS Configuration
+All connections to the web user interfaces use HTTPS protocol. The UI installation packages install Apache web server
+as a dependency. Installer creates a self signed certificate and configures the Apache to act as a reverse proxy where
+HTTPS connections are terminated. In production use the system administrator needs to add their own certificates and
+DNS settings to Apache configuration files. Please refer to each module's installation instructions for detailed 
+instructions.
+
 
 ### Hardware Recommendations
 Table below lists the recommended hardware specifications for the hosts in the
@@ -114,33 +147,6 @@ estimated size for 1 year of documents (1 billion X-Road v6 service calls (queri
 | raw_messages    | 2,000,000,000     | 900	                  | 1,500                    | 6           | 170                   |
 | clean_data      | 1,400,000,000     | 2000                  | 2,500                    | 44          | 530                   |
 | **TOTAL**       | **3,400,000,000** |                       | **4,000**                |             | **700**               |
-
-
-### Software Specifications
-X-Road Metrics is currently supported on Ubuntu Server 20.04 LTS operating systems so that should be
-used on all hosts.
-
-In addition to the X-Road Metrics packages, following 3rd party software is used:
- - MongoDb 4.4
- - PostgreSQL 12.6
- - RStudio Shiny Server 1.5.16
-
-Please refer to the module specific documentation for detailed installation instructions.
-
-### Network Ports
-Table below shows the network connections in the X-Road Metrics system and can be used as a reference for firewall configurations:
-
-| Server                   | Client(s)                                           | Port       | Description                                     |
-|--------------------------|-----------------------------------------------------|------------|-------------------------------------------------|
-| centraldb                | collector, corrector, reports, analyzer, anonymizer | 27017      | MongoDb                                         |
-| analyzer                 | clients in private network                          | 443        | HTTPS to Analyzer web UI                        |
-| opendata                 | 0.0.0.0/0                                           | 443        | HTTPS to Opendata web UI                        |
-| opendata                 | anonymizer, networking                              | 5432       | PostgreSQL                                      |
-| networking               | 0.0.0.0/0                                           | 443        | HTTPS to Networking Visualizer UI               |
-| X-Road Central Server    | collector                                           | 80/443     | internalconf API to list security servers       |
-| X-Road Monitoring Client | collector                                           | 80/443     | getSecurityServerOperationalData X-Road service |
-| SMTP server              | reports                                             | 25/465/587 | (Optional) SMTP server to send report e-mail notifications |
-| Reports file server      | reports                                             | e.g. 22    | (Optional) Sync report files to some public file server using e.g. scp or rsync |
 
 
 ### Database Module
@@ -193,7 +199,7 @@ For 1 month of data, a maximum of 10 millions queries are considered for one sub
 The amount of used memory is estimated to 30 GB for 10M messages in a report.
 
 
-### Opendata module
+### Opendata Module
 
 Opendata module is used to publish the X-Road operational monitoring data as open data. 
 In the example setup it is installed on the host *xroad-metrics-opendata*.
@@ -207,7 +213,9 @@ Anonymizer module is responsible for preparing the operational monitoring data f
 through the Opendata module. In the example setup it is installed on the host *xroad-metrics-anonymizer*.
 Detailed installation instructions can be found in the [Anonymizer module's documentation](anonymizer_module.md).
 
-### Analysis Module
+### Analysis Module (experimental)
+
+**NOTE!** Analysis module has not been released and is only included in the source code repository.
 
 Analysis module detects anomalies in the operational monitoring data and provides a UI to present the analysis results.
 The actual analyzer and the UI are packaged separately but on the example setup they are both
@@ -227,7 +235,7 @@ Detailed installation instructions can be found in the [Networking module's docu
 
 
 ## Simplified Infrastructure for Testing
-To test out X-Road Metrics in a simple X-Road environment, the number of hosts can be reduced.
+When testing out X-Road Metrics in a simple X-Road environment, it is not necessary to install each module on a separate host.
 The example diagram below shows an example setup where the X-Road Metrics modules are installed on two hosts, named
 *xroad-metrics-private* and *xroad-metrics-opendata*. As with the recommended production setup, also here the private
 data in MongoDb and Opendata in PostgreSQL are isolated by a firewall setup between the hosts.
