@@ -6,17 +6,7 @@
 
 ## Introduction
 
-The project maintains X-Road log of service calls (queries). 
-Logs are collected and corrected. 
-Further analysis about anomalies (possible incidents) is made. 
-Usage reports are created and published. 
-Logs are anonymized and published as opendata.
-
-Instructions to install all components, as well as all modules source code, can be found at:
-
-```
-TODO: add link
-```
+The project maintains X-Road log of service calls (queries). Logs are collected and corrected.  Usage reports are created and published. Logs are anonymized and published as opendata.
 
 ## Architecture
 
@@ -66,4 +56,4 @@ X-Road Metrics was initially developed by: [STACC (Software Technology and Appli
 
 Currently X-Road Metrics is released and maintained by [Nordic Institute for Interoperability Solutions (NIIS)](https://niis.org), under the [MIT License](LICENSE.MD).
 
-We appreciate your feedback: [info@niis.org](mailto:info@niis.org?subject=Feedback on X-Road Metrics)
+We appreciate your feedback: [info@niis.org](mailto:info@niis.org?subject=Feedbac%20on%20X-Road%20Metrics)
