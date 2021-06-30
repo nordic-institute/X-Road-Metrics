@@ -17,18 +17,12 @@ The **Collector module** is part of [X-Road Metrics](../README.md), which includ
 
 The **Collector module** is responsible to retrieve data from X-Road security servers and insert into the database module. The execution of the collector module is performed automatically via a **cron job** task.
 
-It is important to note that it can take up to 7 days for the Collector module to receive X-Road v6 operational data from (all available) security server(s).
-
 Overall system, its users and rights, processes and directories are designed in a way, that all modules can reside in one server, but also in separate servers. Opmon modules are controlled by unix user 'opmon' in group 'opmon'.
 
 Overall system is also designed in a way, that allows to monitor data from different X-Road instances (e.g. in Estonia there are three instances: `ee-dev`, `ee-test` and `EE`.)
 
 Overall system is also designed in a way, that can be used by X-Road Centre for all X-Road members as well as for Member own monitoring (includes possibilities to monitor also members data exchange partners).
 
-The collector module source code is available at:
-```
-TODO: add link
-```
 
 ## Networking
 
