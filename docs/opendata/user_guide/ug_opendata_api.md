@@ -4,6 +4,11 @@
 
 # X-Road Metrics - Open Data Module, API documentation
 
+## License <!-- omit in toc -->
+
+This document is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License.
+To view a copy of this license, visit <https://creativecommons.org/licenses/by-sa/4.0/>
+
 ## About
 
 Open Data API allows to query daily logs or log samples programmatically without the necessity to interact with the graphical user interface.

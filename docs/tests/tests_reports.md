@@ -4,6 +4,11 @@
 
 # X-Road Metrics - Reports Module Tests
 
+## License <!-- omit in toc -->
+
+This document is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License.
+To view a copy of this license, visit <https://creativecommons.org/licenses/by-sa/4.0/>
+
 ### Test case 1: Matching documents
 Description: The purpose of this test is to get all the relevant documents for the specific report.
 

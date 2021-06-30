@@ -32,6 +32,10 @@ Additional calculations from timestamps available are made:
 Explanation of timestamps (1) - (8):
 ![Timestamps](../../img/opendata/0_timestamps.png "Timestamps")
 
+## License <!-- omit in toc -->
+
+This document is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License.
+To view a copy of this license, visit <https://creativecommons.org/licenses/by-sa/4.0/>
 
 ## Initial page
 
