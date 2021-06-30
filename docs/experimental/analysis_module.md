@@ -68,7 +68,7 @@ During the anomaly detection stage a service call can be in one of the following
 2) first-time anomaly finding: 3 months have passed since the first request and the first version of the model has just been trained. All the data will be retrieved for anomaly finding.
 3) regular: data are retrieved since the last anomaly finding time until the "present" moment ("present" means the last valid date considering the corrector buffer, i.e. 10 days ago). Anomalies are found based on these data.
 
-It is important to note that it can take up to 7 days for the [Collector module](collector_module.md) to receive X-Road v6 operational data from security server(s) and up to 3 days for the [Corrector_module](corrector_module.md) to clean the raw data and derive monitoring metrics in a clean database collection.
+It is important to note that it can take up to 7 days for the [Collector module](collector_module.md) to receive X-Road operational data from security server(s) and up to 3 days for the [Corrector_module](corrector_module.md) to clean the raw data and derive monitoring metrics in a clean database collection.
 This means that Analyzer results are available at least 10 days after data received.
 
 ## Installation

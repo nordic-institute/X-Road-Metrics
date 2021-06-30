@@ -22,7 +22,7 @@ The **Database module** is part of [X-Road Metrics](../README.md), which include
 
 The **Database module** provides storage and synchronization between the other modules. 
 
-Overall system, its users and rights, processes and directories are designed in a way, that all modules can reside in one server (different users but in same group 'opmon') but also in separate servers. 
+Overall system, its users and rights, processes and directories are designed in a way, that all modules can reside in one server (different users but in same group 'xroad-metrics') but also in separate servers. 
 
 Overall system is also designed in a way, that allows to monitor data from different X-Road instances (e.g. in Estonia there are three instances: `ee-dev`, `ee-test` and `EE`.)
 
@@ -32,15 +32,15 @@ Overall system is also designed in a way, that can be used by X-Road Centre for 
 
 The database is implemented with the MongoDB technology: a non-SQL database with replication and sharding capabilities.
 
-This document describes the installation steps for Ubuntu 20.04. For other Linux distribution, please refer to: [MongoDB 4.4 documentation](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/)
+This document describes the installation steps for Ubuntu 20.04. 
+You can also refer to official [MongoDB 4.4 installation instructions](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/).
 
-Add the MongoDB repository key and location:
+Add the MongoDB APT repository and signing key:
 
 ```bash
 # Key rsa4096/20691eec35216c63caf66ce1656408e390cfb1f5 [expires: 2024-05-26]
 sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 656408e390cfb1f5
-echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/4.4 multiverse" \
-    | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
+sudo apt-add-repository "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/4.4 multiverse"
 ```
 
 Install MongoDB server and client tools (shell)
@@ -55,78 +55,110 @@ Most libraries follow the "MAJOR.MINOR.PATCH" schema, so the guideline is to rev
 ## Configuration
 
 This section describes the necessary MongoDB configuration. It assumes that MongoDB is installed and running.
-
 To check if the MongoDB daemon is active, run:
 
 ```bash
-sudo service mongod status
+sudo systemctl status mongod.service
 ```
 
-To start MongoDB daemon, run:
-
-```bash
-sudo service mongod start
-```
-
-To ensure that MongoDB daemon start is enabled after system start, run and check, that `/lib/systemd/system/mongod.service; enabled` is present:
-
-```bash
-sudo service mongod status
-# Loaded: loaded (/lib/systemd/system/mongod.service; disabled; ...)
-```
-
-If not, then enable and restart MongoDB daemon:
+To enable and start MongoDB daemon, run:
 
 ```bash
 sudo systemctl enable mongod.service
-# Created symlink from /etc/systemd/system/multi-user.target.wants/mongod.service \
-#    to /lib/systemd/system/mongod.service.
-sudo service mongod restart
-sudo service mongod status
-# Loaded: loaded (/lib/systemd/system/mongod.service; enabled; ...)
+sudo systemctl start mongod.service
 ```
 
-### Required Users
-
-The database module requires the creation of the following users: 
-
-* Admin users
-    * A **root** user to controls the configuration of the database.
-    * A backup specific user to backup data collections.
-    * A superuser to personalize access to the configuration of the database.
-* Module specific users, to provide access and limit permissions.
-* Optional users
-    * A test user for Integration Tests with the database.
-    * A read-only user for reviewing the database.
-
-### Create Users by Python script
-The admin and module specific users can be created by a Python script `mongodb_scripts/create_users.py`. 
-The script takes as a parameter the name of the X-Road instance that the OpMon modules are monitoring.
-It is simplest to run the script on the same host where MongoDb is installed.
-
-To create the admin users and module users for instance _sample_ run the script with following parameters:
+To restart MongoDB daemon (e.g. after configuration changes)
 ```bash
-python3 create_users.py sample --generate-admins
+sudo systemctl restart mongod.service
 ```
 
-The script will create users and generate passwords for them.
-It will print to stdout a list of generated usernames and passwords. 
-It is recommended to store these in your favorite password manager as they are needed during the configuration of the OpMon modules.
+### Enable Authentication
+We want only authenticated users to have access to MongoDB.
+To enable authentication, enter MongoDB shell:
 
-After the admin users are generated make sure you enable the MongoDB authentication as described in chapter ['Enable MongoDB authentication'](#enable-mongodb-authentication)
-
-The admin users need to be created only once. 
-If you want to add module users for another X-Road instance _other_, re-run the script without the --generate-admins flag:
-```
-python3 create_users.py other
+```bash
+mongo
 ```
 
-The script has command line arguments for more advanced use cases. For instructions run:
+Issue the following commands to create a *root* user:
 ```
-python3 create_users.py --help
+use admin
+db.createUser(
+  {
+    user: "root",
+    pwd: passwordPrompt(), // or cleartext password
+    roles: [ { role: "userAdminAnyDatabase", db: "admin" }, "readWriteAnyDatabase" ]
+  }
+)
+exit
 ```
 
-The optional users for integration tests or read-only use need to be created manually. See next chapter.
+Store the MongoDB root user password to a secure place, e.g. your password manager.
+
+Edit the MongoDB config file with your favorite editor (vi used here). Add the following lines:
+```yaml
+security:
+  authorization: enabled
+```
+
+
+In the same file also add the private IP-address of the server running MongoDB into the bindIp list.
+This allows X-Road Metrics modules on other hosts to connect with MongoDB
+```yaml
+net:
+  port: 27017
+  bindIp: 127.0.0.1,<mongo server ip-address here>
+```
+
+
+Now restart the MongoDB daemon for the configuration changes to take effect:
+```bash
+sudo systemctl restart mongod.service
+```
+
+
+### Automatic User and Index Creation
+Each X-Road Metrics module uses a different user to access MongoDB. This way the module access rights can be limited
+to bare minimum. The MongoDB users for all modules can be created automatically by using an init command that is
+installed with the X-Road Metrics Collector Module.
+
+At this point, please refer to the [installation guide of X-Road Metrics Collector](./collector_module.md) 
+and install the collector package.
+
+To run the X-Road Metrics MongoDB init command you need the following information:
+ - the IP address or hostname of the MongoDB server
+ - the name of the X-Road instance where you are collecting the data
+ - password of the MongoDB root user crated above
+
+In the example below we use *xroad-metrics-centraldb* as the hostname, *EX* as the X-Road instance and *mysecret* as
+the password.
+
+Open SSH terminal to the server where Collector module was installed and run the following commands:
+```bash
+sudo su xroad-metrics
+xroad-metrics-init-mongo --host xroad-metrics-centraldb:27017 --user root --password mysecret EX
+```
+
+The command output includes a list of usernames and passwords generated:
+```bash
+Username               | Password     | Escaped Password
+-----------------------+--------------+--------------------
+analyzer_EX            | T34k^$rYOH7$ | "T34k^$rYOH7$"
+analyzer_interface_EX  | R9U+u?9R$5!E | "R9U+u?9R$5!E"
+anonymizer_EX          | U'7<^)0&-b8s | "U'7<^)0&-b8s"
+collector_EX           | 7,zj3q1!CN#m | "7,zj3q1!CN#m"
+corrector_EX           | kf^{E4G/4[f0 | "kf^{E4G/4[f0"
+reports_EX             | Fdqay:76I}x5 | "Fdqay:76I}x5"
+```
+
+Store the output to a secure location, e.g. to your password manager. These usernames and passwords are needed later
+to configure the X-Road Metrics modules. The 'Escaped Password' column contains the password in YAML 
+escaped format that can be directly added to the config files.
+
+The command also creates default MongoDB indexes needed by the X-Road Metrics modules. For more information about
+the indexes, see chapter [Indexes](#Indexes).
+
 
 ### Manually Create Optional Users
 This Chapter can be skipped unless you want to install the optional users for integration test or read-only use.
@@ -134,28 +166,6 @@ To manually add users to MongoDB, enter MongoDB client shell:
 
 ```bash
 mongo
-```
-
-#### **ci_test user (optional)**
-
-The **ci_test** user is only necessary to run integration tests that uses MongoDB (example, corrector integration tests). The integration tests uses as MONGODB_SUFFIX the value `PY-INTEGRATION-TEST`, and this should not be mixed with any module specific user.
-
-Inside the MongoDB client shell, create the **ci_test** user in the **auth_db** database. The default password is also "ci_test". The **ci_test** user has permissions ONLY to databases:
-
-- CI_query_db
-- CI_collector_state
-- CI_reports_state
-- CI_analyzer_database
-
-**Note:** The integration database uses a different name convention to avoid conflict with real MONGODB_SUFFIX instances.
-
-```
-use auth_db
-db.createUser({ user: "ci_test", pwd: "ci_test", roles: [] })
-db.grantRolesToUser( "ci_test", [{ role: "dbOwner", db: "CI_query_db" }])
-db.grantRolesToUser( "ci_test", [{ role: "dbOwner", db: "CI_collector_state" }])
-db.grantRolesToUser( "ci_test", [{ role: "dbOwner", db: "CI_reports_state" }])
-db.grantRolesToUser( "ci_test", [{ role: "dbOwner", db: "CI_analyzer_database" }])
 ```
 
 #### **read-only user (optional)**
@@ -170,8 +180,8 @@ db.createUser( { user: "user_read", pwd: "USER_PWD", roles: ["readAnyDatabase"] 
 
 ### Check user configuration and permissions
 
-To check if all users and configurations were properly created, list all users and verify their roles using the following commands:
-Inside the MongoDB client shell:
+To check if all users and configurations were properly created, list all users and verify their roles using 
+the following commands inside the MongoDB client shell:
 
 ```
 use admin
@@ -180,24 +190,19 @@ use auth_db
 db.getUsers()
 ```
 
-For X-Road instance `sample` auth_db should have following users and access rights:
-* **analyzer_sample**:
-    * query_db_sample: read
-    * analyzer_database_sample: readWrite
-* **analyzer_interface_sample**: 
-    * query_db_sample: read
-    * analyzer_database_sample: readWrite
-* **anonymizer_sample**: 
-    * query_db_sample: read
-    * anonymizer_state_sample: readWrite
-* **collector_sample**:
-    * query_db_sample: readWrite, 
-    * collcetor_state_sample: readWrite
-* **corrector_sample**: 
-    * query_db_sample: readWrite
-* **reports_sample**: 
-    * query_db_sample: read, 
-    * reports_state_sample: 'readWrite'
+For X-Road instance `EX` auth_db should have following users and access rights:
+
+* **anonymizer_EX**: 
+    * query_db_EX: read
+    * anonymizer_state_EX: readWrite
+* **collector_EX**:
+    * query_db_EX: readWrite, 
+    * collcetor_state_EX: readWrite
+* **corrector_EX**: 
+    * query_db_EX: readWrite
+* **reports_EX**: 
+    * query_db_EX: read, 
+    * reports_state_EX: 'readWrite'
 
 
 ### MongoDB Configuration
@@ -235,68 +240,16 @@ with content:
 }
 ```
 
-#### Enable MongoDB authentication
-
-MongoDB default install does not enable authentication. The following steps are used to configure MongoDB security authorization.
-
-**NOTE:** The **root** user (database **admin**) needs to exist already. See section ['Create Users by Python script'](#create-users-by-python-script).
-
-To enable MongoDB security authorization, edit the **mongod.conf** configuration file using your favorite text editor (here, **vi** is used).
-
-```bash
-sudo vi /etc/mongod.conf
-```
-
-Change the following line in the configuration file:
-
-```
-security:
-    authorization: enabled
-```
-
-After saving the alterations, the MongoDB service needs to be restarted. This can can be performed with the following command:
-
-```bash
-sudo service mongod restart
-```
-
-**Note:** After enabling authentication it will be needed to specify database, user and password when connecting to mongo client shell. For example:
-
-```bash
-mongo admin --username root --password
-# or
-mongo admin --username user_read --password
-# or
-mongo auth_db --username collector_sample --password
-```
-
-#### Enable access from other machines
-
-To make MongoDB services available in the modules network (see System Architecture)[system_architecture.md], the following configuration is necessary:
-
-Open MongoDB configuration file in your favorite text editor (here, **vi** is used)
-
-```bash
-sudo vi /etc/mongod.conf
-```
-
-Add the external IP (the IP seen by other modules in the network) to enable the IP biding. 
-In this example, if the machine running MongoDB (`opmon`) has the Ethernet IP `10.11.22.33`, and therefore, the following line is edited in the configuration file:
-
-```
-bindIp: 127.0.0.1,10.11.22.33
-```
-
-After saving the alterations, the MongoDB service needs to be restarted. This can can be performed with the following command:
-
-```bash
-sudo service mongod restart
-```
 
 ### Network Configuration
 
-The MongoDB interface is exposed by default in the port **27017**.
-Make sure the port is allowed in the firewall configuration.
+MongoDB default port is **27017**.
+Following modules need to have access to MongoDB:
+    - Collector
+    - Corrector
+    - Reports
+    - Anonymizer
+    
 
 ### Log Configuration
 
@@ -316,52 +269,17 @@ Log files:
 
 ## Database Structure
 
-### MongoDB Structure: databases, collections
+### Indexes
 
-#### Index Creation
+The `xroad-metrics-init-mongo` command documented in chapter [Automatic User and Index Creation](#Automatic User and Index Creation)
+creates a default set of indexes to MongoDB. If your application needs some further indexes, those can be added in the MongoDB shell.
 
-Although indexes can improve query performances, indexes also present some operational considerations. See [MongoDB Operational Considerations for Indexes](https://docs.mongodb.com/manual/core/data-model-operations/#data-model-indexes) for more information.
+Although indexes can improve query performances, indexes also present some operational considerations. 
+See [MongoDB Operational Considerations for Indexes](https://docs.mongodb.com/manual/core/data-model-operations/#data-model-indexes) for more information.
+Our collection holds a large amount of data, and our applications need to be able to access the data while building the 
+index, therefore we consider building the index in the background, as described in 
+[Background Construction](https://docs.mongodb.com/manual/core/index-creation/#index-creation-background).
 
-Our collection holds a large amount of data, and our applications need to be able to access the data while building the index, therefor we consider building the index in the background, as described in [Background Construction](https://docs.mongodb.com/manual/core/index-creation/#index-creation-background).
-
-The example here uses the INSTANCE-specific database `query_db_sample`, and the same procedure should be used to other / additional instances. 
-
-Enter MongoDB client as root:
-
-```bash
-mongo admin --username root --password 
-```
-
-Inside MongoDB client shell, execute the following commands:
-
-```
-use query_db_sample
-db.raw_messages.createIndex({'corrected': 1, 'requestInTs': 1})
-db.clean_data.createIndex({'clientHash': 1})
-db.clean_data.createIndex({'producerHash': 1})
-db.clean_data.createIndex({'correctorTime': 1})
-db.clean_data.createIndex({'correctorStatus': 1, 'client.requestInTs': 1 })
-db.clean_data.createIndex({'correctorStatus': 1, 'producer.requestInTs': 1 })
-db.clean_data.createIndex({'messageId': 1, 'client.requestInTs': 1})
-db.clean_data.createIndex({'messageId': 1, 'producer.requestInTs': 1})
-db.clean_data.createIndex({'client.requestInTs': 1})
-db.clean_data.createIndex({'client.serviceCode': 1})
-db.clean_data.createIndex({'producer.requestInTs': 1})
-db.clean_data.createIndex({'producer.serviceCode': 1})
-db.clean_data.createIndex({'client.clientMemberCode': 1, 'client.clientSubsystemCode': 1, 'client.requestInTs': 1})
-db.clean_data.createIndex({'client.serviceMemberCode': 1, 'client.serviceSubsystemCode': 1, 'client.requestInTs': 1})
-db.clean_data.createIndex({'producer.clientMemberCode': 1, 'producer.clientSubsystemCode': 1, 'producer.requestInTs': 1})
-db.clean_data.createIndex({'producer.serviceMemberCode': 1, 'producer.serviceSubsystemCode': 1, 'producer.requestInTs': 1})
-
-use collector_state_sample
-db.server_list.createIndex({ 'timestamp': -1})
-
-use reports_state_sample
-db.notification_queue.createIndex({'status': 1, 'user_id': 1})
-
-use analyzer_database_sample
-db.incident.createIndex({'incident_status': 1, 'incident_creation_timestamp': 1})
-```
 
 **Note 1**: If planning to select / filter records manually according to different fields, then please consider to create index for every field to allow better results.
 From other side, if these are not needed, please consider to drop them as the existence reduces overall speed of [Corrector module](corrector_module.md).
@@ -372,43 +290,7 @@ Please consider to create them as they speed up significantly the speed of [Repo
 **Note 3**: Index build might affect availability of cursor for long-running queries.
 Please review the need of active [Collector module](collector_module.md) and specifically the need of active [Corrector module](corrector_module.md) while running long-running queries, specifically [Reports module](reports_module.md#usage).
 
-## Additional Tools
-
-TODO: remove documentation for scripts not included in deb
-
-Additional helping scripts, directory `mongodb_scripts/` has been included into source code repository.
-To fetch it: 
-
-```bash
-# If HOME not set, set it to /tmp default.
-export TMP_DIR=${HOME:=/tmp}
-export PROJECT="X-Road-opmonitor"
-export PROJECT_URL="https://github.com/ria-ee/${PROJECT}.git"
-export SOURCE="${TMP_DIR}/${PROJECT}"
-if [ ! -d "${TMP_DIR}/${PROJECT}" ]; then \
-    cd ${TMP_DIR}; git clone ${PROJECT_URL}; \
-else \
-  cd ${SOURCE}; git pull ${PROJECT_URL}; \
-fi
-ls -al ${SOURCE}/mongodb_scripts/
-```
-
-NB! Mentioned appendixes do not log their work and do not keep heartbeat.
-
-### Speed
-
-Scripts `read_speed_test.py`, `hash_speed_test.py` are available.
-
-Commands:
-
-```bash
-export INSTANCE="sample"
-cd ${SOURCE}/mongodb_scripts/
-python3 read_speed_test.py query_db_${INSTANCE} root --auth admin --host 127.0.0.1:27017
-python3 hash_speed_test.py query_db_${INSTANCE} root --auth admin --host 127.0.0.1:27017
-```
-
-### Indexes
+### Index Recreation
 
 It might happen, that under heavy and continuos write activities to database, the indexes corrupt. 
 In result, read access from database takes long time, it can be monitored also from current log file `/var/log/mongodb/mongod.log`, where in COMMANDs the last parameter protocol:op_query  in milliseconds (ms) is large even despite usage of indexes (planSummary: IXSCAN { }).
@@ -422,74 +304,26 @@ Commands:
 
 ```
 mongo admin --username root --password
-> use query_db_sample
+> use query_db_EX
 > db.raw_messages.reIndex()
 > db.clean_data.reIndex()
 
-> use collector_state_sample
+> use collector_state_EX
 > db.server_list.reIndex()
 
-> use reports_state_sample
+> use reports_state_EX
 > db.notification_queue.reIndex()
 
-> use analyzer_database_sample
+> use analyzer_database_EX
 > db.incident.reIndex()
 exit
 ```
 
-Additional tools `create_indexes_query.py`, `create_indexes_reports.py`, `create_indexes_collector.py` and `create_indexes_analyzer.py` are available.
-
-Commands:
-
-```bash
-export INSTANCE="sample"
-cd ${SOURCE}/mongodb_scripts/
-python3 create_indexes_query.py query_db_${INSTANCE} root --auth admin --host 127.0.0.1:27017
-python3 create_indexes_collector.py collector_state_${INSTANCE} root --auth admin --host 127.0.0.1:27017
-python3 create_indexes_reports.py reports_state_${INSTANCE} root --auth admin --host 127.0.0.1:27017
-python3 create_indexes_analyzer.py analyzer_database_${INSTANCE} root --auth admin --host 127.0.0.1:27017
-```
-
 ### Purge records from MongoDB raw data collection after available in clean_data
 
-To keep MongoDB size under control, save the MongoDB / HDD space, the optional `raw_data_archive.py` script can be used. 
-It archives processed data ({"corrected": true}) from raw data, and remove the documents from database.
+To keep MongoDB size under control, save the MongoDB / HDD space, it might be useful to clean up raw_data that has
+already been processed by the corrector (`{"corrected": true}`).
 
-Commands:
-
-```bash
-export INSTANCE="sample"
-cd ${SOURCE}/mongodb_scripts/
-python3 raw_data_archive.py query_db_${INSTANCE} root --auth admin --host 127.0.0.1:27017
-```
-
-## Monitoring and Status
-
-MongoDB runs as a daemon process. It is possible to stop, start and restart the database with the following commands:
-
-* Check stop
-
-```bash
-sudo service mongod stop
-```
-
-* Check start
-
-```bash
-sudo service mongod start
-```
-
-* Check restart
-
-```bash
-sudo service mongod restart
-```
-
-* Check status
-
-```bash
-sudo service mongod status
-```
 
 ## MongoDB Compass
 
@@ -509,20 +343,6 @@ https://docs.mongodb.com/master/administration/monitoring/
 ## Database backup
 
 To perform backup of database, it is recommended to use the mongodb tools **mongodump** and **mongorestore** 
-
-For example, to perform a complete database backup, execute (replace `BACKUP_PWD` with the password for backup user set in section ['Configure backup user'](#configure-backup-user) and `MDB_BKPDIR` is output directory for backup):
-
-```bash
-export MDB_BKPDIR="/srv/backup/mongodb-`/bin/date '+%Y-%m-%d_%H:%M:%S'`" 
-mkdir --parents ${MDB_BKPDIR} 
-mongodump --username db_backup --password 'BACKUP_PWD' --authenticationDatabase admin --oplog --gzip --out ${MDB_BKPDIR}
-```
-
-For example, to perform a database restore, execute (replace `BACKUP_PWD` with the password for backup user set in section ['Configure backup user'](#configure-backup-user) and `MDB_BKPDIR` is directory for backup):
-
-```bash
-mongorestore --username db_backup --password 'BACKUP_PWD' --authenticationDatabase admin --oplogReplay --gzip ${MDB_BKPDIR}
-```
 
 For additional details and recommendations about MongoDB backup and restore tools, please check:
 
@@ -554,7 +374,8 @@ After saving the alterations, the MongoDB service needs to be restarted. This ca
 sudo service mongod restart
 ```
 
-To make mongod instance as master, the following commands are needed in mongod shell (in this example, if the machine running MongoDB (`opmon`) has the Ethernet IP `10.11.22.33`):
+To make mongod instance as master, the following commands are needed in mongod shell 
+(in this example, if the machine running MongoDB has the Ethernet IP `10.11.22.33`):
 
 ```
 > rs.initiate()
@@ -639,3 +460,6 @@ mongod       soft        nofile       64000
 mongod       hard        nofile       64000
 ```
 
+### Sharding
+One way to improve MongoDB performance is to use [sharding](https://www.mongodb.com/basics/sharding). Setting
+up a sharded MongoDB is currently not covered in this document.
