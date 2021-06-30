@@ -4,6 +4,11 @@
 
 # X-Road Metrics - Open Data Interface Test
 
+## License <!-- omit in toc -->
+
+This document is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License.
+To view a copy of this license, visit <https://creativecommons.org/licenses/by-sa/4.0/>
+
 ## Setup
 
 Once the Interface is set up as instructed in Open Data Node 2 installation instructions ==> [here](../opendata/interface_postgresql.md) <==, let's temporarily modify the `settings.py` and populate the dynamically created `logs` table in the `opendata_ci_test` database, which was created in [Node 2's PostgreSQL section](../opendata/interface_postgresql.md#postgresql).

@@ -24,6 +24,11 @@ The operational specifications and hardware recommendations in this documentatio
 
 ![System overview](img/system_overview.svg "System overview")
 
+## License <!-- omit in toc -->
+
+This document is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License.
+To view a copy of this license, visit <https://creativecommons.org/licenses/by-sa/4.0/>
+
 ## Operational specifications, X-Road instance EE (production)
 
 Expectations and limits below are calculated based on actual usage of X-Road v5 in Estonia. 

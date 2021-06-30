@@ -4,6 +4,11 @@
 
 # X-Road Metrics - Analysis Module
 
+## License <!-- omit in toc -->
+
+This document is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License.
+To view a copy of this license, visit <https://creativecommons.org/licenses/by-sa/4.0/>
+
 ## About
 
 The **Analysis module** is an **experimental module**, planned to be released as part of [X-Road Metrics](../README.md).

@@ -4,6 +4,11 @@
 
 # X-Road Metrics - Analyzer Tests
 
+## License <!-- omit in toc -->
+
+This document is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License.
+To view a copy of this license, visit <https://creativecommons.org/licenses/by-sa/4.0/>
+
 ### Test case 1: Finding anomalies from aggregated data
 Description: The purpose of this test is to check if the number of found anomalies is correct, given data that is already aggregated by time periods.
 

@@ -4,6 +4,11 @@
 
 # X-Road Metrics - Anonymizer Module
 
+## License <!-- omit in toc -->
+
+This document is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License.
+To view a copy of this license, visit <https://creativecommons.org/licenses/by-sa/4.0/>
+
 ## About
 
 The **Anonymizer module** is part of [X-Road Metrics](../README.md), 

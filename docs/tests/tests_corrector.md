@@ -4,6 +4,11 @@
 
 # X-Road Metrics - Corrector Tests
 
+## License <!-- omit in toc -->
+
+This document is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License.
+To view a copy of this license, visit <https://creativecommons.org/licenses/by-sa/4.0/>
+
 ### Test case 1: Client calculations
 Description: The purpose of this test is to ensure that all the client side calculations are correct.
 
