@@ -13,7 +13,7 @@ X-Road Metrics can be used by both X-Road Operators and X-Road Members. The X-Ro
 
 ![X-Road Metrics Overview](docs/img/x-road-metrics-official-modules.png)
 
-X-Road Metrics is released under the MIT open source license and is available free of charge.
+The X-Road Metrics software is released under the [MIT](LICENSE.MD) open source license and is available free of charge. The documentation is licensed under the [Creative Commons Attribution-ShareAlike 4.0 International License](https://creativecommons.org/licenses/by-sa/4.0/).
 
 ## Architecture
 
