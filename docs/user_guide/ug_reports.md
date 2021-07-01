@@ -16,9 +16,9 @@ subsystems.
 The reports should give them an overview of what is happening on X-Road
 concerning the subsystem:
 
-* how many requests are sent to their subsystem and by who (**produced
+* How many requests are sent to their subsystem and by who (**produced
   services**)
-* how many requests their subsystem is making and to who (**consumed services**)
+* How many requests their subsystem is making and to who (**consumed services**)
 
 Both of these are in turn separated into two, the so-called "real services" and
 [X-Road metaservices](#what-are-metaservices).
