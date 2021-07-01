@@ -2,7 +2,7 @@
 | [![Riigi Infosüsteemi Amet](../img/ria_100_et.png)](https://www.ria.ee/et.html) [![X-TEE](../img/xroad_100_et.png)](https://www.ria.ee/et/riigi-infosusteem/andmevahetuskiht-x-tee.html) | ![European Union / European Regional Development Fund / Investing in your future](../img/eu_rdf_100_et.png "Documents that are tagged with EU/SF logos must keep the logos until 1.11.2022. If it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
 | :-------------------------------------------------- | -------------------------: |
 
-# X-tee v6 monitooring - raportite lugemisjuhend
+# X-tee monitooring - raportite lugemisjuhend
 
 ## License <!-- omit in toc -->
 
@@ -229,8 +229,8 @@ ii xroad-common <versioon> amd64 X-Road shared components
 ii xroad-jetty9 <versioon> all Jetty9 for X-Road purposes
 ii xroad-monitor <versioon> all X-Road monitoring service
 ii xroad-opmonitor <versioon> all X-Road operations monitoring daemon
-ii xroad-proxy <versioon> all X-Road security server
-ii xroad-securityserver <versioon> all X-Road security server
+ii xroad-proxy <versioon> all X-Road Security Server
+ii xroad-securityserver <versioon> all X-Road Security Server
 ```
 
 X-tee turvaserverite administraatorite korduma kippuvad küsimused (KKK) ja vastused neile - https://moodle.ria.ee/mod/page/view.php?id=419

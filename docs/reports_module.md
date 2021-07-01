@@ -210,7 +210,7 @@ Default installation includes a cronjob in _/etc/cron.d/xroad-metrics-reports-cr
 This job runs reports module using the default settings profile (_/etc/xroad-metrics/reports/settings.yaml_)
 
 It is important to note that it can take several days for ==> [Collector module](collector_module.md) <== to receive 
-the operational data from security server(s) and for the ==> [Corrector_module](corrector_module.md) <== to 
+the operational data from Security Server(s) and for the ==> [Corrector_module](corrector_module.md) <== to 
 clean the raw data and derive monitoring metrics in a clean database collection if the X-Road instance has a lot of members.
 
 This means that if monthly reports are to be generated, the cron job should run **after** the collector and corrector

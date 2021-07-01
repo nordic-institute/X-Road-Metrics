@@ -22,7 +22,7 @@ The **Corrector module** is part of [X-Road Metrics](../README.md), which includ
 
 The **Corrector module** is responsible to clean the raw data from corrector and derive monitoring metrics in a clean database collection. The execution of the corrector module is performed automatically via a **service** task.
 
-It is important to note that it can take up to 7 days for the [Collector module](collector_module.md) to receive X-Road operational data from (all available) security server(s) and up to 3 days for the Corrector_module to clean the raw data and derive monitoring metrics in a clean database collection.
+It is important to note that it can take up to 7 days for the [Collector module](collector_module.md) to receive X-Road operational data from (all available) Security Server(s) and up to 3 days for the Corrector_module to clean the raw data and derive monitoring metrics in a clean database collection.
 
 Overall system, its users and rights, processes and directories are designed in a way, that all modules can reside in one server (different users but in same group 'xroad-metrics') but also in separate servers. 
 
