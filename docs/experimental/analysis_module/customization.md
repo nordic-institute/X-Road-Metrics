@@ -1,5 +1,5 @@
 
-| [![X-ROAD](../img/xroad-metrics-100.png)](https://x-road.global/) | ![European Union / European Regional Development Fund / Investing in your future](../img/eu_rdf_100_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.11.2022. If it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
+| [![X-ROAD](../../img/xroad-metrics-100.png)](https://x-road.global/) | ![European Union / European Regional Development Fund / Investing in your future](../../img/eu_rdf_100_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.11.2022. If it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
 | :-------------------------------------------------- | -------------------------: |
 
 # Analysis Module
@@ -9,7 +9,7 @@
 This document is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License.
 To view a copy of this license, visit <https://creativecommons.org/licenses/by-sa/4.0/>
 
-# Customization
+## Customization
 
 
 ### Back-end
@@ -65,7 +65,7 @@ In order to work properly, both the back-end and front-end of the Analysis modul
 | MONGODB_QD |   Query database name   |   MONGODB_QD = "query_db_sample" |
 | MONGODB_AD |   Analyzer database name   |   MONGODB_AD = "analyzer_database_sample" |
 
-# Databases
+## Databases
 
 The Analyzer takes as input data from the Query database (clean_data collection). The results will be written to Analyzer database (a MongoDB instance). Namely, there are four collections in the incident database:
 

@@ -4,6 +4,13 @@
 
 # X-Road Metrics - Open Data Interface User Guide
 
+## License <!-- omit in toc -->
+
+This document is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License.
+To view a copy of this license, visit <https://creativecommons.org/licenses/by-sa/4.0/>
+
+## About
+
 The project maintains X-Road log of service calls (queries), published as opendata.
 
 X-Road Metrics collects X-Road operational monitoring data from X-Road members' Security Servers available 

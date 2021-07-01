@@ -4,6 +4,13 @@
 
 # X-Road Metrics - System Architecture
 
+## License <!-- omit in toc -->
+
+This document is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License.
+To view a copy of this license, visit <https://creativecommons.org/licenses/by-sa/4.0/>
+
+## About 
+
 X-Road Metrics is a collection of tools that can be used to collect, process and present operational monitoring data
 collected from X-Road Security Servers. The system consists of several modules:
 
