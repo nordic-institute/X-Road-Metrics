@@ -274,7 +274,7 @@ For example to have profiles DEV, TEST and PROD create three copies of the `sett
 file named `settings_DEV.yaml`, `settings_TEST.yaml` and `settings_PROD.yaml` and 
 change the xroad-instance setting in the files.
 
-Then you can access different X-road instances data by selecting the settings profile in the url:
+Then you can access different X-Road instances data by selecting the settings profile in the url:
 ```
 https://myhost.mydomain.org/       # settings from settings.yaml
 https://myhost.mydomain.org/DEV/   # settings from settings_DEV.yaml

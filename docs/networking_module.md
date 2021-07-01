@@ -223,9 +223,9 @@ activity between the X-Road members. User can:
 1. Select to visualize all members or select one member.
 2. Select a "Top n" threshold to show only service calls reaching the highest n count of queries.
 3. Select the level of details with three options: member level, subsystem level, service level.
-4. Select whether the X-road members are displayed as their registry codes or names.
+4. Select whether the X-Road members are displayed as their registry codes or names.
 5. Select whether to include metaservices 
-   (services related to the X-road monitoring by the Information System Authority).
+   (services related to the X-Road monitoring and service discovery).
 
 The visualization output includes two different graphs:
 
@@ -244,7 +244,7 @@ line thickness graduations.
 The back-end of the web application a Shiny-framework web-app installed into `/usrr/share/xroad-metrics/networking/shiny/app.R`. 
 In addition to setting up the user interface, the script also does service call counting and logarithming. 
 The data file prepared by `prepare_data.R` includes counts of service calls on the service level. 
-For displaying X-road member networking on the higher levels (member, subsystem), the `app.R` script reactively 
+For displaying X-Road member networking on the higher levels (member, subsystem), the `app.R` script reactively 
 sums the query counts.
 
 

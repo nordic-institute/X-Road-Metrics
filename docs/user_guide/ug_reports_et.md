@@ -229,8 +229,8 @@ ii xroad-common <versioon> amd64 X-Road shared components
 ii xroad-jetty9 <versioon> all Jetty9 for X-Road purposes
 ii xroad-monitor <versioon> all X-Road monitoring service
 ii xroad-opmonitor <versioon> all X-Road operations monitoring daemon
-ii xroad-proxy <versioon> all X-Road security server
-ii xroad-securityserver <versioon> all X-Road security server
+ii xroad-proxy <versioon> all X-Road Security Server
+ii xroad-securityserver <versioon> all X-Road Security Server
 ```
 
 X-tee turvaserverite administraatorite korduma kippuvad küsimused (KKK) ja vastused neile - https://moodle.ria.ee/mod/page/view.php?id=419
