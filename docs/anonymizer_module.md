@@ -62,7 +62,7 @@ sudo add-apt-repository 'https://artifactory.niis.org/xroad-extensions-release-d
 The following information can be used to verify the key:
 - key hash: 935CC5E7FA5397B171749F80D6E3973B
 - key fingerprint: A01B FE41 B9D8 EAF4 872F A3F1 FB0D 532C 10F6 EC5B
-- 3rd party key server: [SKS key servers](http://pool.sks-keyservers.net/pks/lookup?op=vindex&hash=on&fingerprint=on&search=0xFB0D532C10F6EC5B)
+- 3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index)
 
 ### Install Anonymizer Package
 To install xroad-metrics-anonymizer and all dependencies execute the commands below:
