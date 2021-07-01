@@ -68,7 +68,7 @@ sudo add-apt-repository 'https://artifactory.niis.org/xroad-extensions-release-d
 The following information can be used to verify the key:
 - key hash: 935CC5E7FA5397B171749F80D6E3973B
 - key fingerprint: A01B FE41 B9D8 EAF4 872F A3F1 FB0D 532C 10F6 EC5B
-- 3rd party key server: [SKS key servers](http://pool.sks-keyservers.net/pks/lookup?op=vindex&hash=on&fingerprint=on&search=0xFB0D532C10F6EC5B)
+- 3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index)
 
 
 ### Install the Opendata Package
@@ -274,7 +274,7 @@ For example to have profiles DEV, TEST and PROD create three copies of the `sett
 file named `settings_DEV.yaml`, `settings_TEST.yaml` and `settings_PROD.yaml` and 
 change the xroad-instance setting in the files.
 
-Then you can access different X-road instances data by selecting the settings profile in the url:
+Then you can access different X-Road instances data by selecting the settings profile in the url:
 ```
 https://myhost.mydomain.org/       # settings from settings.yaml
 https://myhost.mydomain.org/DEV/   # settings from settings_DEV.yaml

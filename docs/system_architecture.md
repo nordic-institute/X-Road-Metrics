@@ -4,8 +4,15 @@
 
 # X-Road Metrics - System Architecture
 
+## License <!-- omit in toc -->
+
+This document is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License.
+To view a copy of this license, visit <https://creativecommons.org/licenses/by-sa/4.0/>
+
+## About 
+
 X-Road Metrics is a collection of tools that can be used to collect, process and present operational monitoring data
-collected from X-Road security servers. The system consists of several modules:
+collected from X-Road Security Servers. The system consists of several modules:
 
  - [Database module](./database_module.md)
  - [Collector module](./collector_module.md)
@@ -31,13 +38,13 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
 
 ## Operational specifications
 Expectations below are valid for overall X-Road usage by all its member organizations.
-Usage of X-Road in particular organization or hosted in particular hosting or X-Road security servers farm differs 
+Usage of X-Road in particular organization or hosted in particular hosting or X-Road Security Servers farm differs 
 significantly, therefore other architecture, hardware and software might used to fulfill particular organization 
 requirements.
 
 ### Data flow expectation
 
-* It is expected to have maximum 1 billion (1 000 000 000) X-Road v6 service calls (queries) 
+* It is expected to have maximum 1 billion (1 000 000 000) X-Road service calls (queries) 
   in production environment (Estonia: EE) in 1 year period
 * Each query results in two operational monitoring data entries to be collected 
   (from both query partners Client and Producer), id est maximum 2 billion (2 000 000 000) operational monitoring data 
@@ -60,7 +67,7 @@ requirements.
 
 ### Modules operational specifications
 
-* Collector: runs every 2 hours, collect recent data from security servers and stores them in Database.
+* Collector: runs every 2 hours, collect recent data from Security Servers and stores them in Database.
 * Corrector: runs continuously as a service, use recent data in MongoDB.
 * Analyzer: runs every hour, uses MongoDB and local cache in disk.
 * Report creator: runs monthly, uses MongoDB, stores reports in disk, publish them on public server and sends out notifications about reports available.
@@ -110,7 +117,7 @@ Table below shows the network connections in the X-Road Metrics system and can b
 | opendata                 | 0.0.0.0/0                                           | 443        | HTTPS to Opendata web UI (Apache)               |
 | opendata                 | anonymizer, networking                              | 5432       | PostgreSQL                                      |
 | networking               | 0.0.0.0/0                                           | 443        | HTTPS to Networking Visualizer UI (Apache)      |
-| X-Road Central Server    | collector                                           | 80         | internalconf API to list security servers       |
+| X-Road Central Server    | collector                                           | 80         | internalconf API to list Security Servers       |
 | X-Road Monitoring Client | collector                                           | 80/443     | getSecurityServerOperationalData X-Road service |
 | SMTP server              | reports                                             | 25/465/587 | (Optional) SMTP server to send report e-mail notifications |
 | Reports file server      | reports                                             | e.g. 22    | (Optional) Sync report files to some public file server using e.g. scp or rsync |
@@ -140,7 +147,7 @@ example setup.
 | networking       |  2        | 8 GB    | 10 GB                    | |
 
 Disk size estimates for the databases are based on 
-estimated size for 1 year of documents (1 billion X-Road v6 service calls (queries)):
+estimated size for 1 year of documents (1 billion X-Road service calls (queries)):
 
 | Collection Name | Documents         | Avg.Document Size (B) | Total Document Size (GB) | Num.Indexes | Total Index Size (GB) |
 |-----------------|-------------------|-----------------------|--------------------------|-------------|-----------------------|

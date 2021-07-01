@@ -20,7 +20,7 @@ The **Collector module** is part of [X-Road Metrics](../README.md), which includ
  - [Opendata module](../opendata_module.md) 
  - [Networking/Visualizer module](../networking_module.md)
 
-The **Collector module** is responsible to retrieve data from X-Road security servers and insert into the database module. The execution of the collector module is performed automatically via a **cron job** task.
+The **Collector module** is responsible to retrieve data from X-Road Security Servers and insert into the database module. The execution of the collector module is performed automatically via a **cron job** task.
 
 Overall system, its users and rights, processes and directories are designed in a way, that all modules can reside in one server, but also in separate servers. Opmon modules are controlled by unix user 'opmon' in group 'opmon'.
 
@@ -33,7 +33,7 @@ Overall system is also designed in a way, that can be used by X-Road Centre for 
 
 ### Outgoing
 
-- The collector module needs HTTP-access to the X-Road Central Server to get from global configuration list of members security servers.
+- The collector module needs HTTP-access to the X-Road Central Server to get from global configuration list of members Security Servers.
 - The collector module needs HTTP-access to an X-Road Security Server that acts as an Operational Monitoring Client to get the data is collected.
 - The collector module needs access to the Database Module (see ==> [Database_Module](database_module.md) <==).
 
@@ -55,7 +55,7 @@ sudo add-apt-repository 'https://artifactory.niis.org/xroad-extensions-release-d
 The following information can be used to verify the key:
 - key hash: 935CC5E7FA5397B171749F80D6E3973B
 - key fingerprint: A01B FE41 B9D8 EAF4 872F A3F1 FB0D 532C 10F6 EC5B
-- 3rd party key server: [SKS key servers](http://pool.sks-keyservers.net/pks/lookup?op=vindex&hash=on&fingerprint=on&search=0xFB0D532C10F6EC5B)
+- 3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index)
 
 
 ### Install Collector Package
@@ -94,7 +94,7 @@ sudo vi /etc/xroad-metrics/collector/settings.yaml
 
 Settings that the user must fill in:
 * X-Road instance name
-* central- and security server hosts
+* Central- and Security Server hosts
 * X-Road client used to collect the monitoring data
 * username and password for the collector module MongoDB user
 
@@ -119,9 +119,9 @@ sudo su xroad-metrics
 
 Some example commands:
 ```bash
-xroad-metrics-collector list                       # Print available security servers to stdout.
-xroad-metrics-collector update                     # Update security server list to MongoDB.
-xroad-metrics-collector collect                    # Collect monitoring data from security server.
+xroad-metrics-collector list                       # Print available Security Servers to stdout.
+xroad-metrics-collector update                     # Update Security Server list to MongoDB.
+xroad-metrics-collector collect                    # Collect monitoring data from Security Server.
 xroad-metrics-collector settings get mongodb.host  # Read a value from settings file and print to stdout
 ```
 

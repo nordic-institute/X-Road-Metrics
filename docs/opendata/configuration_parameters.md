@@ -4,14 +4,16 @@
 
 # X-Road Metrics - Opendata module, Configuration file parameters
 
-Following subsections describe all the `settings.py` parameters. 
-
-**Note:** Anonymizer and Interface have different available parameters.
-
 ## License <!-- omit in toc -->
 
 This document is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License.
 To view a copy of this license, visit <https://creativecommons.org/licenses/by-sa/4.0/>
+
+## About
+
+Following subsections describe all the `settings.py` parameters. 
+
+**Note:** Anonymizer and Interface have different available parameters.
 
 ## Anonymizer
 

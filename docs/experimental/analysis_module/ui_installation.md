@@ -1,10 +1,10 @@
 
-| [![X-ROAD](../img/xroad-metrics-100.png)](https://x-road.global/) | ![European Union / European Regional Development Fund / Investing in your future](../img/eu_rdf_100_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.11.2022. If it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
+| [![X-ROAD](../../img/xroad-metrics-100.png)](https://x-road.global/) | ![European Union / European Regional Development Fund / Investing in your future](../../img/eu_rdf_100_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.11.2022. If it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
 | :-------------------------------------------------- | -------------------------: |
 
 
 
-# Analyzer Module
+# Analysis Module
 
 ## License <!-- omit in toc -->
 
@@ -116,7 +116,7 @@ For example to have profiles DEV, TEST and PROD create three copies of the `sett
 file named `settings_DEV.yaml`, `settings_TEST.yaml` and `settings_PROD.yaml` and 
 change the xroad-instance setting in the files.
 
-Then you can access different X-road instances data by selecting the settings profile in the url:
+Then you can access different X-Road instances data by selecting the settings profile in the url:
 ```
 https://myhost.mydomain.org/       # settings from settings.yaml
 https://myhost.mydomain.org/DEV/   # settings from settings_DEV.yaml

@@ -3,17 +3,17 @@ fields:
         description: Unique identifier of the record
         type: bigint
     requestInTs:
-        description: "In the client's security server: the Unix timestamp in
+        description: "In the client's Security Server: the Unix timestamp in
             milliseconds when the request was received by the client''s security
-            server. In the service provider''s security server: the Unix
+            server. In the service provider''s Security Server: the Unix
             timestamp in milliseconds when the request was received by the
-            service provider's security server."
+            service provider's Security Server."
         type: bigint
     requestInDate:
         description: YYYY-MM-DD of the requestInTs
         type: date
     securityServerType:
-        description: Type of the security server
+        description: Type of the Security Server
         type: varchar(255)
     clientXRoadInstance:
         description: Instance identifier of the instance used by the client

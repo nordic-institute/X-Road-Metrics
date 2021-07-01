@@ -4,22 +4,29 @@
 
 # X-Road Metrics - Open Data Interface User Guide
 
-The project maintains X-Road v6 log of service calls (queries), published as opendata.
+## License <!-- omit in toc -->
 
-X-Road Metrics collects X-Road operational monitoring data X-Road members security servers available 
+This document is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License.
+To view a copy of this license, visit <https://creativecommons.org/licenses/by-sa/4.0/>
+
+## About
+
+The project maintains X-Road log of service calls (queries), published as opendata.
+
+X-Road Metrics collects X-Road operational monitoring data from X-Road members' Security Servers available 
 and publishes it as opendata with a delay of 10 days from actual transaction execution time.
 
-Data is renewed nightly, between 0:00-6:00 (EET UTC+2h / EEST UTC+3h).
+Data is fetched nightly, between 0:00-6:00 (EET UTC+2h / EEST UTC+3h).
 
 Logs are anonymized, ie sensitive fields are removed, incl:
 
 - monitoringDataTs: The Unix timestamp in seconds when the record was received by the monitoring daemon
-- securityServerInternalIp: Internal IP address of the security server
+- securityServerInternalIp: Internal IP address of the Security Server
 - messageUserId: Personal code of the client that initiated the request
 - messageIssue: Client's internal identifier of a file or document related to the service
 - messageId: Unique identifier of the message
-- clientSecurityServerAddress: External address of client's security server (IP or name)
-- serviceSecurityServerAddress: External address of service provider's security server (IP or name)
+- clientSecurityServerAddress: External address of client's Security Server (IP or name)
+- serviceSecurityServerAddress: External address of service provider's Security Server (IP or name)
 
 Timestamps (specifically *requestInTs*) are rounded to hour precision and presented in form of Unix timstamp (epoch time).
 

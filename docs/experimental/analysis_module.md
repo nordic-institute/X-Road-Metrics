@@ -1,5 +1,5 @@
 
-| [![X-ROAD](img/xroad-metrics-100.png)](https://x-road.global/) | ![European Union / European Regional Development Fund / Investing in your future](img/eu_rdf_100_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.11.2022. If it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
+| [![X-ROAD](../img/xroad-metrics-100.png)](https://x-road.global/) | ![European Union / European Regional Development Fund / Investing in your future](../img/eu_rdf_100_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.11.2022. If it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
 | :-------------------------------------------------- | -------------------------: |
 
 # X-Road Metrics - Analysis Module
@@ -22,7 +22,7 @@ Currently X-Road Metrics includes following modules:
  - [Networking/Visualizer module](../networking_module.md)
 
 
-The **Analysis module** is responsible for detecting and presenting anomalies in the usage of different X-road components. 
+The **Analysis module** is responsible for detecting and presenting anomalies in the usage of different X-Road components. 
 
 Overall system, its users and rights, processes and directories are designed in a way, that all modules can reside in one server (different users but in same group 'opmon') but also in separate servers. 
 
@@ -35,7 +35,7 @@ Overall system is also designed in a way, that can be used by X-Road Centre for 
 
 The Analysis module consists of two parts:
 
-- **Analyzer:** the back-end of the analysis module, responsible for detecting anomalies based on requests made via the X-road platform.
+- **Analyzer:** the back-end of the analysis module, responsible for detecting anomalies based on requests made via the X-Road platform.
 - **User Interface:** the front-end of the analysis module, responsible for presenting the found anomalies to the user and recording user feedback.
 
 ## Networking
@@ -68,7 +68,7 @@ During the anomaly detection stage a service call can be in one of the following
 2) first-time anomaly finding: 3 months have passed since the first request and the first version of the model has just been trained. All the data will be retrieved for anomaly finding.
 3) regular: data are retrieved since the last anomaly finding time until the "present" moment ("present" means the last valid date considering the corrector buffer, i.e. 10 days ago). Anomalies are found based on these data.
 
-It is important to note that it can take up to 7 days for the [Collector module](collector_module.md) to receive X-Road operational data from security server(s) and up to 3 days for the [Corrector_module](corrector_module.md) to clean the raw data and derive monitoring metrics in a clean database collection.
+It is important to note that it can take up to 7 days for the [Collector module](collector_module.md) to receive X-Road operational data from Security Server(s) and up to 3 days for the [Corrector_module](corrector_module.md) to clean the raw data and derive monitoring metrics in a clean database collection.
 This means that Analyzer results are available at least 10 days after data received.
 
 ## Installation
