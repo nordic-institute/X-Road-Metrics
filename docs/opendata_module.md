@@ -98,7 +98,27 @@ Refer to section [Opendata Module Configuration](#opendata-module-configuration)
 ## Database Setup
 Before installing the database, please install the X-Road Metrics as descibed above. 
 After the PostgreSQL database is installed and configured you can proceed to finish configuration of the 
-Opendata module. 
+Opendata module.
+
+First make sure that the `en_US.UTF-8` locale is configured in the operating system:
+
+* To set the operating system locale. Add following line to the `/etc/environment` file.
+
+```ini
+LC_ALL=en_US.UTF-8
+```
+
+* Ensure that the package `locales` is present.
+
+```bash
+sudo apt-get install locales
+```
+
+* Ensure that the locale is available.
+
+```bash
+sudo locale-gen en_US.UTF-8
+```
 
 Opendata PostgreSQL is installed from the standard Ubuntu repository:
 ```bash
