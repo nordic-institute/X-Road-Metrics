@@ -31,15 +31,12 @@ if (length(args) >= 2 && args[1] == "--profile") {
 
 settings_file_name <- paste0("settings", profile.suffix, ".yaml")
 
-settings <- tryCatch(
-  yaml.load_file(paste0("./", settings_file_name)),
-  error=function(cond) {
-    message(cond)
-    return(
-      yaml.load_file(paste0("/etc/xroad-metrics/networking/", settings_file_name))
-    )
-  }
-)
+#try cwd first, then the default location for settings
+if (file.exists(paste0("./", settings_file_name))) {
+  settings <- yaml.load_file(paste0("./", settings_file_name));
+} else {
+  settings <- yaml.load_file(paste0("/etc/xroad-metrics/networking/", settings_file_name))
+}
 
 #postgres doesn't like uppercase or dashes
 settings$postgres$suffix <- tolower(gsub("-", "_",settings$xroad$instance))
