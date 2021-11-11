@@ -117,6 +117,13 @@ flag when running xroad-metrics-networking command. For example to run using the
 xroad-metrics-networking --profile TEST
 ```
 
+In order for the periodic cron job to be ran under a specific profile, the command inside
+`/etc/cron.d/xroad-metrics-networking-cron` should also be updated. For example to run the job under the TEST profile,
+the command should be represented in the following way:
+```
+/usr/share/xroad-metrics/networking/networking-cron-entrypoint.sh TEST
+```
+
 Now the xroad-metrics-networking data preparation program will get configuration settings from a settings file named
 settings_TEST.yaml. The command searches the settings file first in current working direcrtory, 
 then in _/etc/xroad-metrics/networking/_. xroad-metrics-networking command will then tag the generated output files with the profile

@@ -1,6 +1,8 @@
 # Default cronjob for X-Road Metrics Networking Visualizer module
 # Runs the Networking Visualizer data preparation script daily
 # Script is run using the default networking module settings file (/etc/xroad-metrics/networking/settings.yaml)
+# To run a specific profile, append the profile name to the end of the command so that the correct configuration
+# is loaded
 
 
 SHELL=/bin/bash
