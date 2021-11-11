@@ -35,7 +35,7 @@ fi
 #
 # Actual stuff
 #
-Rscript /usr/bin/xroad-metrics-networking "$PROFILE_FLAG" 2>&1 | awk '{ print strftime("%Y-%m-%dT%H:%M:%S\t"), $0; fflush(); }' | tee -a ${LOG}
+Rscript /usr/bin/xroad-metrics-networking $PROFILE_FLAG 2>&1 | awk '{ print strftime("%Y-%m-%dT%H:%M:%S\t"), $0; fflush(); }' | tee -a ${LOG}
 
 # Remove ${LOCK}
 /bin/rm ${LOCK} 2>&1 | awk '{ print strftime("%Y-%m-%dT%H:%M:%S\t"), $0; fflush(); }' | tee -a ${LOG}
