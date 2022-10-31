@@ -73,6 +73,13 @@ $('#add-order-clause-btn').click(function(event) {
     }
 });
 
+$('#download-meta-btn').click(function(event) {
+    event.preventDefault();
+    if (isInputValid()) {
+        downloadMeta();
+    }
+});
+
 $('#download-btn').click(function(event) {
     event.preventDefault();
     if (isInputValid()) {
@@ -117,6 +124,10 @@ function populateConstraintOperators(constraintType) {
         }));
     }
 
+}
+
+function downloadMeta() {
+    window.location = API_ROOT + '/daily_logs_meta' + getQuery();
 }
 
 function download() {
