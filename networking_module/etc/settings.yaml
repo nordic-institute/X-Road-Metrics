@@ -2,6 +2,11 @@ xroad:
   instance: <FILL>
 
 networking:
+  # Fetch rows from database in batches of configured size.
+  # This allows to optimize memory consuption and avoid loading big datasets into memory.
+  # Optional parameter, default size is 100000.
+  fetchsize: 100000
+
   # Time period to be included in the visualisation as number of days back from the most recent request-in date.
   interval: 30
 
