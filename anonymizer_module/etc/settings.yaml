@@ -74,6 +74,8 @@ mongodb:
   host: localhost
   user: <FILL>
   password: <FILL>
+  tls:
+  tls-ca-file:
 
 postgres:
   host: localhost

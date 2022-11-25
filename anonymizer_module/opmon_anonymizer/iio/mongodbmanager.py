@@ -35,7 +35,11 @@ class MongoDbManager(object):
         xroad = settings['xroad']['instance']
         self._logger = logger
 
-        self.client = MongoClient(self.get_mongo_uri(settings))
+        connect_args = {
+            'tls': bool(settings['mongodb'].get('tls')),
+            'tlsCAFile': settings['mongodb'].get('tls-ca-file'),
+        }
+        self.client = MongoClient(self.get_mongo_uri(settings), **connect_args)
         self.query_db = self.client[f"query_db_{xroad}"]
         self.state_db = self.client[f"anonymizer_state_{xroad}"]
 
