@@ -66,7 +66,9 @@ mongodb:
   host: localhost
   user: <FILL>
   password: <FILL>
+  # set to True to enable secure connection
   tls:
+  # path to CA pem file
   tls-ca-file:
 
 logger:
