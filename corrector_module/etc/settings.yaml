@@ -1,6 +1,6 @@
 # Default settings file for X-Road Metrics Corrector-module.
 # Fill in your MongoDB and X-Road configuration.
-# 
+#
 # To run corrector for many different X-Road instances, you can create settings
 # profiles. For example to have profiles DEV, TEST and PROD copy this file to
 # settings_DEV.yaml, settings_TEST.yaml and settings_PROD.yaml.
@@ -107,11 +107,13 @@ mongodb:
   host: localhost
   user: <FILL>
   password: <FILL>
+  tls:
+  tls-ca-file:
 
 logger:
   name: corrector
   module: corrector
-  
+
   # Possible logging levels from least to most verbose are:
   # CRITICAL, FATAL, ERROR, WARNING, INFO, DEBUG
   level: INFO
