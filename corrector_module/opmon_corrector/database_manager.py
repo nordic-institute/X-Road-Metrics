@@ -62,8 +62,14 @@ class DatabaseManager:
         self.settings = settings
         xroad = settings['xroad']['instance']
         self.logger_m = LoggerManager(settings['logger'], xroad, __version__)
-
-        self.client = pymongo.MongoClient(self.get_mongo_uri(settings))
+        connect_args = {
+            'tls': bool(settings['mongodb'].get('tls')),
+            'tlsCAFile': settings['mongodb'].get('tls-ca-file'),
+        }
+        self.client = pymongo.MongoClient(
+            self.get_mongo_uri(settings),
+            **connect_args
+        )
         self.mdb_database = f"query_db_{xroad}"
 
     @staticmethod

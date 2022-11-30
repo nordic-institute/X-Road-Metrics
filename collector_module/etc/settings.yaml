@@ -1,6 +1,6 @@
 # Default settings file for X-Road Metrics Collector-module.
 # Fill in your MongoDB and X-Road configuration.
-# 
+#
 # To run collector for many different X-Road instances, you can create settings
 # profiles. For example to have profiles DEV, TEST and PROD copy this file to
 # settings_DEV.yaml, settings_TEST.yaml and settings_PROD.yaml.
@@ -26,11 +26,11 @@ collector:
   #   1 year = 31536000
   records-from-offset: 31536000
   records-to-offset: 100
-  
+
   # Repeat query to fetch additional data only if server has returned at least as much records.
   # By default servers should return 10000 records, so this value should be smaller.
   repeat-min-records: 50
-  
+
   # How many times to repeat query if server has more records ("nextRecordsFrom" is returned by previous query).
   # Set to 0 to disable query repeating.
   # If this value is too low and script is executed rarely then some data may be lost.
@@ -49,13 +49,13 @@ xroad:
     protocol: http://
     host: <FILL>
     timeout: 10
-  
+
   # Security server used to contact
   security-server:
     protocol: http://
     host: <FILL>
     timeout: 60.0
-  
+
   # X-Road service configuration used to fetch operational monitoring requests.
   monitoring-client:
     memberclass: <FILL>
@@ -66,11 +66,15 @@ mongodb:
   host: localhost
   user: <FILL>
   password: <FILL>
+  # set to True to enable secure connection
+  tls:
+  # path to CA pem file
+  tls-ca-file:
 
 logger:
   name: collector
   module: collector
-  
+
   # Possible logging levels from least to most verbose are:
   # CRITICAL, FATAL, ERROR, WARNING, INFO, DEBUG
   level: INFO

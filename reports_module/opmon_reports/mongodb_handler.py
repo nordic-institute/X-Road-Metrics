@@ -36,13 +36,17 @@ class MongoDBHandler:
         pwd = urllib.parse.quote(mongo_settings['password'], safe='')
         server = mongo_settings['host']
         self.uri = f"mongodb://{self.user}:{pwd}@{server}/auth_db"
+        self.connect_args = {
+            'tls': bool(mongo_settings.get('tls')),
+            'tlsCAFile': mongo_settings.get('tls-ca-file'),
+        }
 
     def get_query_db(self):
-        client = pymongo.MongoClient(self.uri)
+        client = pymongo.MongoClient(self.uri, **self.connect_args)
         db = client[self.db_name]
         return db
 
     def get_reports_state_db(self):
-        client = pymongo.MongoClient(self.uri)
+        client = pymongo.MongoClient(self.uri, **self.connect_args)
         db = client[self.db_reports_state_name]
         return db
