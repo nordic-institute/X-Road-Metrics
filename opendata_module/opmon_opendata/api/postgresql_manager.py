@@ -33,9 +33,13 @@ class PostgreSQL_Manager(object):
         self._connection_string = self._get_connection_string()
         self._field_name_map = self._get_field_name_map(settings['opendata']['field-descriptions'].keys())
         self._logs_time_buffer = relativedelta.relativedelta(days=settings['opendata']['delay-days'])
+        self._connect_args = {
+            'sslmode': settings['postgres'].get('ssl-mode'),
+            'sslrootcert': settings['postgres'].get('ssl-root-cert')
+        }
 
     def get_column_names_and_types(self):
-        with pg.connect(self._connection_string) as connection:
+        with pg.connect(self._connection_string, **self._connect_args) as connection:
             cursor = connection.cursor()
             cursor.execute("SELECT column_name,data_type FROM information_schema.columns WHERE table_name = %s;",
                            (self._table_name,))
@@ -44,7 +48,7 @@ class PostgreSQL_Manager(object):
         return [(self._field_name_map[name], type_) for name, type_ in data]
 
     def get_data(self, constraints=None, order_by=None, columns=None, limit=None):
-        with pg.connect(self._connection_string) as connection:
+        with pg.connect(self._connection_string, **self._connect_args) as connection:
             cursor = connection.cursor()
 
             subquery_name = 'T'
@@ -74,7 +78,7 @@ class PostgreSQL_Manager(object):
         return data
 
     def get_min_and_max_dates(self):
-        with pg.connect(self._connection_string) as connection:
+        with pg.connect(self._connection_string, **self._connect_args) as connection:
             cursor = connection.cursor()
             cursor.execute('SELECT min(requestindate), max(requestindate) FROM ' + self._table_name)
             min_and_max = [date - self._logs_time_buffer for date in cursor.fetchone()]

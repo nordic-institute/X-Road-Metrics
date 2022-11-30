@@ -83,6 +83,8 @@ postgres:
   database-name: <FILL>
   table-name: logs
   buffer-size: 10000
+  ssl-mode:
+  ssl-root-cert:
   readonly-users:
     - <FILL>
     - <FILL>

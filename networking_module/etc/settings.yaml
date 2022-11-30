@@ -26,6 +26,8 @@ postgres:
   port: 5432
   username: <FILL>
   password: <FILL>
+  ssl_mode:
+  ssl_root_cert:
 
 logger:
   log-path: /var/log/xroad-metrics/networking/logs
