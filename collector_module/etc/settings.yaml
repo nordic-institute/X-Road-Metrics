@@ -55,6 +55,12 @@ xroad:
     protocol: http://
     host: <FILL>
     timeout: 60.0
+    # path to client's certificate
+    tls-client-certificate:
+    # path to client's private key
+    tls-client-key:
+    # path to server's certificate
+    tls-server-certificate:
 
   # X-Road service configuration used to fetch operational monitoring requests.
   monitoring-client:
