@@ -14,10 +14,10 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
 The **Collector module** is part of [X-Road Metrics](../README.md), which includes the following modules:
  - [Database module](../database_module.md)
  - [Collector module](../collector_module.md)
- - [Corrector module](../corrector_module.md) 
- - [Reports module](../reports_module.md) 
+ - [Corrector module](../corrector_module.md)
+ - [Reports module](../reports_module.md)
  - [Anonymizer module](../anonymizer_module.md)
- - [Opendata module](../opendata_module.md) 
+ - [Opendata module](../opendata_module.md)
  - [Networking/Visualizer module](../networking_module.md)
 
 The **Collector module** is responsible to retrieve data from X-Road Security Servers and insert into the database module. The execution of the collector module is performed automatically via a **cron job** task.
@@ -98,7 +98,7 @@ Settings that the user must fill in:
 * X-Road client used to collect the monitoring data
 * username and password for the collector module MongoDB user
 
-To run collector for multiple X-Road instances, a settings profile for each instance can be created. For example to have profiles DEV, TEST and PROD create three copies of `setting.yaml` 
+To run collector for multiple X-Road instances, a settings profile for each instance can be created. For example to have profiles DEV, TEST and PROD create three copies of `setting.yaml`
 file named `settings_DEV.yaml`, `settings_TEST.yaml` and `settings_PROD.yaml`.
 Then fill the profile specific settings to each file and use the --profile
 flag when running xroad-metrics-collector. For example to run using the TEST profile:
@@ -108,6 +108,29 @@ xroad-metrics-collector --profile TEST collect
 
 `xroad-metrics-collector` command searches the settings file first in current working direcrtory, then in
 _/etc/xroad-metrics/collector/_
+
+### Using client certificate (mTLS) to connect to security server
+
+Mutual TLS (mTLS) allows a client and a server to identify and authenticate each other by using X.509 certificates.
+TLS cryptographic protocol provides secure and integral communication between parties.
+
+To use mTLS in collector you need to fill  `security-server` section in your X-Road `settings.yaml` file.
+
+Example of configuration:
+
+```yaml
+security-server:
+    protocol: https://
+    host: example.host
+    timeout: 60.0
+    tls-client-certificate: /path/to/client.crt # path to client's certificate
+    tls-client-key: /path/to/client.key # path to client's private key
+    tls-server-certificate: /path/to/server.crt # path to server's certificate
+```
+Notes:
+  Client's certificate has to be sent to security server administrator.
+  Server certificate has to be sent by server's administrator and save in client's location.
+  `tls-server-certificate` can be set to `False` to disable server certificate verification.
 
 ### Manual usage
 
@@ -151,7 +174,7 @@ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 If collector is to be run only manually, comment out the default cron task:
 ```bash
-# 15 */6 * * * xroad-metrics /usr/share/xroad-metrics/collector/scripts/cron/cron_collector.sh 
+# 15 */6 * * * xroad-metrics /usr/share/xroad-metrics/collector/scripts/cron/cron_collector.sh
 ```
 
 ### Note about Indexing
@@ -161,7 +184,7 @@ Please review the need of active Collector module while running long-running que
 
 ## Monitoring and Status
 
-### Logging 
+### Logging
 
 The settings for the log file in the settings file are the following:
 
@@ -174,7 +197,7 @@ xroad:
 logger:
   name: collector
   module: collector
-  
+
   # Possible logging levels from least to most verbose are:
   # CRITICAL, FATAL, ERROR, WARNING, INFO, DEBUG
   level: INFO
@@ -185,7 +208,7 @@ logger:
 
 ```
 
-The log file is written to `log-path` and log file name contains the X-Road instance name. 
+The log file is written to `log-path` and log file name contains the X-Road instance name.
 The above example configuration would write logs to `/var/log/xroad-metrics/collector/logs/log_collector_EXAMPLE.json`.
 
 Every log line includes:
@@ -240,7 +263,7 @@ logger:
 
 ```
 
-The heartbeat file is written to `heartbeat-path` and hearbeat file name contains the X-Road instance name. 
+The heartbeat file is written to `heartbeat-path` and hearbeat file name contains the X-Road instance name.
 The above example configuration would write logs to `/var/log/xroad-metrics/collector/heartbeat/heartbeat_collector_EXAMPLE.json`.
 
 The heartbeat file consists last message of log file and status
