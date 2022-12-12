@@ -52,23 +52,52 @@ class CorrectorWorker:
 
     def consume_data(self, data):
         """
-        The Corrector worker. Processes a batch of documents with the same message_id.
-        :param data: Contains LoggerManager, DatabaseManager, DocumentManager, message_id and documents to be processed.
+        The Corrector worker. Processes a batch of documents with the same xRequestId
+        :param data: Contains LoggerManager, DatabaseManager, DocumentManager, x_request_id and documents to be processed.
         :return: Returns number of duplicates found.
         """
         # Get parameters
         logger_manager = data['logger_manager']
         doc_m = data['document_manager']
-        message_id = data['message_id']
+        x_request_id = data['x_request_id']
         documents = data['documents']
         to_remove_queue = data['to_remove_queue']
         duplicates = no_requestInTs = 0
-        hash_set = set()
 
-        for current_document in documents:
+        matched_pair = {}
+        client_document_hash = None
+        producer_document_hash = None
 
-            # Mark to removal documents without requestInTs immediately (as of bug in xRoad software ver 6.22.0)
-            if current_document['requestInTs'] is None and current_document['securityServerType'] is None:
+        clients = [
+            doc for doc in documents
+            if doc.get('securityServerType') == 'Client'
+        ]
+        producers = [
+            doc for doc in documents if doc.get('securityServerType') == 'Producer'
+        ]
+
+        if clients:
+            matched_pair['client'] = clients[0]
+            client_document_hash = doc_m.calculate_hash(clients[0])
+
+        if producers:
+            matched_pair['producer'] = producers[0]
+            producer_document_hash = doc_m.calculate_hash(producers[0])
+
+        docs_to_remove = [
+            doc for doc in documents
+            if (
+                doc != matched_pair.get('client')
+                and doc != matched_pair.get('producer')
+            )
+        ]
+        for current_document in docs_to_remove:
+
+            # Mark to removal documents without requestInTs immediately (as of bug in xRoad software ver 6.22.0) # noqa
+            if (
+                current_document['requestInTs'] is None
+                and current_document['securityServerType'] is None
+            ):
                 to_remove_queue.put(current_document['_id'])
                 no_requestInTs += 1
                 self.db_m.mark_as_corrected(current_document)
@@ -79,104 +108,45 @@ class CorrectorWorker:
                 """
                 continue
 
-            # Check if is batch duplicated
-            current_document_hash = doc_m.calculate_hash(current_document)
-            if current_document_hash in hash_set:
-                # If yes, mark to removal
+            if self.db_m.check_clean_document_exists(
+                    x_request_id, current_document
+            ):
                 to_remove_queue.put(current_document['_id'])
                 duplicates += 1
                 self.db_m.mark_as_corrected(current_document)
-                """
-                :logger_manager.log_warning('batch_duplicated',
-                :'_id : ObjectId(\'' + str(current_document['_id']) + '\'),
-                :messageId : ' + str(current_document['messageId']))
-                """
                 continue
 
-            # Check if is database duplicated
-            if self.db_m.check_if_hash_exists(current_document_hash):
-                # If here, add to batch duplicate cache
-                hash_set.add(current_document_hash)
-                duplicates += 1
-                self.db_m.mark_as_corrected(current_document)
-                """
-                :logger_manager.log_warning('database_duplicated',
-                :'_id : ObjectId(\'' + str(current_document['_id']) + '\'),
-                :messageId : ' + str(current_document['messageId']))
-                """
-                continue
-
-            # Mark hash as seen
-            hash_set.add(current_document_hash)
-            # Find possible matching documents
-            matching_documents = self.db_m.find_by_message_id(current_document)
-            # Try to match the current document with possible pairs (regular)
-            merged_document = doc_m.find_match(current_document, matching_documents)
-            matching_type = ''
-
-            if merged_document is None:
-                # Try to match the current document with orphan-matching
-                merged_document = doc_m.find_match(current_document, matching_documents, orphan=True)
-                if merged_document is not None:
-                    matching_type = 'orphan_pair'
-            else:
-                matching_type = 'regular_pair'
-
-            if merged_document is None:
-                matching_type = 'orphan'
-                if current_document['securityServerType'] == 'Producer':
-                    new_document = doc_m.create_json(None, current_document, None, current_document_hash, message_id)
-                else:
-                    if current_document['securityServerType'] != 'Client':
-                        current_document['securityServerType'] = 'Client'
-                    new_document = doc_m.create_json(current_document, None, current_document_hash, None, message_id)
-
-                new_document = doc_m.apply_calculations(new_document)
-                new_document['correctorTime'] = database_manager.get_timestamp()
-                new_document['correctorStatus'] = 'processing'
-                new_document['matchingType'] = matching_type
-
-                # Mark non-xRoad queries as 'done' instantly. No reason to wait matching pair
-                if 'client' in new_document and new_document['client'] is not None and 'clientXRoadInstance' in new_document['client'] \
-                        and new_document['client']['clientXRoadInstance'] is None:
-                    new_document['correctorStatus'] = 'done'
-                    new_document['matchingType'] = 'orphan'
-
-                self.db_m.add_to_clean_data(new_document)
-
-            else:
-
-                if current_document['securityServerType'] == 'Client':
-
-                    if merged_document['client'] is None:
-                        merged_document['client'] = current_document
-                        merged_document = doc_m.apply_calculations(merged_document)
-                        merged_document['clientHash'] = current_document_hash
-                        merged_document['correctorTime'] = database_manager.get_timestamp()
-                        merged_document['correctorStatus'] = 'done'
-                        merged_document['matchingType'] = matching_type
-                        self.db_m.update_document_clean_data(merged_document)
-                    else:
-                        # This should never-ever happen in >= v0.4.
-                        msg = '[{0}] 2 matching clients for 1 producer: {1}'.format(self.worker_name, current_document)
-                        logger_manager.log_warning('corrector_merging', msg)
-
-                else:
-
-                    if merged_document['producer'] is None:
-                        merged_document['producer'] = current_document
-                        merged_document = doc_m.apply_calculations(merged_document)
-                        merged_document['producerHash'] = current_document_hash
-                        merged_document['correctorTime'] = database_manager.get_timestamp()
-                        merged_document['correctorStatus'] = 'done'
-                        merged_document['matchingType'] = matching_type
-                        self.db_m.update_document_clean_data(merged_document)
-                    else:
-                        # This should never-ever happen in >= v0.4.
-                        msg = '[{0}] 2 matching producers for 1 client: {1}'.format(self.worker_name, current_document)
-                        logger_manager.log_error('corrector_merging', msg)
-
+            # duplicates
+            to_remove_queue.put(current_document['_id'])
+            duplicates += 1
             self.db_m.mark_as_corrected(current_document)
+            """
+            :logger_manager.log_warning('batch_duplicated',
+            :'_id : ObjectId(\'' + str(current_document['_id']) + '\'),
+            :messageId : ' + str(current_document['messageId']))
+                """
+
+        if not matched_pair:
+            return duplicates
+
+        message_id = (
+            matched_pair.get('client', {}).get('messageId')
+            or matched_pair.get('producer', {}).get('messageId') or ''
+        )
+
+        corrected_document = doc_m.create_json(
+            matched_pair.get('client'), matched_pair.get('producer'),
+            client_document_hash, producer_document_hash, message_id
+        )
+        corrected_document = doc_m.apply_calculations(corrected_document)
+        corrected_document['correctorTime'] = database_manager.get_timestamp()
+        corrected_document['correctorStatus'] = 'done'
+        corrected_document['matchingType'] = 'regular_pair' if len(matched_pair) > 1 else 'orphan'
+        corrected_document['xRequestId'] = x_request_id
+        self.db_m.add_to_clean_data(corrected_document)
+
+        for party in matched_pair:
+            self.db_m.mark_as_corrected(matched_pair[party])
 
         if no_requestInTs:
             msg = '[{0}] {1} document(s) without requestInTs present'.format(self.worker_name, no_requestInTs)

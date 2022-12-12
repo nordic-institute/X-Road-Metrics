@@ -27,6 +27,7 @@ import traceback
 
 from . import database_manager
 from . import document_manager
+from .hash_based_corrector_worker import CorrectorWorker as HashBasedCorrectorWorker
 from .corrector_worker import CorrectorWorker
 from .logger_manager import LoggerManager
 
@@ -53,7 +54,8 @@ class CorrectorBatch:
 
     def _batch_run(self, process_dict):
         """
-        Gets raw documents, groups by "messageId", corrects documents' structure, initializes workers,
+        Gets unique xRequestId's, gets documents by xRequestId, corrects documents, unitializes workers,
+        gets raw documents, groups by "messageId", corrects documents' structure, initializes workers,
         updates timeout documents to "done", removes duplicates from raw_messages.
         :param process_dict:
         :return: Returns the amount of documents still to process.
@@ -69,6 +71,50 @@ class CorrectorBatch:
 
         db_m = database_manager.DatabaseManager(self.settings)
         doc_m = document_manager.DocumentManager(self.settings)
+        list_to_process = multiprocessing.Queue()
+        duplicates = multiprocessing.Value('i', 0, lock=True)
+
+        m = multiprocessing.Manager()
+        to_remove_queue = m.Queue()
+
+        # Process documents with xRequestId
+
+        x_request_ids = db_m.get_raw_x_request_ids()
+
+        doc_map = {}
+        for x_request_id in x_request_ids:
+            doc_map[x_request_id] = []
+            cursor = db_m.get_raw_documents_by_x_request_id(x_request_id)
+            for _doc in cursor:
+                fix_doc = doc_m.correct_structure(_doc)
+                doc_map[x_request_id].append(fix_doc)
+
+        for x_request_id in doc_map:
+            documents = doc_map[x_request_id]
+            data = dict()
+            data['logger_manager'] = self.logger_m
+            data['document_manager'] = doc_m
+            data['x_request_id'] = x_request_id
+            data['documents'] = documents
+            data['to_remove_queue'] = to_remove_queue
+            list_to_process.put(data)
+            doc_len += len(documents)
+
+        pool = []
+        for i in range(self.settings["corrector"]["thread-count"]):
+            # Configure worker
+            worker = CorrectorWorker(self.settings, f'worker_{i}')
+            p = multiprocessing.Process(target=worker.run, args=(list_to_process, duplicates))
+            pool.append(p)
+
+        # Starts all pool process
+        for p in pool:
+            p.start()
+        # Wait all processes to finish their jobs
+        for p in pool:
+            p.join()
+
+        # Process documents without xRequestId
 
         limit = self.settings["corrector"]["documents-max"]
         cursor = db_m.get_raw_documents(limit=limit)
@@ -84,13 +130,6 @@ class CorrectorBatch:
             fix_doc = doc_m.correct_structure(_doc)
             doc_map[message_id].append(fix_doc)
 
-        # Build queue to be processed
-        list_to_process = multiprocessing.Queue()
-        duplicates = multiprocessing.Value('i', 0, lock=True)
-
-        m = multiprocessing.Manager()
-        to_remove_queue = m.Queue()
-
         for message_id in doc_map:
             documents = doc_map[message_id]
             data = dict()
@@ -102,14 +141,11 @@ class CorrectorBatch:
             list_to_process.put(data)
             doc_len += len(documents)
 
-        # Sync
-        # time.sleep(5)
-
         # Create pool of workers
         pool = []
         for i in range(self.settings["corrector"]["thread-count"]):
             # Configure worker
-            worker = CorrectorWorker(self.settings, f'worker_{i}')
+            worker = HashBasedCorrectorWorker(self.settings, f'worker_{i}')
             p = multiprocessing.Process(target=worker.run, args=(list_to_process, duplicates))
             pool.append(p)
 
@@ -120,6 +156,7 @@ class CorrectorBatch:
         for p in pool:
             p.join()
 
+        # TODO
         timeout = self.settings['corrector']['timeout-days']
         self.logger_m.log_info('corrector_batch_update_timeout',
                                f"Updating timed out [{timeout} days] orphans to done.")

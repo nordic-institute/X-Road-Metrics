@@ -98,6 +98,39 @@ class DatabaseManager:
         raw_data = db[RAW_DATA_COLLECTION]
         raw_data.update_one({"_id": doc_id}, {"$set": {"corrected": True}})
 
+    def get_raw_x_request_ids(self):
+        """
+        Gets unique xRequestIds of not corrected documents
+        :return: Returns xRequestIds.
+        """
+        try:
+            db = self.get_query_db()
+            raw_data = db[RAW_DATA_COLLECTION]
+            q = {"corrected": None}
+            cursor = raw_data.find(q).distinct('xRequestId')
+            return list(cursor)
+        except Exception as e:
+            self.logger_m.log_error('DatabaseManager.get_raw_x_request_ids', '{0}'.format(repr(e)))
+            raise e
+
+    def get_raw_documents_by_x_request_id(self, x_request_id):
+        """
+        Gets number of documents specified by the x_request_id that have not been corrected.
+        Sorted by "requestInTs".
+        :return: Returns documents sorted by "requestInTs".
+        """
+        try:
+            db = self.get_query_db()
+            raw_data = db[RAW_DATA_COLLECTION]
+            q = {"corrected": None, "xRequestId": x_request_id}
+            cursor = raw_data.find(q).sort("requestInTs", 1)
+            return list(cursor)
+        except Exception as e:
+            self.logger_m.log_error(
+                'DatabaseManager.get_raw_documents_by_x_request_id', '{0}'.format(repr(e))
+            )
+            raise e
+
     def get_raw_documents(self, limit=1000):
         """
         Gets number of documents specified by the limit that have not been corrected.
@@ -247,6 +280,27 @@ class DatabaseManager:
             raise e
 
         return number_of_updated_docs
+
+    def check_clean_document_exists(self, x_request_id, document):
+        """
+        Checks if given document exists in clean_data or not
+        :param x_request_id: The input document xRequestId
+        :param document: The input document
+        :return: Returns true if document exists and false if not.
+        """
+        db = self.get_query_db()
+        clean_data = db[CLEAN_DATA_COLLECTION]
+        # client or producer
+        party = document['securityServerType'].lower()
+        result = clean_data.find(
+            {
+                f'{party}.securityServerType': document['securityServerType'],
+                'xRequestId': x_request_id,
+            }
+        )
+        if len(list(result)) > 0:
+            return True
+        return False
 
     def check_if_hash_exists(self, doc_hash):
         """
