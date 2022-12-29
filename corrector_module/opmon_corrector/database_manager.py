@@ -98,37 +98,26 @@ class DatabaseManager:
         raw_data = db[RAW_DATA_COLLECTION]
         raw_data.update_one({"_id": doc_id}, {"$set": {"corrected": True}})
 
-    def get_raw_x_request_ids(self):
+    def get_faulty_raw_documents(self):
         """
-        Gets unique xRequestIds of not corrected documents
-        :return: Returns xRequestIds.
-        """
-        try:
-            db = self.get_query_db()
-            raw_data = db[RAW_DATA_COLLECTION]
-            q = {"corrected": None}
-            cursor = raw_data.find(q).distinct('xRequestId')
-            return list(cursor)
-        except Exception as e:
-            self.logger_m.log_error('DatabaseManager.get_raw_x_request_ids', '{0}'.format(repr(e)))
-            raise e
-
-    def get_raw_documents_by_x_request_id(self, x_request_id):
-        """
-        Gets number of documents specified by the x_request_id that have not been corrected.
+        Gets number of documents specified by the limit that have not been corrected and has no xRequestId
         Sorted by "requestInTs".
-        :return: Returns documents sorted by "requestInTs".
+        :param limit: Number of documents to return.
+        :return: Returns documents sorted by "requestInTs". Number is specified by the limit.
         """
         try:
             db = self.get_query_db()
             raw_data = db[RAW_DATA_COLLECTION]
-            q = {"corrected": None, "xRequestId": x_request_id}
+            q = {
+                "corrected": None,
+                'xRequestId': None,
+                'requestInTs': {'$ne': None},
+                'securityServerType': {'$ne': None}
+            }
             cursor = raw_data.find(q).sort("requestInTs", 1)
             return list(cursor)
         except Exception as e:
-            self.logger_m.log_error(
-                'DatabaseManager.get_raw_documents_by_x_request_id', '{0}'.format(repr(e))
-            )
+            self.logger_m.log_error('DatabaseManager.get_faulty_raw_documents', '{0}'.format(repr(e)))
             raise e
 
     def get_raw_documents(self, limit=1000):
@@ -148,6 +137,25 @@ class DatabaseManager:
             self.logger_m.log_error('DatabaseManager.get_raw_documents', '{0}'.format(repr(e)))
             raise e
 
+    def get_processing_document(self, current_doc):
+        """
+        Gets single processing document.
+        :param current_doc: The input document.
+        :return: Returns document".
+        """
+        q = {
+            "correctorStatus": "processing",
+            "xRequestId": current_doc['xRequestId'],
+        }
+        try:
+            db = self.get_query_db()
+            clean_data = db[CLEAN_DATA_COLLECTION]
+            document = clean_data.find_one(q)
+            return document
+        except Exception as e:
+            self.logger_m.log_error('DatabaseManager.get_processing_documents', '{0}'.format(repr(e)))
+            raise e
+
     def get_timeout_documents_client(self, timeout_days, limit=1000):
         """
         Gets the documents from Client that have been processing more than timeout_days.
@@ -159,7 +167,11 @@ class DatabaseManager:
             db = self.get_query_db()
             clean_data = db[CLEAN_DATA_COLLECTION]
             ref_time = 1000 * (get_timestamp() - (timeout_days * 24 * 60 * 60))
-            q = {"correctorStatus": "processing", "client.requestInTs": {"$lt": ref_time}}
+            q = {
+                "correctorStatus": "processing",
+                "client.requestInTs": {"$lt": ref_time},
+                "client.xRequestId": {"$ne": None}
+            }
             cursor = clean_data.find(q).limit(limit)
             return list(cursor)
         except Exception as e:
@@ -177,8 +189,12 @@ class DatabaseManager:
             db = self.get_query_db()
             clean_data = db[CLEAN_DATA_COLLECTION]
             ref_time = 1000 * (get_timestamp() - (timeout_days * 24 * 60 * 60))
-            q = {"correctorStatus": "processing", "client.requestInTs": {"$exists": False},
-                 "producer.requestInTs": {"$lt": ref_time}}
+            q = {
+                "correctorStatus": "processing",
+                "client.requestInTs": {"$exists": False},
+                "producer.requestInTs": {"$lt": ref_time},
+                "producer.xRequestId": {"$ne": None}
+            }
             cursor = clean_data.find(q).limit(limit)
             return list(cursor)
         except Exception as e:

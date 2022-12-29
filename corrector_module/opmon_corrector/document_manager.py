@@ -294,22 +294,18 @@ class DocumentManager:
         return None
 
     @staticmethod
-    def create_json(client_document, producer_document, client_hash, producer_hash, message_id):
+    def create_json(client_document, producer_document, x_request_id):
         """
         Creates the basic JSON document that includes both client and producer
         :param client_document: The client document.
         :param producer_document: The producer document.
-        :param client_hash: Client hash.
-        :param producer_hash: Producer hash.
-        :param message_id: Message_id.
+        :param x_request_id: xRequestId.
         :return: Returns the document that includes all the fields.
         """
         return {
             'client': client_document,
             'producer': producer_document,
-            'clientHash': client_hash,
-            'producerHash': producer_hash,
-            'messageId': message_id
+            'xRequestId': x_request_id
         }
 
     def correct_structure(self, doc):
@@ -336,21 +332,3 @@ class DocumentManager:
             if f not in doc:
                 doc[f] = None
         return doc
-
-    @staticmethod
-    def calculate_hash(_document):
-        """
-        Hash the given document with MD5 and remove _id & insertTime parameters.
-        :param _document: The input documents.
-        :return: Returns the monitoringDataTs_document_hash string.
-        """
-        document = _document.copy()
-        doc_hash = None
-        if document is not None:
-            od = collections.OrderedDict(sorted(document.items()))
-            od.pop('_id', None)
-            od.pop('insertTime', None)
-            od.pop('corrected', None)
-            json_str = str(od)
-            doc_hash = hashlib.md5(json_str.encode('utf-8')).hexdigest()
-        return "{0}_{1}".format(document['monitoringDataTs'], doc_hash)

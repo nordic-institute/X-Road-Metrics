@@ -65,9 +65,6 @@ class CorrectorWorker:
         duplicates = no_requestInTs = 0
 
         matched_pair = {}
-        client_document_hash = None
-        producer_document_hash = None
-
         clients = [
             doc for doc in documents
             if doc.get('securityServerType') == 'Client'
@@ -78,11 +75,9 @@ class CorrectorWorker:
 
         if clients:
             matched_pair['client'] = clients[0]
-            client_document_hash = doc_m.calculate_hash(clients[0])
 
         if producers:
             matched_pair['producer'] = producers[0]
-            producer_document_hash = doc_m.calculate_hash(producers[0])
 
         docs_to_remove = [
             doc for doc in documents
@@ -134,15 +129,35 @@ class CorrectorWorker:
             or matched_pair.get('producer', {}).get('messageId') or ''
         )
 
+        # Let's find processing party in processing clean_data
+        if len(matched_pair) == 1:
+            doc = matched_pair.get('client') or matched_pair.get('producer')
+            clean_document = self.db_m.get_processing_document(doc)
+
+            if clean_document:
+                if doc['securityServerType'] == 'Client':
+                    clean_document['client'] = doc
+                    clean_document = doc_m.apply_calculations(clean_document)
+                else:
+                    clean_document['producer'] = doc
+                    clean_document = doc_m.apply_calculations(clean_document)
+
+                clean_document['correctorTime'] = database_manager.get_timestamp()
+                clean_document['correctorStatus'] = 'done'
+                clean_document['matchingType'] = 'regular_pair'
+                clean_document['xRequestId'] = x_request_id
+                self.db_m.update_document_clean_data(clean_document)
+                self.db_m.mark_as_corrected(doc)
+                return duplicates
+
         corrected_document = doc_m.create_json(
-            matched_pair.get('client'), matched_pair.get('producer'),
-            client_document_hash, producer_document_hash, message_id
+            matched_pair.get('client'), matched_pair.get('producer'), x_request_id
         )
         corrected_document = doc_m.apply_calculations(corrected_document)
         corrected_document['correctorTime'] = database_manager.get_timestamp()
-        corrected_document['correctorStatus'] = 'done'
+        corrected_document['correctorStatus'] = 'done' if len(matched_pair) > 1 else 'processing'
         corrected_document['matchingType'] = 'regular_pair' if len(matched_pair) > 1 else 'orphan'
-        corrected_document['xRequestId'] = x_request_id
+        corrected_document['messageId'] = message_id
         self.db_m.add_to_clean_data(corrected_document)
 
         for party in matched_pair:
