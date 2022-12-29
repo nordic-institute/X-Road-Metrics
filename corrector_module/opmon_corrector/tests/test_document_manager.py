@@ -514,13 +514,11 @@ def test_find_match(mock_logger_manager, basic_settings, mocker):
 
 
 def test_create_json():
-    json = DocumentManager.create_json('foo', 1, {'a': 123}, [3, 4, 5], 12.2)
+    json = DocumentManager.create_json('foo', 1, 12.2)
     assert json == {
         'client': 'foo',
         'producer': 1,
-        'clientHash': {'a': 123},
-        'producerHash': [3, 4, 5],
-        'messageId': 12.2
+        'xRequestId': 12.2
     }
 
 
@@ -530,14 +528,3 @@ def test_correct_structure(mock_logger_manager, basic_settings):
 
     assert set(doc.keys()) == set(dm.must_fields)
     assert all([v is None for v in doc.values()])
-
-
-def test_calculate_hash():
-    hashed = DocumentManager.calculate_hash({
-        '_id': '123',
-        'insertTime': 123,
-        'corrected': False,
-        'monitoringDataTs': 123456
-    })
-
-    assert hashed == '123456_ef36bf5fa911a8e6360f6be2a5f1ceb9'
