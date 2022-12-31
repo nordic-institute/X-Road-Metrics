@@ -50,6 +50,30 @@ class CorrectorBatch:
             # Raise exception again
             raise e
 
+    def _process_workers(self, list_to_process, duplicates):
+        """
+        Processes the workers in a thread pool.
+        :param list_to_process: queue of items to be processed by the worker processes
+        :param duplicates: a shared Value object to store the number of duplicates encountered during processing
+        : return: None
+        """
+        # Configure worker
+        pool = []
+        for i in range(self.settings["corrector"]["thread-count"]):
+            # Configure worker
+            worker = CorrectorWorker(self.settings, f'worker_{i}')
+            p = multiprocessing.Process(
+                target=worker.run, args=(list_to_process, duplicates)
+            )
+            pool.append(p)
+
+        # Starts all pool process
+        for p in pool:
+            p.start()
+        # Wait all processes to finish their jobs
+        for p in pool:
+            p.join()
+
     def _batch_run(self, process_dict):
         """
         Gets unique xRequestId's, gets documents by xRequestId, corrects documents, unitializes workers,
@@ -101,22 +125,7 @@ class CorrectorBatch:
             list_to_process.put(data)
             doc_len += len(documents)
 
-        # Configure worker
-        pool = []
-        for i in range(self.settings["corrector"]["thread-count"]):
-            # Configure worker
-            worker = CorrectorWorker(self.settings, f'worker_{i}')
-            p = multiprocessing.Process(
-                target=worker.run, args=(list_to_process, duplicates)
-            )
-            pool.append(p)
-
-        # Starts all pool process
-        for p in pool:
-            p.start()
-        # Wait all processes to finish their jobs
-        for p in pool:
-            p.join()
+        self._process_workers(list_to_process, duplicates)
 
         # Go through the to_remove list and remove the duplicates
         element_in_queue = True
