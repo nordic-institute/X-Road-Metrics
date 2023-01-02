@@ -31,8 +31,8 @@ from .corrector_worker import CorrectorWorker
 from .logger_manager import LoggerManager
 
 PROCESSING_TIME_FORMAT = '%H:%M:%S'
-from opmon_corrector import SECURITY_SERVER_TYPE_CLIENT
-from opmon_corrector import SECURITY_SERVER_TYPE_PRODUCER
+from opmon_corrector import (SECURITY_SERVER_TYPE_CLIENT,
+                             SECURITY_SERVER_TYPE_PRODUCER)
 
 
 class CorrectorBatch:
@@ -165,7 +165,7 @@ class CorrectorBatch:
         process_dict['doc_len'] = doc_len
 
         # Process documents without xRequestId
-        cursor = db_m.get_faulty_raw_documents()
+        cursor = db_m.get_faulty_raw_documents(limit)
         self.logger_m.log_info('corrector_batch_raw', 'Processing {0} faulty raw documents'.format(len(cursor)))
 
         for _doc in cursor:

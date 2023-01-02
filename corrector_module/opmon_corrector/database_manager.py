@@ -98,7 +98,7 @@ class DatabaseManager:
         raw_data = db[RAW_DATA_COLLECTION]
         raw_data.update_one({'_id': doc_id}, {'$set': {'corrected': True}})
 
-    def get_faulty_raw_documents(self):
+    def get_faulty_raw_documents(self, limit=1000):
         """
         Gets number of documents specified by the limit that have not been corrected and has no xRequestId
         Sorted by "requestInTs".
@@ -114,7 +114,7 @@ class DatabaseManager:
                 'requestInTs': {'$ne': None},
                 'securityServerType': {'$ne': None}
             }
-            cursor = raw_data.find(q).sort('requestInTs', 1)
+            cursor = raw_data.find(q).sort('requestInTs', 1).limit(limit)
             return list(cursor)
         except Exception as e:
             self.logger_m.log_error('DatabaseManager.get_faulty_raw_documents', '{0}'.format(repr(e)))
