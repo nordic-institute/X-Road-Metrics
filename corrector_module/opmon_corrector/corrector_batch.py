@@ -24,6 +24,7 @@ import multiprocessing
 import queue
 import time
 import traceback
+from collections import defaultdict
 
 from . import database_manager, document_manager
 from .corrector_worker import CorrectorWorker
@@ -45,7 +46,7 @@ class CorrectorBatch:
             self._batch_run(process_dict)
         except Exception as e:
             # Catch internal exceptions to log
-            msg = "Error: {0} {1}".format(repr(e), traceback.format_exc()).replace("\n", "")
+            msg = 'Error: {0} {1}'.format(repr(e), traceback.format_exc()).replace('\n', '')
             self.logger_m.log_error('corrector_batch_run', msg)
             # Raise exception again
             raise e
@@ -59,7 +60,7 @@ class CorrectorBatch:
         """
         # Configure worker
         pool = []
-        for i in range(self.settings["corrector"]["thread-count"]):
+        for i in range(self.settings['corrector']['thread-count']):
             # Configure worker
             worker = CorrectorWorker(self.settings, f'worker_{i}')
             p = multiprocessing.Process(
@@ -84,7 +85,7 @@ class CorrectorBatch:
         """
         doc_len = 0
         start_processing_time = time.time()
-        self.logger_m.log_heartbeat("processing", "SUCCEEDED")
+        self.logger_m.log_heartbeat('processing', 'SUCCEEDED')
         self.logger_m.log_info(
             'corrector_batch_start',
             'Starting corrector'
@@ -92,18 +93,16 @@ class CorrectorBatch:
         db_m = database_manager.DatabaseManager(self.settings)
         doc_m = document_manager.DocumentManager(self.settings)
 
-        limit = self.settings["corrector"]["documents-max"]
+        limit = self.settings['corrector']['documents-max']
         cursor = db_m.get_raw_documents(limit)
         self.logger_m.log_info('corrector_batch_raw', 'Processing {0} raw documents'.format(len(cursor)))
 
         # Process documents with xRequestId
-        doc_map = {}
+        doc_map = defaultdict(list)
         for _doc in cursor:
             x_request_id = _doc.get('xRequestId')
             if not x_request_id:
                 continue
-            if x_request_id not in doc_map:
-                doc_map[x_request_id] = []
             fix_doc = doc_m.correct_structure(_doc)
             doc_map[x_request_id].append(fix_doc)
 
@@ -139,23 +138,23 @@ class CorrectorBatch:
                 element_in_queue = False
         if total_raw_removed > 0:
             self.logger_m.log_info('corrector_batch_remove_duplicates_from_raw',
-                                   "Total of {0} duplicate documents removed from raw messages.".format(
+                                   'Total of {0} duplicate documents removed from raw messages.'.format(
                                        total_raw_removed))
         else:
             self.logger_m.log_info('corrector_batch_remove_duplicates_from_raw',
-                                   "No raw documents marked to removal.")
+                                   'No raw documents marked to removal.')
 
         doc_len += total_raw_removed
 
         end_processing_time = time.time()
-        total_time = time.strftime("%H:%M:%S", time.gmtime(end_processing_time - start_processing_time))
-        msg = ["Number of duplicates: {0}".format(duplicates.value),
-               "Documents processed: " + str(doc_len),
-               "Processing time: {0}".format(total_time)]
+        total_time = time.strftime('%H:%M:%S', time.gmtime(end_processing_time - start_processing_time))
+        msg = ['Number of duplicates: {0}'.format(duplicates.value),
+               'Documents processed: ' + str(doc_len),
+               'Processing time: {0}'.format(total_time)]
 
         self.logger_m.log_info('corrector_batch_end', ' | '.join(msg))
         self.logger_m.log_heartbeat(
-            "finished", "SUCCEEDED")
+            'finished', 'SUCCEEDED')
         process_dict['doc_len'] = doc_len
 
         # Process documents without xRequestId
@@ -180,7 +179,7 @@ class CorrectorBatch:
 
         timeout = self.settings['corrector']['timeout-days']
         self.logger_m.log_info('corrector_batch_update_timeout',
-                               f"Updating timed out [{timeout} days] orphans to done.")
+                               f'Updating timed out [{timeout} days] orphans to done.')
 
         # Update Status of older documents according to client.requestInTs
 
@@ -194,7 +193,7 @@ class CorrectorBatch:
                                        number_of_updated_docs))
         else:
             self.logger_m.log_info('corrector_batch_update_client_old_to_done',
-                                   "No orphans updated to done.")
+                                   'No orphans updated to done.')
         doc_len += number_of_updated_docs
 
         # Update Status of older documents according to producer.requestInTs
@@ -208,17 +207,17 @@ class CorrectorBatch:
                                        number_of_updated_docs))
         else:
             self.logger_m.log_info('corrector_batch_update_producer_old_to_done',
-                                   "No orphans updated to done.")
+                                   'No orphans updated to done.')
 
         doc_len += number_of_updated_docs
 
         end_processing_time = time.time()
-        total_time = time.strftime("%H:%M:%S", time.gmtime(end_processing_time - start_processing_time))
-        msg = ["Number of duplicates: {0}".format(duplicates.value),
-               "Documents processed: " + str(doc_len),
-               "Processing time: {0}".format(total_time)]
+        total_time = time.strftime('%H:%M:%S', time.gmtime(end_processing_time - start_processing_time))
+        msg = ['Number of duplicates: {0}'.format(duplicates.value),
+               'Documents processed: ' + str(doc_len),
+               'Processing time: {0}'.format(total_time)]
 
         self.logger_m.log_info('corrector_batch_end', ' | '.join(msg))
         self.logger_m.log_heartbeat(
-            "finished", "SUCCEEDED")
+            'finished', 'SUCCEEDED')
         process_dict['doc_len'] = doc_len
