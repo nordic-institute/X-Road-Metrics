@@ -117,7 +117,15 @@ class CollectorWorker:
             sec_server_settings = self.settings['xroad']['security-server']
             url = sec_server_settings['protocol'] + sec_server_settings['host']
             timeout = sec_server_settings['timeout']
-            response = requests.post(url, data=body, headers=headers, timeout=timeout)
+            client_cert = (
+                sec_server_settings.get('tls-client-certificate'),
+                sec_server_settings.get('tls-client-key')
+            )
+            server_cert = sec_server_settings.get('tls-server-certificate')
+            response = requests.post(
+                url, data=body, headers=headers, timeout=timeout,
+                cert=client_cert, verify=server_cert
+            )
             response.raise_for_status()
             return response
         except Exception as e:

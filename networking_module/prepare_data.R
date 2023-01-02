@@ -60,6 +60,13 @@ path.membernames <- paste0('/usr/share/xroad-metrics/networking/membernames', pr
 xroad.descriptor <- settings$networking$"xroad-descriptor-file"
 days <- (settings$networking$interval + settings$networking$buffer)
 
+if ("ssl_mode" %in% names(settings$postgres)) {
+    Sys.setenv(PGSSLMODE = settings$postgres$ssl_mode)
+}
+if ("ssl_root_cert" %in% names(settings$postgres)) {
+    Sys.setenv(PGSSLROOTCERT = settings$postgres$ssl_root_cert)
+}
+
 tryCatch(
   con <- dbConnect(
     dbDriver("PostgreSQL"),

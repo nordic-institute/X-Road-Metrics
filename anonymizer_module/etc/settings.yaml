@@ -74,6 +74,10 @@ mongodb:
   host: localhost
   user: <FILL>
   password: <FILL>
+  # set to True to enable secure connection
+  tls:
+  # path to CA pem file
+  tls-ca-file:
 
 postgres:
   host: localhost
@@ -83,6 +87,8 @@ postgres:
   database-name: <FILL>
   table-name: logs
   buffer-size: 10000
+  ssl-mode:
+  ssl-root-cert:
   readonly-users:
     - <FILL>
     - <FILL>

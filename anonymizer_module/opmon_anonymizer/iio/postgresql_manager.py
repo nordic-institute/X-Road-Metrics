@@ -33,6 +33,10 @@ class PostgreSqlManager(object):
         self._table_name = postgres_settings['table-name']
         self._readonly_users = postgres_settings['readonly-users']
         self._connection_string = self._get_connection_string()
+        self._connect_args = {
+            'sslmode': postgres_settings.get('ssl-mode'),
+            'sslrootcert': postgres_settings.get('ssl-root-cert')
+        }
 
         self._field_order = [field_name for field_name, _ in table_schema]
         if table_schema:
@@ -48,7 +52,7 @@ class PostgreSqlManager(object):
             for datum in data:
                 datum['requestInDate'] = datetime.fromtimestamp(datum['requestInTs'] / 1000).strftime('%Y-%m-%d')
 
-            with pg.connect(self._connection_string) as connection:
+            with pg.connect(self._connection_string, **self._connect_args) as connection:
                 cursor = connection.cursor()
                 query = self._generate_insert_query(cursor, data)
                 cursor.execute(query)
@@ -73,7 +77,7 @@ class PostgreSqlManager(object):
 
     def is_alive(self):
         try:
-            with pg.connect(self._connection_string) as connection:
+            with pg.connect(self._connection_string, **self._connect_args) as connection:
                 pass
             return True
 
@@ -86,7 +90,7 @@ class PostgreSqlManager(object):
 
     def _ensure_table(self, schema, index_columns):
         try:
-            with pg.connect(self._connection_string) as connection:
+            with pg.connect(self._connection_string, **self._connect_args) as connection:
                 cursor = connection.cursor()
                 if not self._table_exists(cursor):
                     self._create_table(cursor, schema, index_columns)
@@ -121,7 +125,7 @@ class PostgreSqlManager(object):
 
     def _ensure_privileges(self):
         try:
-            with pg.connect(self._connection_string) as connection:
+            with pg.connect(self._connection_string, **self._connect_args) as connection:
                 cursor = connection.cursor()
 
                 for readonly_user in self._readonly_users:

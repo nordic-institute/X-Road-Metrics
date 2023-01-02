@@ -27,6 +27,8 @@ postgres:
   password: <FILL>
   database-name: <FILL>
   table-name: logs
+  ssl-mode:
+  ssl-root-cert:
 
 logger:
   name: opendata
