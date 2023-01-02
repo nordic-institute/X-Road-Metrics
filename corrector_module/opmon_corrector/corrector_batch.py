@@ -133,7 +133,8 @@ class CorrectorBatch:
         total_raw_removed = 0
         while element_in_queue:
             try:
-                element = to_remove_queue.get(False)
+                # Do not block queue and return element immediately else raise the queue.Empty
+                element = to_remove_queue.get(block=False)
                 db_m.remove_duplicate_from_raw(element)
                 total_raw_removed += 1
             except queue.Empty:
