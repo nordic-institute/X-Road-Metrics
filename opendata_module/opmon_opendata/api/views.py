@@ -20,7 +20,7 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
 from django.core.cache import cache
-from django.http import HttpResponse
+from django.http import HttpResponse, StreamingHttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.html import escape
 
@@ -35,11 +35,12 @@ from dateutil import relativedelta
 import time
 
 from .input_validator import OpenDataInputValidator
-
 from .postgresql_manager import PostgreSQL_Manager
 from ..logger_manager import LoggerManager
 from ..opendata_settings_parser import OpenDataSettingsParser
 from .. import __version__
+
+DEFAULT_STREAM_BUFFER_LINES = 1000
 
 
 def get_settings(profile):
@@ -89,17 +90,17 @@ def get_daily_logs(request, profile=None):
         return HttpResponse(json.dumps({'error': escape(str(exception))}), status=400)
 
     try:
-        gzipped_file = _generate_gzipped_file(
+        gzipped_file_stream = _generate_ndjson_stream(
             postgres,
             date,
             columns,
             constraints,
             order_clauses,
-            settings['opendata']['field-descriptions']
+            settings
         )
 
-        response = HttpResponse(gzipped_file, content_type='application/gzip')
-        response['Content-Disposition'] = 'attachment; filename="{0:04d}-{1:02d}-{2:02d}@{3}.tar.gz"'.format(
+        response = StreamingHttpResponse(gzipped_file_stream, content_type='application/gzip')
+        response['Content-Disposition'] = 'attachment; filename="{0:04d}-{1:02d}-{2:02d}@{3}.json.gz"'.format(
             date.year, date.month, date.day, int(datetime.now().timestamp())
         )
 
@@ -110,6 +111,46 @@ def get_daily_logs(request, profile=None):
         ))
         return HttpResponse(
             json.dumps({'error': 'Server encountered error when generating gzipped tarball.'}),
+            status=500
+        )
+
+
+@csrf_exempt
+def get_daily_logs_meta(request, profile=None):
+    settings = get_settings(profile)
+    logger = LoggerManager(settings['logger'], settings['xroad']['instance'], __version__)
+
+    try:
+        postgres = PostgreSQL_Manager(settings)
+        date, columns, constraints, order_clauses = _validate_query(request, postgres, settings)
+    except Exception as exception:
+        logger.log_error('api_daily_logs_meta_query_validation_failed',
+                         'Failed to validate daily logs meta query. {0} ERROR: {1}'.format(
+                             str(exception), traceback.format_exc().replace('\n', '')
+                         ))
+        return HttpResponse(json.dumps({'error': escape(str(exception))}), status=400)
+
+    try:
+        meta_file = _generate_meta_file(
+            postgres,
+            columns,
+            constraints,
+            order_clauses,
+            settings['opendata']['field-descriptions']
+        )
+
+        response = HttpResponse(meta_file, content_type='application/json')
+        response['Content-Disposition'] = 'attachment; filename="{0:04d}-{1:02d}-{2:02d}@{3}.meta.json"'.format(
+            date.year, date.month, date.day, int(datetime.now().timestamp())
+        )
+
+        return response
+    except Exception as exception:
+        logger.log_error('api_daily_logs_meta_query_failed', 'Failed retrieving daily logs meta. ERROR: {0}'.format(
+            traceback.format_exc().replace('\n', '')
+        ))
+        return HttpResponse(
+            json.dumps({'error': 'Server encountered error when generating meta file.'}),
             status=500
         )
 
@@ -206,22 +247,45 @@ def get_column_data(request, profile=None):
         )
 
 
-def _generate_gzipped_file(postgres, date, columns, constraints, order_clauses, field_descriptions):
-    rows, columns, date_columns = _get_content(postgres, date, columns, constraints, order_clauses)
+def _generate_ndjson_stream(postgres, date, columns, constraints, order_clauses, settings):
+    """Creates a gzipped ndjson file iterator suitable for StreamingHttpResponse."""
 
-    tarball_bytes = BytesIO()
-    with tarfile.open(fileobj=tarball_bytes, mode='w:gz') as tarball:
-        data_file, data_info = _generate_json_file(columns, rows, date_columns, date)
-        meta_file, meta_info = _generate_meta_file(columns, constraints, order_clauses, date_columns,
-                                                   field_descriptions)
+    data_cursor, column_names, date_columns = _get_content_cursor(postgres, date, columns, constraints, order_clauses)
 
-        tarball.addfile(data_info, data_file)
-        tarball.addfile(meta_info, meta_file)
-
-    return tarball_bytes.getvalue()
+    gzip_buffer = BytesIO()
+    with GzipFile(fileobj=gzip_buffer, mode='wb') as gzip_file:
+        count = 0
+        buffer_size = settings['opendata'].get('stream-buffer-lines', DEFAULT_STREAM_BUFFER_LINES)
+        for row in data_cursor:
+            json_obj = {column_name: row[column_idx] for column_idx, column_name in enumerate(column_names)}
+            # Must manually convert Postgres dates to string to be compatible with JSON format
+            for date_column in date_columns:
+                json_obj[date_column] = datetime.strftime(json_obj[date_column], '%Y-%m-%d')
+            gzip_file.write(bytes(json.dumps(json_obj), 'utf-8'))
+            gzip_file.write(b'\n')
+            count += 1
+            if count == buffer_size:
+                count = 0
+                data = gzip_buffer.getvalue()
+                data_len = len(data)
+                if data_len:
+                    # Yield current buffer
+                    yield data
+                    # Empty buffer to free memory
+                    gzip_buffer.truncate(0)
+                    gzip_buffer.seek(0)
+    # Final data gets written when GzipFile is closed
+    yield gzip_buffer.getvalue()
 
 
 def _get_content(postgres, date, columns, constraints, order_clauses, limit=None):
+    data_cursor, columns, date_columns = _get_content_cursor(
+        postgres, date, columns, constraints, order_clauses, limit=limit)
+
+    return data_cursor.fetchall(), columns, date_columns
+
+
+def _get_content_cursor(postgres, date, columns, constraints, order_clauses, limit=None):
     constraints.append({'column': 'requestInDate', 'operator': '=', 'value': date.strftime('%Y-%m-%d')})
 
     column_names_and_types = postgres.get_column_names_and_types()
@@ -231,34 +295,17 @@ def _get_content(postgres, date, columns, constraints, order_clauses, limit=None
 
     date_columns = [column_name for column_name, column_type in column_names_and_types
                     if column_type == 'date' and column_name in columns]
-    rows = postgres.get_data(constraints=constraints, columns=columns, order_by=order_clauses, limit=limit)
+    data_cursor = postgres.get_data_cursor(
+        constraints=constraints, columns=columns, order_by=order_clauses, limit=limit)
 
-    return rows, columns, date_columns
-
-
-def _generate_json_file(column_names, rows, date_columns, date):
-    json_content = []
-
-    for row in rows:
-        json_obj = {column_name: row[column_idx] for column_idx, column_name in enumerate(column_names)}
-        for date_column in date_columns:  # Must manually convert Postgres dates to string to be compatible with JSON format
-            json_obj[date_column] = datetime.strftime(json_obj[date_column], '%Y-%m-%d')
-
-        json_content.append(json.dumps(json_obj))
-
-    json_content.append('')  # Hack to get \n after the last JSON object
-    json_file_content = ('\n'.join(json_content)).encode('utf8')
-
-    info = tarfile.TarInfo(date.strftime('%Y-%m-%d') + '.json')
-    info.size = len(json_file_content)
-    info.mtime = time.time()
-
-    return BytesIO(json_file_content), info
+    return data_cursor, columns, date_columns
 
 
-def _generate_meta_file(columns, constraints, order_clauses, date_columns, field_descriptions):
-    if 'requestInDate' not in date_columns:
-        date_columns += ['requestInDate']
+def _generate_meta_file(postgres, columns, constraints, order_clauses, field_descriptions):
+    column_names_and_types = postgres.get_column_names_and_types()
+
+    if not columns:  # If no columns are specified, all must be returned
+        columns = [column_name for column_name, _ in column_names_and_types]
 
     meta_dict = {}
     meta_dict['descriptions'] = {field: field_descriptions[field]['description'] for field in field_descriptions}
@@ -267,11 +314,7 @@ def _generate_meta_file(columns, constraints, order_clauses, date_columns, field
 
     content = json.dumps(meta_dict).encode('utf8')
 
-    info = tarfile.TarInfo('meta.json')
-    info.size = len(content)
-    info.mtime = time.time()
-
-    return BytesIO(content), info
+    return content
 
 
 def _gzip_content(content):

@@ -17,7 +17,8 @@ In order to achieve that, handlers allow to query the following data:
 
 * Minimum and maximum date of the available logs;
 * Column names, types, descriptions and available oeprators;
-* All daily logs in **tar.gz** format;
+* All daily logs in **ndjson.gz** format;
+* Meta (description) file for daily logs;
 * Sample logs for a day in **JSON** format.
 
 
@@ -236,10 +237,7 @@ curl --request --url "${URL}/api/logs_sample" \
 
 ### Daily logs
 
-Retrieve all logs for a specified date in a **tar.gz** archive. The archive consists of two files:
-
-* **YYYY-MM-DD.json**
-* **meta.json**
+Retrieve all logs for a specified date in a **ndjson.gz** archive. The archive is gzipped NDJSON (Newline Delimited JSON) file.
 
 #### Parameters
 
@@ -247,7 +245,7 @@ Identical to [logs' sample](#logs-sample).
 
 #### Returns
 
-Binary file with MIME type "application/gzip".
+Binary file with MIME type "application/gzip" containing gzipped NDJSON file.
 
 #### Example query
 
@@ -256,17 +254,13 @@ GET version:
 ```bash
 # export DATE=$(date -d "10 days ago" '+%Y-%m-%d')
 
-TEMPFILE=$(tempfile)
+LOGFILE="${DATE}.ndjson"
 curl --get --url "${URL}/api/daily_logs" \
     --data-urlencode "date=${DATE}" \
     --data-urlencode "columns=[\"id\", \"requestInDate\", \"responseAttachmentCount\", \"succeeded\", \"totalDuration\"]" \
     --data-urlencode "constraints=[{\"column\": \"totalDuration\", \"operator\": \"<=\", \"value\": \"150\"}]" \
-    --data-urlencode "order-clauses=[{\"column\": \"totalDuration\", \"order\": \"asc\"}]"
-    > ${TEMPFILE}
-
-tar tzvf ${TEMPFILE} # See download content
-# tar xzvf ${TEMPFILE} # Unpack / extract download content
-/bin/rm --force ${TEMPFILE}
+    --data-urlencode "order-clauses=[{\"column\": \"totalDuration\", \"order\": \"asc\"}]" \
+    | gunzip > ${LOGFILE}
 ```
 
 There's also a POST version:
@@ -274,16 +268,55 @@ There's also a POST version:
 ```bash
 # export DATE=$(date -d "10 days ago" '+%Y-%m-%d')
 
-TEMPFILE=$(tempfile)
+LOGFILE="${DATE}.ndjson"
 curl --request --url "${URL}/api/daily_logs" \
     --header "Content-Type:application/json" \
     --data "{\"date\": \"${DATE}\", \
            \"columns\": [\"id\", \"requestInDate\", \"responseAttachmentCount\", \"succeeded\", \"totalDuration\"], \
            \"constraints\": [{\"column\": \"totalDuration\", \"operator\": \"<=\", \"value\": \"150\"}], \
            \"order-clauses\": [{\"column\": \"totalDuration\", \"order\": \"asc\"}]}" \
-    > ${TEMPFILE}
+    | gunzip > ${LOGFILE}
+```
 
-tar tzvf ${TEMPFILE} # See download content
-# tar xzvf ${TEMPFILE} # Unpack / extract download content
-/bin/rm --force ${TEMPFILE}
+### Daily logs meta
+
+Retrieve meta (description) file for daily logs in **JSON** fromat.
+
+#### Parameters
+
+Identical to [logs' sample](#logs-sample).
+
+#### Returns
+
+JSON file with MIME type "application/json".
+
+#### Example query
+
+GET version:
+
+```bash
+# export DATE=$(date -d "10 days ago" '+%Y-%m-%d')
+
+METAFILE=meta.json
+curl --get --url "${URL}/api/daily_logs_meta" \
+    --data-urlencode "date=${DATE}" \
+    --data-urlencode "columns=[\"id\", \"requestInDate\", \"responseAttachmentCount\", \"succeeded\", \"totalDuration\"]" \
+    --data-urlencode "constraints=[{\"column\": \"totalDuration\", \"operator\": \"<=\", \"value\": \"150\"}]" \
+    --data-urlencode "order-clauses=[{\"column\": \"totalDuration\", \"order\": \"asc\"}]" \
+    > ${METAFILE}
+```
+
+There's also a POST version:
+
+```bash
+# export DATE=$(date -d "10 days ago" '+%Y-%m-%d')
+
+METAFILE=meta.json
+curl --request --url "${URL}/api/daily_logs_meta" \
+    --header "Content-Type:application/json" \
+    --data "{\"date\": \"${DATE}\", \
+           \"columns\": [\"id\", \"requestInDate\", \"responseAttachmentCount\", \"succeeded\", \"totalDuration\"], \
+           \"constraints\": [{\"column\": \"totalDuration\", \"operator\": \"<=\", \"value\": \"150\"}], \
+           \"order-clauses\": [{\"column\": \"totalDuration\", \"order\": \"asc\"}]}" \
+    > ${METAFILE}
 ```
