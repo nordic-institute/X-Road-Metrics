@@ -25,6 +25,9 @@ import queue
 
 from . import database_manager
 
+SECURITY_SERVER_TYPE_CLIENT = 'Client'
+SECURITY_SERVER_TYPE_PRODUCER = 'Producer'
+
 
 class CorrectorWorker:
 
@@ -67,10 +70,10 @@ class CorrectorWorker:
         matched_pair = {}
         clients = [
             doc for doc in documents
-            if doc.get('securityServerType') == 'Client'
+            if doc.get('securityServerType') == SECURITY_SERVER_TYPE_CLIENT
         ]
         producers = [
-            doc for doc in documents if doc.get('securityServerType') == 'Producer'
+            doc for doc in documents if doc.get('securityServerType') == SECURITY_SERVER_TYPE_PRODUCER
         ]
 
         if clients:
@@ -135,7 +138,7 @@ class CorrectorWorker:
             clean_document = self.db_m.get_processing_document(doc)
 
             if clean_document:
-                if doc['securityServerType'] == 'Client':
+                if doc['securityServerType'] == SECURITY_SERVER_TYPE_CLIENT:
                     clean_document['client'] = doc
                     clean_document = doc_m.apply_calculations(clean_document)
                 else:

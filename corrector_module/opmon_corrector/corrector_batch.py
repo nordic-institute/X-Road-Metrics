@@ -30,6 +30,8 @@ from . import database_manager, document_manager
 from .corrector_worker import CorrectorWorker
 from .logger_manager import LoggerManager
 
+PROCESSING_TIME_FORMAT = '%H:%M:%S'
+
 
 class CorrectorBatch:
     def __init__(self, settings, logger_m: LoggerManager):
@@ -147,14 +149,16 @@ class CorrectorBatch:
         doc_len += total_raw_removed
 
         end_processing_time = time.time()
-        total_time = time.strftime('%H:%M:%S', time.gmtime(end_processing_time - start_processing_time))
+        total_time = time.strftime(
+            PROCESSING_TIME_FORMAT,
+            time.gmtime(end_processing_time - start_processing_time)
+        )
         msg = ['Number of duplicates: {0}'.format(duplicates.value),
                'Documents processed: ' + str(doc_len),
                'Processing time: {0}'.format(total_time)]
 
         self.logger_m.log_info('corrector_batch_end', ' | '.join(msg))
-        self.logger_m.log_heartbeat(
-            'finished', 'SUCCEEDED')
+        self.logger_m.log_heartbeat('finished', 'SUCCEEDED')
         process_dict['doc_len'] = doc_len
 
         # Process documents without xRequestId
@@ -212,7 +216,10 @@ class CorrectorBatch:
         doc_len += number_of_updated_docs
 
         end_processing_time = time.time()
-        total_time = time.strftime('%H:%M:%S', time.gmtime(end_processing_time - start_processing_time))
+        total_time = time.strftime(
+            PROCESSING_TIME_FORMAT,
+            time.gmtime(end_processing_time - start_processing_time)
+        )
         msg = ['Number of duplicates: {0}'.format(duplicates.value),
                'Documents processed: ' + str(doc_len),
                'Processing time: {0}'.format(total_time)]
