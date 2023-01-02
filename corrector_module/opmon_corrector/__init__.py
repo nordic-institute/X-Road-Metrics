@@ -21,3 +21,6 @@
 #  THE SOFTWARE.
 
 __version__ = '1.0.0'
+
+SECURITY_SERVER_TYPE_CLIENT = 'Client'
+SECURITY_SERVER_TYPE_PRODUCER = 'Producer'

@@ -31,6 +31,8 @@ from .corrector_worker import CorrectorWorker
 from .logger_manager import LoggerManager
 
 PROCESSING_TIME_FORMAT = '%H:%M:%S'
+from opmon_corrector import SECURITY_SERVER_TYPE_CLIENT
+from opmon_corrector import SECURITY_SERVER_TYPE_PRODUCER
 
 
 class CorrectorBatch:
@@ -168,8 +170,8 @@ class CorrectorBatch:
 
         for _doc in cursor:
             fixed_doc = doc_m.correct_structure(_doc)
-            producer = fixed_doc if fixed_doc['securityServerType'] == 'Producer' else None
-            client = fixed_doc if fixed_doc['securityServerType'] == 'Client' else None
+            producer = fixed_doc if fixed_doc['securityServerType'] == SECURITY_SERVER_TYPE_PRODUCER else None
+            client = fixed_doc if fixed_doc['securityServerType'] == SECURITY_SERVER_TYPE_CLIENT else None
             cleaned_document = doc_m.create_json(
                 client, producer, ''
             )

@@ -25,8 +25,8 @@ import queue
 
 from . import database_manager
 
-SECURITY_SERVER_TYPE_CLIENT = 'Client'
-SECURITY_SERVER_TYPE_PRODUCER = 'Producer'
+from opmon_corrector import SECURITY_SERVER_TYPE_CLIENT
+from opmon_corrector import SECURITY_SERVER_TYPE_PRODUCER
 
 
 class CorrectorWorker:
