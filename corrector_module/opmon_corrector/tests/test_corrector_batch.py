@@ -5,7 +5,7 @@ import pathlib
 from logging import StreamHandler
 
 import bson
-import mongomock
+import mongomock  # type: ignore
 import pymongo
 import pytest
 from freezegun import freeze_time

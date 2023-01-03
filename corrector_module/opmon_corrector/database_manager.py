@@ -27,6 +27,7 @@ import time
 from datetime import datetime
 import urllib.parse
 import pymongo
+from typing import List, Optional
 
 from .logger_manager import LoggerManager
 from . import __version__
@@ -58,7 +59,7 @@ def get_timestamp():
 
 class DatabaseManager:
 
-    def __init__(self, settings):
+    def __init__(self, settings: dict) -> None:
         self.settings = settings
         xroad = settings['xroad']['instance']
         self.logger_m = LoggerManager(settings['logger'], xroad, __version__)
@@ -66,20 +67,20 @@ class DatabaseManager:
             'tls': bool(settings['mongodb'].get('tls')),
             'tlsCAFile': settings['mongodb'].get('tls-ca-file'),
         }
-        self.client = pymongo.MongoClient(
+        self.client: pymongo.MongoClient = pymongo.MongoClient(
             self.get_mongo_uri(settings),
             **connect_args
         )
         self.mdb_database = f'query_db_{xroad}'
 
     @staticmethod
-    def get_mongo_uri(settings):
+    def get_mongo_uri(settings: dict) -> str:
         user = settings['mongodb']['user']
         password = urllib.parse.quote(settings['mongodb']['password'], safe='')
         host = settings['mongodb']['host']
         return f'mongodb://{user}:{password}@{host}/auth_db'
 
-    def get_query_db(self):
+    def get_query_db(self) -> pymongo.database.Database:
         """
         Gets the specific (XRoadInstance) query database .
         :return: Returns the specific query database.
@@ -87,7 +88,7 @@ class DatabaseManager:
         db = self.client[self.mdb_database]
         return db
 
-    def mark_as_corrected(self, document):
+    def mark_as_corrected(self, document: dict) -> None:
         """
         Marks a specific document's "corrected" status to "True".
         :param document: The input document.
@@ -98,7 +99,7 @@ class DatabaseManager:
         raw_data = db[RAW_DATA_COLLECTION]
         raw_data.update_one({'_id': doc_id}, {'$set': {'corrected': True}})
 
-    def get_faulty_raw_documents(self, limit=1000):
+    def get_faulty_raw_documents(self, limit: int = 1000) -> List[dict]:
         """
         Gets number of documents specified by the limit that have not been corrected and has no xRequestId
         Sorted by "requestInTs".
@@ -120,7 +121,7 @@ class DatabaseManager:
             self.logger_m.log_error('DatabaseManager.get_faulty_raw_documents', '{0}'.format(repr(e)))
             raise e
 
-    def get_raw_documents(self, limit=1000):
+    def get_raw_documents(self, limit: int = 1000) -> List[dict]:
         """
         Gets number of documents specified by the limit that have not been corrected.
         Sorted by "requestInTs".
@@ -137,7 +138,7 @@ class DatabaseManager:
             self.logger_m.log_error('DatabaseManager.get_raw_documents', '{0}'.format(repr(e)))
             raise e
 
-    def get_processing_document(self, current_doc):
+    def get_processing_document(self, current_doc: dict) -> Optional[dict]:
         """
         Gets single processing document.
         :param current_doc: The input document.
@@ -156,7 +157,7 @@ class DatabaseManager:
             self.logger_m.log_error('DatabaseManager.get_processing_documents', '{0}'.format(repr(e)))
             raise e
 
-    def get_timeout_documents_client(self, timeout_days, limit=1000):
+    def get_timeout_documents_client(self, timeout_days: int, limit: int = 1000) -> List[dict]:
         """
         Gets the documents from Client that have been processing more than timeout_days.
         :param timeout_days: The timeout days.
@@ -178,7 +179,7 @@ class DatabaseManager:
             self.logger_m.log_error('DatabaseManager.get_timeout_documents_client', '{0}'.format(repr(e)))
             raise e
 
-    def get_timeout_documents_producer(self, timeout_days, limit=1000):
+    def get_timeout_documents_producer(self, timeout_days: int, limit: int = 1000) -> List[dict]:
         """
         Gets the documents from Producer that have been processing more than timeout_days.
         :param timeout_days: The timeout days.
@@ -201,7 +202,7 @@ class DatabaseManager:
             self.logger_m.log_error('DatabaseManager.get_timeout_documents_producer', '{0}'.format(repr(e)))
             raise e
 
-    def add_to_clean_data(self, document):
+    def add_to_clean_data(self, document: dict) -> None:
         """
         Inserts a single document into the clean_data.
         :param document: The input document.
@@ -215,7 +216,7 @@ class DatabaseManager:
             self.logger_m.log_error('DatabaseManager.add_to_clean_data', '{0}'.format(repr(e)))
             raise e
 
-    def update_document_clean_data(self, document):
+    def update_document_clean_data(self, document: dict) -> None:
         """
         Updates a document in the clean_data that has the input document's messageId with the content that the input
         document has.
@@ -230,7 +231,7 @@ class DatabaseManager:
             self.logger_m.log_error('DatabaseManager.update_form_clean_data', '{0}'.format(repr(e)))
             raise e
 
-    def update_old_to_done(self, list_of_docs):
+    def update_old_to_done(self, list_of_docs: List[dict]) -> int:
         """
         Updates then correctorStatus to "done" for the given list of documents. Also updates the correctorTime.
         :param list_of_docs: The input list of documents to be updated.
@@ -251,7 +252,7 @@ class DatabaseManager:
 
         return number_of_updated_docs
 
-    def check_clean_document_exists(self, x_request_id, document):
+    def check_clean_document_exists(self, x_request_id: str, document: dict) -> bool:
         """
         Checks if given document exists in clean_data or not
         :param x_request_id: The input document xRequestId
@@ -272,7 +273,7 @@ class DatabaseManager:
             return True
         return False
 
-    def remove_duplicate_from_raw(self, message_id):
+    def remove_duplicate_from_raw(self, message_id: str) -> None:
         """
         Removes the duplicated document from "raw_messages".
         :param message_id: The document ID. NB: This is not "messageId"!
