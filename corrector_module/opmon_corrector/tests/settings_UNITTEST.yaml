@@ -5,6 +5,75 @@ collector:
   repeat-min-records: 50
   repeat-limit: 500
 
+corrector:
+  calc:
+    total-duration: true
+    client-request-duration: true
+    client-response-duration: true
+    producer-request-duration: true
+    producer-response-duration: true
+    producer-duration-client-view: true
+    producer-duration-producer-view: true
+    producer-is-duration: true
+    request-nw-duration: true
+    response-nw-duration: true
+    request-size: true
+    response-size: true
+  thread-count: 1
+  timeout-days: 10
+  time-window: 600000 # 10 minutes
+  documents-max: 100
+  comparison-list:
+    - 'clientMemberClass'
+    - 'requestMimeSize'
+    - 'serviceSubsystemCode'
+    - 'requestAttachmentCount'
+    - 'serviceSecurityServerAddress'
+    - 'messageProtocolVersion'
+    - 'responseSoapSize'
+    - 'succeeded'
+    - 'clientSubsystemCode'
+    - 'responseAttachmentCount'
+    - 'serviceMemberClass'
+    - 'messageUserId'
+    - 'serviceMemberCode'
+    - 'serviceXRoadInstance'
+    - 'clientSecurityServerAddress'
+    - 'clientMemberCode'
+    - 'clientXRoadInstance'
+    - 'messageIssue'
+    - 'serviceVersion'
+    - 'requestSoapSize'
+    - 'serviceCode'
+    - 'representedPartyClass'
+    - 'representedPartyCode'
+    - 'soapFaultCode'
+    - 'soapFaultString'
+    - 'responseMimeSize'
+    - 'messageId'
+  comparison_list_orphan:
+    - 'clientMemberClass'
+    - 'serviceSubsystemCode'
+    - 'serviceSecurityServerAddress'
+    - 'messageProtocolVersion'
+    - 'succeeded'
+    - 'clientSubsystemCode'
+    - 'serviceMemberClass'
+    - 'messageUserId'
+    - 'serviceMemberCode'
+    - 'serviceXRoadInstance'
+    - 'clientSecurityServerAddress'
+    - 'clientMemberCode'
+    - 'clientXRoadInstance'
+    - 'messageIssue'
+    - 'serviceVersion'
+    - 'serviceCode'
+    - 'representedPartyClass'
+    - 'representedPartyCode'
+    - 'soapFaultCode'
+    - 'soapFaultString'
+    - 'messageId'
+
 xroad:
   instance: UNITTEST
   central-server:
