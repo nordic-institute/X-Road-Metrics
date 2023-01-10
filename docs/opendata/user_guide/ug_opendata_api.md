@@ -54,7 +54,7 @@ API supports all the HTTP/HTTPS request methods:
 
 **Note:** all resources (handlers) are available for both GET and POST type of requests.
 
-POST expects query to be in JSON format and be the whole request body. 
+POST expects query to be in JSON format and be the whole request body.
 
 ## Handlers
 
@@ -133,8 +133,8 @@ Metadata of the existing columns.
     {"type": "integer", "valid_operators": ["=", "!=", "<", "<=", ">", ">="], "name": "responseAttachmentCount", "description": "Number of attachments of the response"},
     {"type": "string", "valid_operators": ["=", "!="], "name": "clientMemberCode", "description": "Member code of the X-Road member (client)"},
     {"type": "string", "valid_operators": ["=", "!="], "name": "serviceMemberClass", "description": "Member class of the X-Road member (service provider)"},
-    {"type": "integer", "valid_operators": ["=", "!=", "<", "<=", ">", ">="], "name": "id", "description": "Unique identifier of the record"}, 
-    {"type": "string", "valid_operators": ["=", "!="], "name": "securityServerType", "description": "Type of the security server"}, 
+    {"type": "integer", "valid_operators": ["=", "!=", "<", "<=", ">", ">="], "name": "id", "description": "Unique identifier of the record"},
+    {"type": "string", "valid_operators": ["=", "!="], "name": "securityServerType", "description": "Type of the security server"},
     {"type": "string", "valid_operators": ["=", "!="], "name": "serviceMemberCode", "description": "Member code of the X-Road member (service provider)"},
     {"type": "integer", "valid_operators": ["=", "!=", "<", "<=", ">", ">="], "name": "responseSoapSize", "description": "Size of the response (bytes)"},
     {"type": "boolean", "valid_operators": ["=", "!="], "name": "succeeded", "description": "True, if request mediation succeeded, false otherwise."},
@@ -177,7 +177,7 @@ _Note:_ If missing or an empty list, all available columns are included.
 
 **constraints** (optional)
 
-Specifies the criteria which the returned logs must meet. 
+Specifies the criteria which the returned logs must meet.
 
 _Note:_  If missing or an empty list, no constraints will be applied to the logs other than the date and all the day's logs are returned.
 
@@ -199,8 +199,8 @@ _Note:_ Different order clauses may return different logs, depending on whether 
 
 #### Returns
 
-JSON object with "data" key holding list of logs. 
-Each log is represented as a list with deterministic column order (in the same order as the columns were provided). 
+JSON object with "data" key holding list of logs.
+Each log is represented as a list with deterministic column order (in the same order as the columns were provided).
 If columns were not provide, the order is identical to the column order from [column data](#column-data).
 
 ```json
@@ -215,7 +215,8 @@ If columns were not provide, the order is identical to the column order from [co
 #### Example query
 
 ```bash
-# export DATE=$(date -d "10 days ago" '+%Y-%m-%d')
+export DATE=$(date -d "10 days ago" '+%Y-%m-%d')
+
 curl --get --url "${URL}/api/logs_sample" \
     --data-urlencode "date=${DATE}" \
     --data-urlencode "columns=[\"id\", \"requestInDate\", \"responseAttachmentCount\", \"succeeded\", \"totalDuration\"]" \
@@ -226,7 +227,8 @@ curl --get --url "${URL}/api/logs_sample" \
 The same in POST version:
 
 ```bash
-# export DATE=$(date -d "10 days ago" '+%Y-%m-%d')
+export DATE=$(date -d "10 days ago" '+%Y-%m-%d')
+
 curl --request --url "${URL}/api/logs_sample" \
     --header "Content-Type:application/json" \
     --data "{\"date\": \"${DATE}\", \
@@ -252,7 +254,7 @@ Binary file with MIME type "application/gzip" containing gzipped NDJSON file.
 GET version:
 
 ```bash
-# export DATE=$(date -d "10 days ago" '+%Y-%m-%d')
+export DATE=$(date -d "10 days ago" '+%Y-%m-%d')
 
 LOGFILE="${DATE}.ndjson"
 curl --get --url "${URL}/api/daily_logs" \
@@ -266,7 +268,7 @@ curl --get --url "${URL}/api/daily_logs" \
 There's also a POST version:
 
 ```bash
-# export DATE=$(date -d "10 days ago" '+%Y-%m-%d')
+export DATE=$(date -d "10 days ago" '+%Y-%m-%d')
 
 LOGFILE="${DATE}.ndjson"
 curl --request --url "${URL}/api/daily_logs" \
@@ -295,7 +297,7 @@ JSON file with MIME type "application/json".
 GET version:
 
 ```bash
-# export DATE=$(date -d "10 days ago" '+%Y-%m-%d')
+export DATE=$(date -d "10 days ago" '+%Y-%m-%d')
 
 METAFILE=meta.json
 curl --get --url "${URL}/api/daily_logs_meta" \
@@ -309,7 +311,7 @@ curl --get --url "${URL}/api/daily_logs_meta" \
 There's also a POST version:
 
 ```bash
-# export DATE=$(date -d "10 days ago" '+%Y-%m-%d')
+export DATE=$(date -d "10 days ago" '+%Y-%m-%d')
 
 METAFILE=meta.json
 curl --request --url "${URL}/api/daily_logs_meta" \

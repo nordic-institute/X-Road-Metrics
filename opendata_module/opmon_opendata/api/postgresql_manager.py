@@ -22,6 +22,7 @@
 
 import psycopg2 as pg
 from dateutil import relativedelta
+from typing import Optional, List
 
 
 class PostgreSQL_Manager(object):
@@ -47,7 +48,10 @@ class PostgreSQL_Manager(object):
 
         return [(self._field_name_map[name], type_) for name, type_ in data]
 
-    def get_data_cursor(self, constraints=None, order_by=None, columns=None, limit=None):
+    def get_data_cursor(
+        self, constraints: Optional[List] = None, order_by: Optional[List] = None,
+        columns: Optional[List] = None, limit: Optional[int] = None
+    ) -> pg.extensions.cursor:
         with pg.connect(self._connection_string, **self._connect_args) as connection:
             cursor = connection.cursor()
 
