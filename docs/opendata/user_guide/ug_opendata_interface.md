@@ -90,7 +90,4 @@ we should see:
 
 ## Downloading
 
-When clicking on "Download" instead of "Preview", the browser should initiate a file download. The contents should look similar to
-
-![Interface datetimepicker](../../img/opendata/6_interface_download_content.png
- "Interface datetimepicker")
+When clicking on "Download" instead of "Preview", the browser should initiate a file download. Description for the logs file can be downloaded by clicking on "Download meta".
