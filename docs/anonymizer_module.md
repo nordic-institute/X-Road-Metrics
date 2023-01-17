@@ -13,13 +13,13 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
 
 The **Anonymizer module** is part of [X-Road Metrics](../README.md),
 which include following modules:
- - [Database module](../database_module.md)
- - [Collector module](../collector_module.md)
- - [Corrector module](../corrector_module.md)
- - [Reports module](../reports_module.md)
- - [Anonymizer module](../anonymizer_module.md)
- - [Opendata module](../opendata_module.md)
- - [Networking/Visualizer module](../networking_module.md)
+ - [Database module](./database_module.md)
+ - [Collector module](./collector_module.md)
+ - [Corrector module](./corrector_module.md)
+ - [Reports module](./reports_module.md)
+ - [Anonymizer module](./anonymizer_module.md)
+ - [Opendata module](./opendata_module.md)
+ - [Networking/Visualizer module](./networking_module.md)
 
 The **Anonymizer module** is responsible of preparing the operational monitoring data for publication through
 the [Opendata module](opendata_module.md). Anonymizer configuration allows X-Road Metrics extension administrator to set

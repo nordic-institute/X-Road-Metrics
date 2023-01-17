@@ -12,13 +12,13 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
 ## About
 
 The **Collector module** is part of [X-Road Metrics](../README.md), which includes the following modules:
- - [Database module](../database_module.md)
- - [Collector module](../collector_module.md)
- - [Corrector module](../corrector_module.md)
- - [Reports module](../reports_module.md)
- - [Anonymizer module](../anonymizer_module.md)
- - [Opendata module](../opendata_module.md)
- - [Networking/Visualizer module](../networking_module.md)
+ - [Database module](./database_module.md)
+ - [Collector module](./collector_module.md)
+ - [Corrector module](./corrector_module.md)
+ - [Reports module](./reports_module.md)
+ - [Anonymizer module](./anonymizer_module.md)
+ - [Opendata module](./opendata_module.md)
+ - [Networking/Visualizer module](./networking_module.md)
 
 The **Collector module** is responsible to retrieve data from X-Road Security Servers and insert into the database module. The execution of the collector module is performed automatically via a **cron job** task.
 
@@ -167,14 +167,14 @@ SHELL=/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 # m   h  dom mon dow  user       command
-  15 */6  *   *   *   xroad-metrics  /usr/share/xroad-metrics/collector/scripts/cron/cron_collector.sh PROD
-  30 */6  *   *   *   xroad-metrics  /usr/share/xroad-metrics/collector/scripts/cron/cron_collector.sh TEST
+  15 */6  *   *   *   xroad-metrics  xroad-metrics-collector --profile PROD update && xroad-metrics-collector --profile PROD collect
+  30 */6  *   *   *   xroad-metrics  xroad-metrics-collector --profile TEST update && xroad-metrics-collector --profile TEST collect
 
 ```
 
 If collector is to be run only manually, comment out the default cron task:
 ```bash
-# 15 */6 * * * xroad-metrics /usr/share/xroad-metrics/collector/scripts/cron/cron_collector.sh
+# 20 */3  *   *   *   xroad-metrics      xroad-metrics-collector update && xroad-metrics-collector collect
 ```
 
 ### Note about Indexing

@@ -10,13 +10,13 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
 
 The **Opendata module** is part of [X-Road Metrics](../README.md),
 which includes the following modules:
- - [Database module](../database_module.md)
- - [Collector module](../collector_module.md)
- - [Corrector module](../corrector_module.md)
- - [Reports module](../reports_module.md)
- - [Anonymizer module](../anonymizer_module.md)
- - [Opendata module](../opendata_module.md)
- - [Networking/Visualizer module](../networking_module.md)
+ - [Database module](./database_module.md)
+ - [Collector module](./collector_module.md)
+ - [Corrector module](./corrector_module.md)
+ - [Reports module](./reports_module.md)
+ - [Anonymizer module](./anonymizer_module.md)
+ - [Opendata module](./opendata_module.md)
+ - [Networking/Visualizer module](./networking_module.md)
 
 The **Opendata module** is used to publish the X-Road operational monitoring data.
 The module has a UI and a REST API that allow filtering the anonymized operational monitoring data and downloading it
