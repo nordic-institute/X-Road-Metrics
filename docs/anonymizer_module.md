@@ -225,7 +225,7 @@ file named `settings_DEV.yaml`, `settings_TEST.yaml` and `settings_PROD.yaml`.
 Then fill the profile specific settings to each file and use the --profile
 flag when running xroad-metrics-anonymizer. For example to run anonymizer manually using the TEST profile:
 ```
-xroad-metrics-correctord --profile TEST
+xroad-metrics-anonymizer --profile TEST
 ```
 
 `xroad-metrics-anonymizer` command searches the settings file first in current working direcrtory, then in
@@ -298,7 +298,7 @@ logger:
 ```
 
 The log file is written to `log-path` and log file name contains the X-Road instance name.
-The above example configuration would write logs to `/var/log/xroad-metrics/collector/logs/log_collector_EXAMPLE.json`.
+The above example configuration would write logs to `/var/log/xroad-metrics/anonymizer/logs/log_anonymizer_EXAMPLE.json`.
 
 
 The **anonymizer module** log handler is compatible with the logrotate utility.
@@ -310,7 +310,7 @@ sudo vi /etc/logrotate.d/xroad-metrics-anonymizer
 
 and add the following content :
 ```
-/var/log/xroad-metrics/collector/logs/log_anonymizer_EXAMPLE.json {
+/var/log/xroad-metrics/anonymizer/logs/log_anonymizer_EXAMPLE.json {
     rotate 10
     size 2M
 }
