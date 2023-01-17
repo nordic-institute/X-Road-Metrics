@@ -129,7 +129,7 @@ To use anonymizer you need to fill in your X-Road, MongoDB and PostgreSQL config
 (here, **vi** is used):
 
 ```bash
-sudo vi /etc/xroad-metrics/corrector/settings.yaml
+sudo vi /etc/xroad-metrics/anonymizer/settings.yaml
 ```
 
 Settings that the user must fill in:
