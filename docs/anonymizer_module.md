@@ -13,13 +13,13 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
 
 The **Anonymizer module** is part of [X-Road Metrics](../README.md),
 which include following modules:
- - [Database module](../database_module.md)
- - [Collector module](../collector_module.md)
- - [Corrector module](../corrector_module.md)
- - [Reports module](../reports_module.md)
- - [Anonymizer module](../anonymizer_module.md)
- - [Opendata module](../opendata_module.md)
- - [Networking/Visualizer module](../networking_module.md)
+ - [Database module](./database_module.md)
+ - [Collector module](./collector_module.md)
+ - [Corrector module](./corrector_module.md)
+ - [Reports module](./reports_module.md)
+ - [Anonymizer module](./anonymizer_module.md)
+ - [Opendata module](./opendata_module.md)
+ - [Networking/Visualizer module](./networking_module.md)
 
 The **Anonymizer module** is responsible of preparing the operational monitoring data for publication through
 the [Opendata module](opendata_module.md). Anonymizer configuration allows X-Road Metrics extension administrator to set
@@ -129,7 +129,7 @@ To use anonymizer you need to fill in your X-Road, MongoDB and PostgreSQL config
 (here, **vi** is used):
 
 ```bash
-sudo vi /etc/xroad-metrics/corrector/settings.yaml
+sudo vi /etc/xroad-metrics/anonymizer/settings.yaml
 ```
 
 Settings that the user must fill in:
@@ -225,7 +225,7 @@ file named `settings_DEV.yaml`, `settings_TEST.yaml` and `settings_PROD.yaml`.
 Then fill the profile specific settings to each file and use the --profile
 flag when running xroad-metrics-anonymizer. For example to run anonymizer manually using the TEST profile:
 ```
-xroad-metrics-correctord --profile TEST
+xroad-metrics-anonymizer --profile TEST
 ```
 
 `xroad-metrics-anonymizer` command searches the settings file first in current working direcrtory, then in
@@ -298,7 +298,7 @@ logger:
 ```
 
 The log file is written to `log-path` and log file name contains the X-Road instance name.
-The above example configuration would write logs to `/var/log/xroad-metrics/collector/logs/log_collector_EXAMPLE.json`.
+The above example configuration would write logs to `/var/log/xroad-metrics/anonymizer/logs/log_anonymizer_EXAMPLE.json`.
 
 
 The **anonymizer module** log handler is compatible with the logrotate utility.
@@ -310,7 +310,7 @@ sudo vi /etc/logrotate.d/xroad-metrics-anonymizer
 
 and add the following content :
 ```
-/var/log/xroad-metrics/collector/logs/log_anonymizer_EXAMPLE.json {
+/var/log/xroad-metrics/anonymizer/logs/log_anonymizer_EXAMPLE.json {
     rotate 10
     size 2M
 }

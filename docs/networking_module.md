@@ -12,13 +12,13 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
 ## About
 
 The Networking module is part of [X-Road Metrics](../README.md). All other modules in X-Road Operational Monitoring are:
- - [Database module](../database_module.md)
- - [Collector module](../collector_module.md)
- - [Corrector module](../corrector_module.md)
- - [Reports module](../reports_module.md)
- - [Anonymizer module](../anonymizer_module.md)
- - [Opendata module](../opendata_module.md)
- - [Networking/Visualizer module](../networking_module.md)
+ - [Database module](./database_module.md)
+ - [Collector module](./collector_module.md)
+ - [Corrector module](./corrector_module.md)
+ - [Reports module](./reports_module.md)
+ - [Anonymizer module](./anonymizer_module.md)
+ - [Opendata module](./opendata_module.md)
+ - [Networking/Visualizer module](./networking_module.md)
 
 The purpose of the **Networking module** is to visualize the networking activity between the X-Road members.
 It consists of:

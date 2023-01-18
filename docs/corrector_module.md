@@ -12,19 +12,19 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
 ## About
 
 The **Corrector module** is part of [X-Road Metrics](../README.md), which includes the following modules:
- - [Database module](../database_module.md)
- - [Collector module](../collector_module.md)
- - [Corrector module](../corrector_module.md) 
- - [Reports module](../reports_module.md) 
- - [Anonymizer module](../anonymizer_module.md)
- - [Opendata module](../opendata_module.md) 
- - [Networking/Visualizer module](../networking_module.md)
+ - [Database module](./database_module.md)
+ - [Collector module](./collector_module.md)
+ - [Corrector module](./corrector_module.md)
+ - [Reports module](./reports_module.md)
+ - [Anonymizer module](./anonymizer_module.md)
+ - [Opendata module](./opendata_module.md)
+ - [Networking/Visualizer module](./networking_module.md)
 
 The **Corrector module** is responsible to clean the raw data from corrector and derive monitoring metrics in a clean database collection. The execution of the corrector module is performed automatically via a **service** task.
 
 It is important to note that it can take up to 7 days for the [Collector module](collector_module.md) to receive X-Road operational data from (all available) Security Server(s) and up to 3 days for the Corrector_module to clean the raw data and derive monitoring metrics in a clean database collection.
 
-Overall system, its users and rights, processes and directories are designed in a way, that all modules can reside in one server (different users but in same group 'xroad-metrics') but also in separate servers. 
+Overall system, its users and rights, processes and directories are designed in a way, that all modules can reside in one server (different users but in same group 'xroad-metrics') but also in separate servers.
 
 Overall system is also designed in a way, that allows to monitor data from different X-Road instances (e.g. in Estonia there are three instances: `ee-dev`, `ee-test` and `EE`.)
 
@@ -38,8 +38,8 @@ The module source code can be found at:
 ![corrector module diagram](img/Corrector_module_diagram_v2.svg "Corrector module diagram")
 
 ## Pair matching logic
-The first step is to add the missing fields into the document (in case it is missing some). 
-The value will be "None" for the missing fields. 
+The first step is to add the missing fields into the document (in case it is missing some).
+The value will be "None" for the missing fields.
 The fields that MUST be there for each document are the following:
 
 ```
@@ -56,14 +56,14 @@ The fields that MUST be there for each document are the following:
 Before finding a match, a hash is calculated for the current document. The following fields are included:
 
 ```
-'monitoringDataTs', 'securityServerInternalIp', 'securityServerType', 'requestInTs', 
-‘requestOutTs', 'responseInTs', 'responseOutTs', 'clientXRoadInstance', 'clientMemberClass', 
-'clientMemberCode', 'clientSubsystemCode', 'serviceXRoadInstance', 'serviceMemberClass', 
-'serviceMemberCode', 'serviceSubsystemCode', 'serviceCode', 'serviceVersion', 
-'representedPartyClass', 'representedPartyCode', 'messageId', 'messageUserId', 
-'messageIssue', 'messageProtocolVersion', 'clientSecurityServerAddress', 
-'serviceSecurityServerAddress', 'requestSoapSize', 'requestMimeSize', 
-‘requestAttachmentCount', 'responseSoapSize', 'responseMimeSize', ‘responseAttachmentCount', 
+'monitoringDataTs', 'securityServerInternalIp', 'securityServerType', 'requestInTs',
+‘requestOutTs', 'responseInTs', 'responseOutTs', 'clientXRoadInstance', 'clientMemberClass',
+'clientMemberCode', 'clientSubsystemCode', 'serviceXRoadInstance', 'serviceMemberClass',
+'serviceMemberCode', 'serviceSubsystemCode', 'serviceCode', 'serviceVersion',
+'representedPartyClass', 'representedPartyCode', 'messageId', 'messageUserId',
+'messageIssue', 'messageProtocolVersion', 'clientSecurityServerAddress',
+'serviceSecurityServerAddress', 'requestSoapSize', 'requestMimeSize',
+‘requestAttachmentCount', 'responseSoapSize', 'responseMimeSize', ‘responseAttachmentCount',
 'succeeded', 'soapFaultCode', 'soapFaultString'
 ```
 
@@ -73,7 +73,7 @@ The fields excluded from the hash are the following:
 '_id', 'insertTime' 'corrected'
 ```
 
-After calculating the hash it is checked that the hash doesn't already exist in the DB (clean_data). 
+After calculating the hash it is checked that the hash doesn't already exist in the DB (clean_data).
 If it does exist, the document is skipped.
 
 If the hash doesn't exist, then possible matches are queried for the document.
@@ -209,7 +209,7 @@ systemctl status xroad-metrics-corrector
 ```
 
 ### Settings Profiles
-To run corrector for multiple X-Road instances, a settings profile for each instance can be created. For example to have profiles DEV, TEST and PROD create three copies of `setting.yaml` 
+To run corrector for multiple X-Road instances, a settings profile for each instance can be created. For example to have profiles DEV, TEST and PROD create three copies of `setting.yaml`
 file named `settings_DEV.yaml`, `settings_TEST.yaml` and `settings_PROD.yaml`.
 Then fill the profile specific settings to each file and use the --profile
 flag when running xroad-metrics-correctord. For example to run corrector manually using the TEST profile:
@@ -255,7 +255,7 @@ Please review the need of active Corrector module while running long-running que
 
 ## Monitoring and Status
 
-### Logging 
+### Logging
 
 The settings for the log file in the settings file are the following:
 
@@ -268,7 +268,7 @@ xroad:
 logger:
   name: corrector
   module: corrector
-  
+
   # Possible logging levels from least to most verbose are:
   # CRITICAL, FATAL, ERROR, WARNING, INFO, DEBUG
   level: INFO
@@ -279,7 +279,7 @@ logger:
 
 ```
 
-The log file is written to `log-path` and log file name contains the X-Road instance name. 
+The log file is written to `log-path` and log file name contains the X-Road instance name.
 The above example configuration would write logs to `/var/log/xroad-metrics/collector/logs/log_corrector_EXAMPLE.json`.
 
 Every log line includes:
@@ -334,7 +334,7 @@ logger:
 
 ```
 
-The heartbeat file is written to `heartbeat-path` and hearbeat file name contains the X-Road instance name. 
+The heartbeat file is written to `heartbeat-path` and hearbeat file name contains the X-Road instance name.
 The above example configuration would write logs to `/var/log/xroad-metrics/corrector/heartbeat/heartbeat_corrector_EXAMPLE.json`.
 
 The heartbeat file consists last message of log file and status
