@@ -27,7 +27,7 @@ starttime <- Sys.time()
 duration <- function() { paste('"duration":"', format(as.POSIXct(as.numeric(Sys.time() - starttime, units = 'secs'), origin = as.Date(starttime), tz = "GMT"), format = "%H:%M:%S"), '", ', sep = '') }
 
 library(dplyr)
-library(RPostgreSQL)
+library(RODBC)
 library(jsonlite)
 
 settingsScript <- "/usr/share/xroad-metrics/networking/prepare_data_settings.R"
@@ -36,7 +36,6 @@ if (file.exists("./prepare_data_settings.R")){
 }
 
 source(settingsScript)
-
 
 if (!file.exists(logfile)){
   file.create(logfile)
@@ -59,6 +58,7 @@ path.dates <- paste0('/var/lib/xroad-metrics/networking/dates', profile.suffix, 
 path.membernames <- paste0('/usr/share/xroad-metrics/networking/membernames', profile.suffix, '.rds')
 xroad.descriptor <- settings$networking$"xroad-descriptor-file"
 days <- (settings$networking$interval + settings$networking$buffer)
+fetchsize <- ifelse(is.null(settings$networking$fetchsize), 100000, settings$networking$fetchsize)
 
 if ("ssl_mode" %in% names(settings$postgres)) {
     Sys.setenv(PGSSLMODE = settings$postgres$ssl_mode)
@@ -68,13 +68,18 @@ if ("ssl_root_cert" %in% names(settings$postgres)) {
 }
 
 tryCatch(
-  con <- dbConnect(
-    dbDriver("PostgreSQL"),
-    dbname = paste0("opendata_", settings$postgres$suffix),
-    host = settings$postgres$host,
-    port = settings$postgres$port,
-    user = settings$postgres$user,
-    password = settings$postgres$password
+  con <- odbcDriverConnect(
+    connection = paste0(
+      "Driver={PostgreSQL UNICODE}",
+      ";Server=", settings$postgres$host,
+      ";Port=", settings$postgres$port,
+      ";Database=opendata_", settings$postgres$suffix,
+      ";Uid=", settings$postgres$user,
+      ";Pwd=", settings$postgres$password,
+      ";UseDeclareFetch=1",
+      ";Fetch=", fetchsize,
+      ";"
+    )
   ),
   error = function(err.msg) {
     cat('{"module":"networking_module", ',
@@ -125,7 +130,7 @@ if (!is.null(membernames)) {
 }
 
 tryCatch(
-  last.date <- dbGetQuery(con, "select requestindate from logs order by requestindate desc limit 1") %>% .[1, 1],
+  last.date <- sqlQuery(con, "select requestindate from logs order by requestindate desc limit 1") %>% .[1, 1],
   error = function(err.msg) {
     cat('{"module":"networking_module", ',
         '"local_timestamp":"', as.character(Sys.time()), '", ',
@@ -155,7 +160,7 @@ if (!is.null(last.date)) {
     " and succeeded=TRUE")
 
   tryCatch(
-    dat <- dbGetQuery(con, query.string),
+    odbcQuery(con, query.string),
     error = function(err.msg) {
       cat('{"module":"networking_module", ',
           '"local_timestamp":"', as.character(Sys.time()), '", ',
@@ -173,15 +178,38 @@ if (!is.null(last.date)) {
     }
   )
 
-  if (nrow(dat) > 0) {
+  dates <- c(NA, NA, settings$xroad$instance)
+  dat2 <- data.frame()
 
-    dates <- c(as.character(min(dat$requestindate)), as.character(max(dat$requestindate)), settings$xroad$instance)
+  dat <- odbcFetchRows(con, max=fetchsize)$data %>% as.data.frame(stringsAsFactors=FALSE)
+  while (nrow(dat) > 0) {
+    colnames(dat) <- c(
+      "requestindate", "clientmembercode", "clientsubsystemcode",
+      "servicemembercode", "servicesubsystemcode", "servicecode"
+    )
+    dat[is.na(dat)] <- ''
+    min_date <- min(dat$requestindate)
+    max_date <- max(dat$requestindate)
+    dates[1] <- min(dates[1], min_date, na.rm = TRUE)
+    dates[2] <- max(dates[2], max_date, na.rm = TRUE)
+
+    dat <- dat %>%
+      count(clientmembercode, clientsubsystemcode, servicemembercode, servicesubsystemcode, servicecode)
+
+    dat2 <- rbind(dat2, dat)
+    dat2 <- dat2 %>%
+      group_by(clientmembercode, clientsubsystemcode, servicemembercode, servicesubsystemcode, servicecode) %>%
+      summarize_at(vars(n), sum) %>%
+      as.data.frame(stringsAsFactors=FALSE)
+
+    dat <- odbcFetchRows(con, max=fetchsize)$data %>% as.data.frame(stringsAsFactors=FALSE)
+  }
+  odbcClose(con)
+
+  if (nrow(dat2) > 0) {
     saveRDS(dates, path.dates)
 
-    dat[is.na(dat)] <- ''
-
-    dat2 <- dat %>%
-      count(clientmembercode, clientsubsystemcode, servicemembercode, servicesubsystemcode, servicecode) %>%
+    dat2 <- dat2 %>%
       mutate(
         client = paste(clientmembercode, clientsubsystemcode, sep = '\n'),
         producer = paste(servicemembercode, servicesubsystemcode, sep = '\n'),
@@ -260,4 +288,3 @@ if (exists("dat2")) {
       '"msg":"SUCCEEDED"}',
       file = heartbeatfile, append = F, sep = '')
 }
-
