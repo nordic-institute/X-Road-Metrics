@@ -63,8 +63,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'opmon_opendata',
-    'opmon_opendata.api',
-    'opmon_opendata.gui',
+    'api.apps.ApiConfig'
+    'gui.apps.GuiConfig',
 ]
 
 MIDDLEWARE = [
