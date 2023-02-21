@@ -43,7 +43,7 @@ No incoming connection is needed in the collector module.
 
 ## Installation
 
-This sections describes the necessary steps to install the **collector module** on a Ubuntu 20.04 Linux host. For a complete overview of different modules and machines, please refer to the ==> [System Architecture](system_architecture.md) <== documentation.
+This sections describes the necessary steps to install the **collector module** on a Ubuntu 20.04 or Ubuntu 22.04 Linux host. For a complete overview of different modules and machines, please refer to the ==> [System Architecture](system_architecture.md) <== documentation.
 
 
 ### Add X-Road Extensions Package Repository for Ubuntu

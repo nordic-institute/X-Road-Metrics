@@ -32,16 +32,26 @@ Overall system is also designed in a way, that can be used by X-Road Centre for 
 
 The database is implemented with the MongoDB technology: a non-SQL database with replication and sharding capabilities.
 
-This document describes the installation steps for Ubuntu 20.04.
-You can also refer to official [MongoDB 4.4 installation instructions](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/).
+This document describes the installation steps for Ubuntu 20.04 or Ubuntu 22.04.
+You can also refer to official [MongoDB 4.4 installation instructions](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/) for Ubuntu 20.04.
+Refer to official [MongoDB 6.0 installation instructions](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/) for Ubuntu 22.04.
 
-Add the MongoDB APT repository and signing key:
+## Add the MongoDB APT repository and signing key for Ubuntu 20.04
 
 ```bash
 # Key rsa4096/20691eec35216c63caf66ce1656408e390cfb1f5 [expires: 2024-05-26]
 sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 656408e390cfb1f5
 sudo apt-add-repository "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/4.4 multiverse"
 ```
+
+## Add the MongoDB APT repository and signing key for Ubuntu 22.04
+
+```bash
+# Key rsa4096/39bd841e4be5fb195a65400e6a26b1ae64c3c388 [expires: 2027-02-22T]
+sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 6a26b1ae64c3c388
+sudo apt-add-repository "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/6.0 multiverse"
+```
+
 
 Install MongoDB server and client tools (shell)
 
@@ -77,8 +87,16 @@ sudo systemctl restart mongod.service
 We want only authenticated users to have access to MongoDB.
 To enable authentication, enter MongoDB shell:
 
+#### For MongoDB 4.4 on Ubuntu 20.04
+
 ```bash
 mongo
+```
+
+#### For MongoDB 6.0 on Ubuntu 22.04
+
+```bash
+mongosh
 ```
 
 Issue the following commands to create a *root* user:
