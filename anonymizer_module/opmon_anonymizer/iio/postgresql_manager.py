@@ -103,13 +103,13 @@ class PostgreSqlManager(object):
             raise
 
     def _table_exists(self, cursor):
-        cursor.execute(f"""
+        cursor.execute("""
             SELECT EXISTS (
                 SELECT FROM information_schema.tables
                 WHERE  table_schema = 'public'
-                AND table_name = '{self._table_name}'
+                AND table_name = %s
             );
-        """)
+        """, (cursor._table_name,))
 
         return cursor.fetchone()[0]
 
@@ -130,13 +130,12 @@ class PostgreSqlManager(object):
 
                 for readonly_user in self._readonly_users:
                     try:
-                        cursor.execute("GRANT USAGE ON SCHEMA public TO {readonly_user};".format(**{
-                            'readonly_user': readonly_user
-                        }))
-                        cursor.execute("GRANT SELECT ON {table_name} TO {readonly_user};".format(**{
-                            'table_name': self._table_name,
-                            'readonly_user': readonly_user
-                        }))
+                        cursor.execute(
+                            "GRANT USAGE ON SCHEMA public TO %s;", (readonly_user,)
+                        )
+                        cursor.execute(
+                            "GRANT SELECT ON %s TO %s;", (self._table_name, readonly_user)
+                        )
                     except Exception:
                         pass  # Privileges existed
 
