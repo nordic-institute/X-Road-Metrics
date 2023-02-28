@@ -42,8 +42,9 @@ class PostgreSQL_Manager(object):
     def get_column_names_and_types(self):
         with pg.connect(self._connection_string, **self._connect_args) as connection:
             cursor = connection.cursor()
-            cursor.execute("SELECT column_name,data_type FROM information_schema.columns WHERE table_name = %s;",
-                           (self._table_name,))
+            cursor.execute(
+                "SELECT column_name,data_type FROM information_schema.columns WHERE table_name = %s;",
+                (self._table_name,))
             data = cursor.fetchall()
 
         return [(self._field_name_map[name], type_) for name, type_ in data]
@@ -62,21 +63,10 @@ class PostgreSQL_Manager(object):
             order_by_str = self._get_order_by_string(order_by, subquery_name)
             limit_str = self._get_limit_string(cursor, limit)
 
-            cursor.execute(
-                ("SELECT {selected_columns} FROM (SELECT * "
-                 "FROM {table_name} {request_in_date_constraint}) as {subquery_name} {other_constraints}"
-                 "{order_by} {limit};").format(
-                    **{
-                        'selected_columns': selected_columns_str,
-                        'table_name': self._table_name,
-                        'request_in_date_constraint': request_in_date_constraint_str,
-                        'other_constraints': other_constraints_str,
-                        'order_by': order_by_str,
-                        'limit': limit_str,
-                        'subquery_name': subquery_name}
-                )
-            )
-
+            query = ("SELECT %s FROM (SELECT * FROM %s %s) as %s %s %s %s;")
+            params = (selected_columns_str, self._table_name, request_in_date_constraint_str, subquery_name,
+                      other_constraints_str, order_by_str, limit_str)
+            cursor.execute(query, params)
             return cursor
 
     def get_data(self, constraints=None, order_by=None, columns=None, limit=None):
@@ -85,7 +75,9 @@ class PostgreSQL_Manager(object):
     def get_min_and_max_dates(self):
         with pg.connect(self._connection_string, **self._connect_args) as connection:
             cursor = connection.cursor()
-            cursor.execute('SELECT min(requestindate), max(requestindate) FROM ' + self._table_name)
+            cursor.execute(
+                "SELECT min(requestindate), max(requestindate) FROM %s;", (self._table_name,)
+            )
             min_and_max = [date - self._logs_time_buffer for date in cursor.fetchone()]
 
         return min_and_max
@@ -130,16 +122,24 @@ class PostgreSQL_Manager(object):
                         'subquery_name': subquery_name
                     }))
                 else:
-                    other_constraint_parts.append(cursor.mogrify("{subquery_name}.{column} {operator} %s".format(**{
-                        'column': constraint['column'].lower(),
-                        'operator': constraint['operator'],
-                        'subquery_name': subquery_name
-                    }), (constraint['value'],)).decode('utf8'))
+                    other_constraint_parts.append(cursor.mogrify(
+                        "%s.%s %s %s",
+                        (
+                            subquery_name,
+                            constraint['column'].lower(),
+                            constraint['operator'],
+                            constraint['value'],
+                        )
+                    ).decode('utf8'))
             else:
-                request_in_date_constraint = 'WHERE ' + cursor.mogrify("{column} {operator} %s".format(**{
-                    'column': constraint['column'].lower(),
-                    'operator': constraint['operator']
-                }), (constraint['value'],)).decode('utf8')
+                request_in_date_constraint = 'WHERE ' + cursor.mogrify(
+                    "%s %s %s",
+                    (
+                        constraint['column'].lower(),
+                        constraint['operator'],
+                        constraint['value'],
+                    )
+                ).decode('utf8')
 
         other_constraints = ('WHERE ' + ' AND '.join(other_constraint_parts)) if other_constraint_parts else ''
 
