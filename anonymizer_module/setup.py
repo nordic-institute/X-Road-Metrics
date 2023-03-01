@@ -25,10 +25,11 @@
 from setuptools import setup, find_packages
 
 requirements = [
-    "pymongo==3.10.1",
-    "pyyaml==5.3.1",
-    "psycopg2==2.8.6",
-    "python-dateutil==2.8.1",
+    'setuptools==67.4.0',
+    'pymongo==3.10.1',
+    'pyyaml==5.4.1',
+    'psycopg2==2.8.6',
+    'python-dateutil==2.8.1',
 ]
 
 classifiers = [
