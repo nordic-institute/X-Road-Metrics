@@ -63,9 +63,21 @@ class PostgreSQL_Manager(object):
             order_by_str = self._get_order_by_string(order_by, subquery_name)
             limit_str = self._get_limit_string(cursor, limit)
 
-            query = ("SELECT %s FROM (SELECT * FROM %s %s) as %s %s %s %s;")
-            params = (selected_columns_str, self._table_name, request_in_date_constraint_str, subquery_name,
-                      other_constraints_str, order_by_str, limit_str)
+            query = """SELECT %(selected_columns)s
+            FROM (
+                SELECT * FROM %s(table_name)s %(request_in_data_constraint)s
+                )
+                as %(subquery_name)s %(other_constraints)s %(order_by)s %(limit)s;
+                """
+            params = {
+                'selected_columns': selected_columns_str,
+                'table_name': self._table_name,
+                'request_in_data_constraint': request_in_date_constraint_str,
+                'subquery_name': subquery_name,
+                'other_constraints': other_constraints_str,
+                'order_by': order_by_str,
+                'limit': limit_str,
+            }
             cursor.execute(query, params)
             return cursor
 
