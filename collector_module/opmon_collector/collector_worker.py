@@ -160,7 +160,7 @@ class CollectorWorker:
         log_path = f"{self.settings['collector']['documents-log-directory']}" \
             f"/{self.settings['xroad']['instance']}/{now.year:04d}/{now.month:02d}/{now.day:02d}/"
 
-        base_filename = log_path + host_name + ".log"
+        base_filename = log_path + host_name + '.log'
         rotating_host_handlers = [
             handler for handler in records_logger.handlers
             if isinstance(handler, RotatingFileHandler)
