@@ -21,6 +21,10 @@
 #  THE SOFTWARE.
 
 import json
+import logging
+from logging.handlers import RotatingFileHandler
+import datetime
+import os
 import multiprocessing
 import re
 import uuid
@@ -54,6 +58,8 @@ class CollectorWorker:
             try:
                 response = self._request_opmon_data()
                 self.records = self._parse_attachment(response)
+                if self.settings['collector'].get('documents-log-directory', ''):
+                    self._store_records_to_file()
                 self._store_records_to_database()
                 self.batch_start = self._parse_next_records_from_response(response) or self.batch_end
                 self.server_m.set_next_records_timestamp(self.server_key, self.batch_start)
@@ -146,7 +152,44 @@ class CollectorWorker:
             self.log_warn("Cannot parse response attachment.", '')
             raise e
 
-    def _store_records_to_database(self):
+    def _get_records_logger(self) -> logging.Logger:
+        host_name = re.sub('[^0-9a-zA-Z.-]+', '.', self.server_data['server'])
+        records_logger = logging.getLogger(host_name)
+
+        now = datetime.datetime.now()
+        log_path = f"{self.settings['collector']['documents-log-directory']}" \
+            f"/{self.settings['xroad']['instance']}/{now.year:04d}/{now.month:02d}/{now.day:02d}/"
+
+        base_filename = log_path + host_name + '.log'
+        rotating_host_handlers = [
+            handler for handler in records_logger.handlers
+            if isinstance(handler, RotatingFileHandler)
+            and handler.baseFilename == base_filename
+        ]
+        if not rotating_host_handlers:
+            if not os.path.exists(log_path):
+                os.makedirs(log_path)
+
+            handler = RotatingFileHandler(
+                base_filename,
+                maxBytes=self.settings['collector'].get('documents-log-file-size') or 0,
+                backupCount=self.settings['collector'].get('documents-log-max-files') or 0
+            )
+
+            records_logger.setLevel(logging.INFO)
+            records_logger.addHandler(handler)
+        return records_logger
+
+    def _store_records_to_file(self) -> None:
+        if len(self.records):
+            self.log_info(f'Appending {len(self.records)} documents to log file.')
+            records_logger = self._get_records_logger()
+            for record in self.records:
+                records_logger.info(json.dumps(record, separators=(',', ':')))
+        else:
+            self.log_warn('No documents to append to log file!', '')
+
+    def _store_records_to_database(self) -> None:
         if len(self.records):
             self.log_info(f"Adding {len(self.records)} documents.")
             try:

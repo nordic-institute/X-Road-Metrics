@@ -41,6 +41,24 @@ collector:
   # Only one collector instance can be running at a time.
   pid-directory: /var/run/xroad-metrics/collector
 
+  # Write collected documents to files in addition to database if documents-log-directory is provided and not empty.
+  # Make sure this directory is writable by xroad-metrics user.
+  # Collector will create subdirectories "<Instance>/<Year>/<Month>/Day" for logs collected during that day.
+  # Collector will not automatically remove older logs.
+  # documents-log-directory: /var/lib/collector
+  documents-log-directory:
+
+  # If document writing to files is enabled then python RotatingFileHandler is used to write documents to log files.
+  # documents-log-file-size (RotatingFileHandler maxBytes parameter) sets maximum allowed file size in bytes.
+  # documents-log-max-files (RotatingFileHandler backupCount parameter) sets maximum count of log backup files.
+  # Rotated files will have a suffix ".<n>".
+  # Limits are applied separately for each server, because every server has its own log file.
+  # If log file size and count limiting is not required then set both parameters to "0" to disable log rotation.
+  # documents-log-file-size: 100000000
+  # documents-log-max-files: 100
+  documents-log-file-size: 0
+  documents-log-max-files: 0
+
 xroad:
   instance: <FILL>
 
