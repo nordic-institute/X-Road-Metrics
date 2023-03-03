@@ -136,6 +136,26 @@ def test_collector_worker_work_max_repeats(mock_server_manager, basic_data, mock
     assert worker.status == CollectorWorker.Status.DATA_AVAILABLE
 
 
+@responses.activate
+@pytest.mark.parametrize('documents_log_dir, num_records_logged_to_file', [('Test', 5230), (None, 0)])
+def test_collector_worker_logs_to_file(documents_log_dir, num_records_logged_to_file,
+                                       mock_server_manager, basic_data, mock_response_contents, caplog):
+    responses.add(responses.POST, 'http://x-road-ss', body=mock_response_contents[0], status=200)
+
+    basic_data['settings']['collector']['documents-log-directory'] = documents_log_dir
+    basic_data['settings']['collector']['repeat-limit'] = 1
+
+    worker = CollectorWorker(basic_data)
+    result, error = worker.work()
+
+    if error is not None:
+        raise error
+    records = mock_server_manager.insert_data_to_raw_messages.call_args_list[0][0][0]
+
+    assert len(records) == 5230
+    assert len(caplog.records) == num_records_logged_to_file
+
+
 def test_worker_status(mock_server_manager, basic_data):
     worker = CollectorWorker(basic_data)
 
