@@ -2,6 +2,11 @@ xroad:
   instance: <FILL>
 
 networking:
+  # Fetch rows from database in batches of configured size.
+  # This allows to optimize memory consuption and avoid loading big datasets into memory.
+  # Optional parameter, default size is 100000.
+  fetchsize: 100000
+
   # Time period to be included in the visualisation as number of days back from the most recent request-in date.
   interval: 30
 
@@ -26,6 +31,8 @@ postgres:
   port: 5432
   username: <FILL>
   password: <FILL>
+  ssl_mode:
+  ssl_root_cert:
 
 logger:
   log-path: /var/log/xroad-metrics/networking/logs

@@ -11,21 +11,21 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
 
 ## About
 
-The **Anonymizer module** is part of [X-Road Metrics](../README.md), 
+The **Anonymizer module** is part of [X-Road Metrics](../README.md),
 which include following modules:
- - [Database module](../database_module.md)
- - [Collector module](../collector_module.md)
- - [Corrector module](../corrector_module.md) 
- - [Reports module](../reports_module.md) 
- - [Anonymizer module](../anonymizer_module.md)
- - [Opendata module](../opendata_module.md) 
- - [Networking/Visualizer module](../networking_module.md)
+ - [Database module](./database_module.md)
+ - [Collector module](./collector_module.md)
+ - [Corrector module](./corrector_module.md)
+ - [Reports module](./reports_module.md)
+ - [Anonymizer module](./anonymizer_module.md)
+ - [Opendata module](./opendata_module.md)
+ - [Networking/Visualizer module](./networking_module.md)
 
-The **Anonymizer module** is responsible of preparing the operational monitoring data for publication through 
-the [Opendata module](opendata_module.md). Anonymizer configuration allows X-Road Metrics extension administrator to set 
+The **Anonymizer module** is responsible of preparing the operational monitoring data for publication through
+the [Opendata module](opendata_module.md). Anonymizer configuration allows X-Road Metrics extension administrator to set
 fine-grained rules for excluding whole operatinal monitoring data records or to modify selected data fields before the data is published.
 
-The anonymizer module uses the operational monitoring data that [Corrector module](corrector_module.md) has prepared and stored 
+The anonymizer module uses the operational monitoring data that [Corrector module](corrector_module.md) has prepared and stored
 to MongoDb as input. The anonymizer processes the data using the configured ruleset and stores the output to the
 opendata PostgreSQL database for publication.
 
@@ -46,10 +46,38 @@ run on a host that has access to both MongoDb and PostgreSQL.
 
 The anonymizer module provides no incoming network interfaces.
 
+## Database (PostgreSQL) setup
+
+See [Opendata database](opendata_module.md)
+
+### Establish encrypted SSL/TLS client connection
+
+For a connection to be known SSL-secured, SSL usage must be configured on both the client and the server before the connection is made.
+If it is only configured on the server, the client may end up sending sensitive information before it knows that the server requires high security.
+
+To ensure secure connections `ssl-mode` and `ssl-root-cert` parameterers has to be provided in settings file.
+Possible values for `ssl-mode`: `disable`, `allow`, `prefer`, `require`, `verify-ca`, `verify-full`
+For detailed information see https://www.postgresql.org/docs/current/libpq-ssl.html
+
+To configure path to the SSL root certificate, set `ssl-root-cert`
+
+Example of `/etc/settings.yaml` entry:
+```
+postgres:
+  host: localhost
+  port: 5432
+  user: postgres
+  password: *******
+  database-name: postgres
+  table-name: logs
+  ssl-mode: verify-full
+  ssl-root-cert: /etc/ssl/certs/root.crt
+```
+
 ## Installation
 
-This sections describes the necessary steps to install the **anonymizer module** on 
-an Ubuntu 20.04 Linux host. For a complete overview of different modules and machines, 
+This sections describes the necessary steps to install the **anonymizer module** on
+an Ubuntu 20.04 or Ubuntu 22.04 Linux host. For a complete overview of different modules and machines,
 please refer to the ==> [System Architecture](system_architecture.md) <== documentation.
 
 
@@ -75,7 +103,7 @@ sudo apt-get install xroad-metrics-anonymizer
 The installation package automatically installs following items:
  * xroad-metrics-anonymizer command
  * Linux user named _xroad-metrics_ and group _xroad-metrics_
- * configuration files: 
+ * configuration files:
    * _/etc/xroad-metrics/anonymizer/settings.yaml_
    * _/etc/xroad-metrics/anonymizer/field_data.yaml_
    * _/etc/xroad-metrics/anonymizer/field_translations.yaml_
@@ -101,7 +129,7 @@ To use anonymizer you need to fill in your X-Road, MongoDB and PostgreSQL config
 (here, **vi** is used):
 
 ```bash
-sudo vi /etc/xroad-metrics/corrector/settings.yaml
+sudo vi /etc/xroad-metrics/anonymizer/settings.yaml
 ```
 
 Settings that the user must fill in:
@@ -125,17 +153,17 @@ _settings.yaml_ file.
 A hiding rule consists of list of feature - regular expression pairs. If the contents of the field matches the regex,
 then the record is excluded from opendata set.
 
-A typical example is to exclude all operational monitoring data records related to specific clients, services or member types. 
-The example below defines two hiding rules. 
+A typical example is to exclude all operational monitoring data records related to specific clients, services or member types.
+The example below defines two hiding rules.
 First rule will exclude all records where client id is _"foo"_ **and** service id is _"bar"_.
 The second rule will exclude all records where service member class is not _"GOV"_.
 
 ```yaml
 # settings.yaml
 anonymizer:
-  
+
   ...
-  
+
   hiding-rules:
     -
       - feature: 'clientMemberCode'
@@ -149,7 +177,7 @@ anonymizer:
 ```
 
 ### Configuration of Substitution Rules
-Anonymizer can be configured to substitute the values of selected fields in the opendata set for 
+Anonymizer can be configured to substitute the values of selected fields in the opendata set for
 records that fulfill a set of conditions. These _substitution rules_ are defined in _settings.yaml_ file.
 
 A substitution rule has two parts. First *conditions* has a set of rules that defines the set of records
@@ -159,13 +187,13 @@ to be substituted and value contains the substitute string.
 
 The below example defines two substitution rules.
 First rule will substitute client and service member codes with _"N/A"_ if the client member code is _"foo2"_.
-The second rule will substitute message id with 0, if client member code is _"bar2"_ and 
+The second rule will substitute message id with 0, if client member code is _"bar2"_ and
 service member code is _"foo2"_.
 
 ```yaml
 # settings.yaml
 anonymizer:
-  
+
   ...
 
   substitution-rules:
@@ -191,13 +219,13 @@ anonymizer:
 ```
 
 ### Settings Profiles
-To run anonymizer for multiple X-Road instances, a settings profile for each instance can be created. 
-For example to have profiles DEV, TEST and PROD create three copies of `setting.yaml` 
+To run anonymizer for multiple X-Road instances, a settings profile for each instance can be created.
+For example to have profiles DEV, TEST and PROD create three copies of `setting.yaml`
 file named `settings_DEV.yaml`, `settings_TEST.yaml` and `settings_PROD.yaml`.
 Then fill the profile specific settings to each file and use the --profile
 flag when running xroad-metrics-anonymizer. For example to run anonymizer manually using the TEST profile:
 ```
-xroad-metrics-correctord --profile TEST
+xroad-metrics-anonymizer --profile TEST
 ```
 
 `xroad-metrics-anonymizer` command searches the settings file first in current working direcrtory, then in
@@ -214,13 +242,13 @@ sudo su xroad-metrics
 Currently following command line arguments are supported:
 ```bash
 xroad-metrics-anonymizer --help                     # Show description of the command line argumemts
-xroad-metrics-anonymizer --limit <number>           # Optional flag to limit the number of records to process. 
+xroad-metrics-anonymizer --limit <number>           # Optional flag to limit the number of records to process.
 xroad-metrics-anonymizer --profile <profile name>   # Run with a non-default settings profile
 ```
 
 
 ### Cron settings
-Default installation includes a cronjob in _/etc/cron.d/xroad-metrics-anonymizer-cron_ that runs anonymizer monthly. 
+Default installation includes a cronjob in _/etc/cron.d/xroad-metrics-anonymizer-cron_ that runs anonymizer monthly.
 This job runs anonymizer using default settings profile (_/etc/xroad-metrics/collector/settings.yaml_)
 
 If you want to change the collector cronjob scheduling or settings profiles, edit the file e.g. with vi
@@ -245,7 +273,7 @@ If collector is to be run only manually, comment out the default cron task:
 
 ## Monitoring and Status
 
-### Logging 
+### Logging
 
 The settings for the log file in the settings file are the following:
 
@@ -258,7 +286,7 @@ xroad:
 logger:
   name: anonymizer
   module: anonymizer
-  
+
   # Possible logging levels from least to most verbose are:
   # CRITICAL, FATAL, ERROR, WARNING, INFO, DEBUG
   level: INFO
@@ -269,11 +297,11 @@ logger:
 
 ```
 
-The log file is written to `log-path` and log file name contains the X-Road instance name. 
-The above example configuration would write logs to `/var/log/xroad-metrics/collector/logs/log_collector_EXAMPLE.json`.
+The log file is written to `log-path` and log file name contains the X-Road instance name.
+The above example configuration would write logs to `/var/log/xroad-metrics/anonymizer/logs/log_anonymizer_EXAMPLE.json`.
 
 
-The **anonymizer module** log handler is compatible with the logrotate utility. 
+The **anonymizer module** log handler is compatible with the logrotate utility.
 To configure log rotation for the example setup above, create the file:
 
 ```
@@ -282,7 +310,7 @@ sudo vi /etc/logrotate.d/xroad-metrics-anonymizer
 
 and add the following content :
 ```
-/var/log/xroad-metrics/collector/logs/log_anonymizer_EXAMPLE.json {
+/var/log/xroad-metrics/anonymizer/logs/log_anonymizer_EXAMPLE.json {
     rotate 10
     size 2M
 }
@@ -310,7 +338,7 @@ logger:
 
 ```
 
-The heartbeat file is written to `heartbeat-path` and hearbeat file name contains the X-Road instance name. 
+The heartbeat file is written to `heartbeat-path` and hearbeat file name contains the X-Road instance name.
 The above example configuration would write logs to
  `/var/log/xroad-metrics/anonymizer/heartbeat/heartbeat_anonymizer_EXAMPLE.json`.
 

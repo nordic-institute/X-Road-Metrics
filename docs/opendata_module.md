@@ -8,23 +8,23 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
 
 ## About
 
-The **Opendata module** is part of [X-Road Metrics](../README.md), 
+The **Opendata module** is part of [X-Road Metrics](../README.md),
 which includes the following modules:
- - [Database module](../database_module.md)
- - [Collector module](../collector_module.md)
- - [Corrector module](../corrector_module.md) 
- - [Reports module](../reports_module.md) 
- - [Anonymizer module](../anonymizer_module.md)
- - [Opendata module](../opendata_module.md) 
- - [Networking/Visualizer module](../networking_module.md)
+ - [Database module](./database_module.md)
+ - [Collector module](./collector_module.md)
+ - [Corrector module](./corrector_module.md)
+ - [Reports module](./reports_module.md)
+ - [Anonymizer module](./anonymizer_module.md)
+ - [Opendata module](./opendata_module.md)
+ - [Networking/Visualizer module](./networking_module.md)
 
-The **Opendata module** is used to publish the X-Road operational monitoring data. 
-The module has a UI and a REST API that allow filtering the anonymized operational monitoring data and downloading it 
+The **Opendata module** is used to publish the X-Road operational monitoring data.
+The module has a UI and a REST API that allow filtering the anonymized operational monitoring data and downloading it
 as gzip archives. The anonymized operational monitoring data is stored in a PostgreSQL database.
 
 ## Architecture
 
-Opendata module serves data that has been prepared by the [Anonymizer module](anonymizer_module.md)  
+Opendata module serves data that has been prepared by the [Anonymizer module](anonymizer_module.md)
 Overview of the module architecture related to publishing operational monitoring data
 through is in the diagram below:
  ![system diagram](img/opendata/opendata_overview.png "System overview")
@@ -54,8 +54,8 @@ The Opendata module installation has three main parts:
 2) Install and configure the PostgreSQL database
 3) Configure the Opendata UI
 
-This sections describes the necessary steps to install the **opendata module** on 
-an Ubuntu 20.04 Linux host. For a complete overview of different modules and machines, 
+This sections describes the necessary steps to install the **opendata module** on
+an Ubuntu 20.04 or Ubuntu 22.04 Linux host. For a complete overview of different modules and machines,
 please refer to the ==> [System Architecture](system_architecture.md) <== documentation.
 
 
@@ -96,8 +96,8 @@ You have to fill in some environment specific settings to the settings file to m
 Refer to section [Opendata Module Configuration](#opendata-module-configuration)
 
 ## Database Setup
-Before installing the database, please install the X-Road Metrics as descibed above. 
-After the PostgreSQL database is installed and configured you can proceed to finish configuration of the 
+Before installing the database, please install the X-Road Metrics as descibed above.
+After the PostgreSQL database is installed and configured you can proceed to finish configuration of the
 Opendata module.
 
 First make sure that the `en_US.UTF-8` locale is configured in the operating system:
@@ -145,14 +145,14 @@ networking_ex  | K!~96(;4KpB+ | "K!~96(;4KpB+"
 ```
 
 Store the output to a secure location, e.g. to your password manager. These usernames and passwords are needed later
-to configure the X-Road Metrics modules. The 'Escaped Password' column contains the password in YAML 
+to configure the X-Road Metrics modules. The 'Escaped Password' column contains the password in YAML
 escaped format that can be directly added to the config files.
 
-Database relations and relevant indices will be created dynamically during the first run of 
+Database relations and relevant indices will be created dynamically during the first run of
 [Anonymizer module](anonymizer.md), according to the supplied configuration.
 
 **Note:** PostgreSQL doesn't allow dashes and case sensitivity comes with a hassle.
-This means that for PostgreSQL instance it is suggested to use underscores and lower characters. 
+This means that for PostgreSQL instance it is suggested to use underscores and lower characters.
 The `xroad-metrics-init-postgresql` does the required substitutions in usernames automatically.
 
 
@@ -162,7 +162,15 @@ We need to enable remote access to PostgreSQL since Anonymizer and Networking mo
 
 In this example we assume that Anonymizer host IP is 172.31.0.1 and Networking host IP is 172.31.0.2.
 
-Add the following lines to `/etc/postgresql/12/main/pg_hba.conf` in order to
+#### For PostgreSQL 12 on Ubuntu 20.04
+
+Edit `/etc/postgresql/12/main/pg_hba.conf`
+
+#### For PostgreSQL 14 on Ubuntu 22.04
+
+Edit `/etc/postgresql/14/main/pg_hba.conf`
+
+Add the following lines to the config in order to
 enable password authentication (md5 hash comparison) from Anonymizer and Networking hosts:
 
 ```
@@ -186,12 +194,12 @@ host    all    all   0.0.0.0/0    reject
 
 **Note:** `host` type access can be substituted with `hostssl` if using SSL-encrypted connections.
 
-Then edit the `/etc/postgresql/12/main/postgresql.conf` and change the *listen_addresses* to
+Then edit the `/etc/postgresql/12/main/postgresql.conf` or `/etc/postgresql/14/main/pg_hba.conf` and change the *listen_addresses* to
 ```
 listen_addresses = '*'
 ```
 
-This says that PostgreSQL should listen on its defined port on all its network interfaces, 
+This says that PostgreSQL should listen on its defined port on all its network interfaces,
 including localhost and public available interfaces.
 
 Restart PostgreSQL:
@@ -199,9 +207,33 @@ Restart PostgreSQL:
 sudo systemctl restart postgresql
 ```
 
+### Establish encrypted SSL/TLS client connection
+
+For a connection to be known SSL-secured, SSL usage must be configured on both the client and the server before the connection is made.
+If it is only configured on the server, the client may end up sending sensitive information before it knows that the server requires high security.
+
+To ensure secure connections `ssl-mode` and `ssl-root-cert` parameterers has to be provided in settings file.
+Possible values for `ssl-mode`: `disable`, `allow`, `prefer`, `require`, `verify-ca`, `verify-full`
+For detailed information see https://www.postgresql.org/docs/current/libpq-ssl.html
+
+To configure path to the SSL root certificate, set `ssl-root-cert`
+
+Example of `/etc/settings.yaml` entry:
+```
+postgres:
+  host: localhost
+  port: 5432
+  user: postgres
+  password: *******
+  database-name: postgres
+  table-name: logs
+  ssl-mode: verify-full
+  ssl-root-cert: /etc/ssl/certs/root.crt
+```
+
 ### Setting up rotational logging for PostgreSQL
 
-PostgreSQL stores its logs by default in the directory `/var/lib/postgresql/12/main/pg_log/` specified in `/etc/postgresql/12/main/postgresql.conf`. 
+PostgreSQL stores its logs by default in the directory `/var/lib/postgresql/{pg_version}/main/pg_log/` specified in `/etc/postgresql/{pg_version}/main/postgresql.conf`.
 
 Set up daily logging and keep 7 days logs, we can make the following alterations to it:
 
@@ -271,7 +303,7 @@ The Apache Virtual Host configuration defines the hostname for the Opendata serv
 The Opendata module installer fills in the current hostname to Apache config file automatically.
 
 If your hostname changes, or the installer used wrong hostname, you can change the value by editing the Apache config
-file `/etc/apache2/sites-available/xroad-metrics-opendata.conf`. For example if your hostname is `myhost.mydomain.org` 
+file `/etc/apache2/sites-available/xroad-metrics-opendata.conf`. For example if your hostname is `myhost.mydomain.org`
 change the contents of the file to:
 ```
 Use XRoadMetricsOpendataVHost myhost.mydomain.org
@@ -284,14 +316,14 @@ sudo apache2ctl restart
 
 And then you can test accessing the Opendata UI by pointing your browser to `https://myhost.mydomain.org/`
 
-The instructions above should be sufficient for simple use cases. 
-For more advanced Apache configurations, e.g. to add more allowed alias names for the host, 
+The instructions above should be sufficient for simple use cases.
+For more advanced Apache configurations, e.g. to add more allowed alias names for the host,
 you need to modify the apache configuration template in `/etc/apache2/conf-available/xroad-metrics-opendata.conf`.
 
 ### Settings profiles
-The opendata module can show data for multiple X-Road instances using settings profiles. 
-For example to have profiles DEV, TEST and PROD create three copies of the `setting.yaml` 
-file named `settings_DEV.yaml`, `settings_TEST.yaml` and `settings_PROD.yaml` and 
+The opendata module can show data for multiple X-Road instances using settings profiles.
+For example to have profiles DEV, TEST and PROD create three copies of the `setting.yaml`
+file named `settings_DEV.yaml`, `settings_TEST.yaml` and `settings_PROD.yaml` and
 change the xroad-instance setting in the files.
 
 Then you can access different X-Road instances data by selecting the settings profile in the url:
@@ -308,15 +340,15 @@ Setup and run [Anonymizer module](./anonymizer_module.md) to upload anonymized d
 
 ## Opendata Interface documentation
 
-Opendata provides a simple GUI to query daily anonymized logs and relevant metafeatures.  
+Opendata provides a simple GUI to query daily anonymized logs and relevant metafeatures.
 User Guide can be found from ==> [here](opendata/user_guide/ug_opendata_interface.md) <==.
 
-Opendata provides a simple API to query daily anonymized logs and relevant metafeatures.  
+Opendata provides a simple API to query daily anonymized logs and relevant metafeatures.
 Documentation can be found from ==> [here](opendata/user_guide/ug_opendata_api.md) <==.
 
 ## Monitoring and Status
 
-### Logging 
+### Logging
 
 The settings for the log file in the settings file are the following:
 
@@ -329,7 +361,7 @@ xroad:
 logger:
   name: opendata
   module: opendata
-  
+
   # Possible logging levels from least to most verbose are:
   # CRITICAL, FATAL, ERROR, WARNING, INFO, DEBUG
   level: INFO
@@ -340,11 +372,11 @@ logger:
 
 ```
 
-The log file is written to `log-path` and log file name contains the X-Road instance name. 
+The log file is written to `log-path` and log file name contains the X-Road instance name.
 The above example configuration would write logs to `/var/log/xroad-metrics/opendata/logs/log_opendata_EXAMPLE.json`.
 
 
-The **opendata module** log handler is compatible with the logrotate utility. 
+The **opendata module** log handler is compatible with the logrotate utility.
 To configure log rotation for the example setup above, create the file:
 
 ```
@@ -381,7 +413,7 @@ logger:
 
 ```
 
-The heartbeat file is written to `heartbeat-path` and hearbeat file name contains the X-Road instance name. 
+The heartbeat file is written to `heartbeat-path` and hearbeat file name contains the X-Road instance name.
 The above example configuration would write logs to
  `/var/log/xroad-metrics/opendata/heartbeat/heartbeat_opendata_EXAMPLE.json`.
 

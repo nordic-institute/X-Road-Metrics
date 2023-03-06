@@ -103,17 +103,24 @@ class NotificationManager:
 
         self._send_over_smtp(msg)
 
+    def _get_smtp_context(self):
+        context = ssl.SSLContext(ssl.PROTOCOL_TLS)
+        if self.settings['smtp'].get('certfile') and self.settings['smtp'].get('keyfile'):
+            context.load_cert_chain(
+                certfile=self.settings['smtp'].get('certfile'),
+                keyfile=self.settings['smtp'].get('keyfile'))
+        return context
+
     def _get_smtp_server(self):
         if self.settings['smtp']['encryption'] == 'TLS':
-            context = ssl.SSLContext(ssl.PROTOCOL_TLS)
-            return smtplib.SMTP_SSL(self.smtp_host, self.smtp_port, context=context, timeout=15)
+            return smtplib.SMTP_SSL(self.smtp_host, self.smtp_port, context=self._get_smtp_context(), timeout=15)
         return smtplib.SMTP(self.smtp_host, self.smtp_port, timeout=15)
 
     def _send_over_smtp(self, msg):
         encryption = self.settings['smtp']['encryption']
         with self._get_smtp_server() as server:
             if encryption == 'STARTTLS':
-                server.starttls(context=ssl.SSLContext(ssl.PROTOCOL_TLS))
+                server.starttls(context=self._get_smtp_context())
             if self.smtp_password and encryption in ['TLS', 'STARTTLS']:
                 server.login(self.smtp_user, self.smtp_password)
             server.send_message(msg)

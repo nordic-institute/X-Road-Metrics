@@ -3,3 +3,4 @@ pytest
 pytest-mock
 pytest-pycodestyle
 mongomock
+freezegun==1.0.0

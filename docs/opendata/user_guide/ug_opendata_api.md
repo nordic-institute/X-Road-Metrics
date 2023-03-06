@@ -17,7 +17,8 @@ In order to achieve that, handlers allow to query the following data:
 
 * Minimum and maximum date of the available logs;
 * Column names, types, descriptions and available oeprators;
-* All daily logs in **tar.gz** format;
+* All daily logs in **ndjson.gz** format;
+* Meta (description) file for daily logs;
 * Sample logs for a day in **JSON** format.
 
 
@@ -53,7 +54,7 @@ API supports all the HTTP/HTTPS request methods:
 
 **Note:** all resources (handlers) are available for both GET and POST type of requests.
 
-POST expects query to be in JSON format and be the whole request body. 
+POST expects query to be in JSON format and be the whole request body.
 
 ## Handlers
 
@@ -132,8 +133,8 @@ Metadata of the existing columns.
     {"type": "integer", "valid_operators": ["=", "!=", "<", "<=", ">", ">="], "name": "responseAttachmentCount", "description": "Number of attachments of the response"},
     {"type": "string", "valid_operators": ["=", "!="], "name": "clientMemberCode", "description": "Member code of the X-Road member (client)"},
     {"type": "string", "valid_operators": ["=", "!="], "name": "serviceMemberClass", "description": "Member class of the X-Road member (service provider)"},
-    {"type": "integer", "valid_operators": ["=", "!=", "<", "<=", ">", ">="], "name": "id", "description": "Unique identifier of the record"}, 
-    {"type": "string", "valid_operators": ["=", "!="], "name": "securityServerType", "description": "Type of the security server"}, 
+    {"type": "integer", "valid_operators": ["=", "!=", "<", "<=", ">", ">="], "name": "id", "description": "Unique identifier of the record"},
+    {"type": "string", "valid_operators": ["=", "!="], "name": "securityServerType", "description": "Type of the security server"},
     {"type": "string", "valid_operators": ["=", "!="], "name": "serviceMemberCode", "description": "Member code of the X-Road member (service provider)"},
     {"type": "integer", "valid_operators": ["=", "!=", "<", "<=", ">", ">="], "name": "responseSoapSize", "description": "Size of the response (bytes)"},
     {"type": "boolean", "valid_operators": ["=", "!="], "name": "succeeded", "description": "True, if request mediation succeeded, false otherwise."},
@@ -176,7 +177,7 @@ _Note:_ If missing or an empty list, all available columns are included.
 
 **constraints** (optional)
 
-Specifies the criteria which the returned logs must meet. 
+Specifies the criteria which the returned logs must meet.
 
 _Note:_  If missing or an empty list, no constraints will be applied to the logs other than the date and all the day's logs are returned.
 
@@ -198,8 +199,8 @@ _Note:_ Different order clauses may return different logs, depending on whether 
 
 #### Returns
 
-JSON object with "data" key holding list of logs. 
-Each log is represented as a list with deterministic column order (in the same order as the columns were provided). 
+JSON object with "data" key holding list of logs.
+Each log is represented as a list with deterministic column order (in the same order as the columns were provided).
 If columns were not provide, the order is identical to the column order from [column data](#column-data).
 
 ```json
@@ -214,7 +215,8 @@ If columns were not provide, the order is identical to the column order from [co
 #### Example query
 
 ```bash
-# export DATE=$(date -d "10 days ago" '+%Y-%m-%d')
+export DATE=$(date -d "10 days ago" '+%Y-%m-%d')
+
 curl --get --url "${URL}/api/logs_sample" \
     --data-urlencode "date=${DATE}" \
     --data-urlencode "columns=[\"id\", \"requestInDate\", \"responseAttachmentCount\", \"succeeded\", \"totalDuration\"]" \
@@ -225,7 +227,8 @@ curl --get --url "${URL}/api/logs_sample" \
 The same in POST version:
 
 ```bash
-# export DATE=$(date -d "10 days ago" '+%Y-%m-%d')
+export DATE=$(date -d "10 days ago" '+%Y-%m-%d')
+
 curl --request --url "${URL}/api/logs_sample" \
     --header "Content-Type:application/json" \
     --data "{\"date\": \"${DATE}\", \
@@ -236,10 +239,7 @@ curl --request --url "${URL}/api/logs_sample" \
 
 ### Daily logs
 
-Retrieve all logs for a specified date in a **tar.gz** archive. The archive consists of two files:
-
-* **YYYY-MM-DD.json**
-* **meta.json**
+Retrieve all logs for a specified date in a **ndjson.gz** archive. The archive is gzipped NDJSON (Newline Delimited JSON) file.
 
 #### Parameters
 
@@ -247,43 +247,78 @@ Identical to [logs' sample](#logs-sample).
 
 #### Returns
 
-Binary file with MIME type "application/gzip".
+Binary file with MIME type "application/gzip" containing gzipped NDJSON file.
 
 #### Example query
 
 GET version:
 
 ```bash
-# export DATE=$(date -d "10 days ago" '+%Y-%m-%d')
+export DATE=$(date -d "10 days ago" '+%Y-%m-%d')
 
-TEMPFILE=$(tempfile)
+LOGFILE="${DATE}.ndjson"
 curl --get --url "${URL}/api/daily_logs" \
     --data-urlencode "date=${DATE}" \
     --data-urlencode "columns=[\"id\", \"requestInDate\", \"responseAttachmentCount\", \"succeeded\", \"totalDuration\"]" \
     --data-urlencode "constraints=[{\"column\": \"totalDuration\", \"operator\": \"<=\", \"value\": \"150\"}]" \
-    --data-urlencode "order-clauses=[{\"column\": \"totalDuration\", \"order\": \"asc\"}]"
-    > ${TEMPFILE}
-
-tar tzvf ${TEMPFILE} # See download content
-# tar xzvf ${TEMPFILE} # Unpack / extract download content
-/bin/rm --force ${TEMPFILE}
+    --data-urlencode "order-clauses=[{\"column\": \"totalDuration\", \"order\": \"asc\"}]" \
+    | gunzip > ${LOGFILE}
 ```
 
 There's also a POST version:
 
 ```bash
-# export DATE=$(date -d "10 days ago" '+%Y-%m-%d')
+export DATE=$(date -d "10 days ago" '+%Y-%m-%d')
 
-TEMPFILE=$(tempfile)
+LOGFILE="${DATE}.ndjson"
 curl --request --url "${URL}/api/daily_logs" \
     --header "Content-Type:application/json" \
     --data "{\"date\": \"${DATE}\", \
            \"columns\": [\"id\", \"requestInDate\", \"responseAttachmentCount\", \"succeeded\", \"totalDuration\"], \
            \"constraints\": [{\"column\": \"totalDuration\", \"operator\": \"<=\", \"value\": \"150\"}], \
            \"order-clauses\": [{\"column\": \"totalDuration\", \"order\": \"asc\"}]}" \
-    > ${TEMPFILE}
+    | gunzip > ${LOGFILE}
+```
 
-tar tzvf ${TEMPFILE} # See download content
-# tar xzvf ${TEMPFILE} # Unpack / extract download content
-/bin/rm --force ${TEMPFILE}
+### Daily logs meta
+
+Retrieve meta (description) file for daily logs in **JSON** fromat.
+
+#### Parameters
+
+Identical to [logs' sample](#logs-sample).
+
+#### Returns
+
+JSON file with MIME type "application/json".
+
+#### Example query
+
+GET version:
+
+```bash
+export DATE=$(date -d "10 days ago" '+%Y-%m-%d')
+
+METAFILE=meta.json
+curl --get --url "${URL}/api/daily_logs_meta" \
+    --data-urlencode "date=${DATE}" \
+    --data-urlencode "columns=[\"id\", \"requestInDate\", \"responseAttachmentCount\", \"succeeded\", \"totalDuration\"]" \
+    --data-urlencode "constraints=[{\"column\": \"totalDuration\", \"operator\": \"<=\", \"value\": \"150\"}]" \
+    --data-urlencode "order-clauses=[{\"column\": \"totalDuration\", \"order\": \"asc\"}]" \
+    > ${METAFILE}
+```
+
+There's also a POST version:
+
+```bash
+export DATE=$(date -d "10 days ago" '+%Y-%m-%d')
+
+METAFILE=meta.json
+curl --request --url "${URL}/api/daily_logs_meta" \
+    --header "Content-Type:application/json" \
+    --data "{\"date\": \"${DATE}\", \
+           \"columns\": [\"id\", \"requestInDate\", \"responseAttachmentCount\", \"succeeded\", \"totalDuration\"], \
+           \"constraints\": [{\"column\": \"totalDuration\", \"operator\": \"<=\", \"value\": \"150\"}], \
+           \"order-clauses\": [{\"column\": \"totalDuration\", \"order\": \"asc\"}]}" \
+    > ${METAFILE}
 ```

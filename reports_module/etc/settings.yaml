@@ -10,6 +10,10 @@ mongodb:
   host: localhost
   user: <FILL>
   password: <FILL>
+  # set to True to enable secure connection
+  tls:
+  # path to CA pem file
+  tls-ca-file:
 
 logger:
   name: reports
@@ -45,13 +49,15 @@ reports:
 
   # Settings for e-mail notifications about new reports.
   email:
-    sender: <FILL>  # e-mail address shown in sender field of notifications
+    sender: <FILL>      # e-mail address shown in sender field of notifications
     smtp:
       host: <FILL>
-      user: ""      # only needed if SMTP server is using authentication
-      password: ""  # only needed if SMTP server is using authentication
+      user: ""          # only needed if SMTP server is using authentication
+      password: ""      # only needed if SMTP server is using authentication
       port: 25
       encryption: None  # possible values: None, TLS, STARTTLS
+      certfile: ""      # only needed if SMTP server requires TLS client authentication
+      keyfile: ""       # only needed if SMTP server requires TLS client authentication
 
     # Template for the notification e-mail subject
     subject: "X-Road Metrics report for {X_ROAD_INSTANCE}:{MEMBER_CLASS}:{MEMBER_CODE}:{SUBSYSTEM_CODE}"

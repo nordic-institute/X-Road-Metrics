@@ -12,17 +12,17 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
 ## About
 
 The **Database module** is part of [X-Road Metrics](../README.md), which includes the following modules:
- - [Database module](../database_module.md)
- - [Collector module](../collector_module.md)
- - [Corrector module](../corrector_module.md) 
- - [Reports module](../reports_module.md) 
- - [Anonymizer module](../anonymizer_module.md)
- - [Opendata module](../opendata_module.md) 
- - [Networking/Visualizer module](../networking_module.md)
+ - [Database module](./database_module.md)
+ - [Collector module](./collector_module.md)
+ - [Corrector module](./corrector_module.md)
+ - [Reports module](./reports_module.md)
+ - [Anonymizer module](./anonymizer_module.md)
+ - [Opendata module](./opendata_module.md)
+ - [Networking/Visualizer module](./networking_module.md)
 
-The **Database module** provides storage and synchronization between the other modules. 
+The **Database module** provides storage and synchronization between the other modules.
 
-Overall system, its users and rights, processes and directories are designed in a way, that all modules can reside in one server (different users but in same group 'xroad-metrics') but also in separate servers. 
+Overall system, its users and rights, processes and directories are designed in a way, that all modules can reside in one server (different users but in same group 'xroad-metrics') but also in separate servers.
 
 Overall system is also designed in a way, that allows to monitor data from different X-Road instances (e.g. in Estonia there are three instances: `ee-dev`, `ee-test` and `EE`.)
 
@@ -32,16 +32,26 @@ Overall system is also designed in a way, that can be used by X-Road Centre for 
 
 The database is implemented with the MongoDB technology: a non-SQL database with replication and sharding capabilities.
 
-This document describes the installation steps for Ubuntu 20.04. 
-You can also refer to official [MongoDB 4.4 installation instructions](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/).
+This document describes the installation steps for Ubuntu 20.04 or Ubuntu 22.04.
+You can also refer to official [MongoDB 4.4 installation instructions](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/) for Ubuntu 20.04.
+Refer to official [MongoDB 6.0 installation instructions](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/) for Ubuntu 22.04.
 
-Add the MongoDB APT repository and signing key:
+## Add the MongoDB APT repository and signing key for Ubuntu 20.04
 
 ```bash
 # Key rsa4096/20691eec35216c63caf66ce1656408e390cfb1f5 [expires: 2024-05-26]
 sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 656408e390cfb1f5
 sudo apt-add-repository "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/4.4 multiverse"
 ```
+
+## Add the MongoDB APT repository and signing key for Ubuntu 22.04
+
+```bash
+# Key rsa4096/39bd841e4be5fb195a65400e6a26b1ae64c3c388 [expires: 2027-02-22T]
+sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 6a26b1ae64c3c388
+sudo apt-add-repository "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/6.0 multiverse"
+```
+
 
 Install MongoDB server and client tools (shell)
 
@@ -77,8 +87,16 @@ sudo systemctl restart mongod.service
 We want only authenticated users to have access to MongoDB.
 To enable authentication, enter MongoDB shell:
 
+#### For MongoDB 4.4 on Ubuntu 20.04
+
 ```bash
 mongo
+```
+
+#### For MongoDB 6.0 on Ubuntu 22.04
+
+```bash
+mongosh
 ```
 
 Issue the following commands to create a *root* user:
@@ -123,7 +141,7 @@ Each X-Road Metrics module uses a different user to access MongoDB. This way the
 to bare minimum. The MongoDB users for all modules can be created automatically by using an init command that is
 installed with the X-Road Metrics Collector Module.
 
-At this point, please refer to the [installation guide of X-Road Metrics Collector](./collector_module.md) 
+At this point, please refer to the [installation guide of X-Road Metrics Collector](./collector_module.md)
 and install the collector package.
 
 To run the X-Road Metrics MongoDB init command you need the following information:
@@ -153,7 +171,7 @@ reports_EX             | Fdqay:76I}x5 | "Fdqay:76I}x5"
 ```
 
 Store the output to a secure location, e.g. to your password manager. These usernames and passwords are needed later
-to configure the X-Road Metrics modules. The 'Escaped Password' column contains the password in YAML 
+to configure the X-Road Metrics modules. The 'Escaped Password' column contains the password in YAML
 escaped format that can be directly added to the config files.
 
 The command also creates default MongoDB indexes needed by the X-Road Metrics modules. For more information about
@@ -170,7 +188,7 @@ mongo
 
 #### **read-only user (optional)**
 
-Inside the MongoDB client shell, create the **user_read** user in the **admin** database. 
+Inside the MongoDB client shell, create the **user_read** user in the **admin** database.
 Replace **USER_PWD** with the desired password (keep it in your password safe).
 
 ```
@@ -180,7 +198,7 @@ db.createUser( { user: "user_read", pwd: "USER_PWD", roles: ["readAnyDatabase"] 
 
 ### Check user configuration and permissions
 
-To check if all users and configurations were properly created, list all users and verify their roles using 
+To check if all users and configurations were properly created, list all users and verify their roles using
 the following commands inside the MongoDB client shell:
 
 ```
@@ -192,16 +210,16 @@ db.getUsers()
 
 For X-Road instance `EX` auth_db should have following users and access rights:
 
-* **anonymizer_EX**: 
+* **anonymizer_EX**:
     * query_db_EX: read
     * anonymizer_state_EX: readWrite
 * **collector_EX**:
-    * query_db_EX: readWrite, 
+    * query_db_EX: readWrite,
     * collcetor_state_EX: readWrite
-* **corrector_EX**: 
+* **corrector_EX**:
     * query_db_EX: readWrite
-* **reports_EX**: 
-    * query_db_EX: read, 
+* **reports_EX**:
+    * query_db_EX: read,
     * reports_state_EX: 'readWrite'
 
 
@@ -226,7 +244,7 @@ sudo vi /etc/logrotate.d/mongodb
 with content:
 
 ```yaml
-/var/log/mongodb/mongod.log { 
+/var/log/mongodb/mongod.log {
   daily
   rotate 30
   compress
@@ -249,7 +267,24 @@ Following modules need to have access to MongoDB:
     - Corrector
     - Reports
     - Anonymizer
-    
+
+
+### Establish encrypted SSL/TLS client connection
+
+Every module has own settings to use secure connection to MongoDB.
+Database server has to be preconfigured to accept encrypted connection from client side.
+See https://www.mongodb.com/docs/manual/reference/program/mongod/#options for details.
+
+To enable TLS connection from client side, configure `mongodb` section in
+module's settings file. Example:
+```
+mongodb:
+  host: host
+  user: user
+  password: *****
+  tls: True
+  tls-ca-file: /path/to/ca/pem/file
+```
 
 ### Log Configuration
 
@@ -274,17 +309,17 @@ Log files:
 The `xroad-metrics-init-mongo` command documented in chapter [Automatic User and Index Creation](#Automatic User and Index Creation)
 creates a default set of indexes to MongoDB. If your application needs some further indexes, those can be added in the MongoDB shell.
 
-Although indexes can improve query performances, indexes also present some operational considerations. 
+Although indexes can improve query performances, indexes also present some operational considerations.
 See [MongoDB Operational Considerations for Indexes](https://docs.mongodb.com/manual/core/data-model-operations/#data-model-indexes) for more information.
-Our collection holds a large amount of data, and our applications need to be able to access the data while building the 
-index, therefore we consider building the index in the background, as described in 
+Our collection holds a large amount of data, and our applications need to be able to access the data while building the
+index, therefore we consider building the index in the background, as described in
 [Background Construction](https://docs.mongodb.com/manual/core/index-creation/#index-creation-background).
 
 
 **Note 1**: If planning to select / filter records manually according to different fields, then please consider to create index for every field to allow better results.
 From other side, if these are not needed, please consider to drop them as the existence reduces overall speed of [Corrector module](corrector_module.md).
 
-**Note 2**: Additional indexes might required for system scripts in case of functionality changes (eg different reports). 
+**Note 2**: Additional indexes might required for system scripts in case of functionality changes (eg different reports).
 Please consider to create them as they speed up significantly the speed of [Reports module](reports_module.md).
 
 **Note 3**: Index build might affect availability of cursor for long-running queries.
@@ -292,7 +327,7 @@ Please review the need of active [Collector module](collector_module.md) and spe
 
 ### Index Recreation
 
-It might happen, that under heavy and continuos write activities to database, the indexes corrupt. 
+It might happen, that under heavy and continuos write activities to database, the indexes corrupt.
 In result, read access from database takes long time, it can be monitored also from current log file `/var/log/mongodb/mongod.log`, where in COMMANDs the last parameter protocol:op_query  in milliseconds (ms) is large even despite usage of indexes (planSummary: IXSCAN { }).
 
 In such cases, dropping and creating indexes again or reIndex() process might be the solution.
@@ -327,7 +362,7 @@ already been processed by the corrector (`{"corrected": true}`).
 
 ## MongoDB Compass
 
-It is also possible to monitor MongoDB with a GUI interface using the MongoDB Compass. 
+It is also possible to monitor MongoDB with a GUI interface using the MongoDB Compass.
 For specific instructions, please refer to:
 
 ```
@@ -342,7 +377,7 @@ https://docs.mongodb.com/master/administration/monitoring/
 
 ## Database backup
 
-To perform backup of database, it is recommended to use the mongodb tools **mongodump** and **mongorestore** 
+To perform backup of database, it is recommended to use the mongodb tools **mongodump** and **mongorestore**
 
 For additional details and recommendations about MongoDB backup and restore tools, please check:
 
@@ -352,7 +387,7 @@ https://docs.mongodb.com/manual/tutorial/backup-and-restore-tools/
 
 ## Database replication
 
-MongoDB supports replication. A replica set in MongoDB is a group of mongod processes that maintain the same data set. 
+MongoDB supports replication. A replica set in MongoDB is a group of mongod processes that maintain the same data set.
 Replica sets provide redundancy and high availability, and are the basis for all production deployments.
 
 Sample to add replication, add the following line in the configuration file:
@@ -374,7 +409,7 @@ After saving the alterations, the MongoDB service needs to be restarted. This ca
 sudo service mongod restart
 ```
 
-To make mongod instance as master, the following commands are needed in mongod shell 
+To make mongod instance as master, the following commands are needed in mongod shell
 (in this example, if the machine running MongoDB has the Ethernet IP `10.11.22.33`):
 
 ```
@@ -388,7 +423,7 @@ To make mongod instance as master, the following commands are needed in mongod s
 
 To build or rebuild indexes for a replica set, see [Build Indexes on Replica Sets](https://docs.mongodb.com/manual/tutorial/build-indexes-on-replica-sets/#index-building-replica-sets).
 
-For additional details and recommendations about MongoDB replication set, please check 
+For additional details and recommendations about MongoDB replication set, please check
 [MongoDB Manual Replication](https://docs.mongodb.com/manual/replication/)
 
 To change the size of oplog, follow the steps

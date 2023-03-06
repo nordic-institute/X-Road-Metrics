@@ -37,6 +37,10 @@ class DatabaseManager:
         self.db_collector_state = f'collector_state_{xroad_instance}'
         self.collector_id = f'collector_{xroad_instance}'
         self.logger_m = logger_manager
+        self.connect_args = {
+            'tls': bool(mongo_settings.get('tls')),
+            'tlsCAFile': mongo_settings.get('tls-ca-file'),
+        }
 
     @staticmethod
     def get_mongo_uri(mongo_settings):
@@ -51,7 +55,7 @@ class DatabaseManager:
 
     def save_server_list_to_database(self, server_list):
         try:
-            client = pymongo.MongoClient(self.mongo_uri)
+            client = pymongo.MongoClient(self.mongo_uri, **self.connect_args)
             db = client[self.db_collector_state]
             collection = db['server_list']
             data = dict()
@@ -68,7 +72,7 @@ class DatabaseManager:
         Get the most recent server list from MongoDB
         """
         try:
-            client = pymongo.MongoClient(self.mongo_uri)
+            client = pymongo.MongoClient(self.mongo_uri, **self.connect_args)
             db = client[self.db_collector_state]
             data = db['server_list'].find({'collector_id': self.collector_id}).sort([('timestamp', -1)]).limit(1)[0]
             return data['server_list'], data['timestamp']
@@ -80,7 +84,7 @@ class DatabaseManager:
         """ Returns next records_from pointer for the given server
         """
         try:
-            client = pymongo.MongoClient(self.mongo_uri)
+            client = pymongo.MongoClient(self.mongo_uri, **self.connect_args)
             db = client[self.db_collector_state]
             collection = db['collector_pointer']
             cur = collection.find_one({'server': server_key})
@@ -101,7 +105,7 @@ class DatabaseManager:
 
     def set_next_records_timestamp(self, server_key, records_from):
         try:
-            client = pymongo.MongoClient(self.mongo_uri)
+            client = pymongo.MongoClient(self.mongo_uri, **self.connect_args)
             db = client[self.db_collector_state]
             collection = db['collector_pointer']
 
@@ -124,7 +128,7 @@ class DatabaseManager:
 
     def insert_data_to_raw_messages(self, data_list):
         try:
-            client = pymongo.MongoClient(self.mongo_uri)
+            client = pymongo.MongoClient(self.mongo_uri, **self.connect_args)
             db = client[self.db_name]
             raw_msg = db['raw_messages']
             # Add timestamp to data list
