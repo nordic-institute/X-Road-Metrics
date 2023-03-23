@@ -47,6 +47,33 @@ class MockPsyContextManager(object):
         pass
 
 
+@pytest.fixture(autouse=True)
+def settings(mocker):
+    settings = {
+        'logger': {
+            'name': 'test',
+            'module': 'test',
+            'level': 2,
+            'log-path': 'test',
+            'heartbeat-path': 'test',
+        },
+        'xroad': {
+            'instance': 'TEST'
+        },
+        'postgres': {
+            'table-name': 'logs',
+            'host': 'test',
+            'database-name': 'test'
+        },
+        'opendata': {
+            'field-descriptions': {
+            },
+            'delay-days': 1
+        }
+    }
+    mocker.patch('opmon_opendata.api.views.get_settings', return_value=settings)
+
+
 @pytest.fixture
 def set_dir():
     os.chdir(pathlib.Path(__file__).parent.absolute())
