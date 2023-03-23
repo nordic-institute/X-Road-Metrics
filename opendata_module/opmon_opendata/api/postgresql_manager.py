@@ -20,9 +20,10 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
 
+from typing import List, Optional
+
 import psycopg2 as pg
 from dateutil import relativedelta
-from typing import Optional, List
 
 
 class PostgreSQL_Manager(object):
@@ -42,7 +43,7 @@ class PostgreSQL_Manager(object):
     def get_column_names_and_types(self):
         with pg.connect(self._connection_string, **self._connect_args) as connection:
             cursor = connection.cursor()
-            cursor.execute("SELECT column_name,data_type FROM information_schema.columns WHERE table_name = %s;",
+            cursor.execute('SELECT column_name,data_type FROM information_schema.columns WHERE table_name = %s;',
                            (self._table_name,))
             data = cursor.fetchall()
 
@@ -50,8 +51,20 @@ class PostgreSQL_Manager(object):
 
     def get_data_cursor(
         self, constraints: Optional[List] = None, order_by: Optional[List] = None,
-        columns: Optional[List] = None, limit: Optional[int] = None
+        columns: Optional[List] = None, limit: Optional[int] = None, offset: Optional[int] = None
     ) -> pg.extensions.cursor:
+        """
+        Return a cursor object from a PostgreSQL database connection that executes a SQL SELECT statement
+            with optional constraints, ordering, columns selection, and pagination.
+
+        :param constraints: A list of tuples containing the constraints to be applied to the query. Default is None.
+        :param order_by: A list of tuples containing the columns to order the query by. Default is None.
+        :param columns: A list of column names to select in the query. Default is None (all columns selected).
+        :param limit: An integer representing the maximum number of rows to be returned by the query. Default is None (no limit).
+        :param offset: An integer representing the number of rows to skip before starting to return rows. Default is None.
+
+        :return: A PostgreSQL cursor object that executes the SQL query.
+        """
         with pg.connect(self._connection_string, **self._connect_args) as connection:
             cursor = connection.cursor()
 
@@ -61,11 +74,12 @@ class PostgreSQL_Manager(object):
                                                                                                  subquery_name)
             order_by_str = self._get_order_by_string(order_by, subquery_name)
             limit_str = self._get_limit_string(cursor, limit)
+            offset_str = self._get_offset_string(cursor, offset)
 
             cursor.execute(
-                ("SELECT {selected_columns} FROM (SELECT * "
-                 "FROM {table_name} {request_in_date_constraint}) as {subquery_name} {other_constraints}"
-                 "{order_by} {limit};").format(
+                ('SELECT {selected_columns} FROM (SELECT * '
+                 'FROM {table_name} {request_in_date_constraint}) as {subquery_name} {other_constraints}'
+                 ' {order_by} {limit} {offset};').format(
                     **{
                         'selected_columns': selected_columns_str,
                         'table_name': self._table_name,
@@ -73,10 +87,11 @@ class PostgreSQL_Manager(object):
                         'other_constraints': other_constraints_str,
                         'order_by': order_by_str,
                         'limit': limit_str,
-                        'subquery_name': subquery_name}
+                        'subquery_name': subquery_name,
+                        'offset': offset_str,
+                    }
                 )
             )
-
             return cursor
 
     def get_data(self, constraints=None, order_by=None, columns=None, limit=None):
@@ -162,4 +177,14 @@ class PostgreSQL_Manager(object):
         }) for clause in order_by)
 
     def _get_limit_string(self, cursor, limit):
-        return cursor.mogrify("LIMIT %s", (limit,)).decode('utf8')
+        return cursor.mogrify('LIMIT %s', (limit,)).decode('utf8')
+
+    def _get_offset_string(self, cursor: pg.extensions.cursor, offset: Optional[int] = None) -> str:
+        """
+        Return a SQL string to be used in a query to set the offset for pagination.
+
+        :param cursor: A PostgreSQL cursor object.
+        :param offset: An integer representing the number of rows to skip before starting to return rows.
+        :return: A string containing the SQL command to set the offset for pagination.
+        """
+        return cursor.mogrify('OFFSET %s', (offset,)).decode('utf8')
