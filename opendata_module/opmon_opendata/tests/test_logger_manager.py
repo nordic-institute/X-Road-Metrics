@@ -11,7 +11,7 @@ def test_logger_manager_handler_is_single(tmp_path):
     temp_log_dir.mkdir()
 
     settings = {
-        'name': 'test',
+        'name': 'iamsingle',
         'module': 'test',
         'level': 2,
         'log-path': temp_log_dir,
@@ -21,5 +21,5 @@ def test_logger_manager_handler_is_single(tmp_path):
     LoggerManager(settings, 'test', '1')
     LoggerManager(settings, 'test', '1')
 
-    original_logger = logging.getLogger('test')
+    original_logger = logging.getLogger('iamsingle')
     assert len(original_logger.handlers) == 1
