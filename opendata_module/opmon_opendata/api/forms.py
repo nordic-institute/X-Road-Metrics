@@ -3,7 +3,6 @@ from django import forms
 
 
 class HarvestForm(forms.Form):
-    # TODO docs and typing
     from_dt = forms.DateTimeField(required=True)
     until_dt = forms.DateTimeField(required=False)
     offset = forms.IntegerField(required=False)
@@ -30,8 +29,6 @@ class HarvestForm(forms.Form):
         return from_dt_value
 
     def clean_order(self):
-        # Should we validate column values?
-
         ALLOWED_ORDER_KEYS = ['column', 'order']
         ALLOWED_ORDER_ORDER_VALUES = ['ASC', 'DESC']
 

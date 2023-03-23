@@ -365,7 +365,6 @@ def _get_harvest_rows(
     :return: A list of tuples representing the harvested data from the PostgreSQL database.
     If an error occurs, an empty list is returned.
     """
-    # TODO: types
     if not order_by:
         order_by = [{'column': 'requestints', 'order': 'ASC'}]
     constraints = [
