@@ -20,10 +20,10 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
 
-from typing import Optional, List
 import re
 from os import listdir
 from os.path import isfile, join
+from typing import List, Optional
 
 import yaml
 
