@@ -42,7 +42,7 @@ def parse_args():
 
     parser.add_argument('source_id',
                         metavar='SOURCE_ID',
-                        help='X-Road Metrics instances to fetch Open Data from. Taken from sources settings file')
+                        help='X-Road Metrics instance to fetch OpenData from. Taken from sources settings file')
 
     parser.add_argument('--profile',
                         metavar='PROFILE',
