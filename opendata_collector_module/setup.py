@@ -45,14 +45,15 @@ classifiers = [
 ]
 
 
-setup(name='xroad-metrics-opendata-collector',
-      description='X-Road Metrics Opendata Collector Module',
-      long_description='',
-      author='NIIS',
-      author_email='info@niis.org',
-      packages=['metrics_opendata_collector'],
-      install_requires=requirements,
-      classifiers=classifiers,
-      platforms='POSIX',
-      license='MIT'
-      )
+setup(
+    name='xroad-metrics-opendata-collector',
+    description='X-Road Metrics Opendata Collector Module',
+    long_description='',
+    author='NIIS',
+    author_email='info@niis.org',
+    packages=['metrics_opendata_collector'],
+    install_requires=requirements,
+    classifiers=classifiers,
+    platforms='POSIX',
+    license='MIT'
+    )

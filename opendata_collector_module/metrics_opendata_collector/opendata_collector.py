@@ -21,7 +21,5 @@
 #  THE SOFTWARE.
 
 
-def collect_opendata(settings, source_settings):
-    # TODO: implement collecting logic here
-    # docs and types
+def collect_opendata(settings: dict, source_settings: dict):
     pass

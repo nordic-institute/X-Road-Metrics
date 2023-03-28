@@ -29,8 +29,7 @@ import yaml
 
 
 class MetricsSettingsManager:
-    """
-    Class to hold Metrics settings.
+    """Class to hold Metrics settings.
 
     Can parse settings from a YAML file.
     Settings file is searched from the current working directory and /etc/xroad-metrics/opendata_collector/.
