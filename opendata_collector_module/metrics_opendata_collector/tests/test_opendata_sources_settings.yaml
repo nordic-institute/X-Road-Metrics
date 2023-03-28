@@ -1,0 +1,7 @@
+TEST-SOURCE1:
+  url: test url
+  limit: 1000
+
+TEST-SOURCE2:
+  url: test url
+  limit: 500
