@@ -168,8 +168,8 @@ def get_harvest_data(request: WSGIRequest, profile: Optional[str] = None) -> Htt
         order: OrderByType = cleaned_data['order']
         order_by = [order]
     try:
-        rows = _get_harvest_rows(postgres, from_dt, until_dt=until_dt,
-                                 limit=limit, offset=offset, order_by=order_by)
+        rows, columns = _get_harvest_rows(postgres, from_dt, until_dt=until_dt,
+                                          limit=limit, offset=offset, order_by=order_by)
     except Exception as exec_info:
         logger.log_error('api_get_harvest_query_failed', str(exec_info))
         return HttpResponse(
@@ -177,7 +177,11 @@ def get_harvest_data(request: WSGIRequest, profile: Optional[str] = None) -> Htt
             content_type='application/json',
             status=500
         )
-    return_value = {'data': [[escape(str(element)) for element in row] for row in rows]}
+
+    return_value = {
+        'data': [[escape(str(element)) for element in row] for row in rows],
+        'columns': columns if rows else [],
+    }
 
     logger.log_info('api_get_harvest_response_success', f'returning {len(rows)} rows')
     return HttpResponse(json.dumps(return_value), content_type='application/json')
@@ -392,7 +396,7 @@ def _get_harvest_rows(
     data_cursor = postgres.get_data_cursor(
         constraints=constraints, columns=columns, order_by=order_by, limit=limit, offset=offset)
 
-    return data_cursor.fetchall()
+    return data_cursor.fetchall(), columns
 
 
 def _get_content(postgres, date, columns, constraints, order_clauses, limit=None):
