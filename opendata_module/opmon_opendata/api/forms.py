@@ -1,13 +1,21 @@
 import datetime
+import json
+
 from django import forms
+
+# Django 2.2 does not support this format by default
+INPUT_FORMATS = [
+    '%Y-%m-%dT%H:%M:%S',
+]
 
 
 class HarvestForm(forms.Form):
-    from_dt = forms.DateTimeField(required=True)
-    until_dt = forms.DateTimeField(required=False)
+    from_dt = forms.DateTimeField(required=True, input_formats=INPUT_FORMATS)
+    until_dt = forms.DateTimeField(required=False, input_formats=INPUT_FORMATS)
     offset = forms.IntegerField(required=False)
     limit = forms.IntegerField(required=False, min_value=0)
-    order = forms.JSONField(required=False, max_length=2, min_length=2, empty_value=False)
+    # compatibility with Django 2.2
+    order = forms.CharField(required=False)
 
     def clean(self):
         cleaned_data = super().clean()
@@ -34,6 +42,10 @@ class HarvestForm(forms.Form):
 
         order = self.cleaned_data.get('order')
         if order:
+            try:
+                order = json.loads(order)
+            except json.decoder.JSONDecodeError:
+                raise forms.ValidationError('Ensure "order" is valid json')
             for key, value in order.items():
                 if key not in ALLOWED_ORDER_KEYS:
                     raise forms.ValidationError('Ensure only "column" and "order" are set as keys')
