@@ -236,7 +236,6 @@ def test_get_harvest_default_ordering(db, http_client):
 
     query = {
         'from_dt': '2022-11-07T07:00:00',
-        # 'order': json.dumps({'av': 'sdfsfs'})
     }
     response = http_client.get('/api/harvest', query)
     assert response.status_code == 200
@@ -328,6 +327,19 @@ def test_get_harvest_error_from_dt_later_until_dt(http_client):
     assert response_data['errors'] == {
         'from_dt': ['Ensure the value is not later than until_dt'],
         'until_dt': ['Ensure the value is not earlier than from_dt']
+    }
+
+
+def test_get_harvest_error_invalid_json(http_client):
+    query = {
+        'from_dt': '2022-12-13T07:00:00',
+        'order': 'not valid'
+    }
+    response = http_client.get('/api/harvest', query)
+    assert response.status_code == 400
+    response_data = response.json()
+    assert response_data['errors'] == {
+        'order': ['Ensure "order" is valid json']
     }
 
 

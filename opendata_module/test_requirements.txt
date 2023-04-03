@@ -4,7 +4,6 @@ pytest-mock
 pytest-pycodestyle
 mongomock
 psycopg2-binary
-django==3.2.18
 pytest-django
 python-dateutil
 freezegun
