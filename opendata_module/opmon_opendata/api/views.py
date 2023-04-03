@@ -24,7 +24,7 @@ import traceback
 from datetime import datetime
 from gzip import GzipFile
 from io import BytesIO
-from typing import List, Optional, TypedDict
+from typing import List, Optional, Tuple, TypedDict
 
 from dateutil import relativedelta
 from django.core.cache import cache
@@ -355,7 +355,7 @@ def _generate_ndjson_stream(postgres, date, columns, constraints, order_clauses,
 def _get_harvest_rows(
         postgres: PostgreSQL_Manager, from_dt: datetime, until_dt: Optional[datetime] = None,
         limit: Optional[int] = None, offset: Optional[int] = None, order_by: Optional[List[OrderByType]] = None
-):
+) -> Tuple[List[Tuple], List[str]]:
     """
     Retrieve harvested data from a PostgreSQL database based on the provided parameters.
 

@@ -195,7 +195,7 @@ def test_get_harvest_from(db, http_client, caplog):
     ('2023-01-07T08:00:00', [], False)
 ])
 def test_get_harvest_columns(db, http_client, from_dt, expected_columns, has_data):
-    # Do not return columns if for empty data
+    # Do not return columns for empty data
     log_factory(db, request_in_dt='2022-11-07T08:00:00')
     data = {
         'from_dt': from_dt,
