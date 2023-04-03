@@ -11,6 +11,38 @@ from django.test import Client
 from freezegun import freeze_time
 
 
+COLUMNS = [
+    'clientmemberclass',
+    'clientmembercode',
+    'clientsubsystemcode',
+    'clientxroadinstance',
+    'messageid',
+    'messageprotocolversion',
+    'producerdurationproducerview',
+    'representedpartyclass',
+    'representedpartycode',
+    'requestattachmentcount',
+    'requestints',
+    'requestindate',
+    'requestmimesize',
+    'responseattachmentcount',
+    'requestsize',
+    'responsemimesize',
+    'responsesize',
+    'securityservertype',
+    'servicecode',
+    'servicememberclass',
+    'servicemembercode',
+    'servicesubsystemcode',
+    'servicetype',
+    'serviceversion',
+    'servicexroadinstance',
+    'succeeded',
+    'totalduration',
+]
+COLUMNS_AND_TYPES = [(column, '_') for column in COLUMNS]
+
+
 class MockSQLiteCursor(object):
     def __init__(self, sql_session):
         self._sql_session = sql_session
@@ -92,7 +124,10 @@ def http_client():
 
 @pytest.fixture
 def db(mocker):
-    mocker.patch('opmon_opendata.api.postgresql_manager.PostgreSQL_Manager.get_column_names_and_types')
+    mocker.patch(
+        'opmon_opendata.api.postgresql_manager.PostgreSQL_Manager.get_column_names_and_types',
+        return_value=COLUMNS_AND_TYPES
+    )
     connection = sqlite3.connect(':memory:')
     db_session = connection.cursor()
     db_session.execute("""CREATE TABLE logs (
@@ -153,6 +188,23 @@ def test_get_harvest_from(db, http_client, caplog):
     assert len(data) == 2
     assert 'api_get_harvest_response_success' in caplog.text
     assert 'returning 2 rows' in caplog.text
+
+
+@pytest.mark.parametrize('from_dt,expected_columns, has_data', [
+    ('2011-11-07T08:00:00', COLUMNS, True),
+    ('2023-01-07T08:00:00', [], False)
+])
+def test_get_harvest_columns(db, http_client, from_dt, expected_columns, has_data):
+    # Do not return columns for empty data
+    log_factory(db, request_in_dt='2022-11-07T08:00:00')
+    data = {
+        'from_dt': from_dt,
+    }
+    response = http_client.get('/api/harvest', data)
+    assert response.status_code == 200
+    response_data = response.json()
+    assert bool(response_data['data']) == has_data
+    assert response_data['columns'] == expected_columns
 
 
 def test_get_harvest_from_until(db, http_client):
