@@ -20,7 +20,7 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
 
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import psycopg2 as pg
 from dateutil import relativedelta
@@ -48,6 +48,33 @@ class PostgreSQL_Manager(object):
             data = cursor.fetchall()
 
         return [(self._field_name_map[name], type_) for name, type_ in data]
+
+    def get_rows_count(self, constraints) -> Tuple[int]:
+        """
+        Returns the number of rows in the specified table that satisfy the given constraints.
+
+        :param constraints: A list of tuples containing the constraints to be applied to the query
+
+        :return: tuple: A tuple containing a single element which is the number of rows that satisfy the constraints.
+        """
+        with pg.connect(self._connection_string, **self._connect_args) as connection:
+            cursor = connection.cursor()
+
+            subquery_name = 'T'
+            request_in_date_constraint_str, other_constraints_str = self._get_constraints_string(cursor, constraints,
+                                                                                                 subquery_name)
+            cursor.execute(
+                ('SELECT COUNT(*) FROM (SELECT * '
+                 'FROM {table_name} {request_in_date_constraint}) as {subquery_name} {other_constraints}').format(
+                    **{
+                        'table_name': self._table_name,
+                        'request_in_date_constraint': request_in_date_constraint_str,
+                        'other_constraints': other_constraints_str,
+                        'subquery_name': subquery_name,
+                    }
+                )
+            )
+            return cursor.fetchone()
 
     def get_data_cursor(
         self, constraints: Optional[List] = None, order_by: Optional[List] = None,

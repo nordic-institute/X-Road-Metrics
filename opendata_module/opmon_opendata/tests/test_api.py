@@ -2,14 +2,13 @@ import datetime
 import json
 import os
 import pathlib
-import random
 import sqlite3
 from logging import StreamHandler
 
 import pytest
+import pytz
 from django.test import Client
 from freezegun import freeze_time
-
 
 COLUMNS = [
     'clientmemberclass',
@@ -63,6 +62,9 @@ class MockSQLiteCursor(object):
 
     def fetchall(self, *args, **kwargs):
         return self._sql_session.fetchall(*args, **kwargs)
+
+    def fetchone(self, *args, **kwargs):
+        return self._sql_session.fetchone(*args, **kwargs)
 
 
 class MockPsyContextManager(object):
@@ -190,6 +192,61 @@ def test_get_harvest_from(db, http_client, caplog):
     assert 'returning 2 rows' in caplog.text
 
 
+def test_get_harvest_from_row_id(db, http_client):
+
+    log_factory(db, request_in_dt='2022-11-07T07:50:00', id=1)
+    log_factory(db, request_in_dt='2022-11-07T08:00:00', id=2)
+
+    # happy logs
+    log_factory(db, request_in_dt='2022-11-07T09:00:00', id=3)
+    log_factory(db, request_in_dt='2022-11-07T10:00:00', id=4)
+    log_factory(db, request_in_dt='2022-11-07T11:00:00', id=5)
+
+    data = {
+        'from_dt': '2022-11-07T07:00:00',
+        'from_row_id': 2,
+    }
+    response = http_client.get('/api/harvest', data)
+    assert response.status_code == 200
+    response_data = response.json()
+    data = response_data.get('data')
+    assert len(data) == 3
+
+
+def test_get_harvest_timestamp_tz(db, http_client):
+    tzinfo = pytz.timezone('Europe/Helsinki')
+    log_factory(db, request_in_dt=datetime.datetime(2022, 11, 7, 7, tzinfo=tzinfo))
+    log_factory(db, request_in_dt=datetime.datetime(2022, 11, 7, 8, tzinfo=tzinfo))
+
+    # happy logs
+    log_factory(db, request_in_dt=datetime.datetime(2022, 11, 7, 9, tzinfo=tzinfo))
+    log_factory(db, request_in_dt=datetime.datetime(2022, 11, 7, 10, tzinfo=tzinfo))
+    log_factory(db, request_in_dt=datetime.datetime(2022, 11, 7, 11, tzinfo=tzinfo))
+
+    data = {
+        'from_dt': '2022-11-07T09:00:00',
+        'timestamp_tz': 'Europe/Helsinki'
+    }
+    response = http_client.get('/api/harvest', data)
+    assert response.status_code == 200
+    response_data = response.json()
+    data = response_data.get('data')
+    assert len(data) == 3
+
+
+def test_get_harvest_timestamp_tz_not_valid(db, http_client):
+    data = {
+        'from_dt': '2022-11-07T09:00:00',
+        'timestamp_tz': 'Not valid'
+    }
+    response = http_client.get('/api/harvest', data)
+    assert response.status_code == 400
+    response_data = response.json()
+    assert response_data['errors'] == {
+        'timestamp_tz': ['Ensure the value is valid timezone']
+    }
+
+
 @pytest.mark.parametrize('from_dt,expected_columns, has_data', [
     ('2011-11-07T08:00:00', COLUMNS, True),
     ('2023-01-07T08:00:00', [], False)
@@ -252,6 +309,23 @@ def test_get_harvest_from_with_limit(db, http_client):
         '2022-11-08',
         '2022-11-09'
     ]
+
+
+def test_get_harvest_total_query_count(db, http_client):
+    log_factory(db, request_in_dt='2022-11-10T08:00:00')
+    log_factory(db, request_in_dt='2022-11-08T08:20:00')
+    log_factory(db, request_in_dt='2022-11-05T08:47:00')
+    log_factory(db, request_in_dt='2022-11-09T09:30:00')
+    log_factory(db, request_in_dt='2022-11-07T10:34:00')
+
+    query = {
+        'from_dt': '2022-11-05T08:00:00',
+        'limit': 1
+    }
+    response = http_client.get('/api/harvest', query)
+    assert response.status_code == 200
+    response_data = response.json()
+    assert response_data['total_query_count'] == 5
 
 
 def test_get_harvest_from_with_limit_offset(db, http_client):
@@ -469,7 +543,7 @@ def log_factory(db_session, request_in_dt=None, **kwargs):
 
 def make_log(db_session, **kwargs):
     defaults = {
-        'id': random.randint(1000, 999000),
+        'id': 0,
         'requestints': 1667854800000,
         'clientmemberclass': 'ORG',
         'clientmembercode': '2908758-4',
