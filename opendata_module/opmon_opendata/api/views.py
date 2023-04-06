@@ -131,7 +131,6 @@ def get_harvest_data(request: WSGIRequest, profile: Optional[str] = None) -> Htt
 
     :return: A JSON response. If an error occurs, an error message is returned in the response.
     """
-    # TODO: types
 
     if request.method != 'GET':
         return HttpResponse(
@@ -163,13 +162,15 @@ def get_harvest_data(request: WSGIRequest, profile: Optional[str] = None) -> Htt
     until_dt = cleaned_data.get('until_dt')
     limit = cleaned_data.get('limit')
     offset = cleaned_data.get('offset')
+    from_row_id = cleaned_data.get('from_row_id')
+
     order_by = None
     if cleaned_data.get('order'):
         order: OrderByType = cleaned_data['order']
         order_by = [order]
     try:
-        rows, columns = _get_harvest_rows(postgres, from_dt, until_dt=until_dt,
-                                          limit=limit, offset=offset, order_by=order_by)
+        rows, columns, total_query_count = _get_harvest_rows(postgres, from_dt, until_dt=until_dt,
+                                                             limit=limit, offset=offset, from_row_id=from_row_id, order_by=order_by)
     except Exception as exec_info:
         logger.log_error('api_get_harvest_query_failed', str(exec_info))
         return HttpResponse(
@@ -181,6 +182,7 @@ def get_harvest_data(request: WSGIRequest, profile: Optional[str] = None) -> Htt
     return_value = {
         'data': [[escape(str(element)) for element in row] for row in rows],
         'columns': columns if rows else [],
+        'total_query_count': total_query_count[0] if rows else None
     }
 
     logger.log_info('api_get_harvest_response_success', f'returning {len(rows)} rows')
@@ -353,9 +355,14 @@ def _generate_ndjson_stream(postgres, date, columns, constraints, order_clauses,
 
 
 def _get_harvest_rows(
-        postgres: PostgreSQL_Manager, from_dt: datetime, until_dt: Optional[datetime] = None,
-        limit: Optional[int] = None, offset: Optional[int] = None, order_by: Optional[List[OrderByType]] = None
-) -> Tuple[List[Tuple], List[str]]:
+    postgres: PostgreSQL_Manager,
+    from_dt: datetime,
+    until_dt: Optional[datetime] = None,
+    limit: Optional[int] = None,
+    offset: Optional[int] = None,
+    from_row_id: Optional[int] = None,
+    order_by: Optional[List[OrderByType]] = None
+) -> Tuple[List[Tuple], List[str], Tuple[int]]:
     """
     Retrieve harvested data from a PostgreSQL database based on the provided parameters.
 
@@ -364,13 +371,17 @@ def _get_harvest_rows(
     :param until_dt: A datetime object representing the end date/time for the harvest. Default is None.
     :param limit: An integer representing the maximum number of rows to return. Default is None.
     :param offset: An integer representing the offset for the returned rows. Default is None.
+    :param from_row_id: A integer representing the start row id for the harvest. Default is None.
     :param order_by: A list of dictionaries representing the column and order to use for sorting the results. Default is None.
 
-    :return: A list of tuples representing the harvested data from the PostgreSQL database.
+    :return: A tuple of list of tuples representing the harvested data from the PostgreSQL database.
     If an error occurs, an empty list is returned.
     """
     if not order_by:
-        order_by = [{'column': 'requestints', 'order': 'ASC'}]
+        order_by = [
+            {'column': 'requestints', 'order': 'ASC'},
+            {'column': 'id', 'order': 'ASC'}
+        ]
     constraints = [
         {
             'column': 'requestints',
@@ -389,14 +400,25 @@ def _get_harvest_rows(
             }
         )
 
+    if from_row_id:
+        constraints.append(
+            {
+                'column': 'id',
+                'operator': '>',
+                'value': int(from_row_id)
+            }
+        )
+
     column_names_and_types = postgres.get_column_names_and_types()
 
     columns = [column_name for column_name, _ in column_names_and_types]
 
+    total_query_count = postgres.get_rows_count(constraints)
+
     data_cursor = postgres.get_data_cursor(
         constraints=constraints, columns=columns, order_by=order_by, limit=limit, offset=offset)
 
-    return data_cursor.fetchall(), columns
+    return data_cursor.fetchall(), columns, total_query_count
 
 
 def _get_content(postgres, date, columns, constraints, order_clauses, limit=None):

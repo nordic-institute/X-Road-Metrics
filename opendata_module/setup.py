@@ -31,7 +31,8 @@ requirements = [
     'pymongo==3.10.1',
     'pyyaml==5.4.1',
     'psycopg2==2.8.6',
-    'python-dateutil==2.8.1'
+    'python-dateutil==2.8.1',
+    'pytz==2023.3'
 ]
 
 classifiers = [

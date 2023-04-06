@@ -8,3 +8,4 @@ pytest-django
 python-dateutil
 freezegun
 django-stubs
+pytz
