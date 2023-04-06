@@ -1,8 +1,8 @@
 import datetime
 import json
 
-import pytz
 from django import forms
+import pytz
 
 # Django 2.2 does not support this format by default
 INPUT_FORMATS = [
@@ -11,14 +11,8 @@ INPUT_FORMATS = [
 
 
 class HarvestForm(forms.Form):
-    from_dt = forms.DateTimeField(
-        required=True,
-        input_formats=INPUT_FORMATS,
-    )
-    until_dt = forms.DateTimeField(
-        required=False,
-        input_formats=INPUT_FORMATS,
-    )
+    from_dt = forms.DateTimeField(required=True, input_formats=INPUT_FORMATS)
+    until_dt = forms.DateTimeField(required=False, input_formats=INPUT_FORMATS)
     offset = forms.IntegerField(required=False)
     limit = forms.IntegerField(required=False, min_value=0)
     from_row_id = forms.IntegerField(required=False)

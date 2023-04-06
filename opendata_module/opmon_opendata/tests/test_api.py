@@ -193,7 +193,6 @@ def test_get_harvest_from(db, http_client, caplog):
 
 
 def test_get_harvest_from_row_id(db, http_client):
-
     log_factory(db, request_in_dt='2022-11-07T07:50:00', id=1)
     log_factory(db, request_in_dt='2022-11-07T08:00:00', id=2)
 
@@ -231,7 +230,8 @@ def test_get_harvest_timestamp_tz(db, http_client):
     assert response.status_code == 200
     response_data = response.json()
     data = response_data.get('data')
-    assert len(data) == 3
+    actual_request_in_dates = [row[10] for row in data]
+    assert actual_request_in_dates == ['1667805600000', '1667809200000', '1667812800000']
 
 
 def test_get_harvest_timestamp_tz_not_valid(db, http_client):

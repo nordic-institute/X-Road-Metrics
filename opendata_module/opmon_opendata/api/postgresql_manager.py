@@ -20,7 +20,7 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
 
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import psycopg2 as pg
 from dateutil import relativedelta
@@ -49,7 +49,7 @@ class PostgreSQL_Manager(object):
 
         return [(self._field_name_map[name], type_) for name, type_ in data]
 
-    def get_rows_count(self, constraints) -> Tuple[int]:
+    def get_rows_count(self, constraints: List[Dict[str, object]]) -> Tuple[int]:
         """
         Returns the number of rows in the specified table that satisfy the given constraints.
 
