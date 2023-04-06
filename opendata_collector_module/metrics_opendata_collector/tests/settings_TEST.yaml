@@ -1,11 +1,11 @@
 opendata-collector:
-  instance: TEST
+  instance: PLAYGROUND
   sources-settings-path: test_opendata_sources_settings.yaml
   sources-settings:
 mongodb:
   host: localhost
-  user: test_user
-  password: test_password
+  user: corrector_PLAYGROUND
+  password: corrector_pwd
   # set to True to enable secure connection
   tls:
   # path to CA pem file

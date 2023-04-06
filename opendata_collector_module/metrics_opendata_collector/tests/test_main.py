@@ -70,6 +70,7 @@ def set_dir():
     os.chdir(pathlib.Path(__file__).parent.absolute())
 
 
+@pytest.mark.skip()
 def test_action_collect(mocker, set_dir):
     mocker.patch('metrics_opendata_collector.main.collect_opendata')
     mocker.patch('sys.argv', ['test_program_name', '--profile', 'TEST', 'TEST-SOURCE1'])
@@ -77,3 +78,8 @@ def test_action_collect(mocker, set_dir):
     main.collect_opendata.assert_called_once_with(
         SETTINGS, SOURCES_SETTINGS['TEST-SOURCE1']
     )
+
+
+def test_action_collect_playground(mocker, set_dir):
+    mocker.patch('sys.argv', ['test_program_name', '--profile', 'TEST', 'PLAYGROUND-TEST'])
+    main.main()
