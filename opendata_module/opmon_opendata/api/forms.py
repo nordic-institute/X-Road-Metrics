@@ -6,7 +6,7 @@ import pytz
 
 # Django 2.2 does not support this format by default
 INPUT_FORMATS = [
-    '%Y-%m-%dT%H:%M:%S',
+    '%Y-%m-%dT%H:%M:%S%z',
 ]
 
 
@@ -18,23 +18,11 @@ class HarvestForm(forms.Form):
     from_row_id = forms.IntegerField(required=False)
     # compatibility with Django 2.2
     order = forms.CharField(required=False)
-    timestamp_tz = forms.CharField(required=False)
 
     def clean(self):
         cleaned_data = super().clean()
-        tz = pytz.utc
-        if cleaned_data.get('timestamp_tz'):
-            tz = pytz.timezone(cleaned_data['timestamp_tz'])
         from_dt = cleaned_data.get('from_dt')
-        if from_dt:
-            cleaned_data['from_dt'] = from_dt.replace(
-                tzinfo=tz
-            )
         until_dt = cleaned_data.get('until_dt')
-        if until_dt:
-            cleaned_data['until_dt'] = until_dt.replace(
-                tzinfo=tz
-            )
         if from_dt and until_dt:
             if from_dt > until_dt:
                 self.add_error('from_dt', 'Ensure the value is not later than until_dt')
@@ -66,14 +54,3 @@ class HarvestForm(forms.Form):
             if order['order'].upper() not in ALLOWED_ORDER_ORDER_VALUES:
                 raise forms.ValidationError('Ensure only "ASC" or "DESC" is set for order')
         return order
-
-    def clean_timestamp_tz(self):
-        timestamp_tz_value = self.cleaned_data.get('timestamp_tz')
-        if timestamp_tz_value:
-            try:
-                pytz.timezone(timestamp_tz_value)
-            except pytz.exceptions.UnknownTimeZoneError:
-                raise forms.ValidationError(
-                    'Ensure the value is valid timezone'
-                )
-        return timestamp_tz_value
