@@ -2,7 +2,6 @@ import datetime
 import json
 
 from django import forms
-import pytz
 
 # Django 2.2 does not support this format by default
 INPUT_FORMATS = [
