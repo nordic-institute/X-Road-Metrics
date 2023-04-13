@@ -182,7 +182,8 @@ def get_harvest_data(request: WSGIRequest, profile: Optional[str] = None) -> Htt
     return_value = {
         'data': [[escape(str(element)) for element in row] for row in rows],
         'columns': columns if rows else [],
-        'total_query_count': total_query_count[0] if rows else None
+        'total_query_count': total_query_count[0] if rows else None,
+        'timestamp_tz_offset': from_dt.strftime('%z')
     }
 
     logger.log_info('api_get_harvest_response_success', f'returning {len(rows)} rows')

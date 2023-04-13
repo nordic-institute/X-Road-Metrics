@@ -187,6 +187,7 @@ def test_get_harvest_from(db, http_client, caplog):
     assert response.status_code == 200
     response_data = response.json()
     data = response_data.get('data')
+    assert response_data['timestamp_tz_offset'] == '+0000'
     assert len(data) == 2
     assert 'api_get_harvest_response_success' in caplog.text
     assert 'returning 2 rows' in caplog.text
@@ -231,6 +232,7 @@ def test_get_harvest_timestamp_tz(db, http_client):
     data = response_data.get('data')
     actual_request_in_dates = [row[10] for row in data]
     assert actual_request_in_dates == ['1667805600000', '1667809200000', '1667812800000']
+    assert response_data['timestamp_tz_offset'] == '+0200'
 
 
 @pytest.mark.parametrize('from_dt,expected_columns, has_data', [
