@@ -23,12 +23,13 @@ Unit tests for main.py
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
 
-import pathlib
 import os
+import pathlib
+from logging import StreamHandler
+
 import pytest
 
 import metrics_opendata_collector.main as main
-
 
 SOURCES_SETTINGS = {
     'TEST-SOURCE1': {
@@ -64,22 +65,32 @@ SETTINGS = {
 }
 
 
+@pytest.fixture(autouse=True)
+def mock_logger_manager(mocker):
+    mocker.patch(
+        'metrics_opendata_collector.logger_manager.LoggerManager._create_file_handler',
+        return_value=StreamHandler()
+    )
+    yield mocker.Mock()
+
+
 @pytest.fixture
 def set_dir():
     # take settings files from tests dir
     os.chdir(pathlib.Path(__file__).parent.absolute())
 
 
-@pytest.mark.skip()
+# @pytest.mark.skip()
 def test_action_collect(mocker, set_dir):
-    mocker.patch('metrics_opendata_collector.main.collect_opendata')
+    mocker.patch('metrics_opendata_collector.main.Process')
+    # mocker.patch('metrics_opendata_collector.main.collect_opendata')
     mocker.patch('sys.argv', ['test_program_name', '--profile', 'TEST', 'TEST-SOURCE1'])
     main.main()
     main.collect_opendata.assert_called_once_with(
-        SETTINGS, SOURCES_SETTINGS['TEST-SOURCE1']
+        'TEST-SOURCE1', SETTINGS, SOURCES_SETTINGS['TEST-SOURCE1']
     )
 
 
-def test_action_collect_playground(mocker, set_dir):
-    mocker.patch('sys.argv', ['test_program_name', '--profile', 'TEST', 'PLAYGROUND-TEST'])
-    main.main()
+# def test_action_collect_playground(mocker, set_dir):
+#     mocker.patch('sys.argv', ['test_program_name', '--profile', 'TEST', 'PLAYGROUND-TEST'])
+#     main.main()

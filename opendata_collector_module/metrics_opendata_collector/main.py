@@ -23,6 +23,7 @@
 #  THE SOFTWARE.
 
 import argparse
+from multiprocessing import Process
 
 from metrics_opendata_collector.opendata_collector import collect_opendata
 from metrics_opendata_collector.settings import MetricsSettingsManager
@@ -34,7 +35,16 @@ def main():
 
     settings = settings_manager.settings
     open_data_source_settings = settings['opendata-collector']['sources-settings'][args.source_id]
-    collect_opendata(settings, open_data_source_settings)
+    p = Process(
+        target=collect_opendata,
+        args=(
+            args.source_id,
+            settings,
+            open_data_source_settings,
+        )
+    )
+    p.start()
+    p.join()
 
 
 def parse_args():
@@ -52,7 +62,7 @@ def parse_args():
                             For example with '--profile PROD' settings_PROD.yaml will be used as settings file.
                             If no profile is defined, settings.yaml will be used by default.
                             Settings file is searched from current working directory and /etc/xroad-metrics/opendata-collector/
-                        """.strip()
+                        """.strip()  # noqa
                         )
     args = parser.parse_args()
 

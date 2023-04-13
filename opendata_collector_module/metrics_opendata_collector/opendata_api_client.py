@@ -20,4 +20,39 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
 
-__version__ = '0.1.0'
+
+import urllib
+
+import requests
+
+
+class OpenDataAPIClient:
+    def __init__(self, xroad_settings, source_settings):
+        self.source_settings = source_settings
+        self.url = self.source_settings['url']
+        self.timeout = xroad_settings.get('timeout') or 10
+
+    def _get_request_params(self, overrides={}):
+        params = {
+            'from_dt': self.source_settings['from_dt'].isoformat(),
+            'timestamp_tz': self.source_settings.get('timestamp_tz'),
+            'limit': self.source_settings['limit']
+        }
+        if overrides.get('from_row_id'):
+            params['from_row_id'] = overrides['from_row_id']
+
+        if overrides.get('offset'):
+            params['offset'] = overrides['offset']
+
+        return params
+
+    def get_opendata(self, params_overrides={}):
+        params = self._get_request_params(params_overrides)
+
+        encoded_params = urllib.parse.urlencode(params)
+        get_url = f'{self.url}?{encoded_params}'
+
+        response = requests.get(get_url, timeout=self.timeout)
+        response.raise_for_status()
+        response_data = response.json()
+        return response_data['data'], response_data['columns'], response_data['total_query_count']

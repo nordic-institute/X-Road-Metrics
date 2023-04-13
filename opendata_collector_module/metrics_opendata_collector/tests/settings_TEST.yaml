@@ -1,5 +1,6 @@
-opendata-collector:
+xroad:
   instance: PLAYGROUND
+opendata-collector:
   sources-settings-path: test_opendata_sources_settings.yaml
   sources-settings:
 mongodb:
