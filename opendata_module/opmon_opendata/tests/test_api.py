@@ -181,12 +181,13 @@ def test_get_harvest_from(db, http_client, caplog):
     log_factory(db, request_in_dt=now)
 
     data = {
-        'from_dt': '2022-11-07T08:00:00',
+        'from_dt': '2022-11-07T08:00:00+0000',
     }
     response = http_client.get('/api/harvest', data)
     assert response.status_code == 200
     response_data = response.json()
     data = response_data.get('data')
+    assert response_data['timestamp_tz_offset'] == '+0000'
     assert len(data) == 2
     assert 'api_get_harvest_response_success' in caplog.text
     assert 'returning 2 rows' in caplog.text
@@ -202,7 +203,7 @@ def test_get_harvest_from_row_id(db, http_client):
     log_factory(db, request_in_dt='2022-11-07T11:00:00', id=5)
 
     data = {
-        'from_dt': '2022-11-07T07:00:00',
+        'from_dt': '2022-11-07T07:00:00+0000',
         'from_row_id': 2,
     }
     response = http_client.get('/api/harvest', data)
@@ -223,8 +224,7 @@ def test_get_harvest_timestamp_tz(db, http_client):
     log_factory(db, request_in_dt=datetime.datetime(2022, 11, 7, 11, tzinfo=tzinfo))
 
     data = {
-        'from_dt': '2022-11-07T09:00:00',
-        'timestamp_tz': 'Europe/Helsinki'
+        'from_dt': '2022-11-07T09:00:00+0200',
     }
     response = http_client.get('/api/harvest', data)
     assert response.status_code == 200
@@ -232,24 +232,12 @@ def test_get_harvest_timestamp_tz(db, http_client):
     data = response_data.get('data')
     actual_request_in_dates = [row[10] for row in data]
     assert actual_request_in_dates == ['1667805600000', '1667809200000', '1667812800000']
-
-
-def test_get_harvest_timestamp_tz_not_valid(db, http_client):
-    data = {
-        'from_dt': '2022-11-07T09:00:00',
-        'timestamp_tz': 'Not valid'
-    }
-    response = http_client.get('/api/harvest', data)
-    assert response.status_code == 400
-    response_data = response.json()
-    assert response_data['errors'] == {
-        'timestamp_tz': ['Ensure the value is valid timezone']
-    }
+    assert response_data['timestamp_tz_offset'] == '+0200'
 
 
 @pytest.mark.parametrize('from_dt,expected_columns, has_data', [
-    ('2011-11-07T08:00:00', COLUMNS, True),
-    ('2023-01-07T08:00:00', [], False)
+    ('2011-11-07T08:00:00+0000', COLUMNS, True),
+    ('2023-01-07T08:00:00+0000', [], False)
 ])
 def test_get_harvest_columns(db, http_client, from_dt, expected_columns, has_data):
     # Do not return columns for empty data
@@ -276,8 +264,8 @@ def test_get_harvest_from_until(db, http_client):
     log_factory(db, request_in_dt='2022-11-07T09:15:00')
 
     query = {
-        'from_dt': '2022-11-07T08:00:00',
-        'until_dt': '2022-11-07T09:00:00',
+        'from_dt': '2022-11-07T08:00:00+0000',
+        'until_dt': '2022-11-07T09:00:00+0000',
     }
     response = http_client.get('/api/harvest', query)
     assert response.status_code == 200
@@ -294,7 +282,7 @@ def test_get_harvest_from_with_limit(db, http_client):
     log_factory(db, request_in_dt='2022-11-07T10:34:00')
 
     query = {
-        'from_dt': '2022-11-05T08:00:00',
+        'from_dt': '2022-11-05T08:00:00+0000',
         'limit': 4
     }
     response = http_client.get('/api/harvest', query)
@@ -319,7 +307,7 @@ def test_get_harvest_total_query_count(db, http_client):
     log_factory(db, request_in_dt='2022-11-07T10:34:00')
 
     query = {
-        'from_dt': '2022-11-05T08:00:00',
+        'from_dt': '2022-11-05T08:00:00+0000',
         'limit': 1
     }
     response = http_client.get('/api/harvest', query)
@@ -336,7 +324,7 @@ def test_get_harvest_from_with_limit_offset(db, http_client):
     log_factory(db, request_in_dt='2022-11-07T10:34:00')
 
     query = {
-        'from_dt': '2022-11-05T07:00:00',
+        'from_dt': '2022-11-05T07:00:00+0000',
         'limit': 4,
         'offset': 2
     }
@@ -361,7 +349,7 @@ def test_get_harvest_default_ordering(db, http_client):
     log_factory(db, request_in_dt='2022-11-13T08:20:00')
 
     query = {
-        'from_dt': '2022-11-07T07:00:00',
+        'from_dt': '2022-11-07T07:00:00+0000',
     }
     response = http_client.get('/api/harvest', query)
     assert response.status_code == 200
@@ -402,7 +390,7 @@ def test_get_harvest_ordering_requestinsize(db, http_client, ordering, expected_
     log_factory(db, request_in_dt='2022-11-12T08:00:00', requestsize=25)
 
     query = {
-        'from_dt': '2022-11-07T07:00:00',
+        'from_dt': '2022-11-07T07:00:00+0000',
         'order': json.dumps({
             'column': 'requestsize',
             'order': ordering,
@@ -432,7 +420,7 @@ def test_get_harvest_error_missing_from_dt(http_client, caplog):
 @freeze_time('2022-12-10')
 def test_get_harvest_error_from_dt_later_now(http_client):
     query = {
-        'from_dt': '2022-12-11T07:00:00',
+        'from_dt': '2022-12-11T07:00:00+0000',
     }
     response = http_client.get('/api/harvest', query)
     assert response.status_code == 400
@@ -444,8 +432,8 @@ def test_get_harvest_error_from_dt_later_now(http_client):
 
 def test_get_harvest_error_from_dt_later_until_dt(http_client):
     query = {
-        'from_dt': '2022-12-13T07:00:00',
-        'until_dt': '2022-12-11T07:00:00',
+        'from_dt': '2022-12-13T07:00:00+0000',
+        'until_dt': '2022-12-11T07:00:00+0000',
     }
     response = http_client.get('/api/harvest', query)
     assert response.status_code == 400
@@ -458,7 +446,7 @@ def test_get_harvest_error_from_dt_later_until_dt(http_client):
 
 def test_get_harvest_error_invalid_json(http_client):
     query = {
-        'from_dt': '2022-12-13T07:00:00',
+        'from_dt': '2022-12-13T07:00:00+0000',
         'order': 'not valid'
     }
     response = http_client.get('/api/harvest', query)
@@ -471,7 +459,7 @@ def test_get_harvest_error_invalid_json(http_client):
 
 def test_get_harvest_error_order_keys(http_client):
     query = {
-        'from_dt': '2022-12-13T07:00:00',
+        'from_dt': '2022-12-13T07:00:00+0000',
         'order': json.dumps({
             'column': 'requestsize',
             'notvalid': 'ASC',
@@ -487,7 +475,7 @@ def test_get_harvest_error_order_keys(http_client):
 
 def test_get_harvest_error_order_order_values(http_client):
     query = {
-        'from_dt': '2022-12-13T07:00:00',
+        'from_dt': '2022-12-13T07:00:00+0000',
         'order': json.dumps({
             'column': 'requestsize',
             'order': 'asce',
@@ -504,7 +492,7 @@ def test_get_harvest_error_order_order_values(http_client):
 def test_get_harvest_db_connection_error(http_client, caplog):
     # test failed connection to db handled successfully
     query = {
-        'from_dt': '2022-12-13T07:00:00',
+        'from_dt': '2022-12-13T07:00:00+0000',
     }
     response = http_client.get('/api/harvest', query)
     assert response.status_code == 500
@@ -515,7 +503,7 @@ def test_get_harvest_db_connection_error(http_client, caplog):
 
 def test_get_harvest_error_unsupported_method(http_client):
     query = {
-        'from_dt': '2022-12-13T07:00:00',
+        'from_dt': '2022-12-13T07:00:00+0000',
     }
     response = http_client.post('/api/harvest', query)
     assert response.status_code == 405
