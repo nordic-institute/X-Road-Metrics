@@ -169,8 +169,17 @@ def get_harvest_data(request: WSGIRequest, profile: Optional[str] = None) -> Htt
         order: OrderByType = cleaned_data['order']
         order_by = [order]
     try:
-        rows, columns, total_query_count = _get_harvest_rows(postgres, from_dt, until_dt=until_dt,
-                                                             limit=limit, offset=offset, from_row_id=from_row_id, order_by=order_by)
+        rows, columns, total_query_count = (
+            _get_harvest_rows(
+                postgres,
+                from_dt,
+                until_dt=until_dt,
+                limit=limit,
+                offset=offset,
+                from_row_id=from_row_id,
+                order_by=order_by
+            )
+        )
     except Exception as exec_info:
         logger.log_error('api_get_harvest_query_failed', str(exec_info))
         return HttpResponse(
@@ -179,11 +188,17 @@ def get_harvest_data(request: WSGIRequest, profile: Optional[str] = None) -> Htt
             status=500
         )
 
+    total_query_count = total_query_count[0] if rows else 0
+    limit = limit or 0
+    offset = offset or 0
+    from_range, to_range = _get_harvest_row_range(total_query_count, limit, offset)
     return_value = {
         'data': [[escape(str(element)) for element in row] for row in rows],
         'columns': columns if rows else [],
-        'total_query_count': total_query_count[0] if rows else None,
-        'timestamp_tz_offset': from_dt.strftime('%z')
+        'total_query_count': total_query_count,
+        'timestamp_tz_offset': from_dt.strftime('%z'),
+        'limit': limit,
+        'row_range': f'{from_range}-{to_range}'
     }
 
     logger.log_info('api_get_harvest_response_success', f'returning {len(rows)} rows')
@@ -478,3 +493,41 @@ def _validate_query(request, postgres, settings):
         validator.load_and_validate_constraints(request_data.get('constraints', '[]')),
         validator.load_and_validate_order_clauses(request_data.get('order-clauses', '[]'))
     )
+
+
+def _get_harvest_row_range(total_query_count: int, limit: int, offset: int) -> Tuple[int, int]:
+    """
+    Get the range of rows to be harvested based on the total query count, limit, and offset.
+    Args:
+        total_query_count (int): The total number of rows returned by the query.
+        limit (int): The maximum number of rows to harvest.
+        offset (int): The number of rows to skip before starting to harvest.
+
+    Returns:
+        Tuple[int, int]: A tuple of two integers representing the range of rows to harvest.
+        The first integer is the starting row index (inclusive), and the second integer is the ending row index (exclusive).
+
+    Raises:
+        None.
+    Example:
+        >>> _get_harvest_row_range(10, 5, 2)
+        (3, 7)
+    """  # noqa
+    if total_query_count:
+        if offset:
+            range_from = offset + 1
+        else:
+            range_from = 1
+    else:
+        range_from = 0
+
+    if limit:
+        if offset:
+            range_to = limit + offset
+        else:
+            range_to = limit
+    elif total_query_count:
+        range_to = total_query_count
+    else:
+        range_to = 0
+    return range_from, range_to

@@ -171,6 +171,22 @@ def db(mocker):
     connection.close()
 
 
+def test_get_harvest_empty_response(db, http_client):
+    data = {
+        'from_dt': '2022-11-07T08:00:00+0000',
+    }
+    response = http_client.get('/api/harvest', data)
+    assert response.status_code == 200
+    assert response.json() == {
+        'data': [],
+        'columns': [],
+        'total_query_count': 0,
+        'timestamp_tz_offset': '+0000',
+        'limit': 0,
+        'row_range': '0-0',
+    }
+
+
 def test_get_harvest_from(db, http_client, caplog):
     now = datetime.datetime.now()
 
@@ -191,6 +207,7 @@ def test_get_harvest_from(db, http_client, caplog):
     assert len(data) == 2
     assert 'api_get_harvest_response_success' in caplog.text
     assert 'returning 2 rows' in caplog.text
+    assert response_data['row_range'] == '1-2'
 
 
 def test_get_harvest_from_row_id(db, http_client):
@@ -211,6 +228,7 @@ def test_get_harvest_from_row_id(db, http_client):
     response_data = response.json()
     data = response_data.get('data')
     assert len(data) == 3
+    assert response_data['row_range'] == '1-3'
 
 
 def test_get_harvest_timestamp_tz(db, http_client):
@@ -271,6 +289,7 @@ def test_get_harvest_from_until(db, http_client):
     assert response.status_code == 200
     response_data = response.json()
     data = response_data.get('data')
+    assert response_data['row_range'] == '1-3'
     assert len(data) == 3
 
 
@@ -297,6 +316,8 @@ def test_get_harvest_from_with_limit(db, http_client):
         '2022-11-08',
         '2022-11-09'
     ]
+    assert response_data['limit'] == 4
+    assert response_data['row_range'] == '1-4'
 
 
 def test_get_harvest_total_query_count(db, http_client):
@@ -314,6 +335,7 @@ def test_get_harvest_total_query_count(db, http_client):
     assert response.status_code == 200
     response_data = response.json()
     assert response_data['total_query_count'] == 5
+    assert response_data['row_range'] == '1-1'
 
 
 def test_get_harvest_from_with_limit_offset(db, http_client):
@@ -339,6 +361,7 @@ def test_get_harvest_from_with_limit_offset(db, http_client):
         '2022-11-09',
         '2022-11-10'
     ]
+    assert response_data['row_range'] == '3-6'
 
 
 def test_get_harvest_default_ordering(db, http_client):
@@ -357,6 +380,7 @@ def test_get_harvest_default_ordering(db, http_client):
     data = response_data.get('data')
     assert len(data) == 5
     actual_request_in_dates = [row[11] for row in data]
+    assert response_data['row_range'] == '1-5'
     assert actual_request_in_dates == [
         '2022-11-07',
         '2022-11-12',
@@ -403,6 +427,7 @@ def test_get_harvest_ordering_requestinsize(db, http_client, ordering, expected_
     assert len(data) == 5
     actual_dates_request_sizes = [(row[11], row[14]) for row in data]
     assert actual_dates_request_sizes == expected_rows
+    assert response_data['row_range'] == '1-5'
 
 
 def test_get_harvest_error_missing_from_dt(http_client, caplog):
