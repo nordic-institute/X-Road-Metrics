@@ -187,6 +187,14 @@ def test_get_harvest_empty_response(db, http_client):
     }
 
 
+def test_get_harvest_from_tz_negative_offset(db, http_client):
+    data = {
+        'from_dt': '2022-11-07T08:00:00-0500',
+    }
+    response = http_client.get('/api/harvest', data)
+    assert response.status_code == 200
+
+
 def test_get_harvest_from(db, http_client, caplog):
     now = datetime.datetime.now()
 
@@ -231,7 +239,11 @@ def test_get_harvest_from_row_id(db, http_client):
     assert response_data['row_range'] == '1-3'
 
 
-def test_get_harvest_timestamp_tz(db, http_client):
+@pytest.mark.parametrize('from_dt', [
+    ('2022-11-07T09:00:00+0200'),
+    ('2022-11-07T09:00:00 0200')
+])
+def test_get_harvest_timestamp_tz(db, http_client, from_dt):
     tzinfo = pytz.timezone('Europe/Helsinki')
     log_factory(db, request_in_dt=datetime.datetime(2022, 11, 7, 7, tzinfo=tzinfo))
     log_factory(db, request_in_dt=datetime.datetime(2022, 11, 7, 8, tzinfo=tzinfo))
@@ -242,7 +254,7 @@ def test_get_harvest_timestamp_tz(db, http_client):
     log_factory(db, request_in_dt=datetime.datetime(2022, 11, 7, 11, tzinfo=tzinfo))
 
     data = {
-        'from_dt': '2022-11-07T09:00:00+0200',
+        'from_dt': from_dt,
     }
     response = http_client.get('/api/harvest', data)
     assert response.status_code == 200
@@ -452,6 +464,18 @@ def test_get_harvest_error_from_dt_later_now(http_client):
     response_data = response.json()
     assert response_data['errors'] == {
         'from_dt': ['Ensure the value is not later than the current date and time']
+    }
+
+
+def test_get_harvest_error_from_dt_format(http_client):
+    query = {
+        'from_dt': '2022-12-11T07:00:00'
+    }
+    response = http_client.get('/api/harvest', query)
+    assert response.status_code == 400
+    response_data = response.json()
+    assert response_data['errors'] == {
+        'from_dt': ['Ensure the value matches format %Y-%m-%dT%H:%M:%S%z']
     }
 
 
