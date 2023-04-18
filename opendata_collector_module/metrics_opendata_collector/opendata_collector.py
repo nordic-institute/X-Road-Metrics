@@ -21,31 +21,21 @@
 #  THE SOFTWARE.
 
 import datetime
-import requests
 from operator import itemgetter
+
+import requests
+
+from metrics_opendata_collector.logger_manager import LoggerManager
 from metrics_opendata_collector.mongodbmanager import MongoDbManager
 from metrics_opendata_collector.opendata_api_client import OpenDataAPIClient
-from metrics_opendata_collector.logger_manager import LoggerManager
+
 from . import __version__
-
-
-def _ts_to_isoformat_string(ts: int) -> str:
-    iso_format = '%Y-%m-%dT%H:%M:%S'
-    dt_object = datetime.datetime.fromtimestamp(ts)
-    return dt_object.strftime(iso_format)
-
-
-def insert_documents(mongo_manager, documents):
-    mongo_manager.insert_documents(documents)
-    docs_sorted = sorted(documents, key=itemgetter('requestInTs', 'id'), reverse=True)
-    mongo_manager.set_last_inserted_entry(docs_sorted[0])
 
 
 def collect_opendata(source_id: str, settings: dict, source_settings: dict):
     logger_m = LoggerManager(settings['logger'], settings['xroad']['instance'], __version__)
     mongo_manager = MongoDbManager(settings, source_id)
     client = OpenDataAPIClient(settings, source_settings)
-
 
     state = mongo_manager.get_last_inserted_entry()
     params_overrides = {}
@@ -55,74 +45,82 @@ def collect_opendata(source_id: str, settings: dict, source_settings: dict):
         )
         params_overrides['from_row_id'] = state['last_inserted_row_id']
 
-    if params_overrides:
-        logger_m.log_info(
-            'get_opendata',
-            f"Found opendata last inserted entry. Will fetch opendata from {params_overrides['from_dt']}"
+    params = client.get_request_params(params_overrides)
+    logger_m.log_info(
+        'get_opendata',
+        (
+            f'{source_id}: fetching opendata for {source_id} '
+            f'from_dt: {params["from_dt"]}, '
+            f'from_row_id: {params.get("from_row_id")}'
         )
-    else:
-        logger_m.log_info(
-            'get_opendata',
-            f"Last inserted entry was not found. Will fetch opendata from {source_settings['from_dt'].isoformat()}"
-        )
-
+    )
     try:
-        rows, columns, total_query_count = client.get_opendata(params_overrides)
+        data = client.get_opendata(params)
     except requests.exceptions.HTTPError as http_error:
         logger_m.log_error('get_opendata_main_failed', str(http_error))
         return
-
-    if not rows:
+    total_inserted = 0
+    rows = data['data']
+    columns = data['columns']
+    row_range = data['row_range']
+    total_query_count = data['total_query_count']
+    if rows:
         logger_m.log_info(
             'get_opendata',
-            "Opendata matching criteria was not found"
+            f'{source_id}: received {len(rows)} rows from total {total_query_count} within range {row_range}'
         )
-        return
-    logger_m.log_info(
-            'get_opendata',
-            f"Got {len(rows)} opendata documents"
-        )
-    documents = prepare_documents(rows, columns)
-    insert_documents(mongo_manager, documents)
-    logger_m.log_info(
-            'get_opendata',
-            f"Inserted {len(documents)} opendata documents into MongoDB"
-        )
-    total_inserted = len(documents)
-    if total_query_count > len(documents):
+        documents = _prepare_documents(rows, columns)
+        _insert_documents(mongo_manager, documents)
         logger_m.log_info(
             'get_opendata',
-            f"Total {total_query_count} opendata documents found. Will do paginated fetch"
+            f'{source_id}: inserted {len(documents)} opendata documents into MongoDB'
         )
-        # do paginated requests
-        limit = source_settings['limit']
-        offset = limit
-        while total_inserted < total_query_count:
-            params_overrides['offset'] = offset
-            try:
-                rows, _, _ = client.get_opendata(params_overrides)
-            except requests.exceptions.HTTPError as http_error:
-                logger_m.log_error('get_opendata_paginated_failed', str(http_error))
-                break
-            logger_m.log_info(
-                'get_opendata_paginated',
-                f"Got {len(rows)} opendata documents. With limit {limit}, offset {offset}"
-            )
-            documents = prepare_documents(rows, columns)
-            insert_documents(mongo_manager, documents)
-            logger_m.log_info(
-                'get_opendata_paginated',
-                f"Inserted {len(documents)} opendata documents into MongoDB"
-            )
-            total_inserted += len(documents)
-            offset += limit
+        total_inserted += len(documents)
+        if total_query_count > len(documents):
+            limit = source_settings['limit']
+            offset = limit
+            while total_inserted < total_query_count:
+                params['offset'] = offset
+                try:
+                    data = client.get_opendata(params)
+                except requests.exceptions.HTTPError as http_error:
+                    logger_m.log_error('get_opendata_failed', str(http_error))
+                    break
+                rows = data['data']
+                row_range = data['row_range']
+                total_query_count = data['total_query_count']
+                logger_m.log_info(
+                    'get_opendata',
+                    f'{source_id}: received {len(rows)} rows from total {total_query_count} within range {row_range}'
+                )
+                documents = _prepare_documents(rows, columns)
+                _insert_documents(mongo_manager, documents)
+                logger_m.log_info(
+                    'get_opendata',
+                    f'{source_id}: inserted {len(documents)} opendata documents into MongoDB'
+                )
+                total_inserted += len(documents)
+                offset += limit
 
     logger_m.log_info(
         'get_opendata',
-        f"Total inserted {total_inserted} opendata documents into MongoDB"
+        f'{source_id}: total inserted {total_inserted} opendata documents into MongoDB'
     )
 
-def prepare_documents(rows, columns):
+
+def _ts_to_isoformat_string(ts: int) -> str:
+    iso_format = '%Y-%m-%dT%H:%M:%S%z'
+    dt_object = datetime.datetime.fromtimestamp(ts)
+    return dt_object.strftime(iso_format)
+
+
+def _insert_documents(mongo_manager, documents):
+    mongo_manager.insert_documents(documents)
+    docs_sorted = sorted(documents, key=itemgetter('requestInTs', 'id'), reverse=True)
+    mongo_manager.set_last_inserted_entry(docs_sorted[0])
+
+
+def _prepare_documents(rows, columns):
     documents = []
     for data in rows:
         normalized = [None if entry == 'None' else entry for entry in data]

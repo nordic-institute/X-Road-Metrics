@@ -1,12 +1,6 @@
-PLAYGROUND-TEST:
-  url: http://localhost:8081/api/harvest
-  limit: 10
-  from_dt: 2022-12-05T00:00:00
-  timestamp_tz: Europe/Helsinki
 TEST-SOURCE1:
   url: test url
   limit: 1000
-
 TEST-SOURCE2:
   url: test url
   limit: 500

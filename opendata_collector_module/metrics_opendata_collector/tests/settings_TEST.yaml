@@ -1,12 +1,13 @@
 xroad:
-  instance: PLAYGROUND
+  instance: TEST
 opendata-collector:
+  thread-count: 1
   sources-settings-path: test_opendata_sources_settings.yaml
   sources-settings:
 mongodb:
   host: localhost
-  user: corrector_PLAYGROUND
-  password: corrector_pwd
+  user: test_user
+  password: test_password
   # set to True to enable secure connection
   tls:
   # path to CA pem file

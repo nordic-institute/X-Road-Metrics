@@ -32,10 +32,9 @@ class OpenDataAPIClient:
         self.url = self.source_settings['url']
         self.timeout = xroad_settings.get('timeout') or 10
 
-    def _get_request_params(self, overrides={}):
+    def get_request_params(self, overrides={}):
         params = {
-            'from_dt': self.source_settings['from_dt'].isoformat(),
-            'timestamp_tz': self.source_settings.get('timestamp_tz'),
+            'from_dt': self.source_settings['from_dt'],
             'limit': self.source_settings['limit']
         }
         if overrides.get('from_row_id'):
@@ -46,13 +45,10 @@ class OpenDataAPIClient:
 
         return params
 
-    def get_opendata(self, params_overrides={}):
-        params = self._get_request_params(params_overrides)
-
+    def get_opendata(self, params):
         encoded_params = urllib.parse.urlencode(params)
         get_url = f'{self.url}?{encoded_params}'
 
         response = requests.get(get_url, timeout=self.timeout)
         response.raise_for_status()
-        response_data = response.json()
-        return response_data['data'], response_data['columns'], response_data['total_query_count']
+        return response.json()

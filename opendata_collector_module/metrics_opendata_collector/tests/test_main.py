@@ -25,7 +25,6 @@ Unit tests for main.py
 
 import os
 import pathlib
-from logging import StreamHandler
 
 import pytest
 
@@ -34,19 +33,22 @@ import metrics_opendata_collector.main as main
 SOURCES_SETTINGS = {
     'TEST-SOURCE1': {
         'url': 'test url',
-        'limit': 1000,
+        'limit': 1000
     },
     'TEST-SOURCE2': {
         'url': 'test url',
-        'limit': 500,
-    },
+        'limit': 500
+    }
 }
 
 SETTINGS = {
+    'xroad': {
+        'instance': 'TEST'
+    },
     'opendata-collector': {
-        'instance': 'TEST',
+        'thread-count': 1,
         'sources-settings-path': 'test_opendata_sources_settings.yaml',
-        'sources-settings': SOURCES_SETTINGS,
+        'sources-settings': SOURCES_SETTINGS
     },
     'mongodb': {
         'host': 'localhost',
@@ -65,32 +67,19 @@ SETTINGS = {
 }
 
 
-@pytest.fixture(autouse=True)
-def mock_logger_manager(mocker):
-    mocker.patch(
-        'metrics_opendata_collector.logger_manager.LoggerManager._create_file_handler',
-        return_value=StreamHandler()
-    )
-    yield mocker.Mock()
-
-
 @pytest.fixture
 def set_dir():
     # take settings files from tests dir
     os.chdir(pathlib.Path(__file__).parent.absolute())
 
 
-# @pytest.mark.skip()
-def test_action_collect(mocker, set_dir):
-    mocker.patch('metrics_opendata_collector.main.Process')
-    # mocker.patch('metrics_opendata_collector.main.collect_opendata')
+def test_main_triggered(mocker, set_dir):
+    mocker.patch('metrics_opendata_collector.main.run_collect_opendata_in_parallel')
     mocker.patch('sys.argv', ['test_program_name', '--profile', 'TEST', 'TEST-SOURCE1'])
     main.main()
-    main.collect_opendata.assert_called_once_with(
-        'TEST-SOURCE1', SETTINGS, SOURCES_SETTINGS['TEST-SOURCE1']
+    main.run_collect_opendata_in_parallel.assert_called_once_with(
+        'TEST-SOURCE1',
+        SETTINGS,
+        SOURCES_SETTINGS['TEST-SOURCE1'],
+        SETTINGS['opendata-collector']['thread-count']
     )
-
-
-# def test_action_collect_playground(mocker, set_dir):
-#     mocker.patch('sys.argv', ['test_program_name', '--profile', 'TEST', 'PLAYGROUND-TEST'])
-#     main.main()

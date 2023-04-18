@@ -5,7 +5,7 @@
 #  Copyright (c) 2017-2020 Estonian Information System Authority (RIA)
 #
 #  Permission is hereby granted, free of charge, to any person obtaining a copy
-#  of this software and associated documentation files (the "Software"), to deal
+#  of this software and associated documentation files (the "Software"), to deal # noqa
 #  in the Software without restriction, including without limitation the rights
 #  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 #  copies of the Software, and to permit persons to whom the Software is
@@ -18,14 +18,15 @@
 #  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 #  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 #  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-#  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+#  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,  # noqa
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
 
 import argparse
-from multiprocessing import Process
 
-from metrics_opendata_collector.opendata_collector import collect_opendata
+from metrics_opendata_collector.multiprocessing_utils import (
+    run_collect_opendata_in_parallel
+)
 from metrics_opendata_collector.settings import MetricsSettingsManager
 
 
@@ -34,17 +35,15 @@ def main():
     settings_manager = MetricsSettingsManager(args.profile)
 
     settings = settings_manager.settings
-    open_data_source_settings = settings['opendata-collector']['sources-settings'][args.source_id]
-    p = Process(
-        target=collect_opendata,
-        args=(
-            args.source_id,
-            settings,
-            open_data_source_settings,
-        )
+    open_data_source_settings = (
+        settings['opendata-collector']['sources-settings'][args.source_id]
     )
-    p.start()
-    p.join()
+    run_collect_opendata_in_parallel(
+        args.source_id,
+        settings,
+        open_data_source_settings,
+        settings['opendata-collector']['thread-count']
+    )
 
 
 def parse_args():
@@ -52,7 +51,7 @@ def parse_args():
 
     parser.add_argument('source_id',
                         metavar='SOURCE_ID',
-                        help='X-Road Metrics instance to fetch OpenData from. Taken from sources settings file')
+                        help='X-Road Metrics instance to fetch OpenData from. Taken from sources settings file')  # noqa
 
     parser.add_argument('--profile',
                         metavar='PROFILE',
