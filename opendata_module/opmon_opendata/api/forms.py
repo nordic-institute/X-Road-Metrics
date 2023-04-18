@@ -16,7 +16,7 @@ class HarvestForm(forms.Form):
     order = forms.CharField(required=False)
 
     @staticmethod
-    def get_timestamp_with_tz_offset(timestamp):
+    def get_timestamp_with_tz_offset(timestamp: str) -> str:
         timestamp = timestamp.replace(' ', '+')
         return timestamp
 
