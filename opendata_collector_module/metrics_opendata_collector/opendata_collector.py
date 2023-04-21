@@ -25,46 +25,65 @@ from operator import itemgetter
 
 import requests
 
+from metrics_opendata_collector.constants import DT_FORMAT_WO_TZ
 from metrics_opendata_collector.logger_manager import LoggerManager
-from metrics_opendata_collector.mongodbmanager import MongoDbManager
-from metrics_opendata_collector.opendata_api_client import OpenDataAPIClient
+from metrics_opendata_collector.mongodb_manager import MongoDbManager
+from metrics_opendata_collector.opendata_api_client import (
+    InputValidationError, OpenDataAPIClient)
 
 from . import __version__
 
 
-def collect_opendata(source_id: str, settings: dict, source_settings: dict):
+def collect_opendata(source_id: str, settings_manager):
+    settings = settings_manager.settings
+    source_settings = settings_manager.get_opendata_source_settings(source_id)
+
     logger_m = LoggerManager(settings['logger'], settings['xroad']['instance'], __version__)
     mongo_manager = MongoDbManager(settings, source_id)
-    client = OpenDataAPIClient(settings, source_settings)
+    client = OpenDataAPIClient(source_id, settings_manager)
 
     state = mongo_manager.get_last_inserted_entry()
     params_overrides = {}
     if state:
-        params_overrides['from_dt'] = _ts_to_isoformat_string(
-            state['last_inserted_requestints'] / 1000
+        params_overrides['from_dt'] = _ts_to_dt_string(
+            state['last_inserted_requestints'] / 1000,
+            DT_FORMAT_WO_TZ
         )
         params_overrides['from_row_id'] = state['last_inserted_row_id']
+    try:
+        params_for_logging = client.get_query_params(params_overrides)
+    except InputValidationError as err:
+        logger_m.log_error('params_preparation_failed', str(err))
+        return
 
-    params = client.get_request_params(params_overrides)
     logger_m.log_info(
         'get_opendata',
         (
-            f'{source_id}: fetching opendata for {source_id} '
-            f'from_dt: {params["from_dt"]}, '
-            f'from_row_id: {params.get("from_row_id")}'
+            f'{source_id}: fetching opendata '
+            f'from_dt: {params_for_logging["from_dt"]}, '
+            f'from_row_id: {params_for_logging.get("from_row_id")}'
         )
     )
     try:
-        data = client.get_opendata(params)
+        data = client.get_opendata(params_overrides)
+    except InputValidationError as err:
+        logger_m.log_error('params_preparation_failed', str(err))
+        return
+    except requests.exceptions.ConnectionError:
+        logger_m.log_error(
+            'get_opendata_connection_failed',
+            f'Connection to {source_settings["url"]} failed'
+        )
+        return
     except requests.exceptions.HTTPError as http_error:
         logger_m.log_error('get_opendata_main_failed', str(http_error))
         return
     total_inserted = 0
     rows = data['data']
-    columns = data['columns']
-    row_range = data['row_range']
-    total_query_count = data['total_query_count']
     if rows:
+        columns = data['columns']
+        row_range = data['row_range']
+        total_query_count = data['total_query_count']
         logger_m.log_info(
             'get_opendata',
             f'{source_id}: received {len(rows)} rows from total {total_query_count} within range {row_range}'
@@ -80,25 +99,26 @@ def collect_opendata(source_id: str, settings: dict, source_settings: dict):
             limit = source_settings['limit']
             offset = limit
             while total_inserted < total_query_count:
-                params['offset'] = offset
+                params_overrides['offset'] = offset
                 try:
-                    data = client.get_opendata(params)
+                    data = client.get_opendata(params_overrides)
+                except InputValidationError as err:
+                    logger_m.log_error('params_preparation_failed', str(err))
+                    return
+                except requests.exceptions.ConnectionError:
+                    logger_m.log_error(
+                        'get_opendata_connection_failed',
+                        f'Connection to {source_settings["url"]} failed'
+                    )
+                    return
                 except requests.exceptions.HTTPError as http_error:
                     logger_m.log_error('get_opendata_failed', str(http_error))
                     break
                 rows = data['data']
                 row_range = data['row_range']
                 total_query_count = data['total_query_count']
-                logger_m.log_info(
-                    'get_opendata',
-                    f'{source_id}: received {len(rows)} rows from total {total_query_count} within range {row_range}'
-                )
                 documents = _prepare_documents(rows, columns)
                 _insert_documents(mongo_manager, documents)
-                logger_m.log_info(
-                    'get_opendata',
-                    f'{source_id}: inserted {len(documents)} opendata documents into MongoDB'
-                )
                 total_inserted += len(documents)
                 offset += limit
 
@@ -108,10 +128,9 @@ def collect_opendata(source_id: str, settings: dict, source_settings: dict):
     )
 
 
-def _ts_to_isoformat_string(ts: int) -> str:
-    iso_format = '%Y-%m-%dT%H:%M:%S%z'
+def _ts_to_dt_string(ts: int, dt_format) -> str:
     dt_object = datetime.datetime.fromtimestamp(ts)
-    return dt_object.strftime(iso_format)
+    return dt_object.strftime(dt_format)
 
 
 def _insert_documents(mongo_manager, documents):

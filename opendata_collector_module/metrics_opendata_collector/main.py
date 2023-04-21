@@ -35,13 +35,9 @@ def main():
     settings_manager = MetricsSettingsManager(args.profile)
 
     settings = settings_manager.settings
-    open_data_source_settings = (
-        settings['opendata-collector']['sources-settings'][args.source_id]
-    )
     run_collect_opendata_in_parallel(
         args.source_id,
-        settings,
-        open_data_source_settings,
+        settings_manager,
         settings['opendata-collector']['thread-count']
     )
 
