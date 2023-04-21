@@ -45,7 +45,7 @@ class MetricsSettingsManager:
         opendata_settings = self._parse_opendata_settings(opendata_sources_settings_path)
         self.settings['opendata-collector']['sources-settings'] = opendata_settings
 
-    def get_opendata_source_tz(self, source_id: str):
+    def get_opendata_source_tz(self, source_id: str) -> str:
         source_settings = self.settings['opendata-collector']['sources-settings'][source_id]
         return source_settings.get('from_dt')
 

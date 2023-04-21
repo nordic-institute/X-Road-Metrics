@@ -45,7 +45,7 @@ class OpenDataAPIClient:
         self._url = self._source_settings['url']
         self.timeout = self._settings_manager.settings.get('timeout') or 10
 
-    def get_query_params(self, overrides={}):
+    def get_query_params(self, overrides: dict = {}) -> dict:
         dt_fields_to_query = ('from_dt', 'until_dt')
 
         allowed_override_keys = ('from_dt', 'from_row_id', 'offset', 'until_dt')
@@ -71,7 +71,7 @@ class OpenDataAPIClient:
                 )
         return params
 
-    def get_opendata(self, params_overrides={}):
+    def get_opendata(self, params_overrides: dict = {}) -> dict:
         params = self.get_query_params(params_overrides)
         encoded_params = urllib.parse.urlencode(params)
         get_url = f'{self._url}?{encoded_params}'
@@ -81,20 +81,20 @@ class OpenDataAPIClient:
 
     def prepare_dt_field(self, dt_string: str, field_name: str) -> str:
         try:
-            from_dt = datetime.strptime(dt_string, DT_FORMAT_WO_TZ)
+            dt_object = datetime.strptime(dt_string, DT_FORMAT_WO_TZ)
         except ValueError:
             raise InputValidationError(
                 f'{field_name} format should match format {DT_FORMAT_WO_TZ}'
             )
-        dt_str = from_dt.strftime(DT_FORMAT_WO_TZ)
+        dt_str = dt_object.strftime(DT_FORMAT_WO_TZ)
         tz_offset = self._source_settings.get(
             'opendata_api_tz_offset'
         ) or DEFAULT_TZ_OFFSET
         dt_str = f'{dt_str}{tz_offset}'
         try:
-            from_dt = datetime.strptime(dt_str, DT_FORMAT_W_TZ)
+            dt_object = datetime.strptime(dt_str, DT_FORMAT_W_TZ)
         except ValueError:
             raise InputValidationError(
                 f'{field_name} format should match format {DT_FORMAT_W_TZ}'
             )
-        return from_dt.strftime(DT_FORMAT_W_TZ)
+        return dt_object.strftime(DT_FORMAT_W_TZ)

@@ -22,6 +22,7 @@
 
 import datetime
 from operator import itemgetter
+from typing import Any, Dict, List, Tuple
 
 import requests
 
@@ -30,11 +31,12 @@ from metrics_opendata_collector.logger_manager import LoggerManager
 from metrics_opendata_collector.mongodb_manager import MongoDbManager
 from metrics_opendata_collector.opendata_api_client import (
     InputValidationError, OpenDataAPIClient)
+from metrics_opendata_collector.settings import MetricsSettingsManager
 
 from . import __version__
 
 
-def collect_opendata(source_id: str, settings_manager):
+def collect_opendata(source_id: str, settings_manager: MetricsSettingsManager) -> None:
     settings = settings_manager.settings
     source_settings = settings_manager.get_opendata_source_settings(source_id)
 
@@ -133,17 +135,17 @@ def _ts_to_dt_string(ts: int, dt_format) -> str:
     return dt_object.strftime(dt_format)
 
 
-def _insert_documents(mongo_manager, documents):
+def _insert_documents(mongo_manager: MongoDbManager, documents: List[dict]) -> None:
     mongo_manager.insert_documents(documents)
     docs_sorted = sorted(documents, key=itemgetter('requestInTs', 'id'), reverse=True)
     mongo_manager.set_last_inserted_entry(docs_sorted[0])
 
 
-def _prepare_documents(rows, columns):
+def _prepare_documents(rows: List[Tuple], columns: List[str]) -> List[dict]:
     documents = []
     for data in rows:
         normalized = [None if entry == 'None' else entry for entry in data]
-        doc = dict(zip(columns, normalized))
+        doc: Dict[str, Any] = dict(zip(columns, normalized))
         doc['requestInTs'] = int(doc['requestInTs'])
         if doc.get('totalDuration'):
             doc['totalDuration'] = int(doc.get('totalDuration') or 0)

@@ -21,6 +21,7 @@
 #  THE SOFTWARE.
 
 import urllib.parse
+from typing import List, Optional
 
 from pymongo import MongoClient
 
@@ -41,23 +42,23 @@ class MongoDbManager(object):
         self.state_db = self.client[f'opendata_collector_state_{xroad}']
 
     @staticmethod
-    def get_mongo_uri(settings):
+    def get_mongo_uri(settings: dict) -> str:
         user = settings['mongodb']['user']
         password = urllib.parse.quote(settings['mongodb']['password'], safe='')
         host = settings['mongodb']['host']
         return f'mongodb://{user}:{password}@{host}/auth_db'
 
-    def insert_documents(self, documents):
+    def insert_documents(self, documents: List[dict]) -> None:
         self.query_db.opendata_data.insert_many(documents)
 
-    def get_last_inserted_entry(self):
+    def get_last_inserted_entry(self) -> Optional[dict]:
         state = self.state_db.state.find_one({'instance_id': self.instance_id}) or {}
         return {
             'last_inserted_requestints': state['last_inserted_requestints'],
             'last_inserted_row_id': state['last_inserted_row_id']
         } if state else None
 
-    def set_last_inserted_entry(self, document):
+    def set_last_inserted_entry(self, document: dict) -> None:
         self.state_db.state.update_one(
             {'instance_id': self.instance_id},
             {

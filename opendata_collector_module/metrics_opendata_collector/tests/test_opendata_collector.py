@@ -4,7 +4,7 @@ from logging import StreamHandler
 from unittest.mock import patch
 
 import pytest
-import vcr
+import vcr  # type: ignore
 from requests.exceptions import ConnectionError
 
 from metrics_opendata_collector.opendata_collector import collect_opendata
