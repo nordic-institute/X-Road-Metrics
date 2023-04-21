@@ -77,15 +77,16 @@ def set_dir():
     os.chdir(pathlib.Path(__file__).parent.absolute())
 
 
-@pytest.mark.skip()
 def test_main_triggered(mocker, set_dir):
     # settings_manager = MetricsSettingsManager('TEST')
     mocker.patch('metrics_opendata_collector.main.run_collect_opendata_in_parallel')
     mocker.patch('sys.argv', ['test_program_name', '--profile', 'TEST', 'TEST-SOURCE1'])
     mocked_manager = mocker.patch('metrics_opendata_collector.main.MetricsSettingsManager')
+    mocked_settings_manager = mocked_manager.return_value
+    mocked_settings_manager.settings = SETTINGS
     main.main()
     main.run_collect_opendata_in_parallel.assert_called_once_with(
         'TEST-SOURCE1',
-        mocked_manager
+        mocked_settings_manager,
         SETTINGS['opendata-collector']['thread-count']
     )
