@@ -27,6 +27,13 @@ from pymongo import MongoClient
 
 
 class MongoDbManager(object):
+    """
+    A class for managing MongoDB connections and operations.
+
+    Args:
+        settings (dict): A dictionary containing MongoDB and X-Road instance settings.
+        instance_id (str): A unique identifier for the OpenData instance.
+    """
 
     def __init__(self, settings, instance_id: str):
         self.settings = settings

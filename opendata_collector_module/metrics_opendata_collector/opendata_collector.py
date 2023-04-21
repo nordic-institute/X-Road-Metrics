@@ -37,6 +37,16 @@ from . import __version__
 
 
 def collect_opendata(source_id: str, settings_manager: MetricsSettingsManager) -> None:
+    """
+    Collects and inserts OpenData from a given source into a MongoDB database.
+    Uses an OpenDataAPIClient to fetch data, with optional query parameters based on the state of the last inserted entry.
+    Logs relevant information using a LoggerManager.
+
+    Args:
+        source_id (str): ID of the OpenData source to collect from.
+        settings_manager (MetricsSettingsManager): Instance of MetricsSettingsManager containing settings for fetching data.
+    Returns:
+        None. Inserts data into MongoDB."""  # noqa
     settings = settings_manager.settings
     source_settings = settings_manager.get_opendata_source_settings(source_id)
 
@@ -131,17 +141,42 @@ def collect_opendata(source_id: str, settings_manager: MetricsSettingsManager) -
 
 
 def _ts_to_dt_string(ts: int, dt_format) -> str:
+    """
+    Converts a Unix timestamp to a datetime string in the specified format.
+        Args:
+            ts (int): Unix timestamp.
+            dt_format (str): Desired datetime string format.
+        Returns:
+            str: Datetime string in the specified format.
+    """
     dt_object = datetime.datetime.fromtimestamp(ts)
     return dt_object.strftime(dt_format)
 
 
 def _insert_documents(mongo_manager: MongoDbManager, documents: List[dict]) -> None:
+    """
+    Insert documents into MongoDB and update the last inserted entry.
+        Args:
+            mongo_manager (MongoDbManager): Instance of MongoDB Manager.
+            documents (List[dict]): List of documents to insert.
+        Returns:
+            None
+    """
     mongo_manager.insert_documents(documents)
     docs_sorted = sorted(documents, key=itemgetter('requestInTs', 'id'), reverse=True)
     mongo_manager.set_last_inserted_entry(docs_sorted[0])
 
 
 def _prepare_documents(rows: List[Tuple], columns: List[str]) -> List[dict]:
+    """
+    Prepare documents from rows and columns.
+        Args:
+            rows (List[Tuple]): A list of tuples containing data.
+            columns (List[str]): A list of column names.
+
+        Returns:
+            List[dict]: A list of dictionaries containing the prepared documents.
+    """
     documents = []
     for data in rows:
         normalized = [None if entry == 'None' else entry for entry in data]

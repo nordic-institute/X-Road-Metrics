@@ -36,6 +36,17 @@ class InputValidationError(Exception):
 
 
 class OpenDataAPIClient:
+    """
+    A client for fetching data from an OpenData API.
+
+    Attributes:
+        _source_id (str): The source ID to fetch data from.
+        _settings_manager: The manager for getting OpenData API settings.
+        _source_settings (dict): The settings for the OpenData API source.
+        _url (str): The URL for the OpenData API.
+        timeout (int): The maximum time to wait for a response in seconds.
+    """
+
     def __init__(self, source_id: str, settings_manager):
         self._source_id = source_id
         self._settings_manager = settings_manager
@@ -46,6 +57,15 @@ class OpenDataAPIClient:
         self.timeout = self._settings_manager.settings.get('timeout') or 10
 
     def get_query_params(self, overrides: dict = {}) -> dict:
+        """
+        Gets the query parameters for the OpenData API request, overriding defaults if specified.
+            Args:
+                overrides (dict): Optional dictionary of parameter overrides.
+            Returns:
+                A dictionary of query parameters.
+            Raises:
+                InputValidationError: If an invalid parameter is provided in overrides.
+        """
         dt_fields_to_query = ('from_dt', 'until_dt')
 
         allowed_override_keys = ('from_dt', 'from_row_id', 'offset', 'until_dt')
@@ -72,6 +92,15 @@ class OpenDataAPIClient:
         return params
 
     def get_opendata(self, params_overrides: dict = {}) -> dict:
+        """
+        Gets the OpenData API response.
+            Args:
+                params_overrides (dict): Optional dictionary of parameter overrides.
+            Returns:
+                A dictionary of the OpenData API response.
+            Raises:
+                requests.exceptions.HTTPError: If a HTTP error occurs during the request.
+        """
         params = self.get_query_params(params_overrides)
         encoded_params = urllib.parse.urlencode(params)
         get_url = f'{self._url}?{encoded_params}'
@@ -80,6 +109,16 @@ class OpenDataAPIClient:
         return response.json()
 
     def prepare_dt_field(self, dt_string: str, field_name: str) -> str:
+        """
+        Prepares a datetime string to be sent as a query parameter to the OpenData API.
+            Args:
+                dt_string (str): The datetime string to prepare.
+                field_name (str): The name of the datetime field.
+            Returns:
+                The prepared datetime string.
+            Raises:
+                InputValidationError: If the datetime string has an invalid format.
+        """
         try:
             dt_object = datetime.strptime(dt_string, DT_FORMAT_WO_TZ)
         except ValueError:

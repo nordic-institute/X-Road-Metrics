@@ -77,10 +77,10 @@ def set_dir():
 def mock_mongo_db(mocker):
     mock_client = mocker.MagicMock()
     db_mock = mocker.MagicMock()
-    # state_collection = MockCollection()
+
     db_mock.state = MockCollection()
-    # opendata_collection = MockCollection()
     db_mock.opendata_data = MockCollection()
+
     mock_client.__getitem__.return_value = db_mock
     mocker.patch(
         'metrics_opendata_collector.mongodb_manager.MongoClient',
