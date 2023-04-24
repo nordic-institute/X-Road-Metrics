@@ -1,4 +1,4 @@
-#  The MIT License
+# The MIT License
 #  Copyright (c) 2021- Nordic Institute for Interoperability Solutions (NIIS)
 #  Copyright (c) 2017-2020 Estonian Information System Authority (RIA)
 #
@@ -20,4 +20,5 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
 
-__version__ = '0.1.0'
+DT_FORMAT_WO_TZ = '%Y-%m-%dT%H:%M:%S'
+DT_FORMAT_W_TZ = '%Y-%m-%dT%H:%M:%S%z'

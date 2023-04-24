@@ -45,6 +45,13 @@ class MetricsSettingsManager:
         opendata_settings = self._parse_opendata_settings(opendata_sources_settings_path)
         self.settings['opendata-collector']['sources-settings'] = opendata_settings
 
+    def get_opendata_source_tz(self, source_id: str) -> str:
+        source_settings = self.settings['opendata-collector']['sources-settings'][source_id]
+        return source_settings.get('from_dt')
+
+    def get_opendata_source_settings(self, source_id: str) -> dict:
+        return self.settings['opendata-collector']['sources-settings'][source_id]
+
     def _parse_settings(self, filename: str) -> dict:
         with open(filename, 'r') as stream:
             return yaml.safe_load(stream)

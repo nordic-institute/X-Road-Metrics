@@ -5,7 +5,7 @@
 #  Copyright (c) 2017-2020 Estonian Information System Authority (RIA)
 #
 #  Permission is hereby granted, free of charge, to any person obtaining a copy
-#  of this software and associated documentation files (the "Software"), to deal
+#  of this software and associated documentation files (the "Software"), to deal # noqa
 #  in the Software without restriction, including without limitation the rights
 #  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 #  copies of the Software, and to permit persons to whom the Software is
@@ -24,7 +24,9 @@
 
 import argparse
 
-from metrics_opendata_collector.opendata_collector import collect_opendata
+from metrics_opendata_collector.multiprocessing_utils import (
+    run_collect_opendata_in_parallel
+)
 from metrics_opendata_collector.settings import MetricsSettingsManager
 
 
@@ -33,8 +35,11 @@ def main():
     settings_manager = MetricsSettingsManager(args.profile)
 
     settings = settings_manager.settings
-    open_data_source_settings = settings['opendata-collector']['sources-settings'][args.source_id]
-    collect_opendata(settings, open_data_source_settings)
+    run_collect_opendata_in_parallel(
+        args.source_id,
+        settings_manager,
+        settings['opendata-collector']['thread-count']
+    )
 
 
 def parse_args():
@@ -42,7 +47,7 @@ def parse_args():
 
     parser.add_argument('source_id',
                         metavar='SOURCE_ID',
-                        help='X-Road Metrics instance to fetch OpenData from. Taken from sources settings file')
+                        help='X-Road Metrics instance to fetch OpenData from. Taken from sources settings file')  # noqa
 
     parser.add_argument('--profile',
                         metavar='PROFILE',
@@ -52,7 +57,7 @@ def parse_args():
                             For example with '--profile PROD' settings_PROD.yaml will be used as settings file.
                             If no profile is defined, settings.yaml will be used by default.
                             Settings file is searched from current working directory and /etc/xroad-metrics/opendata-collector/
-                        """.strip()
+                        """.strip()  # noqa
                         )
     args = parser.parse_args()
 

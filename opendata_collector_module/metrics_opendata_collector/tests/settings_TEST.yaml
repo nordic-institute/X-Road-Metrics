@@ -1,5 +1,7 @@
-opendata-collector:
+xroad:
   instance: TEST
+opendata-collector:
+  thread-count: 1
   sources-settings-path: test_opendata_sources_settings.yaml
   sources-settings:
 mongodb:

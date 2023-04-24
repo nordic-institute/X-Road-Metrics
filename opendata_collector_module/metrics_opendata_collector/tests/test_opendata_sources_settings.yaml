@@ -1,7 +1,10 @@
 TEST-SOURCE1:
   url: test url
+  from_dt: 2022-12-12T14:00:00
+  opendata_api_tz_offset: '+0000'
   limit: 1000
 
 TEST-SOURCE2:
+  from_dt: 2022-12-07T00:00:00
   url: test url
   limit: 500
