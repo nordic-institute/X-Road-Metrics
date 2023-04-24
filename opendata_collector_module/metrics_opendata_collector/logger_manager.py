@@ -25,18 +25,33 @@ import logging
 import os
 import time
 from logging.handlers import WatchedFileHandler
+from typing import TypedDict
+
+LEVEL_INFO = 'INFO'
+LEVEL_WARNING = 'WARNING'
+LEVEL_ERROR = 'ERROR'
 
 
-def get_timestamp():
+class LogEntry(TypedDict):
+    level: str
+    timestamp: int
+    local_timestamp: str
+    module: str
+    activity: str
+    msg: str
+    version: str
+
+
+def get_timestamp() -> int:
     return int(time.time())
 
 
-def get_local_timestamp():
+def get_local_timestamp() -> str:
     return time.strftime('%Y-%m-%d %H:%M:%S %z', time.localtime())
 
 
 class LoggerManager:
-    def __init__(self, logger_settings, xroad_instance, version):
+    def __init__(self, logger_settings: dict, xroad_instance: str, version: str) -> None:
         self.name = logger_settings['name']
         self.module = logger_settings['module']
         self.level = logger_settings['level']
@@ -50,7 +65,7 @@ class LoggerManager:
         self._setup_logger()
 
     def _create_file_handler(self):
-        formatter = logging.Formatter("%(message)s")
+        formatter = logging.Formatter('%(message)s')
 
         file_handler = WatchedFileHandler(self.log_path)
         file_handler.setFormatter(formatter)
@@ -69,57 +84,48 @@ class LoggerManager:
         if not self._handler_is_set(logger.handlers):
             logger.addHandler(self._create_file_handler())
 
+    def _create_log_entry(self, level: str, activity: str, msg: str) -> LogEntry:
+        return {
+            'level': level,
+            'timestamp': get_timestamp(),
+            'local_timestamp': get_local_timestamp(),
+            'module': self.module,
+            'activity': activity,
+            'msg': msg,
+            'version': self.version
+        }
+
     def log_info(self, activity, msg):
         logger = logging.getLogger(self.name)
         # Build Message
-        data = dict()
-        data['level'] = 'INFO'
-        data['timestamp'] = get_timestamp()
-        data['local_timestamp'] = get_local_timestamp()
-        data['module'] = self.module
-        data['activity'] = activity
-        data['msg'] = msg
-        data['version'] = self.version
+        data = self._create_log_entry(LEVEL_INFO, activity, msg)
         # Log to file
         logger.info(json.dumps(data))
 
     def log_warning(self, activity, msg):
         logger = logging.getLogger(self.name)
         # Build Message
-        data = dict()
-        data['level'] = 'WARNING'
-        data['timestamp'] = get_timestamp()
-        data['local_timestamp'] = get_local_timestamp()
-        data['module'] = self.module
-        data['activity'] = activity
-        data['msg'] = msg
-        data['version'] = self.version
+        data = self._create_log_entry(LEVEL_WARNING, activity, msg)
         # Log to file
         logger.warning(json.dumps(data))
 
     def log_error(self, activity, msg):
         logger = logging.getLogger(self.name)
         # Build Message
-        data = dict()
-        data['level'] = 'ERROR'
-        data['timestamp'] = get_timestamp()
-        data['local_timestamp'] = get_local_timestamp()
-        data['module'] = self.module
-        data['activity'] = activity
-        data['msg'] = msg
-        data['version'] = self.version
+        data = self._create_log_entry(LEVEL_ERROR, activity, msg)
         # Log to file
         logger.error(json.dumps(data))
 
     def log_heartbeat(self, msg, status):
         # Build Message
-        data = dict()
-        data['status'] = status
-        data['timestamp'] = get_timestamp()
-        data['local_timestamp'] = get_local_timestamp()
-        data['module'] = self.module
-        data['msg'] = msg
-        data['version'] = self.version
+        data = {
+            'status': status,
+            'timestamp': get_timestamp(),
+            'local_timestamp': get_local_timestamp(),
+            'module': self.module,
+            'msg': msg,
+            'version': self.version
+        }
         # Log to file
         if not os.path.isdir(self.heartbeat_path):
             os.makedirs(self.heartbeat_path)
