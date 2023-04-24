@@ -26,7 +26,7 @@ from typing import List, Optional
 from pymongo import MongoClient
 
 
-class MongoDbManager(object):
+class MongoDbManager:
     """
     A class for managing MongoDB connections and operations.
 

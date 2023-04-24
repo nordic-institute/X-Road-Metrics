@@ -25,7 +25,7 @@ import logging
 import os
 import time
 from logging.handlers import WatchedFileHandler
-from typing import TypedDict
+from typing import TypedDict, List
 
 LEVEL_INFO = 'INFO'
 LEVEL_WARNING = 'WARNING'
@@ -71,13 +71,13 @@ class LoggerManager:
         file_handler.setFormatter(formatter)
         return file_handler
 
-    def _handler_is_set(self, handlers):
+    def _handler_is_set(self, handlers: List[logging.Handler]) -> bool:
         for handler in handlers:
-            if handler is WatchedFileHandler and os.path.abspath(self.log_path) == handler.baseFilename:
+            if isinstance(handler, WatchedFileHandler) and os.path.abspath(self.log_path) == handler.baseFilename:
                 return True
         return False
 
-    def _setup_logger(self):
+    def _setup_logger(self) -> None:
         logger = logging.getLogger(self.name)
         logger.setLevel(self.level)
 
@@ -95,28 +95,28 @@ class LoggerManager:
             'version': self.version
         }
 
-    def log_info(self, activity, msg):
+    def log_info(self, activity: str, msg: str) -> None:
         logger = logging.getLogger(self.name)
         # Build Message
         data = self._create_log_entry(LEVEL_INFO, activity, msg)
         # Log to file
         logger.info(json.dumps(data))
 
-    def log_warning(self, activity, msg):
+    def log_warning(self, activity: str, msg: str) -> None:
         logger = logging.getLogger(self.name)
         # Build Message
         data = self._create_log_entry(LEVEL_WARNING, activity, msg)
         # Log to file
         logger.warning(json.dumps(data))
 
-    def log_error(self, activity, msg):
+    def log_error(self, activity: str, msg: str) -> None:
         logger = logging.getLogger(self.name)
         # Build Message
         data = self._create_log_entry(LEVEL_ERROR, activity, msg)
         # Log to file
         logger.error(json.dumps(data))
 
-    def log_heartbeat(self, msg, status):
+    def log_heartbeat(self, msg: str, status: str) -> None:
         # Build Message
         data = {
             'status': status,
