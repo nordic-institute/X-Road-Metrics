@@ -45,13 +45,13 @@ class MockCollection(object):
         found = self.find_one(query)
         if found:
             entry_to_upsert.update(found)
-            entry_to_upsert.update(update['$set'])
             if upsert:
                 self._storage.remove(found)
 
         else:
             entry_to_upsert.update(query)
-            entry_to_upsert.update(update['$set'])
+
+        entry_to_upsert.update(update['$set'])
         self._storage.append(entry_to_upsert)
 
     def get_all(self):

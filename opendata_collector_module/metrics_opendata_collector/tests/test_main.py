@@ -78,7 +78,6 @@ def set_dir():
 
 
 def test_main_triggered(mocker, set_dir):
-    # settings_manager = MetricsSettingsManager('TEST')
     mocker.patch('metrics_opendata_collector.main.run_collect_opendata_in_parallel')
     mocker.patch('sys.argv', ['test_program_name', '--profile', 'TEST', 'TEST-SOURCE1'])
     mocked_manager = mocker.patch('metrics_opendata_collector.main.MetricsSettingsManager')
