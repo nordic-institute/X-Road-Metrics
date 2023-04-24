@@ -35,7 +35,7 @@ class MongoDbManager:
         instance_id (str): A unique identifier for the OpenData instance.
     """
 
-    def __init__(self, settings, instance_id: str):
+    def __init__(self, settings: dict, instance_id: str) -> None:
         self.settings = settings
         self.instance_id = instance_id
         xroad = settings['xroad']['instance']
