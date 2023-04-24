@@ -22,6 +22,7 @@
 
 import urllib
 from datetime import datetime
+from typing import Optional
 
 import requests
 
@@ -56,7 +57,7 @@ class OpenDataAPIClient:
         self._url = self._source_settings['url']
         self.timeout = self._settings_manager.settings.get('timeout') or 10
 
-    def get_query_params(self, overrides: dict = {}) -> dict:
+    def get_query_params(self, overrides: Optional[dict] = None) -> dict:
         """
         Gets the query parameters for the OpenData API request, overriding defaults if specified.
             Args:
@@ -66,6 +67,8 @@ class OpenDataAPIClient:
             Raises:
                 InputValidationError: If an invalid parameter is provided in overrides.
         """
+        if not overrides:
+            overrides = {}
         dt_fields_to_query = ('from_dt', 'until_dt')
 
         allowed_override_keys = ('from_dt', 'from_row_id', 'offset', 'until_dt')
@@ -91,7 +94,7 @@ class OpenDataAPIClient:
                 )
         return params
 
-    def get_opendata(self, params_overrides: dict = {}) -> dict:
+    def get_opendata(self, params_overrides: Optional[dict] = None) -> dict:
         """
         Gets the OpenData API response.
             Args:
@@ -101,6 +104,9 @@ class OpenDataAPIClient:
             Raises:
                 requests.exceptions.HTTPError: If a HTTP error occurs during the request.
         """
+        if not params_overrides:
+            params_overrides = {}
+
         params = self.get_query_params(params_overrides)
         encoded_params = urllib.parse.urlencode(params)
         get_url = f'{self._url}?{encoded_params}'

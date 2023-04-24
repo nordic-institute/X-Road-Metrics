@@ -11,7 +11,7 @@ from metrics_opendata_collector.opendata_collector import collect_opendata
 from metrics_opendata_collector.settings import MetricsSettingsManager
 
 
-class MockCollection(object):
+class MockCollection:
     def __init__(self):
         self._storage = []
 
