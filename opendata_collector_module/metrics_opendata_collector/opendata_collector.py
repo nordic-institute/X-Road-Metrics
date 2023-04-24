@@ -22,7 +22,7 @@
 
 import datetime
 from operator import itemgetter
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Optional
 
 import requests
 
@@ -57,17 +57,88 @@ def collect_opendata(source_id: str, settings_manager: MetricsSettingsManager) -
     state = mongo_manager.get_last_inserted_entry()
     params_overrides = {}
     if state:
-        params_overrides['from_dt'] = _ts_to_dt_string(
-            state['last_inserted_requestints'] / 1000,
-            DT_FORMAT_WO_TZ
+        params_overrides = _get_params_overrides(state)
+    data = _do_request(client, logger_m, source_settings,
+                       source_id, params_overrides)
+    if not data:
+        return
+    total_inserted = 0
+    if data.get('data'):
+        total_query_count, inserted_documents = (
+            _process_data(mongo_manager, logger_m, data, source_id)
         )
-        params_overrides['from_row_id'] = state['last_inserted_row_id']
+        logger_m.log_info(
+            'get_opendata',
+            f'{source_id}: inserted {len(inserted_documents)} opendata documents into MongoDB'
+        )
+        total_inserted += len(inserted_documents)
+        if total_query_count > len(inserted_documents):
+            limit = source_settings['limit']
+            offset = limit
+            while total_inserted < total_query_count:
+                params_overrides['offset'] = offset
+                data = _do_request(client, logger_m, source_settings, source_id, params_overrides)
+                if not data:
+                    break
+                total_query_count, inserted_documents = (
+                    _process_data(mongo_manager, logger_m, data, source_id)
+                )
+                total_inserted += len(inserted_documents)
+                offset += limit
+
+    logger_m.log_info(
+        'get_opendata',
+        f'{source_id}: total inserted {total_inserted} opendata documents into MongoDB'
+    )
+
+
+def _process_data(mongo_manager: MongoDbManager, logger_m: LoggerManager,
+                  data: dict, source_id: str) -> Tuple[int, List[dict]]:
+    """
+        Processes OpenData API response and saves the data to MongoDB.
+        Args:
+            mongo_manager (MongoDbManager): an instance of the MongoDbManager class for managing the MongoDB database
+            logger_m (LoggerManager): an instance of the LoggerManager class for logging
+            data (dict): a dictionary containing data returned by the OpenData API
+            source_id (str): a string representing the ID of the OpenData source being processed
+        Returns:
+            total_query_count (int): an integer representing the total number of rows returned by the OpenData API
+            documents (List[dict]): a list of dictionaries representing the processed OpenData documents to be inserted into the MongoDB database."""  # noqa
+
+    rows = data['data']
+    columns = data['columns']
+    row_range = data['row_range']
+    total_query_count = data['total_query_count']
+    logger_m.log_info(
+        'get_opendata',
+        f'{source_id}: received {len(rows)} rows from total {total_query_count} within range {row_range}'
+    )
+    documents = _prepare_documents(rows, columns)
+    _insert_documents(mongo_manager, documents)
+    return total_query_count, documents
+
+
+def _do_request(client: OpenDataAPIClient, logger_m: LoggerManager,
+                source_settings: dict, source_id: str,
+                params_overrides: Optional[dict] = None) -> Optional[dict]:
+    """
+    Fetches data from the OpenData API and logs the process.
+
+    Args:
+        client (OpenDataAPIClient): The OpenData API client.
+        logger_m (LoggerManager): The logger manager.
+        source_settings (dict): The source settings.
+        source_id (str): The source ID.
+        params_overrides (Optional[dict], optional): The optional parameter overrides. Defaults to None.
+
+    Returns:
+        Optional[dict]: The fetched data dictionary, or None if there was an error.
+    """
     try:
         params_for_logging = client.get_query_params(params_overrides)
     except InputValidationError as err:
         logger_m.log_error('params_preparation_failed', str(err))
-        return
-
+        return None
     logger_m.log_info(
         'get_opendata',
         (
@@ -80,64 +151,36 @@ def collect_opendata(source_id: str, settings_manager: MetricsSettingsManager) -
         data = client.get_opendata(params_overrides)
     except InputValidationError as err:
         logger_m.log_error('params_preparation_failed', str(err))
-        return
+        return None
     except requests.exceptions.ConnectionError:
         logger_m.log_error(
             'get_opendata_connection_failed',
             f'Connection to {source_settings["url"]} failed'
         )
-        return
+        return None
     except requests.exceptions.HTTPError as http_error:
         logger_m.log_error('get_opendata_main_failed', str(http_error))
-        return
-    total_inserted = 0
-    rows = data['data']
-    if rows:
-        columns = data['columns']
-        row_range = data['row_range']
-        total_query_count = data['total_query_count']
-        logger_m.log_info(
-            'get_opendata',
-            f'{source_id}: received {len(rows)} rows from total {total_query_count} within range {row_range}'
-        )
-        documents = _prepare_documents(rows, columns)
-        _insert_documents(mongo_manager, documents)
-        logger_m.log_info(
-            'get_opendata',
-            f'{source_id}: inserted {len(documents)} opendata documents into MongoDB'
-        )
-        total_inserted += len(documents)
-        if total_query_count > len(documents):
-            limit = source_settings['limit']
-            offset = limit
-            while total_inserted < total_query_count:
-                params_overrides['offset'] = offset
-                try:
-                    data = client.get_opendata(params_overrides)
-                except InputValidationError as err:
-                    logger_m.log_error('params_preparation_failed', str(err))
-                    return
-                except requests.exceptions.ConnectionError:
-                    logger_m.log_error(
-                        'get_opendata_connection_failed',
-                        f'Connection to {source_settings["url"]} failed'
-                    )
-                    return
-                except requests.exceptions.HTTPError as http_error:
-                    logger_m.log_error('get_opendata_failed', str(http_error))
-                    break
-                rows = data['data']
-                row_range = data['row_range']
-                total_query_count = data['total_query_count']
-                documents = _prepare_documents(rows, columns)
-                _insert_documents(mongo_manager, documents)
-                total_inserted += len(documents)
-                offset += limit
+        return None
+    return data
 
-    logger_m.log_info(
-        'get_opendata',
-        f'{source_id}: total inserted {total_inserted} opendata documents into MongoDB'
-    )
+
+def _get_params_overrides(state: dict) -> dict:
+    """
+    Return a dictionary of query parameter overrides for the OpenDataAPI client.
+
+    Args:
+        state (dict): A dictionary containing state information.
+    Returns:
+        dict: A dictionary containing query parameter overrides for the OpenDataAPI client.
+    """
+    params_overrides = {}
+    if state:
+        params_overrides['from_dt'] = _ts_to_dt_string(
+            state['last_inserted_requestints'] / 1000,
+            DT_FORMAT_WO_TZ
+        )
+        params_overrides['from_row_id'] = state['last_inserted_row_id']
+    return params_overrides
 
 
 def _ts_to_dt_string(ts: int, dt_format) -> str:
