@@ -81,9 +81,9 @@ def test_opmon_user_generation(mocker):
     create_users._create_opmon_users(args, client, passwords)
 
     client.auth_db.command.assert_called()
-    assert client.auth_db.command.call_count == 6
-    assert len(passwords) == 6
-    assert len(set(passwords.values())) == 6  # passwords are unique
+    assert client.auth_db.command.call_count == 7
+    assert len(passwords) == 7
+    assert len(set(passwords.values())) == 7  # passwords are unique
 
     for pwd in passwords.values():
         assert len(pwd) >= 12
@@ -101,13 +101,13 @@ def test_opmon_user_generation_without_passwords(mocker):
     create_users._create_opmon_users(args, client, passwords)
 
     client.auth_db.command.assert_called()
-    assert client.auth_db.command.call_count == 6
-    assert len(set(passwords.values())) == 6  # passwords are unique
+    assert client.auth_db.command.call_count == 7
+    assert len(set(passwords.values())) == 7  # passwords are unique
 
     for user, pwd in passwords.items():
         assert user == pwd
 
-    assert len(passwords.keys()) == 6
+    assert len(passwords.keys()) == 7
     for user in opmon_user_names:
         to_find = f'{user}_{args.xroad}'
         assert to_find in passwords.keys()

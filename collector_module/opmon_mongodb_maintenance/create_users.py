@@ -37,7 +37,8 @@ user_roles = {
     'anonymizer': {'query_db': 'read', 'anonymizer_state': 'readWrite'},
     'collector': {'query_db': 'readWrite', 'collector_state': 'readWrite'},
     'corrector': {'query_db': 'readWrite'},
-    'reports': {'query_db': 'read', 'reports_state': 'readWrite'}
+    'reports': {'query_db': 'read', 'reports_state': 'readWrite'},
+    'opendata_collector': {'query_db': 'readWrite', 'opendata_collector_state': 'readWrite'},
 }
 
 admin_roles = {
@@ -98,7 +99,7 @@ def _print_users(passwords: dict):
 def _generate_password():
     """
     Generate a random 12 character password.
-    
+
     Password contains lower-case, upper-case, numbers and special characters.
     Based on best-practice recipe from https://docs.python.org/3/library/secrets.html.
     """
