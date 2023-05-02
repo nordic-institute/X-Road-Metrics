@@ -169,7 +169,7 @@ def get_harvest_data(request: WSGIRequest, profile: Optional[str] = None) -> Htt
         order: OrderByType = cleaned_data['order']
         order_by = [order]
     try:
-        rows, columns, total_query_count = (
+        rows, columns, total_query_count_data = (
             _get_harvest_rows(
                 postgres,
                 from_dt,
@@ -188,12 +188,13 @@ def get_harvest_data(request: WSGIRequest, profile: Optional[str] = None) -> Htt
             status=500
         )
 
-    total_query_count = total_query_count[0] if rows else 0
+    data = [[escape(str(element)) for element in row] for row in rows]
+    total_query_count = total_query_count_data[0] if rows else 0
     limit = limit or 0
     offset = offset or 0
-    from_range, to_range = _get_harvest_row_range(total_query_count, limit, offset)
+    from_range, to_range = _get_harvest_row_range(len(data), offset)
     return_value = {
-        'data': [[escape(str(element)) for element in row] for row in rows],
+        'data': data,
         'columns': columns if rows else [],
         'total_query_count': total_query_count,
         'timestamp_tz_offset': from_dt.strftime('%z'),
@@ -495,12 +496,11 @@ def _validate_query(request, postgres, settings):
     )
 
 
-def _get_harvest_row_range(total_query_count: int, limit: int, offset: int) -> Tuple[int, int]:
+def _get_harvest_row_range(total_rows: int, offset: int) -> Tuple[int, int]:
     """
-    Get the range of rows to be harvested based on the total query count, limit, and offset.
+    Get the range of rows to be harvested based on the total rows and offset.
     Args:
-        total_query_count (int): The total number of rows returned by the query.
-        limit (int): The maximum number of rows to harvest.
+        total_rows (int): The total number of rows returned by the query.
         offset (int): The number of rows to skip before starting to harvest.
 
     Returns:
@@ -510,10 +510,10 @@ def _get_harvest_row_range(total_query_count: int, limit: int, offset: int) -> T
     Raises:
         None.
     Example:
-        >>> _get_harvest_row_range(10, 5, 2)
-        (3, 7)
+        >>> _get_harvest_row_range(10, 2)
+        (3, 12)
     """  # noqa
-    if total_query_count:
+    if total_rows:
         if offset:
             range_from = offset + 1
         else:
@@ -521,13 +521,7 @@ def _get_harvest_row_range(total_query_count: int, limit: int, offset: int) -> T
     else:
         range_from = 0
 
-    if limit:
-        if offset:
-            range_to = limit + offset
-        else:
-            range_to = limit
-    elif total_query_count:
-        range_to = total_query_count
-    else:
-        range_to = 0
+    range_to = total_rows
+    if offset:
+        range_to = total_rows + offset + 1
     return range_from, range_to
