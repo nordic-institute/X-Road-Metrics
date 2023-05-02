@@ -140,6 +140,7 @@ def test_collect_opendata_gets_until(set_dir, mocker, mock_mongo_db, caplog):
     ]
     assert 'TEST-SOURCE1: fetching opendata from_dt: 2023-03-28T00:00:00+0000, from_row_id: None' in caplog.text
     assert 'TEST-SOURCE1: total inserted 90 opendata documents into MongoDB' in caplog.text
+    assert 'until_dt: 2023-03-28T23:59:59+0000' in caplog.text
 
 
 def test_collect_opendata_with_state(set_dir, mocker, mock_mongo_db, caplog):
