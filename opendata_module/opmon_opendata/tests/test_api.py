@@ -332,6 +332,28 @@ def test_get_harvest_from_with_limit(db, http_client):
     assert response_data['row_range'] == '1-4'
 
 
+def test_get_harvest_rows_less_than_limit(db, http_client):
+    log_factory(db, request_in_dt='2022-11-07T10:34:00')
+    log_factory(db, request_in_dt='2022-11-08T08:00:00')
+
+    query = {
+        'from_dt': '2022-11-05T08:00:00+0000',
+        'limit': 100
+    }
+    response = http_client.get('/api/harvest', query)
+    assert response.status_code == 200
+    response_data = response.json()
+    data = response_data.get('data')
+    assert len(data) == 2
+    actual_request_in_dates = [row[11] for row in data]
+    assert actual_request_in_dates == [
+        '2022-11-07',
+        '2022-11-08',
+    ]
+    assert response_data['limit'] == 100
+    assert response_data['row_range'] == '1-2'
+
+
 def test_get_harvest_total_query_count(db, http_client):
     log_factory(db, request_in_dt='2022-11-10T08:00:00')
     log_factory(db, request_in_dt='2022-11-08T08:20:00')
