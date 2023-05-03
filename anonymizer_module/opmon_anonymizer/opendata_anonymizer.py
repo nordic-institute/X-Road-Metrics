@@ -23,7 +23,7 @@
 import os
 import traceback
 
-from opmon_anonymizer.anonymizer import Anonymizer, AnonymizationJob
+from opmon_anonymizer.anonymizer import AnonymizationJob, Anonymizer
 
 
 class OpenDataAnonymizer(Anonymizer):
@@ -42,20 +42,16 @@ class OpenDataAnonymizer(Anonymizer):
         self._reader = reader
 
         field_translations_path = settings['anonymizer']['field-translations-file']
-        field_data_path = settings['anonymizer']['field-data-file']
-
         self._allowed_fields = self._get_allowed_fields(field_translations_path, logger_manager)
 
         hiding_rules = self._get_hiding_rules()
         substitution_rules = self._get_substitution_rules()
         transformers = self._get_transformers()
 
-        field_translations = self._get_field_translations(field_translations_path)
-        field_value_masks = self._get_field_value_masks(field_data_path)
-
         self._anonymization_job = (
-            OpenDataAnonymizationJob(writer, hiding_rules, substitution_rules, transformers,
-                                     field_translations, field_value_masks, self._logger)
+            OpenDataAnonymizationJob(
+                writer, hiding_rules, substitution_rules,
+                transformers, self._logger)
             if not anonymization_job else anonymization_job
         )
 
@@ -63,6 +59,7 @@ class OpenDataAnonymizer(Anonymizer):
         writer_buffer_size = int(self._settings['postgres']['buffer-size'])
         record_buffer = []
 
+        # TODO
         batch_start_mongodb_timestamp = None
         # last_successful_batch_timestamp = self._reader.last_processed_timestamp
         last_successful_batch_timestamp = 2
@@ -126,6 +123,20 @@ class OpenDataAnonymizer(Anonymizer):
 
 
 class OpenDataAnonymizationJob(AnonymizationJob):
+    def __init__(
+            self,
+            writer,
+            hiding_rules,
+            substitution_rules,
+            transformers,
+            logger_manager
+    ):
+        self._writer = writer
+        self._hiding_rules = hiding_rules
+        self._substitution_rules = substitution_rules
+        self._transformers = transformers
+        self._logger_manager = logger_manager
+
     def run(self, dual_records):
         logger = self._logger_manager
         try:
