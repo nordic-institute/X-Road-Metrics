@@ -333,7 +333,6 @@ def test_get_harvest_from_with_limit(db, http_client):
 
 
 def test_get_harvest_rows_less_than_limit(db, http_client):
-
     log_factory(db, request_in_dt='2022-11-07T10:34:00')
     log_factory(db, request_in_dt='2022-11-08T08:00:00')
 
