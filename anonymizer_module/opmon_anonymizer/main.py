@@ -19,15 +19,18 @@
 #  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
-from .anonymizer import Anonymizer
-from .iio.mongodbmanager import MongoDbManager
-from .iio.opendata_writer import OpenDataWriter
-from datetime import datetime
 import argparse
 import traceback
-from .settings_parser import OpmonSettingsManager
-from .utils import logger_manager
-from . import __version__
+from datetime import datetime
+
+from opmon_anonymizer import __version__
+from opmon_anonymizer.anonymizer import Anonymizer
+from opmon_anonymizer.iio.mongodbmanager import (MongoDbManager,
+                                                 MongoDbOpenDataManager)
+from opmon_anonymizer.iio.opendata_writer import OpenDataWriter
+from opmon_anonymizer.opendata_anonymizer import OpenDataAnonymizer
+from opmon_anonymizer.settings_parser import OpmonSettingsManager
+from opmon_anonymizer.utils import logger_manager
 
 
 def main():
@@ -35,24 +38,36 @@ def main():
     settings = OpmonSettingsManager(args.profile).settings
     logger = logger_manager.LoggerManager(settings['logger'], settings['xroad']['instance'], __version__)
 
-    try:
-        start_time = datetime.now()
-        record_count = run_anonymizer(settings, logger, args.limit)
-        elapsed = str(datetime.now() - start_time)
-        logger.log_info('anonymization_session_finished',
-                        f"Anonymization finished in {elapsed} seconds. Processed {record_count} entries from MongoDB.")
-    except Exception:
-        trace = traceback.format_exc().replace('\n', '')
-        logger.log_error('anonymization_process_failed', f'Failed to anonymize. ERROR: {trace}')
-        raise
+    if args.only_opendata:
+        try:
+            start_time = datetime.now()
+            record_count = run_opendata_anonymizer(settings, logger, args.limit)
+            elapsed = str(datetime.now() - start_time)
+            logger.log_info('opendata_anonymization_session_finished',
+                            f'Opendata anonymization finished in {elapsed} seconds. Processed {record_count} entries from MongoDB.')
+        except Exception:
+            trace = traceback.format_exc().replace('\n', '')
+            logger.log_error('opendata_anonymization_process_failed', f'Failed to anonymize. ERROR: {trace}')
+            raise
+    else:
+        try:
+            start_time = datetime.now()
+            record_count = run_anonymizer(settings, logger, args.limit)
+            elapsed = str(datetime.now() - start_time)
+            logger.log_info('anonymization_session_finished',
+                            f'Anonymization finished in {elapsed} seconds. Processed {record_count} entries from MongoDB.')
+        except Exception:
+            trace = traceback.format_exc().replace('\n', '')
+            logger.log_error('anonymization_process_failed', f'Failed to anonymize. ERROR: {trace}')
+            raise
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
-        "--profile",
-        metavar="PROFILE",
+        '--profile',
+        metavar='PROFILE',
         default=None,
         help="""
             Optional settings file profile.
@@ -63,16 +78,30 @@ def parse_args():
     )
 
     parser.add_argument(
-        "--limit",
+        '--limit',
         default=None,
         help="""
             Maximum number of records to anonymize during this run. If this argument is not provided all records
             available in MongoDb are processed.
         """
     )
+    parser.add_argument('--only_opendata', action='store_true', help='Should Anonymizer process only OpenData')
 
     args = parser.parse_args()
     return args
+
+
+def setup_opendata_reader(settings, logger):
+    try:
+        reader = MongoDbOpenDataManager(settings, logger)
+        assert reader.is_alive()
+        return reader
+    except Exception:
+        logger.log_heartbeat('Failed to initialize MongoDB connection.', 'FAILED')
+        logger.log_error('mongodb_connection_failed',
+                         f"Failed connecting to MongoDB at {settings['mongodb']}")
+
+        raise
 
 
 def setup_reader(settings, logger):
@@ -124,6 +153,27 @@ def run_anonymizer(settings, logger: logger_manager.LoggerManager, anonymization
         logger.log_heartbeat('Error occurred during log anonymization', 'FAILED')
 
 
+def run_opendata_anonymizer(settings, logger: logger_manager.LoggerManager, anonymization_limit):
+    logger.log_info('opendata_anonymization_session_started', 'Started anonymization session')
+    logger.log_heartbeat('Started opendata anonymization session', 'SUCCEEDED')
+
+    reader = setup_opendata_reader(settings, logger)
+    writer = setup_writer(settings, logger)
+    try:
+        logger.log_info('opendata_anonymization_process_started', 'Started anonymizing opendata logs.')
+        logger.log_heartbeat('Started anonymizing opendata logs.', 'SUCCEEDED')
+        anonymizer_instance = OpenDataAnonymizer(reader, writer, settings, logger)
+        records = anonymizer_instance.anonymize(anonymization_limit)
+        logger.log_heartbeat('Finished opendata anonymization session', 'SUCCEEDED')
+        return records
+
+    except Exception:
+        trace = traceback.format_exc().replace('\n', '')
+        logger.log_error('opendata_anonymization_process_failed', f'Failed to anonymize. ERROR: {trace}')
+        save_reader_state_on_error(reader, logger)
+        logger.log_heartbeat('Error occurred during opendata log anonymization', 'FAILED')
+
+
 def save_reader_state_on_error(reader: MongoDbManager, logger):
     try:
         reader.set_last_processed_timestamp()
@@ -132,5 +182,5 @@ def save_reader_state_on_error(reader: MongoDbManager, logger):
         logger.log_warning('anonymization_process_failed', 'Failed to save reader state after error.')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
