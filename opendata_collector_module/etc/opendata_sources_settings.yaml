@@ -1,0 +1,26 @@
+# Settings for OpenData Sources
+# Define settings for each OpenData Source.
+#
+# Use unique Metics instance idenfifier as key for settings
+#
+# url: Mandatory Opendata API harvest url
+# limit: Mandatory number of max Opendata items in single response
+# from_dt: Mandatory date and time string in ISO format. Starting date and time to fetch OpenData from
+# until_dt: Optional date and time string in ISO format. Ending date and time to fetch OpenData until. Defaults to now.
+# opendata_api_tz_offset: Optional UTC timezone offset of OpenData API. Defaults to UTC +0000
+# verify_ssl: Optional boolean whether request SSL must be verified. Defaults to False
+#
+# Examples
+#
+# TEST-SOURCE-1:
+  # url: https://example1:/api/harvest
+  # limit: 2000
+  # from_dt: '2022-12-05T00:00:00'
+  # until_dt: '2023-05-01T00:00:00
+  # opendata_api_tz_offset: '+0200'
+  # verify_ssl: False
+  #
+# TEST-SOURCE-2
+  # url: http://example2:/api/harvest
+  # limit: 5000
+  # from_dt: '2022-12-05T00:00:00'

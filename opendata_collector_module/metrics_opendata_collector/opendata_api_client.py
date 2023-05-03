@@ -110,7 +110,8 @@ class OpenDataAPIClient:
         params = self.get_query_params(params_overrides)
         encoded_params = urllib.parse.urlencode(params)
         get_url = f'{self._url}?{encoded_params}'
-        response = requests.get(get_url, timeout=self.timeout)
+        verify_ssl = self._source_settings.get('verify_ssl')
+        response = requests.get(get_url, timeout=self.timeout, verify=bool(verify_ssl))
         response.raise_for_status()
         return response.json()
 
