@@ -94,7 +94,7 @@ class OpenDataAPIClient:
                 )
         return params
 
-    def get_opendata(self, params_overrides: Optional[dict] = None) -> dict:
+    def do_request(self, params_overrides: Optional[dict] = None) -> dict:
         """
         Gets the OpenData API response.
             Args:

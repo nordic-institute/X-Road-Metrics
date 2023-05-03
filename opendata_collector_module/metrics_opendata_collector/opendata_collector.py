@@ -58,8 +58,8 @@ def collect_opendata(source_id: str, settings_manager: MetricsSettingsManager) -
     params_overrides = {}
     if state:
         params_overrides = _get_params_overrides(state)
-    data = _do_request(client, logger_m, source_settings,
-                       source_id, params_overrides)
+    data = _get_opendata(client, logger_m, source_settings,
+                         source_id, params_overrides)
     if not data:
         return
     total_inserted = 0
@@ -67,17 +67,13 @@ def collect_opendata(source_id: str, settings_manager: MetricsSettingsManager) -
         total_query_count, inserted_documents = (
             _process_data(mongo_manager, logger_m, data, source_id)
         )
-        logger_m.log_info(
-            'get_opendata',
-            f'{source_id}: inserted {len(inserted_documents)} opendata documents into MongoDB'
-        )
         total_inserted += len(inserted_documents)
         if total_query_count > len(inserted_documents):
             limit = source_settings['limit']
             offset = limit
             while total_inserted < total_query_count:
                 params_overrides['offset'] = offset
-                data = _do_request(client, logger_m, source_settings, source_id, params_overrides)
+                data = _get_opendata(client, logger_m, source_settings, source_id, params_overrides)
                 if not data:
                     break
                 total_query_count, inserted_documents = (
@@ -118,9 +114,9 @@ def _process_data(mongo_manager: MongoDbManager, logger_m: LoggerManager,
     return total_query_count, documents
 
 
-def _do_request(client: OpenDataAPIClient, logger_m: LoggerManager,
-                source_settings: dict, source_id: str,
-                params_overrides: Optional[dict] = None) -> Optional[dict]:
+def _get_opendata(client: OpenDataAPIClient, logger_m: LoggerManager,
+                  source_settings: dict, source_id: str,
+                  params_overrides: Optional[dict] = None) -> Optional[dict]:
     """
     Fetches data from the OpenData API and logs the process.
 
@@ -144,11 +140,12 @@ def _do_request(client: OpenDataAPIClient, logger_m: LoggerManager,
         (
             f'{source_id}: fetching opendata '
             f'from_dt: {params_for_logging["from_dt"]}, '
-            f'from_row_id: {params_for_logging.get("from_row_id")}'
+            f'from_row_id: {params_for_logging.get("from_row_id")} '
+            f'until_dt: {params_for_logging.get("until_dt")}'
         )
     )
     try:
-        data = client.get_opendata(params_overrides)
+        data = client.do_request(params_overrides)
     except InputValidationError as err:
         logger_m.log_error('params_preparation_failed', str(err))
         return None
