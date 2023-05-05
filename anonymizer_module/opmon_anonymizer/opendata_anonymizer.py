@@ -59,24 +59,22 @@ class OpenDataAnonymizer(Anonymizer):
         writer_buffer_size = int(self._settings['postgres']['buffer-size'])
         record_buffer = []
 
-        # TODO
         batch_start_mongodb_timestamp = None
-        # last_successful_batch_timestamp = self._reader.last_processed_timestamp
-        last_successful_batch_timestamp = 2
+        last_successful_batch_timestamp = self._reader.last_processed_timestamp
 
         processed_count = 0
-        for record in self._reader.get_opendata_records(self._allowed_fields):
+        for record in self._reader.get_records(self._allowed_fields):
 
             if log_limit is not None and processed_count >= log_limit:
                 break
 
-            # if batch_start_mongodb_timestamp is None:
-            #     batch_start_mongodb_timestamp = self._reader.last_processed_timestamp
+            if batch_start_mongodb_timestamp is None:
+                batch_start_mongodb_timestamp = self._reader.last_processed_timestamp
 
             record_buffer.append(record)
 
             if len(record_buffer) >= writer_buffer_size:
-                # batch_end_mongodb_timestamp = self._reader.last_processed_timestamp
+                batch_end_mongodb_timestamp = self._reader.last_processed_timestamp
                 batch_end_mongodb_timestamp = 1
                 try:
                     self._anonymization_job.run(record_buffer)
@@ -87,7 +85,7 @@ class OpenDataAnonymizer(Anonymizer):
                                                batch_start_mongodb_timestamp,
                                                batch_end_mongodb_timestamp,
                                                last_successful_batch_timestamp))
-                    # self._reader.update_last_processed_timestamp(last_successful_batch_timestamp)
+                    self._reader.update_last_processed_timestamp(last_successful_batch_timestamp)
                     return processed_count
 
                 processed_count += len(record_buffer)

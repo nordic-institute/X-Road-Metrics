@@ -151,7 +151,7 @@ class MongoDbOpenDataManager(BaseMongoDbManager):
         super().__init__(settings, logger)
         self.last_processed_timestamp = self.get_last_processed_timestamp()
 
-    def get_opendata_records(self, allowed_fields):
+    def get_records(self, allowed_fields):
         collection = self.query_db.opendata_data
 
         min_timestamp = self.get_last_processed_timestamp()
