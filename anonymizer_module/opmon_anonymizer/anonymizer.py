@@ -88,8 +88,8 @@ class Anonymizer(object):
                     self._anonymization_job.run(record_buffer)
                 except Exception:
                     self._logger.log_error('failed_anonymizing_record_batch',
-                                           "Record batch with correctorTime within range [{0}, {1}] failed. "
-                                           + "Last successful correctorTime was {2}".format(
+                                           'Record batch with correctorTime within range [{0}, {1}] '
+                                           'failed. Last successful correctorTime was {2}'.format(
                                                batch_start_mongodb_timestamp,
                                                batch_end_mongodb_timestamp,
                                                last_successful_batch_timestamp))
@@ -170,7 +170,7 @@ class Anonymizer(object):
             return get_enabled_transformers(self._settings['anonymizer']['transformers'])
         except Exception:
             self._logger.log_error('transformers_parsing_failed',
-                                   "Failed to parse config attribute `anonymizer.transformers`.".format(
+                                   'Failed to parse config attribute `anonymizer.transformers`. ERROR: {}'.format(
                                        traceback.format_exc().replace('\n', '')
                                    ))
             raise

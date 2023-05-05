@@ -35,7 +35,7 @@ class MockCollection:
             data = self._set_projection(projection, data)
         return MockResult(data)
 
-    def _set_projection(self, projection: None, data=None):
+    def _set_projection(self, projection=None, data=None):
         if not projection:
             projection = {}
         if not data:

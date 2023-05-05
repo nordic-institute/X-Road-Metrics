@@ -22,6 +22,7 @@
 import argparse
 import traceback
 from datetime import datetime
+from typing import Optional, Union
 
 from opmon_anonymizer import __version__
 from opmon_anonymizer.anonymizer import Anonymizer
@@ -91,7 +92,7 @@ def parse_args():
     return args
 
 
-def setup_opendata_reader(settings, logger):
+def setup_opendata_reader(settings: dict, logger: logger_manager.LoggerManager) -> MongoDbOpenDataManager:
     try:
         reader = MongoDbOpenDataManager(settings, logger)
         assert reader.is_alive()
@@ -153,7 +154,7 @@ def run_anonymizer(settings, logger: logger_manager.LoggerManager, anonymization
         logger.log_heartbeat('Error occurred during log anonymization', 'FAILED')
 
 
-def run_opendata_anonymizer(settings, logger: logger_manager.LoggerManager, anonymization_limit):
+def run_opendata_anonymizer(settings: dict, logger: logger_manager.LoggerManager, anonymization_limit: int) -> Optional[int]:
     logger.log_info('opendata_anonymization_session_started', 'Started anonymization session')
     logger.log_heartbeat('Started opendata anonymization session', 'SUCCEEDED')
 
@@ -172,9 +173,10 @@ def run_opendata_anonymizer(settings, logger: logger_manager.LoggerManager, anon
         logger.log_error('opendata_anonymization_process_failed', f'Failed to anonymize. ERROR: {trace}')
         save_reader_state_on_error(reader, logger)
         logger.log_heartbeat('Error occurred during opendata log anonymization', 'FAILED')
+        return None
 
 
-def save_reader_state_on_error(reader: MongoDbManager, logger):
+def save_reader_state_on_error(reader: Union[MongoDbManager, MongoDbOpenDataManager], logger):
     try:
         reader.set_last_processed_timestamp()
         logger.log_info('anonymization_process_failed', 'Reader state saved successfully after error.')

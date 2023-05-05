@@ -22,20 +22,24 @@
 
 import os
 import traceback
+from typing import List, Optional
 
 from opmon_anonymizer.anonymizer import AnonymizationJob, Anonymizer
+from opmon_anonymizer.iio.mongodbmanager import MongoDbOpenDataManager
+from opmon_anonymizer.iio.opendata_writer import OpenDataWriter
+from opmon_anonymizer.utils.logger_manager import LoggerManager
 
 
 class OpenDataAnonymizer(Anonymizer):
 
     def __init__(
             self,
-            reader,
-            writer,
-            settings,
-            logger_manager,
-            anonymization_job=None,
-    ):
+            reader: MongoDbOpenDataManager,
+            writer: OpenDataWriter,
+            settings: dict,
+            logger_manager: LoggerManager,
+            anonymization_job: Optional['OpenDataAnonymizationJob'] = None,
+    ) -> None:
         self._logger = logger_manager
 
         self._settings = settings
@@ -55,7 +59,7 @@ class OpenDataAnonymizer(Anonymizer):
             if not anonymization_job else anonymization_job
         )
 
-    def anonymize(self, log_limit=None):
+    def anonymize(self, log_limit: Optional[int] = None) -> int:
         writer_buffer_size = int(self._settings['postgres']['buffer-size'])
         record_buffer = []
 
@@ -81,7 +85,7 @@ class OpenDataAnonymizer(Anonymizer):
                 except Exception:
                     self._logger.log_error('failed_anonymizing_record_batch',
                                            'Record batch with correctorTime within range [{0}, {1}] failed. '
-                                           + 'Last successful correctorTime was {2}'.format(
+                                           'Last successful correctorTime was {2}'.format(
                                                batch_start_mongodb_timestamp,
                                                batch_end_mongodb_timestamp,
                                                last_successful_batch_timestamp))
@@ -106,7 +110,7 @@ class OpenDataAnonymizer(Anonymizer):
         return processed_count
 
     @staticmethod
-    def _get_allowed_fields(field_translations_file_path, logger):
+    def _get_allowed_fields(field_translations_file_path: str, logger: LoggerManager) -> list:
         try:
             with open(field_translations_file_path) as field_translations_file:
                 allowed_fields = [line.strip().split(' -> ')[1] for line in field_translations_file if line.strip()]
@@ -123,23 +127,23 @@ class OpenDataAnonymizer(Anonymizer):
 class OpenDataAnonymizationJob(AnonymizationJob):
     def __init__(
             self,
-            writer,
-            hiding_rules,
-            substitution_rules,
-            transformers,
-            logger_manager
-    ):
+            writer: OpenDataWriter,
+            hiding_rules: List[dict],
+            substitution_rules: List[dict],
+            transformers: List[dict],
+            logger_manager: LoggerManager
+    ) -> None:
         self._writer = writer
         self._hiding_rules = hiding_rules
         self._substitution_rules = substitution_rules
         self._transformers = transformers
         self._logger_manager = logger_manager
 
-    def run(self, dual_records):
+    def run(self, records: List[dict]) -> None:
         logger = self._logger_manager
         try:
             processed_records = []
-            for record in dual_records:
+            for record in records:
 
                 if self._should_be_hidden(record, logger):
                     continue

@@ -20,12 +20,16 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
 
-from pymongo import MongoClient
-import pymongo
 import datetime
+import sys
 import traceback
 import urllib.parse
-import sys
+from typing import Generator
+
+import pymongo
+from pymongo import MongoClient
+
+from opmon_anonymizer.utils.logger_manager import LoggerManager
 
 
 class BaseMongoDbManager:
@@ -147,11 +151,11 @@ class MongoDbManager(BaseMongoDbManager):
 
 class MongoDbOpenDataManager(BaseMongoDbManager):
 
-    def __init__(self, settings, logger):
+    def __init__(self, settings: dict, logger: LoggerManager) -> None:
         super().__init__(settings, logger)
         self.last_processed_timestamp = self.get_last_processed_timestamp()
 
-    def get_records(self, allowed_fields):
+    def get_records(self, allowed_fields: dict) -> Generator:
         collection = self.query_db.opendata_data
 
         min_timestamp = self.get_last_processed_timestamp()
@@ -184,7 +188,7 @@ class MongoDbOpenDataManager(BaseMongoDbManager):
 
         self.set_last_processed_timestamp()
 
-    def is_alive(self):
+    def is_alive(self) -> bool:
         try:
             self.query_db.opendata_data.find_one()
             return True
@@ -195,7 +199,7 @@ class MongoDbOpenDataManager(BaseMongoDbManager):
                                    f'Failed to connect to mongodb at {self.client.address}. ERROR: {trace}')
             return False
 
-    def _add_missing_fields(self, document, allowed_fields):
+    def _add_missing_fields(self, document: dict, allowed_fields: dict) -> dict:
         try:
             for field in allowed_fields:
                 if field not in document:
@@ -207,11 +211,11 @@ class MongoDbOpenDataManager(BaseMongoDbManager):
                                        str(allowed_fields), str(document), traceback.format_exc().replace('\n', ''))))
             raise
 
-    def get_last_processed_timestamp(self):
+    def get_last_processed_timestamp(self) -> float:
         state = self.state_db.opendata_state.find_one({'key': 'last_mongodb_timestamp'}) or {}
         return float(state.get('value') or 0.0)
 
-    def set_last_processed_timestamp(self):
+    def set_last_processed_timestamp(self) -> None:
         if not self.last_processed_timestamp:
             return
 
@@ -220,8 +224,3 @@ class MongoDbOpenDataManager(BaseMongoDbManager):
             {'key': 'last_mongodb_timestamp', 'value': str(self.last_processed_timestamp)},
             upsert=True
         )
-
-    def handle_signal(self, signum, frame):
-        print('signal', signum, frame)
-        self.save_on_exit()
-        sys.exit(1)
