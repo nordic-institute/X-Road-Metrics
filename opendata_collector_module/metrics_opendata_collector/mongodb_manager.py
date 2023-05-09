@@ -81,7 +81,7 @@ class MongoDbManager:
         )
 
     @staticmethod
-    def get_timestamp():
+    def get_timestamp() -> float:
         """
         Returns current timestamp.
         :return: Returns current timestamp.
