@@ -20,6 +20,7 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
 
+import time
 import urllib.parse
 from typing import List, Optional
 
@@ -56,6 +57,8 @@ class MongoDbManager:
         return f'mongodb://{user}:{password}@{host}/auth_db'
 
     def insert_documents(self, documents: List[dict]) -> None:
+        for document in documents:
+            document['insertTime'] = MongoDbManager.get_timestamp()
         self.query_db.opendata_data.insert_many(documents)
 
     def get_last_inserted_entry(self) -> Optional[dict]:
@@ -76,3 +79,11 @@ class MongoDbManager:
             },
             upsert=True
         )
+
+    @staticmethod
+    def get_timestamp() -> float:
+        """
+        Returns current timestamp.
+        :return: Returns current timestamp.
+        """
+        return float(time.time())
