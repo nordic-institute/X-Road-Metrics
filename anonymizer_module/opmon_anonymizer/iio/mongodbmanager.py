@@ -31,6 +31,8 @@ from pymongo import MongoClient
 
 from opmon_anonymizer.utils.logger_manager import LoggerManager
 
+MAX_DOCUMENTS_BATCH_SIZE = 1000
+
 
 class BaseMongoDbManager:
 
@@ -57,7 +59,7 @@ class BaseMongoDbManager:
 
 class MongoDbManager(BaseMongoDbManager):
 
-    def __init__(self, settings, logger):
+    def __init__(self, settings: dict, logger: LoggerManager) -> None:
         super().__init__(settings, logger)
         self.last_processed_timestamp = self.get_last_processed_timestamp()
 
@@ -84,7 +86,7 @@ class MongoDbManager(BaseMongoDbManager):
         ).sort('correctorTime', pymongo.ASCENDING)
 
         for document in documents:
-            if batch_idx == 1000:
+            if batch_idx == MAX_DOCUMENTS_BATCH_SIZE:
                 self.set_last_processed_timestamp()
                 batch_idx = 0
 
@@ -176,7 +178,7 @@ class MongoDbOpenDataManager(BaseMongoDbManager):
         ).sort('insertTime', pymongo.ASCENDING)
 
         for document in documents:
-            if batch_idx == 1000:
+            if batch_idx == MAX_DOCUMENTS_BATCH_SIZE:
                 self.set_last_processed_timestamp()
                 batch_idx = 0
 

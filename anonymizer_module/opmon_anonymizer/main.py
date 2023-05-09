@@ -34,33 +34,32 @@ from opmon_anonymizer.settings_parser import OpmonSettingsManager
 from opmon_anonymizer.utils import logger_manager
 
 
+def anonymize(settings: dict, logger: logger_manager.LoggerManager,
+              limit: int, only_opendata: bool = False) -> None:
+
+    opendata = 'opendata_' if only_opendata else ''
+
+    try:
+        start_time = datetime.now()
+        record_count = run_opendata_anonymizer(settings, logger, limit) if only_opendata else run_anonymizer(settings, logger, limit)
+        elapsed = str(datetime.now() - start_time)
+        logger.log_info(f'{opendata}anonymization_session_finished',
+                        f'Anonymization finished in {elapsed} seconds. Processed {record_count} entries from MongoDB.')
+    except Exception:
+        trace = traceback.format_exc().replace('\n', '')
+        logger.log_error(f'{opendata}anonymization_process_failed', f'Failed to anonymize. ERROR: {trace}')
+        raise
+
+
 def main():
     args = parse_args()
     settings = OpmonSettingsManager(args.profile).settings
     logger = logger_manager.LoggerManager(settings['logger'], settings['xroad']['instance'], __version__)
 
     if args.only_opendata:
-        try:
-            start_time = datetime.now()
-            record_count = run_opendata_anonymizer(settings, logger, args.limit)
-            elapsed = str(datetime.now() - start_time)
-            logger.log_info('opendata_anonymization_session_finished',
-                            f'Opendata anonymization finished in {elapsed} seconds. Processed {record_count} entries from MongoDB.')
-        except Exception:
-            trace = traceback.format_exc().replace('\n', '')
-            logger.log_error('opendata_anonymization_process_failed', f'Failed to anonymize. ERROR: {trace}')
-            raise
+        anonymize(settings, logger, args.limit, only_opendata=True)
     else:
-        try:
-            start_time = datetime.now()
-            record_count = run_anonymizer(settings, logger, args.limit)
-            elapsed = str(datetime.now() - start_time)
-            logger.log_info('anonymization_session_finished',
-                            f'Anonymization finished in {elapsed} seconds. Processed {record_count} entries from MongoDB.')
-        except Exception:
-            trace = traceback.format_exc().replace('\n', '')
-            logger.log_error('anonymization_process_failed', f'Failed to anonymize. ERROR: {trace}')
-            raise
+        anonymize(settings, logger, args.limit)
 
 
 def parse_args():
