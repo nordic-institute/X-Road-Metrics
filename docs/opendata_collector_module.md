@@ -153,6 +153,12 @@ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
   30 */6  *   *   *   xroad-metrics  xroad-metrics-opendata-collector --profile TEST PLAYWAY-TEST
 
 ```
+## Opendata Anonymization
+
+Opendata collector fetches opendata as module's name suggests.
+We want to be sure completely, that data does not contain any sensitive information.
+What is treated as sensitive information may differ depending on country data was collected and processed.
+Please refer to section [Opendata Anonymization](anonymizer_module.md#opendata-anonymization)
 
 ## Monitoring and Status
 

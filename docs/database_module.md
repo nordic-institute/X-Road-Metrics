@@ -169,6 +169,7 @@ anonymizer_EX          | U'7<^)0&-b8s | "U'7<^)0&-b8s"
 collector_EX           | 7,zj3q1!CN#m | "7,zj3q1!CN#m"
 corrector_EX           | kf^{E4G/4[f0 | "kf^{E4G/4[f0"
 reports_EX             | Fdqay:76I}x5 | "Fdqay:76I}x5"
+opendata_collector_EX     | S382)@ldfiId | "S382)@ldfiId"
 ```
 
 Store the output to a secure location, e.g. to your password manager. These usernames and passwords are needed later

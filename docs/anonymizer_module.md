@@ -272,6 +272,18 @@ If collector is to be run only manually, comment out the default cron task:
 # 15 30 15 * * xroad-metrics xroad-metrics-anonymizer
 ```
 
+## Opendata Anonymization
+
+Opendata is already anonymized in some way.
+To be sure data does not contain any sensitive information we need to skip certain, not relevant anonymization steps like field translation and masking and apply hiding rules, substitution and transformation.
+
+To anonymize opendata add crontab entry to _/etc/cron.d/xroad-metrics-anonymizer-cron_:
+
+```bash
+*/15  *  *  *  1-5  xroad-metrics  xroad-metrics-anonymizer --profile TEST --only_opendata
+```
+
+
 ## Monitoring and Status
 
 ### Logging
