@@ -283,6 +283,10 @@ To anonymize opendata add crontab entry to _/etc/cron.d/xroad-metrics-anonymizer
 */15  *  *  *  1-5  xroad-metrics  xroad-metrics-anonymizer --profile TEST --only_opendata
 ```
 
+### Database indexes
+
+Anonymizer module would benefit in  `insertTime` index while perfoming opendata anonymization.
+Refer to [Indexes](database_module.md#indexes)
 
 ## Monitoring and Status
 
