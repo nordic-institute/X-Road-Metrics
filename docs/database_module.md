@@ -19,6 +19,7 @@ The **Database module** is part of [X-Road Metrics](../README.md), which include
  - [Anonymizer module](./anonymizer_module.md)
  - [Opendata module](./opendata_module.md)
  - [Networking/Visualizer module](./networking_module.md)
+ - [Opendata Collector module](./opendata_collector_module.md)
 
 The **Database module** provides storage and synchronization between the other modules.
 

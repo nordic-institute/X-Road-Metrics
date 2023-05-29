@@ -16,11 +16,11 @@ which include following modules:
  - [Database module](./database_module.md)
  - [Collector module](./collector_module.md)
  - [Corrector module](./corrector_module.md)
--  [Opendata Collector module](./opendata_collector_module.md)
  - [Reports module](./reports_module.md)
  - [Anonymizer module](./anonymizer_module.md)
  - [Opendata module](./opendata_module.md)
  - [Networking/Visualizer module](./networking_module.md)
+ - [Opendata Collector module](./opendata_collector_module.md)
 
 The **Opendata Collector module** is responsible for retrieving data from other X-Road Metrics instances and inserting into the database storage. The execution of the opendata collector module is performed automatically via a **cron job** task.
 

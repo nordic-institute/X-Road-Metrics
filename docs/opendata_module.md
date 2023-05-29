@@ -17,6 +17,7 @@ which includes the following modules:
  - [Anonymizer module](./anonymizer_module.md)
  - [Opendata module](./opendata_module.md)
  - [Networking/Visualizer module](./networking_module.md)
+ - [Opendata Collector module](./opendata_collector_module.md)
 
 The **Opendata module** is used to publish the X-Road operational monitoring data.
 The module has a UI and a REST API that allow filtering the anonymized operational monitoring data and downloading it

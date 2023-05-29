@@ -20,6 +20,7 @@ which include following modules:
  - [Anonymizer module](./anonymizer_module.md)
  - [Opendata module](./opendata_module.md)
  - [Networking/Visualizer module](./networking_module.md)
+ - [Opendata Collector module](./opendata_collector_module.md)
 
 The **Anonymizer module** is responsible of preparing the operational monitoring data for publication through
 the [Opendata module](opendata_module.md). Anonymizer configuration allows X-Road Metrics extension administrator to set

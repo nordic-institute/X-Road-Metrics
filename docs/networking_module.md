@@ -19,6 +19,7 @@ The Networking module is part of [X-Road Metrics](../README.md). All other modul
  - [Anonymizer module](./anonymizer_module.md)
  - [Opendata module](./opendata_module.md)
  - [Networking/Visualizer module](./networking_module.md)
+ - [Opendata Collector module](./opendata_collector_module.md)
 
 The purpose of the **Networking module** is to visualize the networking activity between the X-Road members.
 It consists of:
@@ -27,7 +28,7 @@ It consists of:
 does relevant calculations (query counts between X-Road members) and writes a table file to be used in the
 visualization web application;
 
-2. RStudio Shiny-based **web application** to visualize the networking activity between the X-Road members.
+1. RStudio Shiny-based **web application** to visualize the networking activity between the X-Road members.
 
 Both components are scripted in the [R language] (https://www.r-project.org/about.html).
 
