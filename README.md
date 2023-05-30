@@ -23,22 +23,23 @@ The system architecture is described in the [System Architecture](./docs/system_
 
 ### Installing/setting up the Mongo Database (MongoDB)
 
-The **first thing** that should be done is setting up the MongoDB. 
+The **first thing** that should be done is setting up the MongoDB.
 Instructions on setting up the MongoDB can be found in the [Database Module](./docs/database_module.md) document.
 
 ### Module installation precedence
 
 The modules should be set up in the following order:
- 
+
 1. [Collector](./docs/collector_module.md) (before others)
 2. [Corrector](./docs/corrector_module.md) (after Collector, before others)
 3. [Reports](./docs/reports_module.md) (optional, after previous)
 4. [Opendata](./docs/opendata_module.md) (optional, after previous)
 5. [Networking](./docs/networking_module.md) (optional, after Opendata)
+6. [Opendata Collector module](./docs/opendata_collector_module.md) (optional, after Opendata)
 
 ## Programming language
 
-All modules, except Networking, are written in [**Python**](https://www.python.org/)&trade; and tested with version 3.8 
+All modules, except Networking, are written in [**Python**](https://www.python.org/)&trade; and tested with version 3.8
 Other 3.x versions are likely to be compatible, give or take some 3rd party library interfaces.
 Networking module is written in [**R**](https://www.r-project.org/).
 
