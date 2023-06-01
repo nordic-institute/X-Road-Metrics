@@ -189,7 +189,7 @@ def _ts_to_dt_string(ts: int, dt_format) -> str:
         Returns:
             str: Datetime string in the specified format.
     """
-    dt_object = datetime.datetime.fromtimestamp(ts)
+    dt_object = datetime.datetime.utcfromtimestamp(ts)
     return dt_object.strftime(dt_format)
 
 

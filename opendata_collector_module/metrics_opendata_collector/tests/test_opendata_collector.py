@@ -162,7 +162,7 @@ def test_collect_opendata_with_state(set_dir, mocker, mock_mongo_db, caplog):
         mock_get.return_value.json.return_value = mock_response
         collect_opendata('TEST-SOURCE1', settings_manager)
     assert not mock_mongo_db.opendata_data.get_all()
-    assert 'TEST-SOURCE1: fetching opendata from_dt: 2023-04-07T10:00:00+0200, from_row_id: 16480' in caplog.text
+    assert 'TEST-SOURCE1: fetching opendata from_dt: 2023-04-07T07:00:00+0200, from_row_id: 16480' in caplog.text
     assert 'TEST-SOURCE1: total inserted 0 opendata documents into MongoDB' in caplog.text
 
 
