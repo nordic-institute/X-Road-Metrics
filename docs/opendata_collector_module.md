@@ -105,8 +105,8 @@ Settings that user must fill in:
 
 * X-Road instance name. This is mandatory key of X-Road instance setting.
 * Opendata API harvest endpoint url. This is mandatory setting.
-* Number of max Opendata items in single response. Mandatory field.
-* Starting date and time to fetch Opendata from. Mandatory field.
+* Number of max Opendata items in single response. Mandatory field. Must be in UTC.
+* Starting date and time to fetch Opendata from. Mandatory field. Must be in UTC.
 * Ending date and time to fetch Opendata until
 * Timezone offset of Opendata API
 * Should SSL verification be done during request to Opendata API
@@ -117,7 +117,7 @@ Configuration example:
 PLAYGROUND-TEST:
   url: https://playground-example/api/harvest
   limit: 2000
-  from_dt: '2022-12-05T00:00:00'
+  [from_dt](from_dt): '2022-12-05T00:00:00'
   opendata_api_tz_offset: '+0200'
   verify_ssl: False
 PLAYWAY-TEST:
