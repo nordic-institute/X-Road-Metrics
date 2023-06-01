@@ -129,28 +129,25 @@ class PostgreSqlManager(object):
                 cursor = connection.cursor()
 
                 for readonly_user in self._readonly_users:
-                    try:
-                        cursor.execute(
-                            "GRANT USAGE ON SCHEMA public TO {readony_user};".format(
-                                **{
-                                    'readonly_user': readonly_user
-                                })
-                        )
-                        cursor.execute(
-                            "GRANT SELECT ON {table_name} TO {readonly_user};".format(
-                                **{
-                                    'table_name': self._table_name,
-                                    'readonly_user': readonly_user
-                                })
-                        )
-                    except Exception:
-                        pass  # Privileges existed
+                    cursor.execute(
+                        'GRANT USAGE ON SCHEMA public TO {readonly_user};'.format(
+                            **{
+                                'readonly_user': readonly_user
+                            })
+                    )
+                    cursor.execute(
+                        'GRANT SELECT ON {table_name} TO {readonly_user};'.format(
+                            **{
+                                'table_name': self._table_name,
+                                'readonly_user': readonly_user
+                            })
+                    )
 
         except Exception:
             trace = traceback.format_exc().replace('\n', '')
             self._logger.log_error('ensuring_readolny_users_permissions_failed',
-                                   f"Failed to ensure readonly users' permissions for postgres table {self._table_name}"
-                                   + f" existence with connection {self._connection_string}. ERROR: {trace}")
+                                   f'Failed to ensure readonly users permissions for postgres table {self._table_name}'
+                                   + f' existence with connection {self._connection_string}. ERROR: {trace}')
             raise
 
     def _get_connection_string(self):
