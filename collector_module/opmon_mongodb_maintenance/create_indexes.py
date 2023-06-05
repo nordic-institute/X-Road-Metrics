@@ -39,7 +39,6 @@ indexRequests = [
         'indexes': [
             [('xRequestId', ASC)],
             [('correctorTime', ASC)],
-            [('insertTime', ASC)],
             [('correctorStatus', ASC), ('client.requestInTs', ASC)],
             [('correctorStatus', ASC), ('producer.requestInTs', ASC)],
             [('correctorStatus', ASC), ('xRequestId', ASC)],

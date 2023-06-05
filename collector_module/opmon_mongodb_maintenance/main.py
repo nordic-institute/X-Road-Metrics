@@ -67,6 +67,7 @@ def _parse_args():
     parser.add_argument("--dummy-passwords", action="store_true",
                         help="Skip generation of secure passwords for users. Password will be same as username.")
     parser.add_argument("--generate-admins", action="store_true", help="Also generate admin users.")
+    parser.add_argument("--user-to-generate", help="Generate specific user.", default=None)
     args = parser.parse_args()
 
     return args

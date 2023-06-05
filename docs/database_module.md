@@ -169,7 +169,6 @@ anonymizer_EX          | U'7<^)0&-b8s | "U'7<^)0&-b8s"
 collector_EX           | 7,zj3q1!CN#m | "7,zj3q1!CN#m"
 corrector_EX           | kf^{E4G/4[f0 | "kf^{E4G/4[f0"
 reports_EX             | Fdqay:76I}x5 | "Fdqay:76I}x5"
-opendata_collector_EX  | S382)@ldfiId | "S382)@ldfiId"
 ```
 
 Store the output to a secure location, e.g. to your password manager. These usernames and passwords are needed later
@@ -179,6 +178,21 @@ escaped format that can be directly added to the config files.
 The command also creates default MongoDB indexes needed by the X-Road Metrics modules. For more information about
 the indexes, see chapter [Indexes](#Indexes).
 
+### Single User creation.
+Each user for the X-Road Metrics module can be installed individually. To do this, use the
+`--user-to-generate` parameter as shown below:
+```bash
+sudo su xroad-metrics
+xroad-metrics-init-mongo --host xroad-metrics-centraldb:27017 --user root --password mysecret EX --user-to-generate opendata_collector
+```
+The command above creates user with the password.
+
+```bash
+Username                      | Password     | Escaped Password
+------------------------------+--------------+--------------------
+opendata_collector_PLAYGROUND | 108@#fZ~d[SP | "108@#fZ~d[SP"
+Created 20 indexes.
+```
 
 ### Manually Create Optional Users
 This Chapter can be skipped unless you want to install the optional users for integration test or read-only use.
