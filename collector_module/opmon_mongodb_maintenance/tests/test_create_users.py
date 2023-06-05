@@ -74,16 +74,16 @@ def test_admin_user_generation_without_passwords(mocker):
 
 
 def test_opmon_user_generation(mocker):
-    args = Namespace(xroad='XRD1', dummy_passwords=False)
+    args = Namespace(xroad='XRD1', dummy_passwords=False, user_to_generate=None)
     client = mocker.Mock()
 
     passwords = {}
     create_users._create_opmon_users(args, client, passwords)
 
     client.auth_db.command.assert_called()
-    assert client.auth_db.command.call_count == 7
-    assert len(passwords) == 7
-    assert len(set(passwords.values())) == 7  # passwords are unique
+    assert client.auth_db.command.call_count == 6
+    assert len(passwords) == 6
+    assert len(set(passwords.values())) == 6  # passwords are unique
 
     for pwd in passwords.values():
         assert len(pwd) >= 12
@@ -93,21 +93,40 @@ def test_opmon_user_generation(mocker):
         assert to_find in passwords.keys()
 
 
+def test_specific_metrics_user_generation(mocker):
+    args = Namespace(xroad='XRD1', dummy_passwords=False, user_to_generate='opendata_collector')
+    client = mocker.Mock()
+
+    passwords = {}
+    create_users._create_opmon_users(args, client, passwords)
+    client.auth_db.command.assert_called()
+    assert client.auth_db.command.call_count == 1
+    assert len(passwords) == 1
+    assert len(set(passwords.values())) == 1  # passwords are unique
+
+    for pwd in passwords.values():
+        assert len(pwd) >= 12
+
+    for user in opmon_user_names:
+        to_find = f'opendata_collector_{args.xroad}'
+        assert to_find in passwords.keys()
+
+
 def test_opmon_user_generation_without_passwords(mocker):
-    args = Namespace(xroad='XRD2', dummy_passwords=True)
+    args = Namespace(xroad='XRD2', dummy_passwords=True, user_to_generate=None)
     client = mocker.Mock()
 
     passwords = {}
     create_users._create_opmon_users(args, client, passwords)
 
     client.auth_db.command.assert_called()
-    assert client.auth_db.command.call_count == 7
-    assert len(set(passwords.values())) == 7  # passwords are unique
+    assert client.auth_db.command.call_count == 6
+    assert len(set(passwords.values())) == 6  # passwords are unique
 
     for user, pwd in passwords.items():
         assert user == pwd
 
-    assert len(passwords.keys()) == 7
+    assert len(passwords.keys()) == 6
     for user in opmon_user_names:
         to_find = f'{user}_{args.xroad}'
         assert to_find in passwords.keys()
