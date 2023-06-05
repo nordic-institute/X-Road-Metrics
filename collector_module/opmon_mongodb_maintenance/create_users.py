@@ -72,11 +72,13 @@ def _create_admin_users(args, client, passwords):
 
 
 def _create_opmon_users(args, client, passwords):
-    filtered_user_roles = {
-        key: value for key, value in user_roles.items()
-        if (args.user_to_generate and key == args.user_to_generate)
-        or (not args.user_to_generate and key not in explicit_roles)
-    }
+    filtered_user_roles = {}
+    for key, value in user_roles.items():
+        if not args.user_to_generate and key not in explicit_roles:
+            filtered_user_roles[key] = value
+        if args.user_to_generate and key == args.user_to_generate:
+            filtered_user_roles[args.user_to_generate] = value
+
     for user, roles in filtered_user_roles.items():
         user_name = f'{user}_{args.xroad}'
         role_list = [{'db': f'{db}_{args.xroad}', 'role': role} for db, role in roles.items()]
