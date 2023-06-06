@@ -21,6 +21,9 @@
 #  THE SOFTWARE.
 
 from django.urls import include, path
+
+from opmon_opendata import django_settings as settings
+
 from . import views
 
 urlpatterns = [
@@ -30,5 +33,8 @@ urlpatterns = [
     path('logs_sample', views.get_preview_data),
     path('date_range', views.get_date_range),
     path('column_data', views.get_column_data),
-    path('harvest', views.get_harvest_data)
 ]
+if not settings.DISABLE_OPENDATA_HARVEST:
+    urlpatterns.append(
+        path('harvest', views.get_harvest_data)
+    )
