@@ -21,10 +21,8 @@
 #  THE SOFTWARE.
 
 from django.urls import include, path
-
 from opmon_opendata import django_settings as settings
-
-from . import views
+from opmon_opendata.api import views
 
 urlpatterns = [
     path('heartbeat', views.heartbeat),
