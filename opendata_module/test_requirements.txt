@@ -9,3 +9,4 @@ python-dateutil
 freezegun
 django-stubs
 pytz
+pyyaml

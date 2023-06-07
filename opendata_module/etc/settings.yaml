@@ -15,6 +15,9 @@ opendata:
   # Set to "true" to display a static maintenance page.
   maintenance-mode: false
 
+  # disable harvester endpoint
+  disable-opendata-harvest: false
+
   # Insert HTML tags here to display custom header, footer or disclaimer in the UI.
   disclaimer: "<!--insert your custom HTML disclaimer here-->"
   header: "<!--insert your custom HTML header here-->"
