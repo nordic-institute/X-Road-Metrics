@@ -4,7 +4,7 @@ __pycache__/
 *$py.class
 
 .vscode/
-.idea 
+.idea
 .idea/
 .scannerwork/
 # C extensions
@@ -73,3 +73,5 @@ xroad_metrics*.pid
 
 #pyenv
 .python-version
+tags
+venv

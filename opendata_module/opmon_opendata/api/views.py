@@ -19,28 +19,34 @@
 #  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
-from django.core.cache import cache
-from django.http import HttpResponse, StreamingHttpResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.html import escape
-
-from gzip import GzipFile
-import tarfile
-from io import BytesIO
-from datetime import datetime
 import json
 import traceback
-from psycopg2 import OperationalError
-from dateutil import relativedelta
-import time
+from datetime import datetime
+from gzip import GzipFile
+from io import BytesIO
+from typing import List, Optional, Tuple, TypedDict
 
-from .input_validator import OpenDataInputValidator
-from .postgresql_manager import PostgreSQL_Manager
+from dateutil import relativedelta
+from django.core.cache import cache
+from django.core.handlers.wsgi import WSGIRequest
+from django.http import HttpResponse, StreamingHttpResponse
+from django.utils.html import escape
+from django.views.decorators.csrf import csrf_exempt
+from psycopg2 import OperationalError
+
+from .. import __version__
 from ..logger_manager import LoggerManager
 from ..opendata_settings_parser import OpenDataSettingsParser
-from .. import __version__
+from .forms import HarvestForm
+from .input_validator import OpenDataInputValidator
+from .postgresql_manager import PostgreSQL_Manager
 
 DEFAULT_STREAM_BUFFER_LINES = 1000
+
+
+class OrderByType(TypedDict):
+    column: str
+    order: str
 
 
 def get_settings(profile):
@@ -113,6 +119,91 @@ def get_daily_logs(request, profile=None):
             json.dumps({'error': 'Server encountered error when generating gzipped tarball.'}),
             status=500
         )
+
+
+@csrf_exempt
+def get_harvest_data(request: WSGIRequest, profile: Optional[str] = None) -> HttpResponse:
+    """
+    Return a JSON response containing harvested data from a PostgreSQL database.
+
+    :param request: A Django request object representing the HTTP GET request.
+    :param profile: A string representing the profile to use for harvesting. Default is None.
+
+    :return: A JSON response. If an error occurs, an error message is returned in the response.
+    """
+
+    if request.method != 'GET':
+        return HttpResponse(
+            json.dumps({'error': 'The requested method is not allowed for the requested resource'}),
+            status=405,
+            content_type='application/json'
+        )
+
+    settings = get_settings(profile)
+    logger = LoggerManager(settings['logger'], settings['xroad']['instance'], __version__)
+    postgres = PostgreSQL_Manager(settings)
+    form = HarvestForm(request.GET)
+
+    if not form.is_valid():
+        form_validation_failed_msg = 'api_get_harvest_input_validation_failed'
+        for field, errors in form.errors.items():
+            for error in errors:
+                logger.log_error(form_validation_failed_msg, f'{field}: {error}')
+
+        return HttpResponse(
+            json.dumps({'errors': form.errors}),
+            status=400,
+            content_type='application/json'
+        )
+
+    cleaned_data = form.cleaned_data
+
+    from_dt = cleaned_data['from_dt']
+    until_dt = cleaned_data.get('until_dt')
+    limit = cleaned_data.get('limit')
+    offset = cleaned_data.get('offset')
+    from_row_id = cleaned_data.get('from_row_id')
+
+    order_by = None
+    if cleaned_data.get('order'):
+        order: OrderByType = cleaned_data['order']
+        order_by = [order]
+    try:
+        rows, columns, total_query_count_data = (
+            _get_harvest_rows(
+                postgres,
+                from_dt,
+                until_dt=until_dt,
+                limit=limit,
+                offset=offset,
+                from_row_id=from_row_id,
+                order_by=order_by
+            )
+        )
+    except Exception as exec_info:
+        logger.log_error('api_get_harvest_query_failed', str(exec_info))
+        return HttpResponse(
+            json.dumps({'error': 'Server encountered error when getting harvest data.'}),
+            content_type='application/json',
+            status=500
+        )
+
+    data = [[escape(str(element)) for element in row] for row in rows]
+    total_query_count = total_query_count_data[0] if rows else 0
+    limit = limit or 0
+    offset = offset or 0
+    from_range, to_range = _get_harvest_row_range(len(data), offset)
+    return_value = {
+        'data': data,
+        'columns': columns if rows else [],
+        'total_query_count': total_query_count,
+        'timestamp_tz_offset': from_dt.strftime('%z'),
+        'limit': limit,
+        'row_range': f'{from_range}-{to_range}'
+    }
+
+    logger.log_info('api_get_harvest_response_success', f'returning {len(rows)} rows')
+    return HttpResponse(json.dumps(return_value), content_type='application/json')
 
 
 @csrf_exempt
@@ -246,6 +337,8 @@ def get_column_data(request, profile=None):
             status=500
         )
 
+# TODO: move code below to helpers.py
+
 
 def _generate_ndjson_stream(postgres, date, columns, constraints, order_clauses, settings):
     """Creates a gzipped ndjson file iterator suitable for StreamingHttpResponse."""
@@ -276,6 +369,73 @@ def _generate_ndjson_stream(postgres, date, columns, constraints, order_clauses,
                     gzip_buffer.seek(0)
     # Final data gets written when GzipFile is closed
     yield gzip_buffer.getvalue()
+
+
+def _get_harvest_rows(
+    postgres: PostgreSQL_Manager,
+    from_dt: datetime,
+    until_dt: Optional[datetime] = None,
+    limit: Optional[int] = None,
+    offset: Optional[int] = None,
+    from_row_id: Optional[int] = None,
+    order_by: Optional[List[OrderByType]] = None
+) -> Tuple[List[Tuple], List[str], Tuple[int]]:
+    """
+    Retrieve harvested data from a PostgreSQL database based on the provided parameters.
+
+    :param postgres: A PostgreSQL_Manager object representing the connection to the PostgreSQL database.
+    :param from_dt: A datetime object representing the start date/time for the harvest.
+    :param until_dt: A datetime object representing the end date/time for the harvest. Default is None.
+    :param limit: An integer representing the maximum number of rows to return. Default is None.
+    :param offset: An integer representing the offset for the returned rows. Default is None.
+    :param from_row_id: A integer representing the start row id for the harvest. Default is None.
+    :param order_by: A list of dictionaries representing the column and order to use for sorting the results. Default is None.
+
+    :return: A tuple of list of tuples representing the harvested data from the PostgreSQL database.
+    If an error occurs, an empty list is returned.
+    """
+    if not order_by:
+        order_by = [
+            {'column': 'requestints', 'order': 'ASC'},
+            {'column': 'id', 'order': 'ASC'}
+        ]
+    constraints = [
+        {
+            'column': 'requestints',
+            'operator': '>=',
+            # Convert the datetime object to a Unix timestamp in milliseconds
+            'value': int(from_dt.timestamp() * 1000)
+        }
+    ]
+    if until_dt:
+        constraints.append(
+            {
+                'column': 'requestints',
+                'operator': '<',
+                # Convert the datetime object to a Unix timestamp in milliseconds
+                'value': int(until_dt.timestamp() * 1000)
+            }
+        )
+
+    if from_row_id:
+        constraints.append(
+            {
+                'column': 'id',
+                'operator': '>',
+                'value': int(from_row_id)
+            }
+        )
+
+    column_names_and_types = postgres.get_column_names_and_types()
+
+    columns = [column_name for column_name, _ in column_names_and_types]
+
+    total_query_count = postgres.get_rows_count(constraints)
+
+    data_cursor = postgres.get_data_cursor(
+        constraints=constraints, columns=columns, order_by=order_by, limit=limit, offset=offset)
+
+    return data_cursor.fetchall(), columns, total_query_count
 
 
 def _get_content(postgres, date, columns, constraints, order_clauses, limit=None):
@@ -317,16 +477,6 @@ def _generate_meta_file(postgres, columns, constraints, order_clauses, field_des
     return content
 
 
-def _gzip_content(content):
-    output_bytes = BytesIO()
-
-    with GzipFile(fileobj=output_bytes, mode='wb') as gzip_file:
-        input_bytes = BytesIO(content.encode('utf8'))
-        gzip_file.writelines(input_bytes)
-
-    return output_bytes.getvalue()
-
-
 def _validate_query(request, postgres, settings):
     if request.method == 'GET':
         request_data = request.GET
@@ -344,3 +494,34 @@ def _validate_query(request, postgres, settings):
         validator.load_and_validate_constraints(request_data.get('constraints', '[]')),
         validator.load_and_validate_order_clauses(request_data.get('order-clauses', '[]'))
     )
+
+
+def _get_harvest_row_range(total_rows: int, offset: int) -> Tuple[int, int]:
+    """
+    Get the range of rows to be harvested based on the total rows and offset.
+    Args:
+        total_rows (int): The total number of rows returned by the query.
+        offset (int): The number of rows to skip before starting to harvest.
+
+    Returns:
+        Tuple[int, int]: A tuple of two integers representing the range of rows to harvest.
+        The first integer is the starting row index (inclusive), and the second integer is the ending row index (exclusive).
+
+    Raises:
+        None.
+    Example:
+        >>> _get_harvest_row_range(10, 2)
+        (3, 12)
+    """  # noqa
+    if total_rows:
+        if offset:
+            range_from = offset + 1
+        else:
+            range_from = 1
+    else:
+        range_from = 0
+
+    range_to = total_rows
+    if offset:
+        range_to = total_rows + offset + 1
+    return range_from, range_to

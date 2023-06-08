@@ -6,7 +6,7 @@ ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
 
 sys.path.append(os.path.join(ROOT_DIR, '../..'))
 
-from settings import postgres
+from settings import postgres  # type: ignore
 
 
 def get_connection_string(

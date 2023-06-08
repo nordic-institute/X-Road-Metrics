@@ -19,6 +19,7 @@ The **Reports module** is part of [X-Road Metrics](../README.md), which includes
  - [Anonymizer module](./anonymizer_module.md)
  - [Opendata module](./opendata_module.md)
  - [Networking/Visualizer module](./networking_module.md)
+ - [Opendata Collector module](./opendata_collector_module.md)
 
 The **Reports module** is responsible for creating monthly reports about subsystems of X-Road members (datasets usage).
 The execution of the reports module can be either performed automatically (via **cron job**) or manually.

@@ -1,0 +1,36 @@
+# Default settings file for X-Road Metrics Opendata Collector-module.
+# Fill in your MongoDB and X-Road configuration.
+
+# To run Opendata collector for many different X-Road instances, you can create settings
+# profiles. For example to have profiles DEV, TEST and PROD copy this file to
+# settings_DEV.yaml, settings_TEST.yaml and settings_PROD.yaml.
+# Then fill the profile specific settings to each file and use the --profile
+# flag when running xroad-metrics-opendata-collector. For example to run using the TEST profile:
+#    xroad-metrics-opendata-collector --profile TEST TEST-SOURCE
+
+xroad:
+  instance: <FILL>
+opendata-collector:
+  # Full path to Opendata sources settings yaml file
+  sources-settings-path: /etc/xroad-metrics/opendata_collector/opendata_sources_settings.yaml
+  # Match thread-count with number of cores * CPUs available to ensure best performance
+  thread-count: 1
+mongodb:
+  host: localhost
+  user: <FILL>
+  password: <FILL>
+  # set to True to enable secure connection
+  tls:
+  # path to CA pem file
+  tls-ca-file:
+
+logger:
+  name: opendata-collector
+  module: opendata-collector
+  # Possible logging levels from least to most verbose are:
+  # CRITICAL, FATAL, ERROR, WARNING, INFO, DEBUG
+  level: INFO
+  # Logs and heartbeat files are stored under these paths.
+  # Also configure external log rotation and app monitoring accordingly.
+  log-path: /var/log/xroad-metrics/opendata_collector/logs
+  heartbeat-path: /var/log/xroad-metrics/opendata_collector/heartbeat

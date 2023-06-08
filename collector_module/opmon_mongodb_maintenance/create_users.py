@@ -31,13 +31,16 @@ import secrets
 
 import yaml
 
+
+explicit_roles = ['opendata_collector']
 user_roles = {
     'analyzer': {'query_db': 'read', 'analyzer_database': 'readWrite'},
     'analyzer_interface': {'query_db': 'read', 'analyzer_database': 'readWrite'},
     'anonymizer': {'query_db': 'read', 'anonymizer_state': 'readWrite'},
     'collector': {'query_db': 'readWrite', 'collector_state': 'readWrite'},
     'corrector': {'query_db': 'readWrite'},
-    'reports': {'query_db': 'read', 'reports_state': 'readWrite'}
+    'reports': {'query_db': 'read', 'reports_state': 'readWrite'},
+    'opendata_collector': {'query_db': 'readWrite', 'opendata_collector_state': 'readWrite'},
 }
 
 admin_roles = {
@@ -69,7 +72,14 @@ def _create_admin_users(args, client, passwords):
 
 
 def _create_opmon_users(args, client, passwords):
-    for user, roles in user_roles.items():
+    filtered_user_roles = {}
+    for key, value in user_roles.items():
+        if not args.user_to_generate and key not in explicit_roles:
+            filtered_user_roles[key] = value
+        if args.user_to_generate and key == args.user_to_generate:
+            filtered_user_roles[args.user_to_generate] = value
+
+    for user, roles in filtered_user_roles.items():
         user_name = f'{user}_{args.xroad}'
         role_list = [{'db': f'{db}_{args.xroad}', 'role': role} for db, role in roles.items()]
         password = user_name if args.dummy_passwords else _generate_password()
@@ -98,7 +108,7 @@ def _print_users(passwords: dict):
 def _generate_password():
     """
     Generate a random 12 character password.
-    
+
     Password contains lower-case, upper-case, numbers and special characters.
     Based on best-practice recipe from https://docs.python.org/3/library/secrets.html.
     """
