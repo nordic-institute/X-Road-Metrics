@@ -1,6 +1,7 @@
-from logging import StreamHandler
 import os
+from logging import StreamHandler
 from operator import eq, gt, is_not, le, lt
+from typing import Dict, List, Optional, Union
 
 import pytest
 
@@ -24,21 +25,28 @@ class MockCollection:
     def __init__(self):
         self._storage = []
 
-    def insert_many(self, documents):
+    def insert_many(self, documents: List[Dict[str, Union[str, int]]]) -> None:
         self._storage.extend(documents)
 
-    def find(self, query=None, projection=None, no_cursor_timeout=True):
+    def find(self, query: Optional[dict] = None,
+             projection: Optional[dict] = None,
+             no_cursor_timeout: bool = True
+             ) -> 'MockResult':
+        if not query:
+            query = {}
         if not projection:
-            projection = []
+            projection = {}
         data = self._find(query)
         if projection:
             data = self._set_projection(projection, data)
         return MockResult(data)
 
-    def _set_projection(self, projection=None, data=None):
-        if not projection:
+    def _set_projection(self, projection: Optional[dict] = None,
+                        data: Optional[List[dict]] = None
+                        ) -> List[Dict[str, Union[str, int]]]:
+        if projection is None:
             projection = {}
-        if not data:
+        if data is None:
             data = []
         projected_data = []
         for item in data:
@@ -50,10 +58,10 @@ class MockCollection:
                 projected_data.append(new_item)
         return projected_data
 
-    def insert_one(self, document):
+    def insert_one(self, document: dict) -> None:
         self._storage.append(document)
 
-    def update(self, query, update, upsert=False):
+    def update(self, query: dict, update: dict, upsert: bool = False) -> None:
         entry_to_upsert = {}
         found = self.find_one(query)
         if found:
@@ -67,7 +75,7 @@ class MockCollection:
         entry_to_upsert.update(update)
         self._storage.append(entry_to_upsert)
 
-    def _match(self, query, item):
+    def _match(self, query: dict, item: dict) -> bool:
         return all(
             [
                 operator(item.get(query['field']), query['value'])
@@ -75,7 +83,7 @@ class MockCollection:
             ]
         )
 
-    def _find(self, query):
+    def _find(self, query: dict) -> List[dict]:
         prepared_query = self._prepare_query(query)
         return [
             item for item in self._storage
@@ -86,11 +94,11 @@ class MockCollection:
             )
         ]
 
-    def _prepare_query(self, query):
-        dd = []
+    def _prepare_query(self, query: dict) -> List[dict]:
+        prepared_queries = []
         for key, item in query.items():
             if isinstance(item, str):
-                dd.append({
+                prepared_queries.append({
                     'field': key,
                     'value': item,
                     'operators': [eq]
@@ -98,27 +106,29 @@ class MockCollection:
             if isinstance(item, dict):
                 for q_key, q_item in item.items():
                     if q_key == '$gt':
-                        dd.append({
+                        prepared_queries.append({
                             'field': key,
                             'value': q_item,
                             'operators': [gt]
                         })
                     if q_key == '$lte':
-                        dd.append({
+                        prepared_queries.append({
                             'field': key,
                             'value': q_item,
                             'operators': [lt, le]
                         })
                     if q_key == '$ne':
-                        dd.append({
+                        prepared_queries.append({
                             'field': key,
                             'value': q_item,
                             'operators': [is_not]
                         })
 
-        return dd
+        return prepared_queries
 
-    def find_one(self, query):
+    def find_one(self, query: Optional[dict] = None) -> Optional[dict]:
+        if query is None:
+            query = {}
         found = None
         result = self._find(query)
         if result:
@@ -127,7 +137,7 @@ class MockCollection:
             found = result[0]
         return found
 
-    def update_one(self, query, update, upsert=False):
+    def update_one(self, query: dict, update: dict, upsert: bool = False) -> None:
         entry_to_upsert = {}
         found = self.find_one(query)
         if found:
@@ -141,7 +151,7 @@ class MockCollection:
         entry_to_upsert.update(update['$set'])
         self._storage.append(entry_to_upsert)
 
-    def get_all(self):
+    def get_all(self) -> List[dict]:
         return self._storage
 
 
