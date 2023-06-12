@@ -20,19 +20,30 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
 
+import datetime
 import json
 import logging
-from logging.handlers import RotatingFileHandler
-import datetime
-import os
 import multiprocessing
+import os
 import re
 import uuid
+import xml.etree.ElementTree as ET
 import zlib
-import requests
 from enum import Enum
+from logging.handlers import RotatingFileHandler
+from xml.etree.ElementTree import ParseError
+
+import requests
 
 from opmon_collector.security_server_client import SecurityServerClient
+
+
+class ServerProxyError(Exception):
+    pass
+
+
+class ServerClientProxyError(Exception):
+    pass
 
 
 class CollectorWorker:
@@ -63,8 +74,11 @@ class CollectorWorker:
                 self._store_records_to_database()
                 self.batch_start = self._parse_next_records_from_response(response) or self.batch_end
                 self.server_m.set_next_records_timestamp(self.server_key, self.batch_start)
+            except ServerClientProxyError as e:
+                self.log_error('Collector caught exception.', repr(e))
+                return False, e
             except Exception as e:
-                self.log_warn("Collector caught exception.", repr(e))
+                self.log_warn('Collector caught exception.', repr(e))
                 return False, e
 
             self.update_status()
@@ -83,12 +97,17 @@ class CollectorWorker:
     def log_warn(self, message, cause):
         self.logger_m.log_warning(
             'collector_worker',
-            f"[{self.thread_name}] Message: {message} Server: {self.server_key} Cause: {cause} \n")
+            f'[{self.thread_name}] Message: {message} Server: {self.server_key} Cause: {cause} \n')
 
     def log_info(self, message):
         self.logger_m.log_info(
             'collector_worker',
-            f"[{self.thread_name}] Message: {message} Server: {self.server_key} \n")
+            f'[{self.thread_name}] Message: {message} Server: {self.server_key} \n')
+
+    def log_error(self, message, cause):
+        self.logger_m.log_error(
+            'collector_worker',
+            f'[{self.thread_name}] Message: {message} Server: {self.server_key} Cause: {cause} \n')
 
     def _log_status(self):
         if self.status == CollectorWorker.Status.ALL_COLLECTED:
@@ -133,10 +152,25 @@ class CollectorWorker:
                 cert=client_cert, verify=server_cert
             )
             response.raise_for_status()
+            self._process_soap_errors(response.content)
             return response
         except Exception as e:
             self.log_warn("Request for operational monitoring data failed.", '')
             raise e
+
+    def _process_soap_errors(self, metrics_response) -> None:
+        try:
+            root = ET.fromstring(metrics_response)
+            fault_code = root.find('.//{http://schemas.xmlsoap.org/soap/envelope/}Fault/faultcode').text
+            fault_string = root.find('.//{http://schemas.xmlsoap.org/soap/envelope/}Fault/faultstring').text
+            fault_detail = root.find('.//{http://schemas.xmlsoap.org/soap/envelope/}Fault/detail/faultDetail').text
+            if fault_code:
+                error_message = f'Message: {fault_string}. Code: {fault_code}. Detail: {fault_detail}'
+                if fault_code.startswith('Server.ClientProxy'):
+                    raise ServerClientProxyError(error_message)
+                raise ServerProxyError(error_message)
+        except ParseError:
+            pass
 
     def _parse_attachment(self, opmon_response):
         try:
