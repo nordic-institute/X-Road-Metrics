@@ -78,7 +78,7 @@ def mock_response_contents():
     os.chdir(pathlib.Path(__file__).parent.absolute())
     os.chdir('./responses')
     data = []
-    filenames = ["opmon_response1.dat", "opmon_response2.dat"]
+    filenames = ["metrics_response1.dat", "metrics_response2.dat"]
     for name in filenames:
         with open(name, "rb") as f:
             data.append(f.read())
