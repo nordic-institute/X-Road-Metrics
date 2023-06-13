@@ -158,7 +158,7 @@ class CollectorWorker:
             self.log_warn("Request for operational monitoring data failed.", '')
             raise e
 
-    def _process_soap_errors(self, metrics_response) -> None:
+    def _process_soap_errors(self, metrics_response: str) -> None:
         try:
             root = ET.fromstring(metrics_response)
             fault_code = root.find('.//{http://schemas.xmlsoap.org/soap/envelope/}Fault/faultcode').text
