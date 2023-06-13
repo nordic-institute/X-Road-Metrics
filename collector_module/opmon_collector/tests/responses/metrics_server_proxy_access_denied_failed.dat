@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+  <SOAP-ENV:Body>
+    <SOAP-ENV:Fault>
+      <faultcode>Server.ServerProxy.AccessDenied</faultcode>
+      <faultstring>Request is not allowed: SERVICE: instanceIdentifier/memberClass/memberCode/subsystemCode/serviceCode/serviceVersion</faultstring>
+      <faultactor></faultactor>
+      <detail>
+        <faultDetail xmlns="">132ff5d7-a6c7-4807-968e-430c515bf32a</faultDetail>
+      </detail>
+    </SOAP-ENV:Fault>
+  </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
