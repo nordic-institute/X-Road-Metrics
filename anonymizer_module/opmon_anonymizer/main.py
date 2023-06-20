@@ -20,7 +20,6 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
 import argparse
-import traceback
 from datetime import datetime
 from typing import Optional, Union
 
@@ -45,9 +44,9 @@ def anonymize(settings: dict, logger: logger_manager.LoggerManager,
         elapsed = str(datetime.now() - start_time)
         logger.log_info(f'{opendata}anonymization_session_finished',
                         f'Anonymization finished in {elapsed} seconds. Processed {record_count} entries from MongoDB.')
-    except Exception:
-        trace = traceback.format_exc().replace('\n', '')
-        logger.log_error(f'{opendata}anonymization_process_failed', f'Failed to anonymize. ERROR: {trace}')
+    except Exception as e:
+        logger.log_exception(f'{opendata}anonymization_process_failed',
+                             f'Failed to anonymize. ERROR: {str(e)}')
         raise
 
 
@@ -96,10 +95,11 @@ def setup_opendata_reader(settings: dict, logger: logger_manager.LoggerManager) 
         reader = MongoDbOpenDataManager(settings, logger)
         assert reader.is_alive()
         return reader
-    except Exception:
+    except Exception as e:
         logger.log_heartbeat('Failed to initialize MongoDB connection.', 'FAILED')
-        logger.log_error('mongodb_connection_failed',
-                         f"Failed connecting to MongoDB at {settings['mongodb']}")
+        logger.log_exception('mongodb_connection_failed',
+                             f"Failed connecting to MongoDB at {settings['mongodb']}"
+                             f'ERROR: {str(e)}')
 
         raise
 
@@ -109,10 +109,11 @@ def setup_reader(settings, logger):
         reader = MongoDbManager(settings, logger)
         assert reader.is_alive()
         return reader
-    except Exception:
+    except Exception as e:
         logger.log_heartbeat('Failed to initialize MongoDB connection.', 'FAILED')
-        logger.log_error('mongodb_connection_failed',
-                         f"Failed connecting to MongoDB at {settings['mongodb']}")
+        logger.log_exception('mongodb_connection_failed',
+                             f"Failed connecting to MongoDB at {settings['mongodb']}"
+                             f'ERROR: {str(e)}')
 
         raise
 
@@ -122,12 +123,10 @@ def setup_writer(settings, logger):
         writer = OpenDataWriter(settings, logger)
         assert writer.db_manager.is_alive()
         return writer
-    except Exception:
+    except Exception as e:
         logger.log_heartbeat('Failed to initialize PostgreSQL connection.', 'FAILED')
-
-        trace = traceback.format_exc().replace('\n', '')
-        logger.log_error('postgresql_connection_failed',
-                         f'Failed initializing postgresql database connector. ERROR: {trace}')
+        logger.log_exception('postgresql_connection_failed',
+                             f'Failed initializing postgresql database connector. ERROR: {str(e)}')
         raise
 
 
@@ -146,9 +145,8 @@ def run_anonymizer(settings, logger: logger_manager.LoggerManager, anonymization
         logger.log_heartbeat('Finished anonymization session', 'SUCCEEDED')
         return records
 
-    except Exception:
-        trace = traceback.format_exc().replace('\n', '')
-        logger.log_error('anonymization_process_failed', f'Failed to anonymize. ERROR: {trace}')
+    except Exception as e:
+        logger.log_exception('anonymization_process_failed', f'Failed to anonymize. ERROR: {str(e)}')
         save_reader_state_on_error(reader, logger)
         logger.log_heartbeat('Error occurred during log anonymization', 'FAILED')
 
@@ -167,9 +165,8 @@ def run_opendata_anonymizer(settings: dict, logger: logger_manager.LoggerManager
         logger.log_heartbeat('Finished opendata anonymization session', 'SUCCEEDED')
         return records
 
-    except Exception:
-        trace = traceback.format_exc().replace('\n', '')
-        logger.log_error('opendata_anonymization_process_failed', f'Failed to anonymize. ERROR: {trace}')
+    except Exception as e:
+        logger.log_exception('opendata_anonymization_process_failed', f'Failed to anonymize. ERROR: {str(e)}')
         save_reader_state_on_error(reader, logger)
         logger.log_heartbeat('Error occurred during opendata log anonymization', 'FAILED')
         return None
@@ -179,8 +176,9 @@ def save_reader_state_on_error(reader: Union[MongoDbManager, MongoDbOpenDataMana
     try:
         reader.set_last_processed_timestamp()
         logger.log_info('anonymization_process_failed', 'Reader state saved successfully after error.')
-    except Exception:
-        logger.log_warning('anonymization_process_failed', 'Failed to save reader state after error.')
+    except Exception as e:
+        logger.log_exception('anonymization_process_failed',
+                             f'Failed to save reader state after error. ERROR: {str(e)}')
 
 
 if __name__ == '__main__':

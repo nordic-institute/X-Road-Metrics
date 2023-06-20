@@ -20,32 +20,34 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
 
-import psycopg2 as pg
+import logging
 import os
 import sys
-import traceback
-import datetime
+
+import psycopg2 as pg
+from settings import anonymizer, postgres  # type: ignore
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__file__)
 
 ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
 
 sys.path.append(os.path.join(ROOT_DIR, '..'))
 
-from settings import postgres, anonymizer  # type: ignore
-
 
 def get_connection_string(
         host_address=None, port=None, database_name=None, user=None, password=None, **irrelevant_settings):
-    string_parts = ["host={host} dbname={dbname}".format(
+    string_parts = ['host={host} dbname={dbname}'.format(
         **{'host': host_address, 'dbname': database_name})]
 
     if port:
-        string_parts.append("port=" + str(port))
+        string_parts.append('port=' + str(port))
 
     if user:
-        string_parts.append("user=" + user)
+        string_parts.append('user=' + user)
 
     if password:
-        string_parts.append("password=" + password)
+        string_parts.append('password=' + password)
 
     return ' '.join(string_parts)
 
@@ -68,16 +70,9 @@ for field_name in sorted(fields):
     try:
         with pg.connect(connection_string) as connection:
             cursor = connection.cursor()
-            query = f"CREATE INDEX logs_{field_name}_idx ON {table_name} ({field_name});"
-            timestamp = datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S')
+            query = f'CREATE INDEX logs_{field_name}_idx ON {table_name} ({field_name});'
             cursor.execute(query)
+            logger.info(f'Created index logs_{field_name}_idx with the command: {query}')
 
-            message = [
-                f"[{timestamp}] Created index logs_{field_name}_idx with the command: ",
-                query
-            ]
-            print('\n'.join(message))
-
-    except Exception:
-        print(f"[{timestamp}] query failed:\n" + query)
-        traceback.print_exc()
+    except Exception as e:
+        logger.exception(f'Create index query failed: {query}. Error: {str(e)}')
