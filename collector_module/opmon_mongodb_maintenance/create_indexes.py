@@ -20,8 +20,13 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
 
-from pymongo import MongoClient
+import logging
+
 from pymongo import ASCENDING as ASC
+from pymongo import MongoClient
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__file__)
 
 indexRequests = [
     {
@@ -90,6 +95,6 @@ def create_indexes(xroad_instance: str, client: MongoClient):
                 client[db][collection].create_index(index)
                 count += 1
             except Exception as e:
-                print(f"Failed to create index: {e}")
+                logger.exception('Failed to create index', str(e))
 
-    print(f"Created {count} indexes.")
+    logger.info(f'Created {count} indexes.')

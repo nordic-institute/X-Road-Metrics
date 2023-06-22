@@ -53,7 +53,7 @@ def process_thread_pool(settings, inputs):
 
 
 def run_threaded_collector(logger_m, settings):
-    logger_m.log_info('collector_start', f'Starting collector')
+    logger_m.log_info('collector_start', 'Starting collector')
 
     OpmonPidFileHandler(settings).create_pid_file()
 
@@ -65,9 +65,9 @@ def run_threaded_collector(logger_m, settings):
     inputs = prepare_thread_inputs(settings, server_list, server_m, logger_m)
     done, error = process_thread_pool(settings, inputs)
 
-    total_time = time.strftime("%H:%M:%S", time.gmtime(time.time() - start_time_time))
+    total_time = time.strftime('%H:%M:%S', time.gmtime(time.time() - start_time_time))
     logger_m.log_info('collector_end', f'Total collected: {done}, Total error: {error}, Total time: {total_time}')
-    logger_m.log_heartbeat(f'Total collected: {done}, Total error: {error}, Total time: {total_time}', "SUCCEEDED")
+    logger_m.log_heartbeat(f'Total collected: {done}, Total error: {error}, Total time: {total_time}', 'SUCCEEDED')
 
 
 def collector_main(settings):
@@ -76,6 +76,6 @@ def collector_main(settings):
     try:
         run_threaded_collector(logger_m, settings)
     except Exception as e:
-        logger_m.log_error('collector', '{0}'.format(repr(e)))
-        logger_m.log_heartbeat("error", "FAILED")
+        logger_m.log_exception('collector', repr(e))
+        logger_m.log_heartbeat('error', 'FAILED')
         raise e

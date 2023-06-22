@@ -20,12 +20,18 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
 
+
 import argparse
 import getpass
+import logging
+
 from pymongo import MongoClient
 
-from .create_users import create_users
 from .create_indexes import create_indexes
+from .create_users import create_users
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__file__)
 
 
 def main():
@@ -35,12 +41,12 @@ def main():
     try:
         create_users(args, client)
     except Exception as e:
-        print(f"Failed to create users: {e}")
+        logger.exception('Failed to create users', str(e))
 
     try:
         create_indexes(args.xroad, client)
     except Exception as e:
-        print(f"Failed  to create indexes: {e}")
+        logger.exception('Failed to create indexes', str(e))
 
 
 def _connect_mongo(args):
