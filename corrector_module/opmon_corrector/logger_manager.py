@@ -50,7 +50,7 @@ class LoggerManager:
         self._setup_logger()
 
     def _create_file_handler(self):
-        formatter = logging.Formatter("%(message)s")
+        formatter = logging.Formatter('%(message)s')
 
         file_handler = WatchedFileHandler(self.log_path)
         file_handler.setFormatter(formatter)
@@ -110,6 +110,20 @@ class LoggerManager:
         data['version'] = self.version
         # Log to file
         logger.error(json.dumps(data))
+
+    def log_exception(self, activity: str, msg: str) -> None:
+        logger = logging.getLogger(self.name)
+        # Build Message
+        data = dict()
+        data['level'] = 'ERROR'
+        data['timestamp'] = get_timestamp()
+        data['local_timestamp'] = get_local_timestamp()
+        data['module'] = self.module
+        data['activity'] = activity
+        data['msg'] = msg
+        data['version'] = self.version
+        # Log to file
+        logger.exception(json.dumps(data))
 
     def log_heartbeat(self, msg, status):
         # Build Message
