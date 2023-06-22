@@ -3,6 +3,7 @@ import os
 import sys
 
 import psycopg2 as pg
+
 from settings import postgres  # type: ignore
 
 ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
