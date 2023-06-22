@@ -22,14 +22,12 @@
 
 import datetime
 import sys
-import traceback
 import urllib.parse
 from typing import Generator
 
 import pymongo
-from pymongo import MongoClient
-
 from opmon_anonymizer.utils.logger_manager import LoggerManager
+from pymongo import MongoClient
 
 MAX_DOCUMENTS_BATCH_SIZE = 1000
 
@@ -103,10 +101,9 @@ class MongoDbManager(BaseMongoDbManager):
             self.query_db.clean_data.find_one()
             return True
 
-        except Exception:
-            trace = traceback.format_exc().replace('\n', '')
-            self._logger.log_error('mongodb_connection_failed',
-                                   f'Failed to connect to mongodb at {self.client.address}. ERROR: {trace}')
+        except Exception as e:
+            self._logger.log_exception('mongodb_connection_failed',
+                                       f'Failed to connect to mongodb at {self.client.address}. ERROR: {str(e)}')
             return False
 
     def _add_missing_fields(self, document, allowed_fields):
@@ -125,10 +122,10 @@ class MongoDbManager(BaseMongoDbManager):
                         document[field_path[0]] = None
 
             return document
-        except Exception:
-            self._logger.log_error('adding_missing_fields_failed',
-                                   ('Failed adding missing fields from {0} to document {1}. ERROR: {2}'.format(
-                                       str(allowed_fields), str(document), traceback.format_exc().replace('\n', ''))))
+        except Exception as e:
+            self._logger.log_exception('adding_missing_fields_failed',
+                                       f'Failed adding missing fields from {allowed_fields} '
+                                       f'to document {document}. ERROR: {str(e)}')
             raise
 
     def get_last_processed_timestamp(self):
@@ -195,10 +192,9 @@ class MongoDbOpenDataManager(BaseMongoDbManager):
             self.query_db.opendata_data.find_one()
             return True
 
-        except Exception:
-            trace = traceback.format_exc().replace('\n', '')
-            self._logger.log_error('mongodb_connection_failed',
-                                   f'Failed to connect to mongodb at {self.client.address}. ERROR: {trace}')
+        except Exception as e:
+            self._logger.log_exception('mongodb_connection_failed',
+                                       f'Failed to connect to mongodb at {self.client.address}. ERROR: {str(e)}')
             return False
 
     def _add_missing_fields(self, document: dict, allowed_fields: dict) -> dict:
@@ -207,10 +203,10 @@ class MongoDbOpenDataManager(BaseMongoDbManager):
                 if field not in document:
                     document[field] = None
             return document
-        except Exception:
-            self._logger.log_error('adding_missing_fields_failed',
-                                   ('Failed adding missing fields from {0} to document {1}. ERROR: {2}'.format(
-                                       str(allowed_fields), str(document), traceback.format_exc().replace('\n', ''))))
+        except Exception as e:
+            self._logger.log_exception('adding_missing_fields_failed',
+                                       f'Failed adding missing fields from {allowed_fields} '
+                                       f'to document {document}. ERROR: {str(e)}')
             raise
 
     def get_last_processed_timestamp(self) -> float:

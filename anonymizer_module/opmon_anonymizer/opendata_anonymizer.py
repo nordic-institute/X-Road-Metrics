@@ -82,13 +82,12 @@ class OpenDataAnonymizer(Anonymizer):
                 batch_end_mongodb_timestamp = 1
                 try:
                     self._anonymization_job.run(record_buffer)
-                except Exception:
-                    self._logger.log_error('failed_anonymizing_record_batch',
-                                           'Record batch with correctorTime within range [{0}, {1}] failed. '
-                                           'Last successful correctorTime was {2}'.format(
-                                               batch_start_mongodb_timestamp,
-                                               batch_end_mongodb_timestamp,
-                                               last_successful_batch_timestamp))
+                except Exception as e:
+                    self._logger.log_exception('failed_anonymizing_record_batch',
+                                               'Record batch with correctorTime within range '
+                                               f'[{batch_start_mongodb_timestamp}, {batch_end_mongodb_timestamp}] failed. '
+                                               f'Last successful correctorTime was {last_successful_batch_timestamp} '
+                                               f'Error: {str(e)}')
                     self._reader.update_last_processed_timestamp(last_successful_batch_timestamp)
                     return processed_count
 
@@ -116,11 +115,10 @@ class OpenDataAnonymizer(Anonymizer):
                 allowed_fields = [line.strip().split(' -> ')[1] for line in field_translations_file if line.strip()]
             allowed_fields = list(set(allowed_fields))
             return allowed_fields
-        except Exception:
-            trace = traceback.format_exc().replace('\n', '')
+        except Exception as e:
             path = os.path.abspath(field_translations_file_path)
-            logger.log_error('allowed_fields_parsing_failed',
-                             f'Failed to parse allowed fields from field translations file at {path}. ERROR: {trace}')
+            logger.log_exception('allowed_fields_parsing_failed',
+                                 f'Failed to parse allowed fields from field translations file at {path}. ERROR: {str(e)}')
             raise
 
 
@@ -158,9 +156,7 @@ class OpenDataAnonymizationJob(AnonymizationJob):
             self._logger_manager.log_info('OpenDataAnonymizationJob.run',
                                           f'Processing done. Records to write {len(processed_records)}.')
             self._writer.write_records(processed_records)
-        except Exception:
-            logger.log_error('record_batch_opendata_anonymization_failed',
-                             'Failed processing a batch of records. ERROR: {0}'.format(
-                                 traceback.format_exc().replace('\n', '')
-                             ))
+        except Exception as e:
+            logger.log_exception('record_batch_opendata_anonymization_failed',
+                                 f'Failed processing a batch of records. ERROR: {str(e)}')
             raise
