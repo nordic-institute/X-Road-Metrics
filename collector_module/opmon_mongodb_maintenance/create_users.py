@@ -26,11 +26,14 @@ Script to create MongoDb users for X-Road Metrics tools.
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
 
-import string
+import logging
 import secrets
+import string
 
 import yaml
 
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__file__)
 
 explicit_roles = ['opendata_collector']
 user_roles = {
@@ -68,7 +71,7 @@ def _create_admin_users(args, client, passwords):
             client.admin.command('createUser', user_name, pwd=password, roles=roles)
             passwords[user_name] = password
         except Exception as e:
-            print(f"Failed to create user {user_name}: {e}")
+            logger.exception(f'Failed to create user {user_name}', str(e))
 
 
 def _create_opmon_users(args, client, passwords):
@@ -88,7 +91,7 @@ def _create_opmon_users(args, client, passwords):
             client.auth_db.command('createUser', user_name, pwd=password, roles=role_list)
             passwords[user_name] = password
         except Exception as e:
-            print(f"Failed to create user {user_name}: {e}")
+            logger.exception(f'Failed to create user {user_name}', str(e))
 
 
 def _print_users(passwords: dict):

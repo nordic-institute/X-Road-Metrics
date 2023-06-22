@@ -34,7 +34,6 @@ from logging.handlers import RotatingFileHandler
 from xml.etree.ElementTree import ParseError
 
 import requests
-
 from opmon_collector.security_server_client import SecurityServerClient
 
 
@@ -78,7 +77,7 @@ class CollectorWorker:
                 self.log_error('Collector caught exception.', repr(e))
                 return False, e
             except Exception as e:
-                self.log_warn('Collector caught exception.', repr(e))
+                self.log_exception('Collector caught exception.', repr(e))
                 return False, e
 
             self.update_status()
@@ -109,13 +108,18 @@ class CollectorWorker:
             'collector_worker',
             f'[{self.thread_name}] Message: {message} Server: {self.server_key} Cause: {cause} \n')
 
+    def log_exception(self, message: str, cause: str) -> None:
+        self.logger_m.log_exception(
+            'collector_worker',
+            f'[{self.thread_name}] Message: {message} Server: {self.server_key} Cause: {cause} \n')
+
     def _log_status(self):
         if self.status == CollectorWorker.Status.ALL_COLLECTED:
             self.log_info(f'Records collected until {self.batch_end}.')
         elif self.status == CollectorWorker.Status.TOO_SMALL_BATCH:
-            self.log_info(f'Not enough data received to repeat query.')
+            self.log_info('Not enough data received to repeat query.')
         else:
-            self.log_warn("Maximum repeats reached.", "")
+            self.log_warn('Maximum repeats reached.', '')
 
     def _get_record_limits(self):
         records_from_offset = self.settings['collector']['records-from-offset']
@@ -129,7 +133,7 @@ class CollectorWorker:
         self.log_info(f'Collecting from {self.batch_start} to {self.batch_end}')
 
         req_id = str(uuid.uuid4())
-        headers = {"Content-type": "text/xml;charset=UTF-8"}
+        headers = {'Content-type': 'text/xml;charset=UTF-8'}
         client_xml = SecurityServerClient.get_soap_monitoring_client(self.settings['xroad'])
         body = SecurityServerClient.get_soap_body(
             client_xml,
@@ -155,7 +159,7 @@ class CollectorWorker:
             self._process_soap_errors(response.content)
             return response
         except Exception as e:
-            self.log_warn("Request for operational monitoring data failed.", '')
+            self.log_exception('Request for operational monitoring data failed.', str(e))
             raise e
 
     def _process_soap_errors(self, metrics_response: str) -> None:
@@ -174,16 +178,16 @@ class CollectorWorker:
 
     def _parse_attachment(self, opmon_response):
         try:
-            resp_search = re.search(b"content-id: <operational-monitoring-data.json.gz>\r\n\r\n(.+)\r\n--xroad",
+            resp_search = re.search(b'content-id: <operational-monitoring-data.json.gz>\r\n\r\n(.+)\r\n--xroad',
                                     opmon_response.content, re.DOTALL)
             if resp_search is None:
                 self.log_warn('No attachment present.', '')
                 raise FileNotFoundError('Attachment not found in operational monitoring data response.')
 
             data_json = json.loads(zlib.decompress(resp_search.group(1), zlib.MAX_WBITS | 16).decode('utf-8'))
-            return data_json["records"]
+            return data_json['records']
         except Exception as e:
-            self.log_warn("Cannot parse response attachment.", '')
+            self.log_exception('Cannot parse response attachment.', str(e))
             raise e
 
     def _get_records_logger(self) -> logging.Logger:
@@ -225,18 +229,18 @@ class CollectorWorker:
 
     def _store_records_to_database(self) -> None:
         if len(self.records):
-            self.log_info(f"Adding {len(self.records)} documents.")
+            self.log_info(f'Adding {len(self.records)} documents.')
             try:
                 self.server_m.insert_data_to_raw_messages(self.records)
             except Exception as e:
-                self.log_warn("Failed to save records.", '')
+                self.log_exception('Failed to save records.', str(e))
                 raise e
         else:
-            self.log_warn("No documents to store!", "")
+            self.log_warn('No documents to store!', '')
 
     @staticmethod
     def _parse_next_records_from_response(response):
-        result = re.search(b"<om:nextRecordsFrom>(\\d+)</om:nextRecordsFrom>", response.content)
+        result = re.search(b'<om:nextRecordsFrom>(\\d+)</om:nextRecordsFrom>', response.content)
         return None if result is None else int(result.group(1))
 
 
