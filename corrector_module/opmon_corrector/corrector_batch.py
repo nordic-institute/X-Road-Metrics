@@ -23,16 +23,15 @@
 import multiprocessing
 import queue
 import time
-import traceback
 from collections import defaultdict
 
-from . import database_manager, document_manager
-from .corrector_worker import CorrectorWorker
-from .logger_manager import LoggerManager
+from opmon_corrector import (SECURITY_SERVER_TYPE_CLIENT,
+                             SECURITY_SERVER_TYPE_PRODUCER, database_manager,
+                             document_manager)
+from opmon_corrector.corrector_worker import CorrectorWorker
+from opmon_corrector.logger_manager import LoggerManager
 
 PROCESSING_TIME_FORMAT = '%H:%M:%S'
-from opmon_corrector import (SECURITY_SERVER_TYPE_CLIENT,
-                             SECURITY_SERVER_TYPE_PRODUCER)
 
 
 class CorrectorBatch:
@@ -50,8 +49,7 @@ class CorrectorBatch:
             self._batch_run(process_dict)
         except Exception as e:
             # Catch internal exceptions to log
-            msg = 'Error: {0} {1}'.format(repr(e), traceback.format_exc()).replace('\n', '')
-            self.logger_m.log_error('corrector_batch_run', msg)
+            self.logger_m.log_exception('corrector_batch_run', f'Error: {str(e)}')
             # Raise exception again
             raise e
 
