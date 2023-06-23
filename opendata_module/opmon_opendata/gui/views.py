@@ -20,17 +20,17 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
 
-from django.shortcuts import render
-from django.http import HttpResponse
-from django.core.cache import cache
 import json
-import traceback
 
-from ..logger_manager import LoggerManager
-from ..api.postgresql_manager import PostgreSQL_Manager
-from ..api.input_validator import OpenDataInputValidator
-from ..opendata_settings_parser import OpenDataSettingsParser
-from .. import __version__
+from django.core.cache import cache
+from django.http import HttpResponse
+from django.shortcuts import render
+
+from opmon_opendata import __version__
+from opmon_opendata.api.input_validator import OpenDataInputValidator
+from opmon_opendata.api.postgresql_manager import PostgreSQL_Manager
+from opmon_opendata.logger_manager import LoggerManager
+from opmon_opendata.opendata_settings_parser import OpenDataSettingsParser
 
 
 def get_settings(profile):
@@ -72,10 +72,8 @@ def index(request, profile=None):
                 'footer': settings['opendata']['footer'],
                 'x_road_instance': settings['xroad']['instance'],
             })
-    except Exception:
-        logger.log_error('gui_index_page_loading_failed', 'Failed loading index page. ERROR: {0}'.format(
-            traceback.format_exc().replace('\n', '')
-        ))
+    except Exception as e:
+        logger.log_exception('gui_index_page_loading_failed', f'Failed loading index page. ERROR: {str(e)}')
         return HttpResponse('Server encountered an error while rendering the HTML page.', status=500)
 
 
@@ -108,10 +106,8 @@ def get_datatable_frame(request, profile=None):
                 ]
             }
         )
-    except Exception:
-        logger.log_error('gui_datatable_frame_loading_failed', 'Failed loading datatable frame. ERROR: {0}'.format(
-            traceback.format_exc().replace('\n', '')
-        ))
+    except Exception as e:
+        logger.log_exception('gui_datatable_frame_loading_failed', f'Failed loading datatable frame. ERROR: {str(e)}')
         return HttpResponse('Server encountered an error while rendering the datatable frame.', status=500)
 
 

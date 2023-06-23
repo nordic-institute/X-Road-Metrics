@@ -111,6 +111,20 @@ class LoggerManager:
         # Log to file
         logger.error(json.dumps(data))
 
+    def log_exception(self, activity: str, msg: str) -> None:
+        logger = logging.getLogger(self.name)
+        # Build Message
+        data = dict()
+        data['level'] = 'ERROR'
+        data['timestamp'] = get_timestamp()
+        data['local_timestamp'] = get_local_timestamp()
+        data['module'] = self.module
+        data['activity'] = activity
+        data['msg'] = msg
+        data['version'] = self.version
+        # Log to file
+        logger.exception(json.dumps(data))
+
     def log_heartbeat(self, msg, status):
         # Build Message
         data = dict()
