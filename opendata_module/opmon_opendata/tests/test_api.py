@@ -2,6 +2,7 @@ import datetime
 import json
 import sqlite3
 from logging import StreamHandler
+from typing import Union
 
 import pytest
 import pytz
@@ -182,8 +183,9 @@ def db(mocker):
     connection.close()
 
 
-def log_factory(db_session, request_in_dt=None, **kwargs):
-    overrides = {}
+def log_factory(db_session: sqlite3.Cursor,
+                request_in_dt: Union[str, datetime.datetime, None] = None, **kwargs) -> None:
+    overrides: dict = {}
     overrides.update(**kwargs)
     if request_in_dt:
         if isinstance(request_in_dt, str):
