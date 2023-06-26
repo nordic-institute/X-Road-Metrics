@@ -149,14 +149,14 @@ def _get_opendata(client: OpenDataAPIClient, logger_m: LoggerManager,
     except InputValidationError as err:
         logger_m.log_error('params_preparation_failed', str(err))
         return None
-    except requests.exceptions.ConnectionError:
-        logger_m.log_error(
+    except requests.exceptions.ConnectionError as err:
+        logger_m.log_exception(
             'get_opendata_connection_failed',
-            f'Connection to {source_settings["url"]} failed'
+            f'Connection to {source_settings["url"]} failed. Error: {str(err)}'
         )
         return None
     except requests.exceptions.HTTPError as http_error:
-        logger_m.log_error('get_opendata_main_failed', str(http_error))
+        logger_m.log_exception('get_opendata_main_failed', str(http_error))
         return None
     return data
 

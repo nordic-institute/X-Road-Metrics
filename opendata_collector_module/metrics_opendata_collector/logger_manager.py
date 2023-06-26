@@ -116,6 +116,11 @@ class LoggerManager:
         # Log to file
         logger.error(json.dumps(data))
 
+    def log_exception(self, activity: str, msg: str) -> None:
+        logger = logging.getLogger(self.name)
+        data = self._create_log_entry(LEVEL_ERROR, activity, msg)
+        logger.exception(json.dumps(data))
+
     def log_heartbeat(self, msg: str, status: str) -> None:
         # Build Message
         data = {
