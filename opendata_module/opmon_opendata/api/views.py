@@ -20,7 +20,6 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
 import json
-import traceback
 from datetime import datetime
 from gzip import GzipFile
 from io import BytesIO
@@ -34,12 +33,12 @@ from django.utils.html import escape
 from django.views.decorators.csrf import csrf_exempt
 from psycopg2 import OperationalError
 
-from .. import __version__
-from ..logger_manager import LoggerManager
-from ..opendata_settings_parser import OpenDataSettingsParser
-from .forms import HarvestForm
-from .input_validator import OpenDataInputValidator
-from .postgresql_manager import PostgreSQL_Manager
+from opmon_opendata import __version__
+from opmon_opendata.api.forms import HarvestForm
+from opmon_opendata.api.input_validator import OpenDataInputValidator
+from opmon_opendata.api.postgresql_manager import PostgreSQL_Manager
+from opmon_opendata.logger_manager import LoggerManager
+from opmon_opendata.opendata_settings_parser import OpenDataSettingsParser
 
 DEFAULT_STREAM_BUFFER_LINES = 1000
 
@@ -88,12 +87,11 @@ def get_daily_logs(request, profile=None):
     try:
         postgres = PostgreSQL_Manager(settings)
         date, columns, constraints, order_clauses = _validate_query(request, postgres, settings)
-    except Exception as exception:
-        logger.log_error('api_daily_logs_query_validation_failed',
-                         'Failed to validate daily logs query. {0} ERROR: {1}'.format(
-                             str(exception), traceback.format_exc().replace('\n', '')
-                         ))
-        return HttpResponse(json.dumps({'error': escape(str(exception))}), status=400)
+    except Exception as e:
+        logger.log_exception('api_daily_logs_query_validation_failed',
+                             f'Failed to validate daily logs query. ERROR: {str(e)}'
+                             )
+        return HttpResponse(json.dumps({'error': escape(str(e))}), status=400)
 
     try:
         gzipped_file_stream = _generate_ndjson_stream(
@@ -109,12 +107,10 @@ def get_daily_logs(request, profile=None):
         response['Content-Disposition'] = 'attachment; filename="{0:04d}-{1:02d}-{2:02d}@{3}.json.gz"'.format(
             date.year, date.month, date.day, int(datetime.now().timestamp())
         )
-
         return response
-    except Exception as exception:
-        logger.log_error('api_daily_logs_query_failed', 'Failed retrieving daily logs. ERROR: {0}'.format(
-            traceback.format_exc().replace('\n', '')
-        ))
+    except Exception as e:
+        logger.log_exception('api_daily_logs_query_failed',
+                             f'Failed retrieving daily logs. ERROR: {str(e)}')
         return HttpResponse(
             json.dumps({'error': 'Server encountered error when generating gzipped tarball.'}),
             status=500
@@ -181,7 +177,7 @@ def get_harvest_data(request: WSGIRequest, profile: Optional[str] = None) -> Htt
             )
         )
     except Exception as exec_info:
-        logger.log_error('api_get_harvest_query_failed', str(exec_info))
+        logger.log_exception('api_get_harvest_query_failed', str(exec_info))
         return HttpResponse(
             json.dumps({'error': 'Server encountered error when getting harvest data.'}),
             content_type='application/json',
@@ -214,12 +210,10 @@ def get_daily_logs_meta(request, profile=None):
     try:
         postgres = PostgreSQL_Manager(settings)
         date, columns, constraints, order_clauses = _validate_query(request, postgres, settings)
-    except Exception as exception:
-        logger.log_error('api_daily_logs_meta_query_validation_failed',
-                         'Failed to validate daily logs meta query. {0} ERROR: {1}'.format(
-                             str(exception), traceback.format_exc().replace('\n', '')
-                         ))
-        return HttpResponse(json.dumps({'error': escape(str(exception))}), status=400)
+    except Exception as e:
+        logger.log_exception('api_daily_logs_meta_query_validation_failed',
+                             f'Failed to validate daily logs meta query. ERROR: {str(e)}')
+        return HttpResponse(json.dumps({'error': escape(str(e))}), status=400)
 
     try:
         meta_file = _generate_meta_file(
@@ -236,10 +230,9 @@ def get_daily_logs_meta(request, profile=None):
         )
 
         return response
-    except Exception as exception:
-        logger.log_error('api_daily_logs_meta_query_failed', 'Failed retrieving daily logs meta. ERROR: {0}'.format(
-            traceback.format_exc().replace('\n', '')
-        ))
+    except Exception as e:
+        logger.log_exception('api_daily_logs_meta_query_failed',
+                             f'Failed retrieving daily logs meta. ERROR: {str(e)}')
         return HttpResponse(
             json.dumps({'error': 'Server encountered error when generating meta file.'}),
             status=500
@@ -254,12 +247,10 @@ def get_preview_data(request, profile=None):
     try:
         postgres = PostgreSQL_Manager(settings)
         date, columns, constraints, order_clauses = _validate_query(request, postgres, settings)
-    except Exception as exception:
-        logger.log_error('api_preview_data_query_validation_failed',
-                         'Failed to validate daily preview data query. {0} ERROR: {1}'.format(
-                             str(exception), traceback.format_exc().replace('\n', '')
-                         ))
-        return HttpResponse(json.dumps({'error': escape(str(exception))}), status=400)
+    except Exception as e:
+        logger.log_exception('api_preview_data_query_validation_failed',
+                             f'Failed to validate daily preview data query. ERROR: {str(e)}')
+        return HttpResponse(json.dumps({'error': escape(str(e))}), status=400)
 
     try:
         rows, _, _ = _get_content(
@@ -274,10 +265,9 @@ def get_preview_data(request, profile=None):
         return_value = {'data': [[escape(str(element)) for element in row] for row in rows]}
 
         return HttpResponse(json.dumps(return_value))
-    except Exception as exception:
-        logger.log_error('api_preview_data_query_failed', 'Failed retrieving daily preview data. {0} ERROR: {1}'.format(
-            str(exception), traceback.format_exc().replace('\n', '')
-        ))
+    except Exception as e:
+        logger.log_exception('api_preview_data_query_failed',
+                             f'Failed retrieving daily preview data. ERROR: {str(e)}')
         return HttpResponse(
             json.dumps({'error': 'Server encountered error when delivering dataset sample.'}),
             status=500
@@ -292,10 +282,9 @@ def get_date_range(request, profile=None):
     try:
         min_date, max_date = PostgreSQL_Manager(settings).get_min_and_max_dates()
         return HttpResponse(json.dumps({'date': {'min': str(min_date), 'max': str(max_date)}}))
-    except Exception as exception:
-        logger.log_error('api_date_range_query_failed', 'Failed retrieving date range for logs. ERROR: {0}'.format(
-            traceback.format_exc().replace('\n', '')
-        ))
+    except Exception as e:
+        logger.log_exception('api_date_range_query_failed',
+                             f'Failed retrieving date range for logs. ERROR: {str(e)}')
         return HttpResponse(
             json.dumps({'error': 'Server encountered error when calculating min and max dates.'}),
             status=500
@@ -328,10 +317,9 @@ def get_column_data(request, profile=None):
             data.append(datum)
 
         return HttpResponse(json.dumps({'columns': data}))
-    except Exception as exception:
-        logger.log_error('api_column_data_query_failed', 'Failed retrieving column data. ERROR: {0}'.format(
-            traceback.format_exc().replace('\n', '')
-        ))
+    except Exception as e:
+        logger.log_exception('api_column_data_query_failed',
+                             f'Failed retrieving column data. ERROR: {str(e)}')
         return HttpResponse(
             json.dumps({'error': 'Server encountered error when listing column data.'}),
             status=500

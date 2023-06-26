@@ -1,9 +1,8 @@
 import datetime
 import json
-import os
-import pathlib
 import sqlite3
 from logging import StreamHandler
+from typing import Union
 
 import pytest
 import pytz
@@ -40,6 +39,48 @@ COLUMNS = [
     'totalduration',
 ]
 COLUMNS_AND_TYPES = [(column, '_') for column in COLUMNS]
+
+
+TEST_SETTINGS = {
+    'logger': {
+        'name': 'test',
+        'module': 'test',
+        'level': 2,
+        'log-path': 'test',
+        'heartbeat-path': 'test',
+    },
+    'django': {
+        'secret-key': 'sdsdsd',
+        'allowed-hosts': []
+    },
+    'xroad': {
+        'instance': 'TEST'
+    },
+    'postgres': {
+        'table-name': 'logs',
+        'host': 'test',
+        'database-name': 'test'
+    },
+    'opendata': {
+        'field-descriptions': {},
+        'delay-days': 1,
+    }
+}
+
+
+class MockSettingsParser:
+    def __init__(self) -> None:
+        settings = TEST_SETTINGS.copy()
+        self.settings = settings
+
+
+@pytest.fixture(autouse=True)
+def mock_settings(mocker):
+    mocker.patch('opmon_opendata.settings_parser.OpmonSettingsManager')
+    mocker.patch(
+        'opmon_opendata.opendata_settings_parser.OpenDataSettingsParser',
+        return_value=MockSettingsParser()
+    )
 
 
 class MockSQLiteCursor(object):
@@ -82,40 +123,11 @@ class MockPsyContextManager(object):
 
 
 @pytest.fixture(autouse=True)
-def settings(mocker):
-    settings = {
-        'logger': {
-            'name': 'test',
-            'module': 'test',
-            'level': 2,
-            'log-path': 'test',
-            'heartbeat-path': 'test',
-        },
-        'xroad': {
-            'instance': 'TEST'
-        },
-        'postgres': {
-            'table-name': 'logs',
-            'host': 'test',
-            'database-name': 'test'
-        },
-        'opendata': {
-            'field-descriptions': {
-            },
-            'delay-days': 1
-        }
-    }
-    mocker.patch('opmon_opendata.api.views.get_settings', return_value=settings)
-
-
-@pytest.fixture
-def set_dir():
-    os.chdir(pathlib.Path(__file__).parent.absolute())
-
-
-@pytest.fixture(autouse=True)
 def mock_logger_manager(mocker):
-    mocker.patch('opmon_opendata.logger_manager.LoggerManager._create_file_handler', return_value=StreamHandler())
+    mocker.patch(
+        'opmon_opendata.logger_manager.LoggerManager._create_file_handler',
+        return_value=StreamHandler()
+    )
     yield mocker.Mock()
 
 
@@ -169,6 +181,100 @@ def db(mocker):
     )
     yield db_session
     connection.close()
+
+
+def log_factory(db_session: sqlite3.Cursor,
+                request_in_dt: Union[str, datetime.datetime, None] = None, **kwargs) -> None:
+    overrides: dict = {}
+    overrides.update(**kwargs)
+    if request_in_dt:
+        if isinstance(request_in_dt, str):
+            forma = '%Y-%m-%dT%H:%M:%S'
+            request_in_dt = datetime.datetime.strptime(request_in_dt, forma)
+        request_in_ts = int(request_in_dt.timestamp() * 1000)
+        overrides.update(
+            {
+                'requestints': request_in_ts,
+                'requestindate': request_in_dt.strftime('%Y-%m-%d')
+            }
+        )
+
+    make_log(db_session, **overrides)
+
+
+def make_log(db_session, **kwargs):
+    defaults = {
+        'id': 0,
+        'requestints': 1667854800000,
+        'clientmemberclass': 'ORG',
+        'clientmembercode': '2908758-4',
+        'clientsubsystemcode': 'MonitoringClient',
+        'clientxroadinstance': 'TEST',
+        'messageid': 'ce724af7-b2cf-4a3d-a60f-0979578b1434',
+        'messageprotocolversion': '4.0',
+        'producerdurationproducerview': '',
+        'representedpartyclass': '',
+        'representedpartycode': '',
+        'requestattachmentcount': 0,
+        'requestindate': '2022-11-07',
+        'requestmimesize': 1089,
+        'requestsize': 0,
+        'responseattachmentcount': 2439,
+        'responsemimesize': '',
+        'responsesize': '2439',
+        'securityservertype': 'Client',
+        'servicecode': 'listMethods',
+        'servicememberclass': 'ORG',
+        'servicemembercode': '2908758-4',
+        'servicesubsystemcode': 'Management',
+        'servicetype': 'WSDL',
+        'serviceversion': '',
+        'servicexroadinstance': 'TEST',
+        'succeeded': 'TRUE',
+        'totalduration': 469
+    }
+    defaults.update(**kwargs)
+    db_session.execute(
+        """INSERT INTO LOGS(
+        id, requestints, clientmemberclass, clientmembercode, clientsubsystemcode, clientxroadinstance, messageid,
+        messageprotocolversion, producerdurationproducerview, representedpartyclass, representedpartycode,
+       requestattachmentcount, requestindate, requestints, requestmimesize, requestsize, responseattachmentcount,
+       responsemimesize, responsesize, securityservertype, servicecode, servicememberclass, servicemembercode,
+        servicesubsystemcode, servicetype, serviceversion, servicexroadinstance, succeeded, totalduration
+        )
+        VALUES(
+        :id,
+        :requestints,
+        :clientmemberclass,
+        :clientmembercode,
+        :clientsubsystemcode,
+        :clientxroadinstance,
+        :messageid,
+        :messageprotocolversion,
+        :producerdurationproducerview,
+        :representedpartyclass,
+        :representedpartycode,
+        :requestattachmentcount,
+        :requestindate,
+        :requestints,
+        :requestmimesize,
+        :requestsize,
+        :responseattachmentcount,
+       :responsemimesize,
+       :responsesize,
+       :securityservertype,
+       :servicecode,
+       :servicememberclass,
+       :servicemembercode,
+       :servicesubsystemcode,
+       :servicetype,
+       :serviceversion,
+       :servicexroadinstance,
+       :succeeded,
+       :totalduration
+        )""",
+        defaults
+    )
 
 
 def test_get_harvest_empty_response(db, http_client):
@@ -580,96 +686,3 @@ def test_get_harvest_error_unsupported_method(http_client):
     assert response.status_code == 405
     response_data = response.json()
     assert response_data['error'] == 'The requested method is not allowed for the requested resource'
-
-
-def log_factory(db_session, request_in_dt=None, **kwargs):
-    overrides = {}
-    overrides.update(**kwargs)
-    if request_in_dt:
-        if isinstance(request_in_dt, str):
-            forma = '%Y-%m-%dT%H:%M:%S'
-            request_in_dt = datetime.datetime.strptime(request_in_dt, forma)
-        request_in_ts = int(request_in_dt.timestamp() * 1000)
-        overrides.update(
-            {
-                'requestints': request_in_ts,
-                'requestindate': request_in_dt.strftime('%Y-%m-%d')
-            }
-        )
-
-    make_log(db_session, **overrides)
-
-
-def make_log(db_session, **kwargs):
-    defaults = {
-        'id': 0,
-        'requestints': 1667854800000,
-        'clientmemberclass': 'ORG',
-        'clientmembercode': '2908758-4',
-        'clientsubsystemcode': 'MonitoringClient',
-        'clientxroadinstance': 'TEST',
-        'messageid': 'ce724af7-b2cf-4a3d-a60f-0979578b1434',
-        'messageprotocolversion': '4.0',
-        'producerdurationproducerview': '',
-        'representedpartyclass': '',
-        'representedpartycode': '',
-        'requestattachmentcount': 0,
-        'requestindate': '2022-11-07',
-        'requestmimesize': 1089,
-        'requestsize': 0,
-        'responseattachmentcount': 2439,
-        'responsemimesize': '',
-        'responsesize': '2439',
-        'securityservertype': 'Client',
-        'servicecode': 'listMethods',
-        'servicememberclass': 'ORG',
-        'servicemembercode': '2908758-4',
-        'servicesubsystemcode': 'Management',
-        'servicetype': 'WSDL',
-        'serviceversion': '',
-        'servicexroadinstance': 'TEST',
-        'succeeded': 'TRUE',
-        'totalduration': 469
-    }
-    defaults.update(**kwargs)
-    db_session.execute(
-        """INSERT INTO LOGS(
-        id, requestints, clientmemberclass, clientmembercode, clientsubsystemcode, clientxroadinstance, messageid,
-        messageprotocolversion, producerdurationproducerview, representedpartyclass, representedpartycode,
-       requestattachmentcount, requestindate, requestints, requestmimesize, requestsize, responseattachmentcount,
-       responsemimesize, responsesize, securityservertype, servicecode, servicememberclass, servicemembercode,
-        servicesubsystemcode, servicetype, serviceversion, servicexroadinstance, succeeded, totalduration
-        )
-        VALUES(
-        :id,
-        :requestints,
-        :clientmemberclass,
-        :clientmembercode,
-        :clientsubsystemcode,
-        :clientxroadinstance,
-        :messageid,
-        :messageprotocolversion,
-        :producerdurationproducerview,
-        :representedpartyclass,
-        :representedpartycode,
-        :requestattachmentcount,
-        :requestindate,
-        :requestints,
-        :requestmimesize,
-        :requestsize,
-        :responseattachmentcount,
-       :responsemimesize,
-       :responsesize,
-       :securityservertype,
-       :servicecode,
-       :servicememberclass,
-       :servicemembercode,
-       :servicesubsystemcode,
-       :servicetype,
-       :serviceversion,
-       :servicexroadinstance,
-       :succeeded,
-       :totalduration
-        )""",
-        defaults
-    )
