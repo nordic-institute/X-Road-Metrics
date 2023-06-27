@@ -125,7 +125,11 @@
                                 {% endfor %}
                                 </select>
 
-                                <select class="form-control" id="new-constraint-operator"></select>
+                                <select class="form-control" id="new-constraint-operator">
+                                    {% for constraint_operator in initial_constraint_operators %}
+                                        <option value="{{constraint_operator.value}}">{{constraint_operator.name}}</option>
+                                    {% endfor %}
+                                </select>
                                 <input type="text" class="form-control" id="new-constraint-value" placeholder="Value">
                                 <button class="btn btn-warning" id="add-constraint-btn">Add constraint</button>
                             </div>

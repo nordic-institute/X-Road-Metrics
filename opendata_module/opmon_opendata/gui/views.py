@@ -21,6 +21,7 @@
 #  THE SOFTWARE.
 
 import json
+from typing import Sequence, TypedDict
 
 from django.core.cache import cache
 from django.http import HttpResponse
@@ -31,6 +32,11 @@ from opmon_opendata.api.input_validator import OpenDataInputValidator
 from opmon_opendata.api.postgresql_manager import PostgreSQL_Manager
 from opmon_opendata.logger_manager import LoggerManager
 from opmon_opendata.opendata_settings_parser import OpenDataSettingsParser
+
+
+class OperatorChoice(TypedDict):
+    name: str
+    value: str
 
 
 def get_settings(profile):
@@ -65,6 +71,7 @@ def index(request, profile=None):
             return render(request, 'gui/index.html', {
                 'column_data': column_data,
                 'column_count': len(column_data),
+                'initial_constraint_operators': get_constraint_operators_choices(column_data[0]['type']) if column_data else [],
                 'min_date': min_date,
                 'max_date': max_date,
                 'disclaimer': settings['opendata']['disclaimer'],
@@ -122,3 +129,16 @@ def get_column_data(postgres):
 
     return [{'name': column_name, 'type': raw_type_to_type[column_type]}
             for column_name, column_type in postgres.get_column_names_and_types()]
+
+
+def get_constraint_operators_choices(operator_type: str) -> Sequence[OperatorChoice]:
+    operators = [{'name': 'equal', 'value': '='}, {'name': 'not equal', 'value': '!='}]
+    numerical_operators = [
+        {'name': 'less than', 'value': '<'},
+        {'name': 'greater than', 'value': '>'},
+        {'name': 'less than or equal to', 'value': '<='},
+        {'name': 'greater than or equal to', 'value': '>='},
+    ]
+    if operator_type == 'numeric':
+        operators.extend(numerical_operators)
+    return operators
