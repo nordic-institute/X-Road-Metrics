@@ -71,7 +71,7 @@ def index(request, profile=None):
             return render(request, 'gui/index.html', {
                 'column_data': column_data,
                 'column_count': len(column_data),
-                'initial_constraint_operators': get_contraint_operators_choices(column_data[0]['type']) if column_data else [],
+                'initial_constraint_operators': get_constraint_operators_choices(column_data[0]['type']) if column_data else [],
                 'min_date': min_date,
                 'max_date': max_date,
                 'disclaimer': settings['opendata']['disclaimer'],
@@ -131,7 +131,7 @@ def get_column_data(postgres):
             for column_name, column_type in postgres.get_column_names_and_types()]
 
 
-def get_contraint_operators_choices(operator_type: str) -> Sequence[OperatorChoice]:
+def get_constraint_operators_choices(operator_type: str) -> Sequence[OperatorChoice]:
     operators = [{'name': 'equal', 'value': '='}, {'name': 'not equal', 'value': '!='}]
     numerical_operators = [
         {'name': 'less than', 'value': '<'},
