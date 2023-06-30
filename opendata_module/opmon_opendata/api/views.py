@@ -21,11 +21,8 @@
 #  THE SOFTWARE.
 import json
 from datetime import datetime
-from gzip import GzipFile
-from io import BytesIO
-from typing import List, Optional, Tuple, TypedDict
+from typing import Optional
 
-from dateutil import relativedelta
 from django.core.cache import cache
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, StreamingHttpResponse
@@ -34,18 +31,11 @@ from django.views.decorators.csrf import csrf_exempt
 from psycopg2 import OperationalError
 
 from opmon_opendata import __version__
+from opmon_opendata.api import helpers
 from opmon_opendata.api.forms import HarvestForm
-from opmon_opendata.api.input_validator import OpenDataInputValidator
 from opmon_opendata.api.postgresql_manager import PostgreSQL_Manager
 from opmon_opendata.logger_manager import LoggerManager
 from opmon_opendata.opendata_settings_parser import OpenDataSettingsParser
-
-DEFAULT_STREAM_BUFFER_LINES = 1000
-
-
-class OrderByType(TypedDict):
-    column: str
-    order: str
 
 
 def get_settings(profile):
@@ -86,7 +76,7 @@ def get_daily_logs(request, profile=None):
 
     try:
         postgres = PostgreSQL_Manager(settings)
-        date, columns, constraints, order_clauses = _validate_query(request, postgres, settings)
+        date, columns, constraints, order_clauses = helpers.validate_query(request, postgres, settings)
     except Exception as e:
         logger.log_exception('api_daily_logs_query_validation_failed',
                              f'Failed to validate daily logs query. ERROR: {str(e)}'
@@ -94,7 +84,7 @@ def get_daily_logs(request, profile=None):
         return HttpResponse(json.dumps({'error': escape(str(e))}), status=400)
 
     try:
-        gzipped_file_stream = _generate_ndjson_stream(
+        gzipped_file_stream = helpers.generate_ndjson_stream(
             postgres,
             date,
             columns,
@@ -162,11 +152,11 @@ def get_harvest_data(request: WSGIRequest, profile: Optional[str] = None) -> Htt
 
     order_by = None
     if cleaned_data.get('order'):
-        order: OrderByType = cleaned_data['order']
+        order: helpers.OrderByType = cleaned_data['order']
         order_by = [order]
     try:
         rows, columns, total_query_count_data = (
-            _get_harvest_rows(
+            helpers.get_harvest_rows(
                 postgres,
                 from_dt,
                 until_dt=until_dt,
@@ -188,7 +178,7 @@ def get_harvest_data(request: WSGIRequest, profile: Optional[str] = None) -> Htt
     total_query_count = total_query_count_data[0] if rows else 0
     limit = limit or 0
     offset = offset or 0
-    from_range, to_range = _get_harvest_row_range(len(data), offset)
+    from_range, to_range = helpers.get_harvest_row_range(len(data), offset)
     return_value = {
         'data': data,
         'columns': columns if rows else [],
@@ -209,14 +199,14 @@ def get_daily_logs_meta(request, profile=None):
 
     try:
         postgres = PostgreSQL_Manager(settings)
-        date, columns, constraints, order_clauses = _validate_query(request, postgres, settings)
+        date, columns, constraints, order_clauses = helpers.validate_query(request, postgres, settings)
     except Exception as e:
         logger.log_exception('api_daily_logs_meta_query_validation_failed',
                              f'Failed to validate daily logs meta query. ERROR: {str(e)}')
         return HttpResponse(json.dumps({'error': escape(str(e))}), status=400)
 
     try:
-        meta_file = _generate_meta_file(
+        meta_file = helpers.generate_meta_file(
             postgres,
             columns,
             constraints,
@@ -246,14 +236,14 @@ def get_preview_data(request, profile=None):
 
     try:
         postgres = PostgreSQL_Manager(settings)
-        date, columns, constraints, order_clauses = _validate_query(request, postgres, settings)
+        date, columns, constraints, order_clauses = helpers.validate_query(request, postgres, settings)
     except Exception as e:
         logger.log_exception('api_preview_data_query_validation_failed',
                              f'Failed to validate daily preview data query. ERROR: {str(e)}')
         return HttpResponse(json.dumps({'error': escape(str(e))}), status=400)
 
     try:
-        rows, _, _ = _get_content(
+        rows, _, _ = helpers.get_content(
             postgres,
             date,
             columns,
@@ -324,192 +314,3 @@ def get_column_data(request, profile=None):
             json.dumps({'error': 'Server encountered error when listing column data.'}),
             status=500
         )
-
-# TODO: move code below to helpers.py
-
-
-def _generate_ndjson_stream(postgres, date, columns, constraints, order_clauses, settings):
-    """Creates a gzipped ndjson file iterator suitable for StreamingHttpResponse."""
-
-    data_cursor, column_names, date_columns = _get_content_cursor(postgres, date, columns, constraints, order_clauses)
-
-    gzip_buffer = BytesIO()
-    with GzipFile(fileobj=gzip_buffer, mode='wb') as gzip_file:
-        count = 0
-        buffer_size = settings['opendata'].get('stream-buffer-lines', DEFAULT_STREAM_BUFFER_LINES)
-        for row in data_cursor:
-            json_obj = {column_name: row[column_idx] for column_idx, column_name in enumerate(column_names)}
-            # Must manually convert Postgres dates to string to be compatible with JSON format
-            for date_column in date_columns:
-                json_obj[date_column] = datetime.strftime(json_obj[date_column], '%Y-%m-%d')
-            gzip_file.write(bytes(json.dumps(json_obj), 'utf-8'))
-            gzip_file.write(b'\n')
-            count += 1
-            if count == buffer_size:
-                count = 0
-                data = gzip_buffer.getvalue()
-                data_len = len(data)
-                if data_len:
-                    # Yield current buffer
-                    yield data
-                    # Empty buffer to free memory
-                    gzip_buffer.truncate(0)
-                    gzip_buffer.seek(0)
-    # Final data gets written when GzipFile is closed
-    yield gzip_buffer.getvalue()
-
-
-def _get_harvest_rows(
-    postgres: PostgreSQL_Manager,
-    from_dt: datetime,
-    until_dt: Optional[datetime] = None,
-    limit: Optional[int] = None,
-    offset: Optional[int] = None,
-    from_row_id: Optional[int] = None,
-    order_by: Optional[List[OrderByType]] = None
-) -> Tuple[List[Tuple], List[str], Tuple[int]]:
-    """
-    Retrieve harvested data from a PostgreSQL database based on the provided parameters.
-
-    :param postgres: A PostgreSQL_Manager object representing the connection to the PostgreSQL database.
-    :param from_dt: A datetime object representing the start date/time for the harvest.
-    :param until_dt: A datetime object representing the end date/time for the harvest. Default is None.
-    :param limit: An integer representing the maximum number of rows to return. Default is None.
-    :param offset: An integer representing the offset for the returned rows. Default is None.
-    :param from_row_id: A integer representing the start row id for the harvest. Default is None.
-    :param order_by: A list of dictionaries representing the column and order to use for sorting the results. Default is None.
-
-    :return: A tuple of list of tuples representing the harvested data from the PostgreSQL database.
-    If an error occurs, an empty list is returned.
-    """
-    if not order_by:
-        order_by = [
-            {'column': 'requestints', 'order': 'ASC'},
-            {'column': 'id', 'order': 'ASC'}
-        ]
-    constraints = [
-        {
-            'column': 'requestints',
-            'operator': '>=',
-            # Convert the datetime object to a Unix timestamp in milliseconds
-            'value': int(from_dt.timestamp() * 1000)
-        }
-    ]
-    if until_dt:
-        constraints.append(
-            {
-                'column': 'requestints',
-                'operator': '<',
-                # Convert the datetime object to a Unix timestamp in milliseconds
-                'value': int(until_dt.timestamp() * 1000)
-            }
-        )
-
-    if from_row_id:
-        constraints.append(
-            {
-                'column': 'id',
-                'operator': '>',
-                'value': int(from_row_id)
-            }
-        )
-
-    column_names_and_types = postgres.get_column_names_and_types()
-
-    columns = [column_name for column_name, _ in column_names_and_types]
-
-    total_query_count = postgres.get_rows_count(constraints)
-
-    data_cursor = postgres.get_data_cursor(
-        constraints=constraints, columns=columns, order_by=order_by, limit=limit, offset=offset)
-
-    return data_cursor.fetchall(), columns, total_query_count
-
-
-def _get_content(postgres, date, columns, constraints, order_clauses, limit=None):
-    data_cursor, columns, date_columns = _get_content_cursor(
-        postgres, date, columns, constraints, order_clauses, limit=limit)
-
-    return data_cursor.fetchall(), columns, date_columns
-
-
-def _get_content_cursor(postgres, date, columns, constraints, order_clauses, limit=None):
-    constraints.append({'column': 'requestInDate', 'operator': '=', 'value': date.strftime('%Y-%m-%d')})
-
-    column_names_and_types = postgres.get_column_names_and_types()
-
-    if not columns:  # If no columns are specified, all must be returned
-        columns = [column_name for column_name, _ in column_names_and_types]
-
-    date_columns = [column_name for column_name, column_type in column_names_and_types
-                    if column_type == 'date' and column_name in columns]
-    data_cursor = postgres.get_data_cursor(
-        constraints=constraints, columns=columns, order_by=order_clauses, limit=limit)
-
-    return data_cursor, columns, date_columns
-
-
-def _generate_meta_file(postgres, columns, constraints, order_clauses, field_descriptions):
-    column_names_and_types = postgres.get_column_names_and_types()
-
-    if not columns:  # If no columns are specified, all must be returned
-        columns = [column_name for column_name, _ in column_names_and_types]
-
-    meta_dict = {}
-    meta_dict['descriptions'] = {field: field_descriptions[field]['description'] for field in field_descriptions}
-    meta_dict['query'] = {'fields': columns, 'constraints': constraints,
-                          'order_by': [' '.join(order_clause) for order_clause in order_clauses]}
-
-    content = json.dumps(meta_dict).encode('utf8')
-
-    return content
-
-
-def _validate_query(request, postgres, settings):
-    if request.method == 'GET':
-        request_data = request.GET
-    else:
-        request_data = json.loads(request.body.decode('utf8'))
-
-    date_str = request_data.get('date', '')
-    logs_time_buffer = relativedelta.relativedelta(days=settings['opendata']['delay-days'])
-
-    validator = OpenDataInputValidator(postgres, settings)
-
-    return (
-        validator.load_and_validate_date(date_str, logs_time_buffer),
-        validator.load_and_validate_columns(request_data.get('columns', '[]')),
-        validator.load_and_validate_constraints(request_data.get('constraints', '[]')),
-        validator.load_and_validate_order_clauses(request_data.get('order-clauses', '[]'))
-    )
-
-
-def _get_harvest_row_range(total_rows: int, offset: int) -> Tuple[int, int]:
-    """
-    Get the range of rows to be harvested based on the total rows and offset.
-    Args:
-        total_rows (int): The total number of rows returned by the query.
-        offset (int): The number of rows to skip before starting to harvest.
-
-    Returns:
-        Tuple[int, int]: A tuple of two integers representing the range of rows to harvest.
-        The first integer is the starting row index (inclusive), and the second integer is the ending row index (exclusive).
-
-    Raises:
-        None.
-    Example:
-        >>> _get_harvest_row_range(10, 2)
-        (3, 12)
-    """  # noqa
-    if total_rows:
-        if offset:
-            range_from = offset + 1
-        else:
-            range_from = 1
-    else:
-        range_from = 0
-
-    range_to = total_rows
-    if offset:
-        range_to = total_rows + offset + 1
-    return range_from, range_to
