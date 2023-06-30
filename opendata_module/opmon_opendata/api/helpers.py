@@ -1,12 +1,12 @@
-import json
 from datetime import datetime
 from gzip import GzipFile
 from io import BytesIO
+import json
 from typing import Generator, List, Optional, Tuple, TypedDict
 
-import psycopg2
 from dateutil import relativedelta
 from django.core.handlers.wsgi import WSGIRequest
+import psycopg2
 
 from opmon_opendata.api.input_validator import OpenDataInputValidator
 from opmon_opendata.api.postgresql_manager import PostgreSQL_Manager
