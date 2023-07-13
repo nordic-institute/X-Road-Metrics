@@ -40,7 +40,6 @@ class DatabaseManager:
     def __init__(self, mongo_settings: dict,
                  xroad_instance: str, logger: logging.Logger) -> None:
         self.mongo_uri = self.get_mongo_uri(mongo_settings)
-        xroad_instance = 'PLAYGROUND'
         self.db_name = f'query_db_{xroad_instance}'
         self.logger = logger
         self.connect_args: dict = {

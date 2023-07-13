@@ -321,6 +321,7 @@ def get_column_data(request, profile=None):
 def get_statistics_data(request, profile=None):
     settings = get_settings(profile)
     logger = LoggerManager(settings['logger'], settings['xroad']['instance'], __version__)
+    profile = profile or settings['xroad']['instance']
     database_manager = DatabaseManager(settings['mongodb'], profile, logger)
     try:
         result = database_manager.get_statistics_data()
