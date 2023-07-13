@@ -1,4 +1,4 @@
-""" Database Manager - Opendata Module
+""" MongoDB Manager - Opendata Module
 """
 
 #  The MIT License

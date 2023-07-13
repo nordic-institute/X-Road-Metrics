@@ -1,7 +1,7 @@
 from logging import Logger
 from pprint import pformat
 
-from metrics_statistics.database_manager import DatabaseManager
+from metrics_statistics.mongodb_manager import DatabaseManager
 
 
 def collect_statistics(settings: dict, logger: Logger, output_only: bool = False) -> None:
