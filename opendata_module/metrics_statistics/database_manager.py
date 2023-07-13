@@ -212,5 +212,19 @@ class DatabaseManager:
         db = client[self.db_name]
         collection = db['metrics_statistics']
 
-        data['updateTime'] = metrics_ts(datetime.now())
-        collection.update_one({}, {'$set': data}, upsert=True)
+        # we want to be consistent with current MongoDB convention
+        # to store keys is camelCase
+        mongdo_db_keys_mapping = {
+            'today_request_count': 'todayRequestCount',
+            'current_month_request_count': 'currentMonthRequestCount',
+            'previous_month_request_count': 'previousMonthRequestCount',
+            'current_year_request_count': 'currentYearRequestCount',
+            'previous_year_request_count': 'previousYearRequestCount',
+            'total_request_count': 'totalRequestCount',
+        }
+        data_to_update = {
+            value: data[key]
+            for key, value in mongdo_db_keys_mapping.items()
+        }
+        data_to_update['updateTime'] = metrics_ts(datetime.now())
+        collection.update_one({}, {'$set': data_to_update}, upsert=True)
