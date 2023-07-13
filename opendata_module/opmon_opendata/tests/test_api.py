@@ -9,6 +9,8 @@ import pytz
 from django.test import Client
 from freezegun import freeze_time
 
+from opmon_opendata.mongodb_manager import StatisticsDataNotFound
+
 COLUMNS = [
     'clientmemberclass',
     'clientmembercode',
@@ -64,8 +66,59 @@ TEST_SETTINGS = {
     'opendata': {
         'field-descriptions': {},
         'delay-days': 1,
+    },
+    'mongodb': {
+        'user': 'test-user',
+        'password': 'test-password',
+        'host': 'test host'
     }
 }
+
+
+class MockCollection:
+    def __init__(self):
+        self._storage = []
+
+    def insert_one(self, document):
+        self._storage.append(document)
+
+    def _find(self, query):
+        return [
+            item for item in self._storage
+            if all(
+                query_item in item.items()
+                for query_item
+                in query.items()
+            )
+        ]
+
+    def find_one(self, query: None):
+        if query:
+            result = self._find(query)
+        else:
+            result = self._storage
+        try:
+            return result[0]
+        except IndexError:
+            return None
+
+    def get_all(self):
+        return self._storage
+
+
+@pytest.fixture
+def mock_mongo_db(mocker):
+    mock_client = mocker.MagicMock()
+    db_mock = mocker.MagicMock()
+
+    db_mock.metrics_statistics = MockCollection()
+
+    mock_client.__getitem__.return_value = db_mock
+    mocker.patch(
+        'opmon_opendata.mongodb_manager.MongoClient',
+        return_value=mock_client
+    )
+    yield db_mock
 
 
 class MockSettingsParser:
@@ -81,6 +134,20 @@ def mock_settings(mocker):
         'opmon_opendata.opendata_settings_parser.OpenDataSettingsParser',
         return_value=MockSettingsParser()
     )
+
+
+class MockPsyContextManager(object):
+    def __init__(self, mock_cursor):
+        self._mock_cursor = mock_cursor
+
+    def __enter__(self):
+        return self
+
+    def cursor(self):
+        return self._mock_cursor
+
+    def __exit__(self, _, __, ___):
+        pass
 
 
 class MockSQLiteCursor(object):
@@ -106,20 +173,6 @@ class MockSQLiteCursor(object):
 
     def fetchone(self, *args, **kwargs):
         return self._sql_session.fetchone(*args, **kwargs)
-
-
-class MockPsyContextManager(object):
-    def __init__(self, mock_cursor):
-        self._mock_cursor = mock_cursor
-
-    def __enter__(self):
-        return self
-
-    def cursor(self):
-        return self._mock_cursor
-
-    def __exit__(self, _, __, ___):
-        pass
 
 
 @pytest.fixture(autouse=True)
@@ -686,3 +739,44 @@ def test_get_harvest_error_unsupported_method(http_client):
     assert response.status_code == 405
     response_data = response.json()
     assert response_data['error'] == 'The requested method is not allowed for the requested resource'
+
+
+def test_get_statistics_data_success(http_client, mock_mongo_db, caplog):
+    statistics_mongodb_doc = {
+        'currentMonthRequestCount': 3742,
+        'currentYearRequestCount': 4648,
+        'previousMonthRequestCount': 872,
+        'previousYearRequestCount': 0,
+        'todayRequestCount': 0,
+        'totalRequestCount': 4648,
+        'updateTime': 1689244887778.66
+    }
+    mock_mongo_db.metrics_statistics.insert_one(statistics_mongodb_doc)
+    response = http_client.get('/api/statistics')
+    assert response.status_code == 200
+    assert response.json() == {
+        'current_month_request_count': 3742,
+        'current_year_request_count': 4648,
+        'previous_month_request_count': 872,
+        'previous_year_request_count': 0,
+        'today_request_count': 0,
+        'total_request_count': 4648,
+        'update_time': 1689244887778.66
+    }
+    assert 'Statistics data fetched successfully' in caplog.text
+
+
+def test_get_statistics_data_error_not_found(http_client, mock_mongo_db, caplog):
+    assert not mock_mongo_db.metrics_statistics.get_all()
+    response = http_client.get('/api/statistics')
+    assert response.status_code == 404
+    assert response.json() == {'error': 'Statistics data was not found!'}
+    assert 'Statistics data was not found in database' in caplog.text
+
+
+def test_get_statistics_data_error_server_failed(http_client, mock_mongo_db, caplog):
+    mock_mongo_db.metrics_statistics.insert_one({'this_key_will_fail_processing': 'errors'})
+    response = http_client.get('/api/statistics')
+    assert response.status_code == 500
+    assert response.json() == {'error': 'Server encountered error while getting statistics data'}
+    assert 'KeyError' in caplog.text
