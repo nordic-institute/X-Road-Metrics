@@ -28,7 +28,7 @@ import urllib.parse
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Mapping, Optional, TypedDict
 
-import pymongo
+from pymongo import MongoClient
 
 # All ts in metrics are in milliseconds.
 METRICS_TS_MULTIPLIER = 1000
@@ -139,13 +139,24 @@ class DatabaseManager:
         return f'mongodb://{user}:{password}@{host}/auth_db'
 
     @staticmethod
-    def generate_pipeline(requests_counts_time_ranges: RequestCountDateTimeRange) -> List[Mapping[str, Any]]:
+    def generate_pipeline() -> List[Mapping[str, Any]]:
+
         """
         Generate a MongoDB aggregation pipeline for generating facets based on time ranges.
 
         Returns:
             A list of dictionary objects representing the MongoDB aggregation pipeline.
         """
+
+        requests_counts_time_ranges: RequestCountDateTimeRange = {
+            'total_request_count': None,
+            'previous_year_request_count': DateTimeRangeManager().get_prev_year_range(),
+            'current_year_request_count': DateTimeRangeManager().get_curr_year_range(),
+            'previous_month_request_count': DateTimeRangeManager().get_prev_month_range(),
+            'current_month_request_count': DateTimeRangeManager().get_curr_month_range(),
+            'today_request_count': DateTimeRangeManager().get_today_range()
+        }
+
         def generate_facet(range: Optional[DateTimeRange] = None) -> List[Optional[Dict[str, Any]]]:
             """
             Generate individual facet stages for a given time range.
@@ -192,19 +203,11 @@ class DatabaseManager:
             A dictionary containing the counts of requests for different time ranges.
             The keys in the dictionary represent the time ranges, and the values represent the corresponding request counts.
         """
-        client = pymongo.MongoClient(self.mongo_uri, **dict(self.connect_args))
+        client = MongoClient(self.mongo_uri, **dict(self.connect_args))
         db = client[self.db_name]
         collection = db['raw_messages']
 
-        requests_counts_time_ranges: RequestCountDateTimeRange = {
-            'total_request_count': None,
-            'previous_year_request_count': DateTimeRangeManager().get_prev_year_range(),
-            'current_year_request_count': DateTimeRangeManager().get_curr_year_range(),
-            'previous_month_request_count': DateTimeRangeManager().get_prev_month_range(),
-            'current_month_request_count': DateTimeRangeManager().get_curr_month_range(),
-            'today_request_count': DateTimeRangeManager().get_today_range()
-        }
-        pipeline = DatabaseManager.generate_pipeline(requests_counts_time_ranges)
+        pipeline = DatabaseManager.generate_pipeline()
         result = collection.aggregate(pipeline)
 
         rows = [row for row in result]
@@ -215,7 +218,7 @@ class DatabaseManager:
         }
         requests_counts: RequestsCountData = {
             'today_request_count': request_counts_raw['today_request_count'],
-            'current_month_request_count':  request_counts_raw['current_month_request_count'],
+            'current_month_request_count': request_counts_raw['current_month_request_count'],
             'previous_month_request_count': request_counts_raw['previous_month_request_count'],
             'current_year_request_count': request_counts_raw['current_year_request_count'],
             'previous_year_request_count': request_counts_raw['previous_year_request_count'],
@@ -235,9 +238,9 @@ class DatabaseManager:
                 None
 
         """
-        client = pymongo.MongoClient(self.mongo_uri, **self.connect_args)
+        client = MongoClient(self.mongo_uri, **self.connect_args)
         db = client[self.db_name]
-        collection = db['metrics_statistics']
+        collection = db.metrics_statistics
 
         # we want to be consistent with current MongoDB convention
         # to store keys is camelCase
