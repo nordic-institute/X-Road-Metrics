@@ -36,6 +36,7 @@ from opmon_opendata.api.forms import HarvestForm
 from opmon_opendata.api.postgresql_manager import PostgreSQL_Manager
 from opmon_opendata.logger_manager import LoggerManager
 from opmon_opendata.opendata_settings_parser import OpenDataSettingsParser
+from opmon_opendata.mongodb_manager import DatabaseManager, StatisticsDataNotFoundError
 
 
 def get_settings(profile):
@@ -314,3 +315,32 @@ def get_column_data(request, profile=None):
             json.dumps({'error': 'Server encountered error when listing column data.'}),
             status=500
         )
+
+
+@csrf_exempt
+def get_statistics_data(request, profile=None):
+    settings = get_settings(profile)
+    logger = LoggerManager(settings['logger'], settings['xroad']['instance'], __version__)
+    profile = profile or settings['xroad']['instance']
+    database_manager = DatabaseManager(settings['mongodb'], profile, logger)
+    try:
+        result = database_manager.get_statistics_data()
+        logger.log_info('api_get_statistics_success', 'Statistics data fetched successfully')
+    except StatisticsDataNotFoundError as e:
+        logger.log_exception('api_get_statistics_data_not_found', str(e))
+        return HttpResponse(
+            json.dumps({'error': 'Statistics data was not found!'}),
+            status=404,
+            content_type='application/json'
+        )
+    except Exception as e:
+        logger.log_exception('api_get_statistics_data_failed', str(e))
+        return HttpResponse(
+            json.dumps({'error': 'Server encountered error while getting statistics data'}),
+            status=500,
+            content_type='application/json'
+        )
+    return HttpResponse(
+        json.dumps(result),
+        content_type='application/json'
+    )
