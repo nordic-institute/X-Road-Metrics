@@ -21,10 +21,10 @@
 #  THE SOFTWARE.
 
 import errno
+import re
 from os import listdir
 from os.path import isfile, join
-import re
-from copy import deepcopy
+from typing import List, Optional
 
 import yaml
 
@@ -40,25 +40,16 @@ class MetricsSettingsManager:
     If no profile is defined, settings are fetched from settings.yaml.
     """
 
-    def __init__(self, profile=None):
+    def __init__(self, profile: Optional[str] = None) -> None:
         filename = self._find_settings_file(profile)
         self.settings = self._parse_settings(filename)
 
-    def get(self, keystring):
-        """Get settings specified by the keystring, like 'xroad.instance'"""
-        keys = list(filter(None, re.split(r'\.|\[|\]', keystring)))
-        value = deepcopy(self.settings)
-        for k in keys:
-            value = value[k if not k.isdigit() else int(k)]
-
-        return value
-
-    def _parse_settings(self, filename):
+    def _parse_settings(self, filename: str) -> dict:
         with open(filename, 'r') as stream:
             return yaml.safe_load(stream)
 
     @staticmethod
-    def _find_settings_file(profile):
+    def _find_settings_file(profile: Optional[str]) -> str:
         search_paths = ['./', '/etc/xroad-metrics/opendata/']
         files = []
         for p in search_paths:
@@ -68,14 +59,14 @@ class MetricsSettingsManager:
         return settings_files[0]
 
     @staticmethod
-    def _get_all_files(path):
+    def _get_all_files(path: str) -> List[str]:
         try:
             return [join(path, f) for f in listdir(path) if isfile(join(path, f))]
         except FileNotFoundError:
             return []
 
     @staticmethod
-    def _get_settings_files(file_list, profile):
+    def _get_settings_files(file_list: List[str], profile: Optional[str]) -> List[str]:
         instance_suffix = '' if profile is None else f'_{profile}'
         pattern = r'^.+/settings' + instance_suffix + r'\.(yaml|yml)$'
 

@@ -36,7 +36,7 @@ from opmon_opendata.api.forms import HarvestForm
 from opmon_opendata.api.postgresql_manager import PostgreSQL_Manager
 from opmon_opendata.logger_manager import LoggerManager
 from opmon_opendata.opendata_settings_parser import OpenDataSettingsParser
-from opmon_opendata.mongodb_manager import DatabaseManager, StatisticsDataNotFound
+from opmon_opendata.mongodb_manager import DatabaseManager, StatisticsDataNotFoundError
 
 
 def get_settings(profile):
@@ -326,7 +326,7 @@ def get_statistics_data(request, profile=None):
     try:
         result = database_manager.get_statistics_data()
         logger.log_info('api_get_statistics_success', 'Statistics data fetched successfully')
-    except StatisticsDataNotFound as e:
+    except StatisticsDataNotFoundError as e:
         logger.log_exception('api_get_statistics_data_not_found', str(e))
         return HttpResponse(
             json.dumps({'error': 'Statistics data was not found!'}),

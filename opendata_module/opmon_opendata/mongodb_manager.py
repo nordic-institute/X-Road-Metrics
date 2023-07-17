@@ -1,5 +1,4 @@
-""" MongoDB Manager - Opendata Module
-"""
+""" MongoDB Manager - Opendata Module"""
 
 #  The MIT License
 #  Copyright (c) 2021- Nordic Institute for Interoperability Solutions (NIIS)
@@ -31,7 +30,7 @@ from typing import Mapping, Optional, TypedDict
 from pymongo import MongoClient
 
 
-class StatisticsDataNotFound(Exception):
+class StatisticsDataNotFoundError(Exception):
     pass
 
 
@@ -59,7 +58,7 @@ class DatabaseManager:
         db = client[self.db_name]
         result = db.metrics_statistics.find_one({})
         if not result:
-            raise StatisticsDataNotFound('Statistics data was not found in database')
+            raise StatisticsDataNotFoundError('Statistics data was not found in database')
 
         statistical_data = {
             'current_month_request_count': result['currentMonthRequestCount'],

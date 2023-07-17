@@ -1,5 +1,4 @@
-""" MongoDB Manager - Opendata Module
-"""
+""" MongoDB Manager - Opendata Module"""
 
 #  The MIT License
 #  Copyright (c) 2021- Nordic Institute for Interoperability Solutions (NIIS)
@@ -23,9 +22,9 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
 
+from datetime import datetime, timedelta
 import logging
 import urllib.parse
-from datetime import datetime, timedelta
 from typing import Any, Dict, List, Mapping, Optional, TypedDict
 
 from pymongo import MongoClient
@@ -47,6 +46,15 @@ class RequestsCountData(TypedDict):
     today_request_count: int
 
 
+class RequestCountDateTimeRange(TypedDict):
+    total_request_count: None
+    previous_year_request_count: 'DateTimeRange'
+    current_year_request_count: 'DateTimeRange'
+    previous_month_request_count: 'DateTimeRange'
+    current_month_request_count: 'DateTimeRange'
+    today_request_count: 'DateTimeRange'
+
+
 class DateTimeRange:
     def __init__(self, from_dt: datetime, to_dt: Optional[datetime] = None) -> None:
         """
@@ -66,15 +74,6 @@ class DateTimeRange:
         if not self.to_dt:
             self.to_dt = datetime.now()
         return metrics_ts(self.to_dt)
-
-
-class RequestCountDateTimeRange(TypedDict):
-    total_request_count: None
-    previous_year_request_count: DateTimeRange
-    current_year_request_count: DateTimeRange
-    previous_month_request_count: DateTimeRange
-    current_month_request_count: DateTimeRange
-    today_request_count: DateTimeRange
 
 
 class DateTimeRangeManager:
@@ -121,7 +120,7 @@ class DateTimeRangeManager:
 
 class DatabaseManager:
 
-    def __init__(self, mongo_settings: dict,
+    def __init__(self, mongo_settings: Dict[str, str],
                  xroad_instance: str, logger: logging.Logger) -> None:
         self.mongo_uri = self.get_mongo_uri(mongo_settings)
         self.db_name = f'query_db_{xroad_instance}'

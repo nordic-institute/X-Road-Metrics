@@ -9,7 +9,6 @@ import pytz
 from django.test import Client
 from freezegun import freeze_time
 
-from opmon_opendata.mongodb_manager import StatisticsDataNotFound
 
 COLUMNS = [
     'clientmemberclass',
