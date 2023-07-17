@@ -26,8 +26,9 @@
 import collections
 import hashlib
 
-from .logger_manager import LoggerManager
-from . import __version__
+from opmon_corrector import (SECURITY_SERVER_TYPE_CLIENT,
+                             SECURITY_SERVER_TYPE_PRODUCER, __version__)
+from opmon_corrector.logger_manager import LoggerManager
 
 
 class DocumentManager:
@@ -246,11 +247,11 @@ class DocumentManager:
             return False
 
         # Divide document into client and producer
-        security_type = document_a.get('securityServerType', None)
-        if security_type == 'Client':
+        security_type = document_a.get('securityServerType', '')
+        if security_type.lower() == SECURITY_SERVER_TYPE_CLIENT:
             client = document_a
             producer = document_b.get('producer')
-        elif security_type == 'Producer':
+        elif security_type.lower() == SECURITY_SERVER_TYPE_PRODUCER:
             producer = document_a
             client = document_b.get('client')
         else:

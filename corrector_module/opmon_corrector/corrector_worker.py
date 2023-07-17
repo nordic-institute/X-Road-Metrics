@@ -70,10 +70,11 @@ class CorrectorWorker:
         matched_pair = {}
         clients = [
             doc for doc in documents
-            if doc.get('securityServerType') == SECURITY_SERVER_TYPE_CLIENT
+            if doc.get('securityServerType', '').lower() == SECURITY_SERVER_TYPE_CLIENT
         ]
         producers = [
-            doc for doc in documents if doc.get('securityServerType') == SECURITY_SERVER_TYPE_PRODUCER
+            doc for doc in documents
+            if doc.get('securityServerType', '').lower() == SECURITY_SERVER_TYPE_PRODUCER
         ]
 
         if clients:
@@ -138,7 +139,7 @@ class CorrectorWorker:
             clean_document = self.db_m.get_processing_document(doc)
 
             if clean_document:
-                if doc['securityServerType'] == SECURITY_SERVER_TYPE_CLIENT:
+                if doc['securityServerType'].lower() == SECURITY_SERVER_TYPE_CLIENT:
                     clean_document['client'] = doc
                     clean_document = doc_m.apply_calculations(clean_document)
                 else:

@@ -155,8 +155,8 @@ class CorrectorBatch:
 
         for _doc in cursor:
             fixed_doc = doc_m.correct_structure(_doc)
-            producer = fixed_doc if fixed_doc['securityServerType'] == SECURITY_SERVER_TYPE_PRODUCER else None
-            client = fixed_doc if fixed_doc['securityServerType'] == SECURITY_SERVER_TYPE_CLIENT else None
+            producer = fixed_doc if fixed_doc['securityServerType'].lower() == SECURITY_SERVER_TYPE_PRODUCER else None
+            client = fixed_doc if fixed_doc['securityServerType'].lower() == SECURITY_SERVER_TYPE_CLIENT else None
             cleaned_document = doc_m.create_json(
                 client, producer, ''
             )
