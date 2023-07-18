@@ -117,6 +117,20 @@ def test_corrector_batch_1(mongo, batch):
     assert len(corrected_raw_documents) == len(raw_messages)
 
 
+@freeze_time('2022-12-10')
+def test_correct_case_insensitive(mongo, batch):
+    raw_messages = insert_fixture(
+        mongo, 'raw_messages',
+        read_fixture('raw_messages_case_insensitive_enums')
+    )
+    batch.run({})
+    expected_clean_data = read_fixture('clean_data_case_insensitive_enums')
+    actual_clean_data = get_documents(mongo, 'clean_data')
+    compare_documents(actual_clean_data, expected_clean_data)
+    corrected_raw_documents = get_documents(mongo, 'raw_messages', {'corrected': True})
+    assert len(corrected_raw_documents) == len(raw_messages)
+
+
 @freeze_time("2022-12-10")
 def test_corrector_batch_2(mongo, batch):
     # first batch
