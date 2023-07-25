@@ -5,7 +5,7 @@
 #  Copyright (c) 2017-2020 Estonian Information System Authority (RIA)
 #
 #  Permission is hereby granted, free of charge, to any person obtaining a copy
-#  of this software and associated documentation files (the "Software"), to deal
+#  of this software and associated documentation files (the 'Software'), to deal
 #  in the Software without restriction, including without limitation the rights
 #  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 #  copies of the Software, and to permit persons to whom the Software is
@@ -14,7 +14,7 @@
 #  The above copyright notice and this permission notice shall be included in
 #  all copies or substantial portions of the Software.
 #
-#  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+#  THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 #  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 #  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 #  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -25,12 +25,12 @@
 from setuptools import setup, find_packages
 
 requirements = [
-    "dill==0.3.1.1",
-    "pymongo==3.10.1",
-    "pyyaml==5.3.1",
-    "numpy",
-    "pandas",
-    "scipy"
+    'dill==0.3.1.1',
+    'pymongo==3.10.1',
+    'pyyaml==5.4.1',
+    'numpy',
+    'pandas',
+    'scipy'
 ]
 
 classifiers = [
@@ -50,7 +50,7 @@ setup(
     long_description='',
     author='NIIS',
     author_email='info@niis.org',
-    packages=find_packages(exclude=("tests", "analyzer_ui")),
+    packages=find_packages(exclude=('tests', 'analyzer_ui')),
     package_dir={'opmon_analyzer': 'opmon_analyzer'},
     scripts=['bin/xroad-metrics-analyzer'],
     install_requires=requirements,
