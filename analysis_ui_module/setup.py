@@ -29,7 +29,7 @@ requirements = [
     'django==2.2.28',
     'pymongo==3.10.1',
     'pyyaml==5.4.1',
-    'numpy'
+    'numpy==1.24.4'
 ]
 
 classifiers = [
