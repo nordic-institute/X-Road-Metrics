@@ -28,9 +28,9 @@ requirements = [
     'dill==0.3.1.1',
     'pymongo==3.10.1',
     'pyyaml==5.4.1',
-    'numpy',
-    'pandas',
-    'scipy'
+    'numpy==1.24.4',
+    'pandas==2.0.3',
+    'scipy==1.10.1'
 ]
 
 classifiers = [
