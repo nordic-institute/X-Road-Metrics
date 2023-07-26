@@ -25,12 +25,12 @@
 from setuptools import setup, find_packages
 
 requirements = [
-    "dill==0.3.1.1",
-    "pymongo==3.10.1",
-    "pyyaml==5.3.1",
-    "numpy",
-    "pandas",
-    "scipy"
+    'dill==0.3.1.1',
+    'pymongo==3.10.1',
+    'pyyaml==5.4.1',
+    'numpy==1.24.4',
+    'pandas==2.0.3',
+    'scipy==1.10.1'
 ]
 
 classifiers = [
@@ -50,7 +50,7 @@ setup(
     long_description='',
     author='NIIS',
     author_email='info@niis.org',
-    packages=find_packages(exclude=("tests", "analyzer_ui")),
+    packages=find_packages(exclude=('tests', 'analyzer_ui')),
     package_dir={'opmon_analyzer': 'opmon_analyzer'},
     scripts=['bin/xroad-metrics-analyzer'],
     install_requires=requirements,
