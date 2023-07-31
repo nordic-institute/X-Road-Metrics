@@ -23,8 +23,7 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
 
-import collections
-import hashlib
+import bleach
 
 from opmon_corrector import (SECURITY_SERVER_TYPE_CLIENT,
                              SECURITY_SERVER_TYPE_PRODUCER, __version__)
@@ -308,6 +307,19 @@ class DocumentManager:
             'producer': producer_document,
             'xRequestId': x_request_id
         }
+
+    @staticmethod
+    def sanitise_document(document: dict) -> dict:
+        """
+        Sanitizes the document by cleaning string values using bleach if they are present.
+        :param document: The document to be sanitised.
+        :return: Returns the sanitised document.
+        """
+        sanitised_document = {
+            key: bleach.clean(value) if isinstance(value, str) else value
+            for key, value in document.items()
+        }
+        return sanitised_document
 
     def correct_structure(self, doc):
         """
