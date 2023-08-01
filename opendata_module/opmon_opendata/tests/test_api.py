@@ -65,6 +65,10 @@ TEST_SETTINGS = {
     'opendata': {
         'field-descriptions': {},
         'delay-days': 1,
+        'maintenance-mode': False,
+        'disclaimer': '<!--insert your custom HTML disclaimer here-->',
+        'header': '<!--insert your custom HTML header here-->',
+        'footer': '<!--insert your custom HTML footer here-->'
     },
     'mongodb': {
         'user': 'test-user',
@@ -779,3 +783,16 @@ def test_get_statistics_data_error_server_failed(http_client, mock_mongo_db, cap
     assert response.status_code == 500
     assert response.json() == {'error': 'Server encountered error while getting statistics data'}
     assert 'KeyError' in caplog.text
+
+
+def test_get_settings(http_client, caplog):
+    response = http_client.get('/api/settings')
+    assert response.status_code == 200
+    assert response.json() == {
+        'settings_profile': '',
+        'maintenance_mode': TEST_SETTINGS['opendata']['maintenance-mode'],
+        'x_road_instance': TEST_SETTINGS['xroad']['instance'],
+        'header': TEST_SETTINGS['opendata']['header'],
+        'footer': TEST_SETTINGS['opendata']['footer']
+    }
+    assert 'returning 5 settings' in caplog.text

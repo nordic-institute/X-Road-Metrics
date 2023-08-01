@@ -344,3 +344,22 @@ def get_statistics_data(request, profile=None):
         json.dumps(result),
         content_type='application/json'
     )
+
+
+@csrf_exempt
+def get_view_settings(request: WSGIRequest, profile: Optional[str] = None) -> HttpResponse:
+    settings = get_settings(profile)
+    logger = LoggerManager(settings['logger'], settings['xroad']['instance'], __version__)
+    settings = get_settings(profile)
+    result = {
+        'settings_profile': profile or '',
+        'maintenance_mode': settings['opendata']['maintenance-mode'],
+        'x_road_instance': settings['xroad']['instance'],
+        'header': settings['opendata']['header'],
+        'footer': settings['opendata']['footer']
+    }
+    logger.log_info('api_get_view_settings', f'returning {len(result)} settings')
+    return HttpResponse(
+        json.dumps(result),
+        content_type='application/json'
+    )
