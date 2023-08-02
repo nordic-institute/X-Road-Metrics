@@ -127,7 +127,7 @@ class PostgreSQL_Manager(object):
     def get_min_and_max_dates(self):
         with pg.connect(self._connection_string, **self._connect_args) as connection:
             cursor = connection.cursor()
-            cursor.execute('SELECT min(requestindate), max(requestindate) FROM ' + self._table_name)
+            cursor.execute('SELECT min(requestindate) as "min [date]", max(requestindate) as "max [date]" FROM ' + self._table_name)
             min_and_max = [date - self._logs_time_buffer for date in cursor.fetchone()]
 
         return min_and_max

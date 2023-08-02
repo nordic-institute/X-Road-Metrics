@@ -287,26 +287,9 @@ def get_column_data(request, profile=None):
     settings = get_settings(profile)
     logger = LoggerManager(settings['logger'], settings['xroad']['instance'], __version__)
 
-    postgres_to_python_type = {'varchar(255)': 'string', 'bigint': 'integer', 'integer': 'integer',
-                               'date': 'date (YYYY-MM-DD)', 'boolean': 'boolean'}
-    type_to_operators = {
-        'string': ['=', '!='],
-        'boolean': ['=', '!='],
-        'integer': ['=', '!=', '<', '<=', '>', '>='],
-        'date (YYYY-MM-DD)': ['=', '!=', '<', '<=', '>', '>='],
-    }
-
+    field_descriptions = settings['opendata']['field-descriptions']
     try:
-        data = []
-        field_descriptions = settings['opendata']['field-descriptions']
-        for column_name in field_descriptions:
-            datum = {'name': column_name}
-
-            datum['description'] = field_descriptions[column_name]['description']
-            datum['type'] = postgres_to_python_type[field_descriptions[column_name]['type']]
-            datum['valid_operators'] = type_to_operators[datum['type']]
-            data.append(datum)
-
+        data = helpers.prepare_data_columns(field_descriptions)
         return HttpResponse(json.dumps({'columns': data}))
     except Exception as e:
         logger.log_exception('api_column_data_query_failed',
@@ -350,7 +333,7 @@ def get_statistics_data(request, profile=None):
 def get_view_settings(request: WSGIRequest, profile: Optional[str] = None) -> HttpResponse:
     settings = get_settings(profile)
     logger = LoggerManager(settings['logger'], settings['xroad']['instance'], __version__)
-    settings = get_settings(profile)
+
     result = {
         'settings_profile': profile or '',
         'maintenance_mode': settings['opendata']['maintenance-mode'],
@@ -362,4 +345,33 @@ def get_view_settings(request: WSGIRequest, profile: Optional[str] = None) -> Ht
     return HttpResponse(
         json.dumps(result),
         content_type='application/json'
+    )
+
+
+@csrf_exempt
+def get_constraints(request: WSGIRequest, profile: Optional[str] = None) -> HttpResponse:
+    settings = get_settings(profile)
+    logger = LoggerManager(settings['logger'], settings['xroad']['instance'], __version__)
+    field_descriptions = settings['opendata']['field-descriptions']
+    try:
+        postgres = PostgreSQL_Manager(settings)
+        min_date, max_date = postgres.get_min_and_max_dates()
+        column_data = helpers.prepare_data_columns(field_descriptions)
+    except Exception as e:
+        logger.log_exception('api_get_constraints_failed', f'Failed to get constraints. ERROR: {str(e)}')
+        return HttpResponse(
+            json.dumps({'error': 'Server encountered an error while getting constraints'}),
+            content_type='application/json',
+            status=500
+        )
+    result = {
+        'column_data': column_data,
+        'column_count': len(column_data),
+        'min_date': min_date.strftime('%Y-%m-%d'),
+        'max_date': max_date.strftime('%Y-%m-%d'),
+    }
+    logger.log_info('api_get_constraints', f'returning {len(column_data)} columns')
+    return HttpResponse(
+        json.dumps(result),
+        content_type='application/json',
     )
