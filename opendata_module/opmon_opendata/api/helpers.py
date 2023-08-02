@@ -23,7 +23,7 @@ from datetime import datetime
 from gzip import GzipFile
 from io import BytesIO
 import json
-from typing import Generator, List, Optional, Tuple, TypedDict
+from typing import Dict, Generator, List, Optional, Tuple, TypedDict
 
 from dateutil import relativedelta
 from django.core.handlers.wsgi import WSGIRequest
@@ -38,6 +38,13 @@ DEFAULT_STREAM_BUFFER_LINES = 1000
 class OrderByType(TypedDict):
     column: str
     order: str
+
+
+class ConstraintMetaType(TypedDict):
+    name: str
+    description: str
+    type: str
+    valid_operators: List[str]
 
 
 def generate_ndjson_stream(postgres: PostgreSQL_Manager, date: datetime,
@@ -232,3 +239,32 @@ def get_harvest_rows(
         constraints=constraints, columns=columns, order_by=order_by, limit=limit, offset=offset)
 
     return data_cursor.fetchall(), columns, total_query_count
+
+
+def prepare_data_columns(field_descriptions: Dict[str, Dict[str, str]]) -> List[ConstraintMetaType]:
+    """
+    Prepares data columns based on the field descriptions.
+
+    :param field_descriptions: A dictionary containing field descriptions.
+    :return: A list of ConstraintMetaType objects representing the prepared data columns.
+    """
+    postgres_to_python_type = {'varchar(255)': 'string', 'bigint': 'integer', 'integer': 'integer',
+                               'date': 'date (YYYY-MM-DD)', 'boolean': 'boolean'}
+    type_to_operators = {
+        'string': ['=', '!='],
+        'boolean': ['=', '!='],
+        'integer': ['=', '!=', '<', '<=', '>', '>='],
+        'date (YYYY-MM-DD)': ['=', '!=', '<', '<=', '>', '>='],
+    }
+
+    data = []
+    for column_name in field_descriptions:
+        column_type = postgres_to_python_type[field_descriptions[column_name]['type']]
+        datum: ConstraintMetaType = {
+            'name': column_name,
+            'description': field_descriptions[column_name]['description'],
+            'type': column_type,
+            'valid_operators': type_to_operators[column_type]
+        }
+        data.append(datum)
+    return data

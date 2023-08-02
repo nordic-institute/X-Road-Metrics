@@ -41,6 +41,12 @@ COLUMNS = [
 ]
 COLUMNS_AND_TYPES = [(column, '_') for column in COLUMNS]
 
+FIELD_DESCRIPTIONS = {
+    'field1': {
+        'type': 'varchar(255)',
+        'description': 'test description'
+    }
+}
 
 TEST_SETTINGS = {
     'logger': {
@@ -58,13 +64,19 @@ TEST_SETTINGS = {
         'instance': 'TEST'
     },
     'postgres': {
-        'table-name': 'logs',
+        'table-name': 'test',
         'host': 'test',
-        'database-name': 'test'
+        'database-name': 'test',
+        'user': 'test',
+        'password': 'test'
     },
     'opendata': {
-        'field-descriptions': {},
         'delay-days': 1,
+        'maintenance-mode': False,
+        'disclaimer': '<!--insert your custom HTML disclaimer here-->',
+        'header': '<!--insert your custom HTML header here-->',
+        'footer': '<!--insert your custom HTML footer here-->',
+        'field-descriptions': FIELD_DESCRIPTIONS
     },
     'mongodb': {
         'user': 'test-user',
@@ -194,8 +206,10 @@ def db(mocker):
         'opmon_opendata.api.postgresql_manager.PostgreSQL_Manager.get_column_names_and_types',
         return_value=COLUMNS_AND_TYPES
     )
-    connection = sqlite3.connect(':memory:')
+    connection = sqlite3.connect(':memory:', detect_types=sqlite3.PARSE_COLNAMES)
     db_session = connection.cursor()
+    # mimic PG and return result as rows, not as tuple
+    db_session.row_factory = sqlite3.Row
     db_session.execute("""CREATE TABLE logs (
         id integer NOT NULL,
         clientmemberclass character varying(255),
@@ -779,3 +793,41 @@ def test_get_statistics_data_error_server_failed(http_client, mock_mongo_db, cap
     assert response.status_code == 500
     assert response.json() == {'error': 'Server encountered error while getting statistics data'}
     assert 'KeyError' in caplog.text
+
+
+def test_get_settings(http_client, caplog):
+    response = http_client.get('/api/settings')
+    assert response.status_code == 200
+    assert response.json() == {
+        'settings_profile': '',
+        'maintenance_mode': TEST_SETTINGS['opendata']['maintenance-mode'],
+        'x_road_instance': TEST_SETTINGS['xroad']['instance'],
+        'header': TEST_SETTINGS['opendata']['header'],
+        'footer': TEST_SETTINGS['opendata']['footer']
+    }
+    assert 'returning 5 settings' in caplog.text
+
+
+def test_get_constraints(db, http_client, caplog):
+    log_factory(db, request_in_dt='2021-11-07T07:50:00')
+    log_factory(db, request_in_dt='2021-11-08T07:50:00')
+    log_factory(db, request_in_dt='2021-11-10T07:50:00')
+    log_factory(db, request_in_dt='2021-11-11T07:50:00')
+    response = http_client.get('/api/constraints')
+    assert response.status_code == 200
+    assert response.json() == {
+        'column_data': [
+            {
+                'name': 'field1',
+                'description': 'test description',
+                'type': 'string',
+                'valid_operators': ['=', '!=']
+            }
+        ],
+        'column_count': 1,
+        # 2021-11-07 - delay-days
+        'min_date': '2021-11-06',
+        # 2021-11-11 - delay-days
+        'max_date': '2021-11-10'
+    }
+    assert 'returning 1 columns' in caplog.text

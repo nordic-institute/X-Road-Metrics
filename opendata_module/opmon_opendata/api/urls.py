@@ -32,6 +32,8 @@ urlpatterns = [
     path('date_range', views.get_date_range),
     path('column_data', views.get_column_data),
     path('statistics', views.get_statistics_data),
+    path('settings', views.get_view_settings),
+    path('constraints', views.get_constraints)
 ]
 if not settings.DISABLE_OPENDATA_HARVEST:
     urlpatterns.append(
