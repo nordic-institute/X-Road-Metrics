@@ -1,5 +1,5 @@
 name: X-Road Metrics tests
-on: [push]
+on: [pull_request]
 jobs:
   Test-Anonymizer:
     runs-on: ubuntu-22.04
