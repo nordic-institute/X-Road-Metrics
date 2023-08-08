@@ -64,7 +64,7 @@ TEST_SETTINGS = {
         'instance': 'TEST'
     },
     'postgres': {
-        'table-name': 'test',
+        'table-name': 'logs',
         'host': 'test',
         'database-name': 'test',
         'user': 'test',
