@@ -6,3 +6,6 @@ mongomock
 psycopg2-binary
 mypy
 pymongo-stubs
+freezegun
+pyyaml
+
