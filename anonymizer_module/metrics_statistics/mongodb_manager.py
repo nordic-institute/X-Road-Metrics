@@ -169,7 +169,7 @@ class DatabaseManager:
             facet = [
                 {
                     '$match': {
-                        'requestInTs':
+                        'client.requestInTs':
                             {
                                 '$gte': range.from_ts(),
                                 '$lte': range.to_ts(),
@@ -177,7 +177,7 @@ class DatabaseManager:
                     }
                 } if range else None,
                 {
-                    '$group': {'_id': '$xRequestId'}
+                    '$group': {'_id': '$_id'}
                 },
                 {
                     '$group': {'_id': 1, 'count': {'$sum': 1}}
@@ -204,7 +204,7 @@ class DatabaseManager:
         """
         client = MongoClient(self.mongo_uri, **dict(self.connect_args))
         db = client[self.db_name]
-        collection = db['raw_messages']
+        collection = db['clean_data']
 
         pipeline = DatabaseManager.generate_pipeline()
         result = collection.aggregate(pipeline)

@@ -126,7 +126,7 @@ def test_generate_pipeline():
             '$facet': {
                 'total_request_count': [
                     {
-                        '$group': {'_id': '$xRequestId'}
+                        '$group': {'_id': '$_id'}
                     },
                     {
                         '$group': {'_id': 1, 'count': {'$sum': 1}}
@@ -135,14 +135,14 @@ def test_generate_pipeline():
                 'previous_year_request_count': [
                     {
                         '$match': {
-                            'requestInTs': {
+                            'client.requestInTs': {
                                 '$gte': metrics_ts(datetime(2011, 1, 1, 0, 0, 0)),
                                 '$lte': metrics_ts(datetime(2011, 12, 31, 23, 59, 59))
                             }
                         }
                     },
                     {
-                        '$group': {'_id': '$xRequestId'}},
+                        '$group': {'_id': '$_id'}},
                     {
                         '$group': {'_id': 1, 'count': {'$sum': 1}}
                     }
@@ -150,14 +150,14 @@ def test_generate_pipeline():
                 'current_year_request_count': [
                     {
                         '$match': {
-                            'requestInTs': {
+                            'client.requestInTs': {
                                 '$gte': metrics_ts(datetime(2012, 1, 1, 0, 0, 0)),
                                 '$lte': metrics_ts(datetime(2012, 1, 14, 12, 0, 0, 0))  # now
                             }
                         }
                     },
                     {
-                        '$group': {'_id': '$xRequestId'}},
+                        '$group': {'_id': '$_id'}},
                     {
                         '$group': {'_id': 1, 'count': {'$sum': 1}}
                     }
@@ -165,14 +165,14 @@ def test_generate_pipeline():
                 'previous_month_request_count': [
                     {
                         '$match': {
-                            'requestInTs': {
+                            'client.requestInTs': {
                                 '$gte': metrics_ts(datetime(2011, 12, 1, 0, 0, 0)),
                                 '$lte': metrics_ts(datetime(2011, 12, 31, 23, 59, 59))
                             }
                         }
                     },
                     {
-                        '$group': {'_id': '$xRequestId'}},
+                        '$group': {'_id': '$_id'}},
                     {
                         '$group': {'_id': 1, 'count': {'$sum': 1}}
                     }
@@ -180,14 +180,14 @@ def test_generate_pipeline():
                 'current_month_request_count': [
                     {
                         '$match': {
-                            'requestInTs': {
+                            'client.requestInTs': {
                                 '$gte': metrics_ts(datetime(2012, 1, 1, 0, 0, 0)),
                                 '$lte': metrics_ts(datetime(2012, 1, 14, 12, 0, 0))  # now
                             }
                         }
                     },
                     {
-                        '$group': {'_id': '$xRequestId'}},
+                        '$group': {'_id': '$_id'}},
                     {
                         '$group': {'_id': 1, 'count': {'$sum': 1}}
                     }
@@ -195,14 +195,14 @@ def test_generate_pipeline():
                 'today_request_count': [
                     {
                         '$match': {
-                            'requestInTs': {
+                            'client.requestInTs': {
                                 '$gte': metrics_ts(datetime(2012, 1, 14, 0, 0, 0)),
                                 '$lte': metrics_ts(datetime(2012, 1, 14, 12, 0, 0))  # now
                             }
                         }
                     },
                     {
-                        '$group': {'_id': '$xRequestId'}},
+                        '$group': {'_id': '$_id'}},
                     {
                         '$group': {'_id': 1, 'count': {'$sum': 1}}
                     }
