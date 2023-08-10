@@ -93,7 +93,12 @@ class PostgreSQL_Manager(object):
         :return: A PostgreSQL cursor object that executes the SQL query.
         """
         with pg.connect(self._connection_string, **self._connect_args) as connection:
-            cursor = connection.cursor()
+            # Using server side cursor to avoid fetching whole query result into memory.
+            # A cursor created without HOLD would get automatically closed in the current programm before data is read from it.
+            # PostgreSQL logs show COMMIT right after DECLARE CURSOR, probably because Python detects end of "with pg.connect" block.
+            # A cursor created with HOLD is automatically closed when PostgreSQL session (connection) ends.
+            # As programm creates a new connection for every operation a unique name for cursor is not required.
+            cursor = connection.cursor('opendata', withhold=True)
 
             subquery_name = 'T'
             selected_columns_str = self._get_selected_columns_string(columns, subquery_name)
