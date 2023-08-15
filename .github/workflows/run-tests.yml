@@ -1,0 +1,111 @@
+name: X-Road Metrics tests
+on: [pull_request]
+jobs:
+  Test-Anonymizer:
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: ./anonymizer_module
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+          cache: 'pip'
+      - name: Install dependencies
+        run: pip install -r test_requirements.txt
+      - name: Install tox
+        run: pip install tox
+      - name: Run tox tests
+        run: tox
+  Test-Collector:
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: ./collector_module
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+          cache: 'pip'
+      - name: Install dependencies
+        run: pip install -r test_requirements.txt
+      - name: Install tox
+        run: pip install tox
+      - name: Run tox tests
+        run: tox
+  Test-Corrector:
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: ./corrector_module
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+          cache: 'pip'
+      - name: Install dependencies
+        run: pip install -r test_requirements.txt
+      - name: Install tox
+        run: pip install tox
+      - name: Run tox tests
+        run: tox
+  Test-Opendata:
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: ./opendata_module
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+          cache: 'pip'
+      - name: Install dependencies
+        run: pip install -r test_requirements.txt
+      - name: Install tox
+        run: pip install tox
+      - name: Run tox tests
+        run: tox
+  Test-Opendata-Collector:
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: ./opendata_collector_module
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+          cache: 'pip'
+      - name: Install dependencies
+        run: pip install -r test_requirements.txt
+      - name: Install tox
+        run: pip install tox
+      - name: Run tox tests
+        run: tox
+  Test-Reports:
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: ./reports_module
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+          cache: 'pip'
+      - name: Install dependencies
+        run: pip install -r test_requirements.txt
+      - name: Install tox
+        run: pip install tox
+      - name: Run tox tests
+        run: tox
