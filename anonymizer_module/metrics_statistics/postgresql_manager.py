@@ -67,7 +67,7 @@ METRICS_STATISTICS_SCHEMA: Dict[str, MetricsStatisticsField] = {
 }
 
 
-class PostgreSqlManager(object):
+class PostgreSqlManager:
 
     def __init__(self, postgres_settings: dict, logger: Logger) -> None:
         self._logger = logger
@@ -127,7 +127,7 @@ class PostgreSqlManager(object):
         query_rows = ','.join(rows)
         return f'INSERT INTO {self._table_name} ({column_names}) VALUES {query_rows}'
 
-    def is_alive(self):
+    def is_alive(self) -> bool:
         try:
             with pg.connect(self._connection_string, **self._connect_args):
                 pass

@@ -1,6 +1,6 @@
+from datetime import datetime
 import logging
 import sqlite3
-from datetime import datetime
 
 import pytest
 from freezegun import freeze_time
@@ -34,7 +34,7 @@ TEST_SETTINGS = {
 }
 
 
-class MockPsyContextManager(object):
+class MockPsyContextManager:
     def __init__(self, mock_cursor):
         self._mock_cursor = mock_cursor
 
