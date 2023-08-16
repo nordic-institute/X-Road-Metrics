@@ -33,10 +33,9 @@ from psycopg2 import OperationalError
 from opmon_opendata import __version__
 from opmon_opendata.api import helpers
 from opmon_opendata.api.forms import HarvestForm
-from opmon_opendata.api.postgresql_manager import PostgreSQL_Manager
+from opmon_opendata.api.postgresql_manager import PostgreSQL_LogManager, PostgreSQL_StatisticsManager
 from opmon_opendata.logger_manager import LoggerManager
 from opmon_opendata.opendata_settings_parser import OpenDataSettingsParser
-from opmon_opendata.mongodb_manager import DatabaseManager, StatisticsDataNotFoundError
 
 
 def get_settings(profile):
@@ -57,7 +56,7 @@ def heartbeat(request, profile=None):
     heartbeat_message = 'Opendata heartbeat'
 
     try:
-        PostgreSQL_Manager(settings).get_min_and_max_dates()
+        PostgreSQL_LogManager(settings).get_min_and_max_dates()
         heartbeat_status = 'SUCCEEDED'
     except OperationalError as operational_error:
         heartbeat_message += ' PostgreSQL error: {0}'.format(str(operational_error).replace('\n', ' '))
@@ -76,7 +75,7 @@ def get_daily_logs(request, profile=None):
     logger = LoggerManager(settings['logger'], settings['xroad']['instance'], __version__)
 
     try:
-        postgres = PostgreSQL_Manager(settings)
+        postgres = PostgreSQL_LogManager(settings)
         date, columns, constraints, order_clauses = helpers.validate_query(request, postgres, settings)
     except Exception as e:
         logger.log_exception('api_daily_logs_query_validation_failed',
@@ -128,7 +127,7 @@ def get_harvest_data(request: WSGIRequest, profile: Optional[str] = None) -> Htt
 
     settings = get_settings(profile)
     logger = LoggerManager(settings['logger'], settings['xroad']['instance'], __version__)
-    postgres = PostgreSQL_Manager(settings)
+    postgres = PostgreSQL_LogManager(settings)
     form = HarvestForm(request.GET)
 
     if not form.is_valid():
@@ -199,7 +198,7 @@ def get_daily_logs_meta(request, profile=None):
     logger = LoggerManager(settings['logger'], settings['xroad']['instance'], __version__)
 
     try:
-        postgres = PostgreSQL_Manager(settings)
+        postgres = PostgreSQL_LogManager(settings)
         date, columns, constraints, order_clauses = helpers.validate_query(request, postgres, settings)
     except Exception as e:
         logger.log_exception('api_daily_logs_meta_query_validation_failed',
@@ -236,7 +235,7 @@ def get_preview_data(request, profile=None):
     logger = LoggerManager(settings['logger'], settings['xroad']['instance'], __version__)
 
     try:
-        postgres = PostgreSQL_Manager(settings)
+        postgres = PostgreSQL_LogManager(settings)
         date, columns, constraints, order_clauses = helpers.validate_query(request, postgres, settings)
     except Exception as e:
         logger.log_exception('api_preview_data_query_validation_failed',
@@ -271,7 +270,7 @@ def get_date_range(request, profile=None):
     logger = LoggerManager(settings['logger'], settings['xroad']['instance'], __version__)
 
     try:
-        min_date, max_date = PostgreSQL_Manager(settings).get_min_and_max_dates()
+        min_date, max_date = PostgreSQL_LogManager(settings).get_min_and_max_dates()
         return HttpResponse(json.dumps({'date': {'min': str(min_date), 'max': str(max_date)}}))
     except Exception as e:
         logger.log_exception('api_date_range_query_failed',
@@ -305,17 +304,10 @@ def get_statistics_data(request, profile=None):
     settings = get_settings(profile)
     logger = LoggerManager(settings['logger'], settings['xroad']['instance'], __version__)
     profile = profile or settings['xroad']['instance']
-    database_manager = DatabaseManager(settings['mongodb'], profile, logger)
     try:
-        result = database_manager.get_statistics_data()
+        postgres = PostgreSQL_StatisticsManager(settings)
+        statistics = postgres.get_latest_metrics_statistics()
         logger.log_info('api_get_statistics_success', 'Statistics data fetched successfully')
-    except StatisticsDataNotFoundError as e:
-        logger.log_exception('api_get_statistics_data_not_found', str(e))
-        return HttpResponse(
-            json.dumps({'error': 'Statistics data was not found!'}),
-            status=404,
-            content_type='application/json'
-        )
     except Exception as e:
         logger.log_exception('api_get_statistics_data_failed', str(e))
         return HttpResponse(
@@ -323,8 +315,16 @@ def get_statistics_data(request, profile=None):
             status=500,
             content_type='application/json'
         )
+    if not statistics:
+        logger.log_error('api_get_statistics_data_not_found', 'Metrics statistics data was not found in database')
+        return HttpResponse(
+            json.dumps({'error': 'Statistics data was not found!'}),
+            status=404,
+            content_type='application/json'
+        )
+    result = {}
     return HttpResponse(
-        json.dumps(result),
+        json.dumps(statistics),
         content_type='application/json'
     )
 
@@ -354,7 +354,7 @@ def get_constraints(request: WSGIRequest, profile: Optional[str] = None) -> Http
     logger = LoggerManager(settings['logger'], settings['xroad']['instance'], __version__)
     field_descriptions = settings['opendata']['field-descriptions']
     try:
-        postgres = PostgreSQL_Manager(settings)
+        postgres = PostgreSQL_LogManager(settings)
         min_date, max_date = postgres.get_min_and_max_dates()
         column_data = helpers.prepare_data_columns(field_descriptions)
     except Exception as e:

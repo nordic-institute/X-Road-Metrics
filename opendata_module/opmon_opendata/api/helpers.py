@@ -30,7 +30,7 @@ from django.core.handlers.wsgi import WSGIRequest
 import psycopg2
 
 from opmon_opendata.api.input_validator import OpenDataInputValidator
-from opmon_opendata.api.postgresql_manager import PostgreSQL_Manager
+from opmon_opendata.api.postgresql_manager import PostgreSQL_LogManager
 
 DEFAULT_STREAM_BUFFER_LINES = 1000
 
@@ -47,7 +47,7 @@ class ConstraintMetaType(TypedDict):
     valid_operators: List[str]
 
 
-def generate_ndjson_stream(postgres: PostgreSQL_Manager, date: datetime,
+def generate_ndjson_stream(postgres: PostgreSQL_LogManager, date: datetime,
                            columns: List[str], constraints: List[dict],
                            order_clauses: List[dict], settings: dict) -> Generator[bytes, None, None]:
     """Creates a gzipped ndjson file iterator suitable for StreamingHttpResponse."""
@@ -80,7 +80,7 @@ def generate_ndjson_stream(postgres: PostgreSQL_Manager, date: datetime,
     yield gzip_buffer.getvalue()
 
 
-def get_content(postgres: PostgreSQL_Manager, date: datetime, columns: List[str],
+def get_content(postgres: PostgreSQL_LogManager, date: datetime, columns: List[str],
                 constraints: List[dict], order_clauses: List[dict],
                 limit: Optional[int] = None) -> Tuple[List[Tuple], List[str], List[str]]:
     data_cursor, columns, date_columns = _get_content_cursor(
@@ -88,7 +88,7 @@ def get_content(postgres: PostgreSQL_Manager, date: datetime, columns: List[str]
     return data_cursor.fetchall(), columns, date_columns
 
 
-def _get_content_cursor(postgres: PostgreSQL_Manager, date: datetime, columns: List[str],
+def _get_content_cursor(postgres: PostgreSQL_LogManager, date: datetime, columns: List[str],
                         constraints: List[dict], order_clauses: List[dict],
                         limit: Optional[int] = None) -> Tuple[psycopg2.extensions.cursor, List[str], List[str]]:
     constraints.append({'column': 'requestInDate', 'operator': '=', 'value': date.strftime('%Y-%m-%d')})
@@ -106,7 +106,7 @@ def _get_content_cursor(postgres: PostgreSQL_Manager, date: datetime, columns: L
     return data_cursor, columns, date_columns
 
 
-def generate_meta_file(postgres: PostgreSQL_Manager, columns: List[str],
+def generate_meta_file(postgres: PostgreSQL_LogManager, columns: List[str],
                        constraints: List[dict], order_clauses: List[dict], field_descriptions: dict) -> bytes:
     column_names_and_types = postgres.get_column_names_and_types()
 
@@ -123,7 +123,7 @@ def generate_meta_file(postgres: PostgreSQL_Manager, columns: List[str],
     return content
 
 
-def validate_query(request: WSGIRequest, postgres: PostgreSQL_Manager,
+def validate_query(request: WSGIRequest, postgres: PostgreSQL_LogManager,
                    settings: dict) -> Tuple[datetime, List[str], List[dict], List[dict]]:
     if request.method == 'GET':
         request_data = request.GET
@@ -175,7 +175,7 @@ def get_harvest_row_range(total_rows: int, offset: int) -> Tuple[int, int]:
 
 
 def get_harvest_rows(
-    postgres: PostgreSQL_Manager,
+    postgres: PostgreSQL_LogManager,
     from_dt: datetime,
     until_dt: Optional[datetime] = None,
     limit: Optional[int] = None,
@@ -186,7 +186,7 @@ def get_harvest_rows(
     """
     Retrieve harvested data from a PostgreSQL database based on the provided parameters.
 
-    :param postgres: A PostgreSQL_Manager object representing the connection to the PostgreSQL database.
+    :param postgres: A PostgreSQL_LogManager object representing the connection to the PostgreSQL database.
     :param from_dt: A datetime object representing the start date/time for the harvest.
     :param until_dt: A datetime object representing the end date/time for the harvest. Default is None.
     :param limit: An integer representing the maximum number of rows to return. Default is None.

@@ -26,19 +26,48 @@ import psycopg2 as pg
 from dateutil import relativedelta
 
 
-class PostgreSQL_Manager(object):
-
+class BasePostgreSQL_Manager:
     def __init__(self, settings):
-
         self._settings = settings['postgres']
-        self._table_name = settings['postgres']['table-name']
         self._connection_string = self._get_connection_string()
-        self._field_name_map = self._get_field_name_map(settings['opendata']['field-descriptions'].keys())
-        self._logs_time_buffer = relativedelta.relativedelta(days=settings['opendata']['delay-days'])
         self._connect_args = {
             'sslmode': settings['postgres'].get('ssl-mode'),
             'sslrootcert': settings['postgres'].get('ssl-root-cert')
         }
+
+    def _get_connection_string(self):
+        args = [
+            f"host={self._settings['host']}",
+            f"dbname={self._settings['database-name']}"
+        ]
+
+        optional_settings = {key: self._settings.get(key) for key in ['port', 'user', 'password']}
+        optional_args = [f'{key}={value}' if value else '' for key, value in optional_settings.items()]
+        return ' '.join(args + optional_args)
+
+    def _get_connect_args(self):
+        {
+            'sslmode': self._settings['postgres'].get('ssl-mode'),
+            'sslrootcert': self._settings['postgres'].get('ssl-root-cert')
+        }
+
+
+class PostgreSQL_StatisticsManager(BasePostgreSQL_Manager):
+    def __init__(self, settings):
+        self._table_name = 'metrics_statistics'
+        super().__init__(settings)
+
+    def get_latest_metrics_statistics(self):
+        return {}
+
+
+class PostgreSQL_LogManager(BasePostgreSQL_Manager):
+
+    def __init__(self, settings):
+        self._table_name = settings['postgres']['table-name']
+        self._field_name_map = self._get_field_name_map(settings['opendata']['field-descriptions'].keys())
+        self._logs_time_buffer = relativedelta.relativedelta(days=settings['opendata']['delay-days'])
+        super().__init__(settings)
 
     def get_column_names_and_types(self):
         with pg.connect(self._connection_string, **self._connect_args) as connection:
@@ -136,26 +165,6 @@ class PostgreSQL_Manager(object):
             min_and_max = [date - self._logs_time_buffer for date in cursor.fetchone()]
 
         return min_and_max
-
-    def _get_connection_string(self):
-        args = [
-            f"host={self._settings['host']}",
-            f"dbname={self._settings['database-name']}"
-        ]
-
-        optional_settings = {key: self._settings.get(key) for key in ['port', 'user', 'password']}
-        optional_args = [f"{key}={value}" if value else "" for key, value in optional_settings.items()]
-
-        return ' '.join(args + optional_args)
-
-    def _get_database_settings(self, config):
-        settings = {'host_address': config['writer']['host_address'],
-                    'port': config['writer']['port'],
-                    'database_name': config['writer']['database_name'],
-                    'user': config['writer']['user'],
-                    'password': config['writer']['password']}
-
-        return settings
 
     def _get_field_name_map(self, field_names):
         return {field_name.lower(): field_name for field_name in field_names}

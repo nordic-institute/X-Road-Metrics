@@ -29,7 +29,7 @@ from django.shortcuts import render
 
 from opmon_opendata import __version__
 from opmon_opendata.api.input_validator import OpenDataInputValidator
-from opmon_opendata.api.postgresql_manager import PostgreSQL_Manager
+from opmon_opendata.api.postgresql_manager import PostgreSQL_LogManager
 from opmon_opendata.logger_manager import LoggerManager
 from opmon_opendata.opendata_settings_parser import OpenDataSettingsParser
 
@@ -64,7 +64,7 @@ def index(request, profile=None):
                 }
             )
         else:
-            postgres = PostgreSQL_Manager(settings)
+            postgres = PostgreSQL_LogManager(settings)
             column_data = get_column_data(postgres)
             min_date, max_date = postgres.get_min_and_max_dates()
 
@@ -89,7 +89,7 @@ def get_datatable_frame(request, profile=None):
     logger = LoggerManager(settings['logger'], settings['xroad']['instance'], __version__)
 
     try:
-        postgres = PostgreSQL_Manager(settings)
+        postgres = PostgreSQL_LogManager(settings)
         validator = OpenDataInputValidator(postgres, settings)
         columns = validator.load_and_validate_columns(request.GET.get('columns', '[]'))
     except Exception as exception:
