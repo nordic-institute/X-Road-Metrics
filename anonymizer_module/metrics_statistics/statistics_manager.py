@@ -2,6 +2,7 @@ from logging import Logger
 from pprint import pformat
 
 from metrics_statistics.mongodb_manager import DatabaseManager
+from metrics_statistics.postgresql_manager import PostgreSqlManager
 
 
 def collect_statistics(settings: dict, logger: Logger, output_only: bool = False) -> None:
@@ -20,10 +21,11 @@ def collect_statistics(settings: dict, logger: Logger, output_only: bool = False
     logger.info('Metrics statistics data: starting aggregate')
 
     database_manager = DatabaseManager(settings['mongodb'], settings['xroad']['instance'], logger)
+    pg_manager = PostgreSqlManager(settings['postgres'], logger)
     requests_counts = database_manager.get_requests_counts()
     if output_only:
         logger.info('Metrics statistical data:\n\n%s', pformat(requests_counts, indent=2, width=2))
     else:
-        database_manager.update_statistics(requests_counts)
+        pg_manager.add_statistics(requests_counts)
         logger.info('Metrics statistics data: saved to database successfully. '
                     f"Total requests counted: {requests_counts['total_request_count']}")

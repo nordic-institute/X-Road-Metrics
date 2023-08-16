@@ -44,6 +44,7 @@ class RequestsCountData(TypedDict):
     previous_month_request_count: int
     current_month_request_count: int
     today_request_count: int
+    update_time: Optional[datetime]
 
 
 class RequestCountDateTimeRange(TypedDict):
@@ -221,39 +222,8 @@ class DatabaseManager:
             'previous_month_request_count': request_counts_raw['previous_month_request_count'],
             'current_year_request_count': request_counts_raw['current_year_request_count'],
             'previous_year_request_count': request_counts_raw['previous_year_request_count'],
-            'total_request_count': request_counts_raw['total_request_count']
+            'total_request_count': request_counts_raw['total_request_count'],
+            'update_time': None
         }
 
         return requests_counts
-
-    def update_statistics(self, data):
-        """
-            Updates the statistics data in the MongoDB collection.
-
-            Args:
-                data (dict): The data to be updated in the statistics collection.
-
-            Returns:
-                None
-
-        """
-        client = MongoClient(self.mongo_uri, **self.connect_args)
-        db = client[self.db_name]
-        collection = db.metrics_statistics
-
-        # we want to be consistent with current MongoDB convention
-        # to store keys is camelCase
-        mongdo_db_keys_mapping = {
-            'today_request_count': 'todayRequestCount',
-            'current_month_request_count': 'currentMonthRequestCount',
-            'previous_month_request_count': 'previousMonthRequestCount',
-            'current_year_request_count': 'currentYearRequestCount',
-            'previous_year_request_count': 'previousYearRequestCount',
-            'total_request_count': 'totalRequestCount',
-        }
-        data_to_update = {
-            value: data[key]
-            for key, value in mongdo_db_keys_mapping.items()
-        }
-        data_to_update['updateTime'] = metrics_ts(datetime.now())
-        collection.update_one({}, {'$set': data_to_update}, upsert=True)

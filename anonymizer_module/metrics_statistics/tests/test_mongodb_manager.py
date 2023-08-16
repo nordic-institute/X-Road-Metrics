@@ -22,7 +22,7 @@ TEST_SETTINGS = {
     'postgres': {
         'table-name': 'logs',
         'host': 'test',
-        'database-name': 'test'
+        'database-name': 'test',
     },
     'mongodb': {
         'user': 'test-user',
@@ -90,32 +90,6 @@ def mock_mongo_db(mocker):
         return_value=mock_client
     )
     yield db_mock
-
-
-@freeze_time('2012-01-14 12:00:00')
-def test_update_statistics(mock_mongo_db):
-    db_manager = DatabaseManager(TEST_SETTINGS['mongodb'], 'TEST', logger)
-    data_to_update = {
-        'today_request_count': 10,
-        'current_month_request_count': 333,
-        'previous_month_request_count': 732,
-        'current_year_request_count': 500,
-        'previous_year_request_count': 500,
-        'total_request_count': 1000,
-    }
-    db_manager.update_statistics(data_to_update)
-    upserted_data = mock_mongo_db.metrics_statistics.get_all()
-    assert upserted_data == [
-        {
-            'todayRequestCount': 10,
-            'currentMonthRequestCount': 333,
-            'previousMonthRequestCount': 732,
-            'currentYearRequestCount': 500,
-            'previousYearRequestCount': 500,
-            'totalRequestCount': 1000,
-            'updateTime': metrics_ts(datetime(2012, 1, 14, 12, 0, 0))
-        }
-    ]
 
 
 @freeze_time('2012-01-14 12:00:00')
