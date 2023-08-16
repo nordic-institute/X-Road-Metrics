@@ -37,15 +37,6 @@ logger:
   name: opendata
   module: opendata
 
-mongodb:
-  host: localhost
-  user: <FILL>
-  password: <FILL>
-  # set to True to enable secure connection
-  tls:
-  # path to CA pem file
-  tls-ca-file:
-
   # Possible logging levels from least to most verbose are:
   # CRITICAL, FATAL, ERROR, WARNING, INFO, DEBUG
   level: INFO

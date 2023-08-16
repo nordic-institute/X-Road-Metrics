@@ -34,7 +34,7 @@ class MetricsSettingsManager:
     Class to hold X-Road Metrics user settings.
 
     Can parse settings from a YAML file.
-    Settings file is searched from the current working directory and /etc/xroad-metrics/opendata/.
+    Settings file is searched from the current working directory and /etc/xroad-metrics/anonymizer/.
     Settings file must have extension .yaml or .yml.
     If profile argument is set, settings are fetched from settings_{profile}.yaml.
     If no profile is defined, settings are fetched from settings.yaml.
@@ -50,7 +50,7 @@ class MetricsSettingsManager:
 
     @staticmethod
     def _find_settings_file(profile: Optional[str]) -> str:
-        search_paths = ['./', '/etc/xroad-metrics/opendata/']
+        search_paths = ['./', '/etc/xroad-metrics/anonymizer/']
         files = []
         for p in search_paths:
             files.extend(MetricsSettingsManager._get_all_files(p))

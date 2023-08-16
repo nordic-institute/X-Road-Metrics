@@ -48,7 +48,7 @@ def parse_args():
                             Optional settings file profile.
                             For example with '--profile PROD' settings_PROD.yaml will be used as settings file.
                             If no profile is defined, settings.yaml will be used by default.
-                            Settings file is searched from current working directory and /etc/xroad-metrics/opendata/
+                            Settings file is searched from current working directory and /etc/xroad-metrics/anonymizer/
                         """.strip()
                         )
     parser.add_argument('--output_only',

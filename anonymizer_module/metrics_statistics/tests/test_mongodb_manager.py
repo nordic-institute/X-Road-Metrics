@@ -16,21 +16,13 @@ TEST_SETTINGS = {
         'log-path': 'test',
         'heartbeat-path': 'test',
     },
-    'django': {
-        'secret-key': 'sdsdsd',
-        'allowed-hosts': []
-    },
     'xroad': {
         'instance': 'TEST'
     },
     'postgres': {
         'table-name': 'logs',
         'host': 'test',
-        'database-name': 'test'
-    },
-    'opendata': {
-        'field-descriptions': {},
-        'delay-days': 1,
+        'database-name': 'test',
     },
     'mongodb': {
         'user': 'test-user',
@@ -101,32 +93,6 @@ def mock_mongo_db(mocker):
 
 
 @freeze_time('2012-01-14 12:00:00')
-def test_update_statistics(mock_mongo_db):
-    db_manager = DatabaseManager(TEST_SETTINGS['mongodb'], 'TEST', logger)
-    data_to_update = {
-        'today_request_count': 10,
-        'current_month_request_count': 333,
-        'previous_month_request_count': 732,
-        'current_year_request_count': 500,
-        'previous_year_request_count': 500,
-        'total_request_count': 1000,
-    }
-    db_manager.update_statistics(data_to_update)
-    upserted_data = mock_mongo_db.metrics_statistics.get_all()
-    assert upserted_data == [
-        {
-            'todayRequestCount': 10,
-            'currentMonthRequestCount': 333,
-            'previousMonthRequestCount': 732,
-            'currentYearRequestCount': 500,
-            'previousYearRequestCount': 500,
-            'totalRequestCount': 1000,
-            'updateTime': metrics_ts(datetime(2012, 1, 14, 12, 0, 0))
-        }
-    ]
-
-
-@freeze_time('2012-01-14 12:00:00')
 def test_generate_pipeline():
     pipeline = DatabaseManager.generate_pipeline()
     assert pipeline == [
@@ -134,7 +100,7 @@ def test_generate_pipeline():
             '$facet': {
                 'total_request_count': [
                     {
-                        '$group': {'_id': '$xRequestId'}
+                        '$group': {'_id': '$_id'}
                     },
                     {
                         '$group': {'_id': 1, 'count': {'$sum': 1}}
@@ -143,14 +109,14 @@ def test_generate_pipeline():
                 'previous_year_request_count': [
                     {
                         '$match': {
-                            'requestInTs': {
+                            'client.requestInTs': {
                                 '$gte': metrics_ts(datetime(2011, 1, 1, 0, 0, 0)),
                                 '$lte': metrics_ts(datetime(2011, 12, 31, 23, 59, 59))
                             }
                         }
                     },
                     {
-                        '$group': {'_id': '$xRequestId'}},
+                        '$group': {'_id': '$_id'}},
                     {
                         '$group': {'_id': 1, 'count': {'$sum': 1}}
                     }
@@ -158,14 +124,14 @@ def test_generate_pipeline():
                 'current_year_request_count': [
                     {
                         '$match': {
-                            'requestInTs': {
+                            'client.requestInTs': {
                                 '$gte': metrics_ts(datetime(2012, 1, 1, 0, 0, 0)),
                                 '$lte': metrics_ts(datetime(2012, 1, 14, 12, 0, 0, 0))  # now
                             }
                         }
                     },
                     {
-                        '$group': {'_id': '$xRequestId'}},
+                        '$group': {'_id': '$_id'}},
                     {
                         '$group': {'_id': 1, 'count': {'$sum': 1}}
                     }
@@ -173,14 +139,14 @@ def test_generate_pipeline():
                 'previous_month_request_count': [
                     {
                         '$match': {
-                            'requestInTs': {
+                            'client.requestInTs': {
                                 '$gte': metrics_ts(datetime(2011, 12, 1, 0, 0, 0)),
                                 '$lte': metrics_ts(datetime(2011, 12, 31, 23, 59, 59))
                             }
                         }
                     },
                     {
-                        '$group': {'_id': '$xRequestId'}},
+                        '$group': {'_id': '$_id'}},
                     {
                         '$group': {'_id': 1, 'count': {'$sum': 1}}
                     }
@@ -188,14 +154,14 @@ def test_generate_pipeline():
                 'current_month_request_count': [
                     {
                         '$match': {
-                            'requestInTs': {
+                            'client.requestInTs': {
                                 '$gte': metrics_ts(datetime(2012, 1, 1, 0, 0, 0)),
                                 '$lte': metrics_ts(datetime(2012, 1, 14, 12, 0, 0))  # now
                             }
                         }
                     },
                     {
-                        '$group': {'_id': '$xRequestId'}},
+                        '$group': {'_id': '$_id'}},
                     {
                         '$group': {'_id': 1, 'count': {'$sum': 1}}
                     }
@@ -203,14 +169,14 @@ def test_generate_pipeline():
                 'today_request_count': [
                     {
                         '$match': {
-                            'requestInTs': {
+                            'client.requestInTs': {
                                 '$gte': metrics_ts(datetime(2012, 1, 14, 0, 0, 0)),
                                 '$lte': metrics_ts(datetime(2012, 1, 14, 12, 0, 0))  # now
                             }
                         }
                     },
                     {
-                        '$group': {'_id': '$xRequestId'}},
+                        '$group': {'_id': '$_id'}},
                     {
                         '$group': {'_id': 1, 'count': {'$sum': 1}}
                     }

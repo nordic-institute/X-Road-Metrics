@@ -43,7 +43,6 @@ user_roles = {
     'collector': {'query_db': 'readWrite', 'collector_state': 'readWrite'},
     'corrector': {'query_db': 'readWrite'},
     'reports': {'query_db': 'read', 'reports_state': 'readWrite'},
-    'opendata_statistics': {'query_db': 'readWrite'},
     'opendata_collector': {'query_db': 'readWrite', 'opendata_collector_state': 'readWrite'},
 }
 

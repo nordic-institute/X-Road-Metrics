@@ -428,41 +428,6 @@ heartbeat API e.g. periodically in a cronjob.
 
 ## Metrics statistics
 
-Metrics statistics is executable script to calculate usefull statistical data on Metrics.
-Gethered data is stored in database.
-Opendata module has API endpoint to view this data by accessing `api/statistics`
-
-### Database Configuration
-
-Before viewing statistics data, make sure you have installed and configured the [Database_Module](database_module.md)
-and created the database credentials. For this module, specific MongoDB user `opendata_statistics` has to be created. See [Database_Module](database_module.md#single-user-creation)
-Add generated credentials to opendata settings:
-```
-mongodb:
-  host: host
-  user: opendata_statistics
-  password: *****
-```
-
-### Cron Settings
-
-Add cronjob entry to calculate metrics statistics regulary:
-
-```
-* * * * * xroad-metrics-statistics --profile TEST
-```
-
-This task will calculate statistical data and will store it into database
-
-To view this data only in output without storing data into database use optional parameter `--output_only`:
-
-```
-xroad-metrics-statistics --profile TEST --output_only
-```
-
 ### Endpoint
 
 GET  `api/statistics` will return statistical data stored in database.
-
-
-
