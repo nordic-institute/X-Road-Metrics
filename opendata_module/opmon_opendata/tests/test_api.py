@@ -77,11 +77,6 @@ TEST_SETTINGS = {
         'header': '<!--insert your custom HTML header here-->',
         'footer': '<!--insert your custom HTML footer here-->',
         'field-descriptions': FIELD_DESCRIPTIONS
-    },
-    'mongodb': {
-        'user': 'test-user',
-        'password': 'test-password',
-        'host': 'test host'
     }
 }
 
@@ -115,21 +110,6 @@ class MockCollection:
 
     def get_all(self):
         return self._storage
-
-
-@pytest.fixture
-def mock_mongo_db(mocker):
-    mock_client = mocker.MagicMock()
-    db_mock = mocker.MagicMock()
-
-    db_mock.metrics_statistics = MockCollection()
-
-    mock_client.__getitem__.return_value = db_mock
-    mocker.patch(
-        'opmon_opendata.mongodb_manager.MongoClient',
-        return_value=mock_client
-    )
-    yield db_mock
 
 
 class MockSettingsParser:
@@ -203,10 +183,11 @@ def http_client():
 @pytest.fixture
 def db(mocker):
     mocker.patch(
-        'opmon_opendata.api.postgresql_manager.PostgreSQL_Manager.get_column_names_and_types',
+        'opmon_opendata.api.postgresql_manager.PostgreSQL_LogManager.get_column_names_and_types',
         return_value=COLUMNS_AND_TYPES
     )
-    connection = sqlite3.connect(':memory:', detect_types=sqlite3.PARSE_COLNAMES)
+    connection = sqlite3.connect(':memory:',
+                                 detect_types=sqlite3.PARSE_COLNAMES | sqlite3.PARSE_DECLTYPES)
     db_session = connection.cursor()
     # mimic PG and return result as rows, not as tuple
     db_session.row_factory = sqlite3.Row
@@ -240,6 +221,18 @@ def db(mocker):
         succeeded boolean,
         totalduration integer
     );""")
+    db_session.execute("""
+        CREATE TABLE metrics_statistics (
+        -- id SERIAL PRIMARY KEY, not supported in SQLite3
+        id INTEGER PRIMARY KEY AUTOINCREMENT, -- this is equivalent for SQLite3
+        current_month_request_count integer,
+        current_year_request_count integer,
+        previous_month_request_count integer,
+        previous_year_request_count integer,
+        today_request_count integer,
+        total_request_count integer,
+        update_time timestamp);
+    """)
     connection.commit()
     mocker.patch(
         'psycopg2.connect',
@@ -266,6 +259,43 @@ def log_factory(db_session: sqlite3.Cursor,
         )
 
     make_log(db_session, **overrides)
+
+
+def make_m_statistics(db_session, **kwargs):
+    defaults = {
+        'id': 0,
+        'current_month_request_count': 101,
+        'current_year_request_count': 12345,
+        'previous_month_request_count': 753,
+        'previous_year_request_count': 10234,
+        'today_request_count': 12,
+        'total_request_count': 999999,
+        'update_time': datetime.datetime.now(),
+    }
+    defaults.update(kwargs)
+    db_session.execute("""
+                    INSERT INTO metrics_statistics(
+                        id,
+                        current_month_request_count,
+                        current_year_request_count,
+                        previous_month_request_count,
+                        previous_year_request_count,
+                        today_request_count,
+                        total_request_count,
+                        update_time
+                    )
+                    VALUES(
+                        :id,
+                        :current_month_request_count,
+                        :current_year_request_count,
+                        :previous_month_request_count,
+                        :previous_year_request_count,
+                        :today_request_count,
+                        :total_request_count,
+                        :update_time
+                    )
+                    """,
+                       defaults)
 
 
 def make_log(db_session, **kwargs):
@@ -754,17 +784,16 @@ def test_get_harvest_error_unsupported_method(http_client):
     assert response_data['error'] == 'The requested method is not allowed for the requested resource'
 
 
-def test_get_statistics_data_success(http_client, mock_mongo_db, caplog):
-    statistics_mongodb_doc = {
-        'currentMonthRequestCount': 3742,
-        'currentYearRequestCount': 4648,
-        'previousMonthRequestCount': 872,
-        'previousYearRequestCount': 0,
-        'todayRequestCount': 0,
-        'totalRequestCount': 4648,
-        'updateTime': 1689244887778.66
-    }
-    mock_mongo_db.metrics_statistics.insert_one(statistics_mongodb_doc)
+@freeze_time('2022-12-10')
+def test_get_statistics_data_success(db, http_client, caplog):
+    make_m_statistics(db, **{
+        'current_month_request_count': 3742,
+        'current_year_request_count': 4648,
+        'previous_month_request_count': 872,
+        'previous_year_request_count': 0,
+        'today_request_count': 0,
+        'total_request_count': 4648,
+    })
     response = http_client.get('/api/statistics')
     assert response.status_code == 200
     assert response.json() == {
@@ -774,21 +803,23 @@ def test_get_statistics_data_success(http_client, mock_mongo_db, caplog):
         'previous_year_request_count': 0,
         'today_request_count': 0,
         'total_request_count': 4648,
-        'update_time': 1689244887778.66
+        'update_time': '2022-12-10T00:00:00'
     }
     assert 'Statistics data fetched successfully' in caplog.text
 
 
-def test_get_statistics_data_error_not_found(http_client, mock_mongo_db, caplog):
-    assert not mock_mongo_db.metrics_statistics.get_all()
+def test_get_statistics_data_error_not_found(db, http_client, caplog):
     response = http_client.get('/api/statistics')
     assert response.status_code == 404
     assert response.json() == {'error': 'Statistics data was not found!'}
-    assert 'Statistics data was not found in database' in caplog.text
+    assert 'Metrics statistics data was not found in database' in caplog.text
 
 
-def test_get_statistics_data_error_server_failed(http_client, mock_mongo_db, caplog):
-    mock_mongo_db.metrics_statistics.insert_one({'this_key_will_fail_processing': 'errors'})
+def test_get_statistics_data_error_server_failed(http_client, mocker, caplog):
+    mocker.patch(
+        'opmon_opendata.api.postgresql_manager.PostgreSQL_StatisticsManager.get_latest_metrics_statistics',
+        side_effect=KeyError('test')
+    )
     response = http_client.get('/api/statistics')
     assert response.status_code == 500
     assert response.json() == {'error': 'Server encountered error while getting statistics data'}

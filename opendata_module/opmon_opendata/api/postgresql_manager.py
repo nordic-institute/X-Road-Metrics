@@ -52,15 +52,6 @@ class BasePostgreSQL_Manager:
         }
 
 
-class PostgreSQL_StatisticsManager(BasePostgreSQL_Manager):
-    def __init__(self, settings):
-        self._table_name = 'metrics_statistics'
-        super().__init__(settings)
-
-    def get_latest_metrics_statistics(self):
-        return {}
-
-
 class PostgreSQL_LogManager(BasePostgreSQL_Manager):
 
     def __init__(self, settings):
@@ -229,3 +220,36 @@ class PostgreSQL_LogManager(BasePostgreSQL_Manager):
         :return: A string containing the SQL command to set the offset for pagination.
         """
         return cursor.mogrify('OFFSET %s', (offset,)).decode('utf8')
+
+
+class PostgreSQL_StatisticsManager(BasePostgreSQL_Manager):
+    def __init__(self, settings):
+        self._table_name = 'metrics_statistics'
+        super().__init__(settings)
+
+    def get_latest_metrics_statistics(self):
+        """
+            Retrieve the latest metrics statistics from the database.
+
+            :return: A dictionary representing the latest metrics statistics if available, else None.
+        """
+        with pg.connect(self._connection_string, **self._connect_args) as connection:
+            cursor = connection.cursor()
+            cursor.execute(
+                '''SELECT current_month_request_count, current_year_request_count,
+                   previous_month_request_count, previous_year_request_count,
+                    today_request_count, total_request_count, update_time
+                    FROM {table_name}
+                    WHERE update_time = (SELECT MAX(update_time)
+                FROM {table_name})'''.format(**{'table_name': self._table_name})
+            )
+            row = cursor.fetchone()
+        return {
+            'current_month_request_count': row[0],
+            'current_year_request_count': row[1],
+            'previous_month_request_count': row[2],
+            'previous_year_request_count': row[3],
+            'today_request_count': row[4],
+            'total_request_count': row[5],
+            'update_time': row[6],
+        } if row else None

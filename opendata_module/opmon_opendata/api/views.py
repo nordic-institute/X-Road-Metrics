@@ -300,7 +300,7 @@ def get_column_data(request, profile=None):
 
 
 @csrf_exempt
-def get_statistics_data(request, profile=None):
+def get_statistics_data(request: WSGIRequest, profile: Optional[str] = None) -> HttpResponse:
     settings = get_settings(profile)
     logger = LoggerManager(settings['logger'], settings['xroad']['instance'], __version__)
     profile = profile or settings['xroad']['instance']
@@ -322,9 +322,17 @@ def get_statistics_data(request, profile=None):
             status=404,
             content_type='application/json'
         )
-    result = {}
+    result = {
+        'current_month_request_count': statistics['current_month_request_count'],
+        'current_year_request_count': statistics['current_year_request_count'],
+        'previous_month_request_count': statistics['previous_month_request_count'],
+        'previous_year_request_count': statistics['previous_year_request_count'],
+        'today_request_count': statistics['today_request_count'],
+        'total_request_count': statistics['total_request_count'],
+        'update_time': statistics['update_time'].strftime('%Y-%m-%dT%H:%M:%S')
+    }
     return HttpResponse(
-        json.dumps(statistics),
+        json.dumps(result),
         content_type='application/json'
     )
 
