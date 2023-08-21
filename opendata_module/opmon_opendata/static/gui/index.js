@@ -135,10 +135,10 @@ function download() {
 }
 
 function getQuery() {
-    var date = $("#date").val();
-    var columns = JSON.stringify(getSelectedColumns());
-    var constraints = JSON.stringify(getConstraints());
-    var orderClauses = JSON.stringify(getOrderClauses());
+    var date = escape($("#date").val());
+    var columns = escape(JSON.stringify(getSelectedColumns()));
+    var constraints = escape(JSON.stringify(getConstraints()));
+    var orderClauses = escape(JSON.stringify(getOrderClauses()));
 
     return '?date=' + date + '&columns=' + columns + '&constraints=' + constraints + '&order-clauses=' + orderClauses;
 }
