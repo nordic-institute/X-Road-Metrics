@@ -241,10 +241,80 @@ If you want to publish the reports on some external file server, you can setup e
 Below example assumes your file-server hostname is _myfileserver_ and user _myuser_ can access it with from the
 xroad-metrics-reports host.
 
-TODO: add example when file server strategy has been confirmed. OPMONDEV-63
-
 If you don't use any external file server users can copy the reports to their workstations using e.g. _scp_ command.
 TODO: add example
+
+#### Set up file publishing on external file server using Nginx
+```bash
+sudo apt install nginx
+
+# create /etc/nginx/sites-available/reports with content:
+
+server {
+        listen 80 default_server;
+        listen [::]:80 default_server;
+
+        root /var/data/reports;
+
+        location / {
+                autoindex on;
+                try_files $uri $uri/ =404;  # Serve other files as well
+        }
+
+        location ~* \.pdf$ {
+                types { application/pdf pdf; }  # Set the MIME type for PDF files
+                default_type application/pdf;
+        }
+}
+
+# enable new site:
+sudo ln -s /etc/nginx/sites-available/reports /etc/nginx/sites-enabled/
+
+# test  new configuratio
+sudo nginx -t
+
+# set up relevant directories
+sudo mkdir -p /var/data/reports
+sudo chown -R :www-data /var/data/reports
+sudo chmod -R 775 /var/data/reports
+# restart Nginx
+sudo systemctl restart nginx.service
+```
+
+#### Set up new user _myuser_ to sync report files on external file server
+
+```bash
+sudo adduser _myuser_
+# assign new user to group www-data
+sudo usermod -aG www-data _myuser_
+
+# new user should be able access /var/data/reports and have permissions to create files there
+```
+
+#### Set up SSH authentificaton for _myuser_ on reports server
+
+```bash
+ssh-keygen -t rsa -b 4096 -N ""
+
+# copy public key to external file publishing server
+ssh-copy-id _myuser_@_myfileserver_
+
+```
+#### Use rsync to push report files from reports server to external file server
+
+```bash
+rsync -azP _/home/xroad-metrics/reports_/ _myuser_@_myfileserver_:/var/data/reports/
+```
+
+#### Use crontab to sync report files periodically
+
+```bash
+# create new crontab entry
+crontab -e
+# Sync reports every day at 5 AM.
+0 5 * * * rsync -azP _/home/xroad-metrics/reports_/ _myuser_@_myfileserver_:/var/data/reports/
+```
+
 
 ### E-mail Notifications
 TODO: Add documentation after the default notification strategy has been confirmed. OPMONDEV-63
