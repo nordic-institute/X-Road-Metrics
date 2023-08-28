@@ -8,4 +8,5 @@ mypy
 pymongo-stubs
 freezegun
 pyyaml
+requests
 

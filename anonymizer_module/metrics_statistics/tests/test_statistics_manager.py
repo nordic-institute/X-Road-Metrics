@@ -9,6 +9,27 @@ from metrics_statistics.statistics_manager import collect_statistics
 
 logger = logging.getLogger()
 
+MOCK_MEMBERS = [
+    {
+        'member_class': 'COM',
+        'member_code': '234567-8'
+    },
+    {
+        'member_class': 'COM',
+        'member_code': '999999-1'
+    },
+    {
+        'member_class': 'GOV',
+        'member_code': '876543-2'
+    },
+    {
+        'member_class': 'ORG',
+        'member_code': ''
+    },
+
+
+]
+
 TEST_SETTINGS = {
     'logger': {
         'name': 'test',
@@ -18,7 +39,12 @@ TEST_SETTINGS = {
         'heartbeat-path': 'test',
     },
     'xroad': {
-        'instance': 'TEST'
+        'instance': 'TEST',
+        'central-server': {
+            'host': 'test',
+            'protocol': 'test',
+            'timeout': 0,
+        }
     },
     'postgres': {
         'table-name': 'logs',
@@ -98,6 +124,9 @@ def pg(mocker):
         previous_year_request_count integer,
         today_request_count integer,
         total_request_count integer,
+        member_gov_count integer,
+        member_com_count integer,
+        member_org_count integer,
         update_time timestamp);
     """)
     mocker.patch(
@@ -110,6 +139,10 @@ def pg(mocker):
 
 @freeze_time('2022-12-10')
 def test_statistics_collector(pg, mocker):
+    mocker.patch(
+        'metrics_statistics.central_server_client.CentralServerClient.get_members',
+        return_value=MOCK_MEMBERS
+    )
     mock_statistics = {
         'current_month_request_count': 100,
         'current_year_request_count': 2000,
@@ -135,5 +168,8 @@ def test_statistics_collector(pg, mocker):
         'previous_year_request_count': 4000,
         'today_request_count': 10,
         'total_request_count': 100000,
+        'member_gov_count': 1,
+        'member_com_count': 2,
+        'member_org_count': 0,
         'update_time': '2022-12-10 00:00:00'
     }

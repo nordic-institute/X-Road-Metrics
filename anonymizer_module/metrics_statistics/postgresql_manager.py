@@ -35,6 +35,12 @@ class MetricsStatisticsField(TypedDict):
     index: Optional[bool]
 
 
+class StatisticalData(RequestsCountData):
+    member_gov_count: int
+    member_com_count: int
+    member_org_count: int
+
+
 METRICS_STATISTICS_SCHEMA: Dict[str, MetricsStatisticsField] = {
     'update_time': {
         'type': 'timestamp',
@@ -63,6 +69,18 @@ METRICS_STATISTICS_SCHEMA: Dict[str, MetricsStatisticsField] = {
     'today_request_count': {
         'type': 'integer',
         'index': True
+    },
+    'member_gov_count': {
+        'type': 'integer',
+        'index': False,
+    },
+    'member_com_count': {
+        'type': 'integer',
+        'index': False,
+    },
+    'member_org_count': {
+        'type': 'integer',
+        'index': False,
     }
 }
 
@@ -103,7 +121,7 @@ class PostgreSqlManager:
             if field_data.get('index')
         ]
 
-    def add_statistics(self, data: RequestsCountData) -> None:
+    def add_statistics(self, data: StatisticalData) -> None:
         try:
             data['update_time'] = datetime.now()
             with pg.connect(self._connection_string, **self._connect_args) as connection:
@@ -115,7 +133,7 @@ class PostgreSqlManager:
             self._logger.exception(f'statistics_insertion_failed. Failed to insert statistics to postgres. ERROR: {str(e)}')
             raise
 
-    def _generate_insert_query(self, cursor: pg.extensions.cursor, data: RequestsCountData) -> str:
+    def _generate_insert_query(self, cursor: pg.extensions.cursor, data: StatisticalData) -> str:
         column_names = ','.join(self._field_order)
         template = '({})'.format(','.join(['%s'] * len(self._field_order)))
 
