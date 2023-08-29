@@ -10,6 +10,17 @@
 
 xroad:
   instance: <FILL>
+  # Security server used to collect member statistics
+  security-server:
+    protocol: http://
+    host: <FILL>
+    timeout: 60.0
+    # path to client's certificate
+    tls-client-certificate:
+    # path to client's private key
+    tls-client-key:
+    # path to server's certificate
+    tls-server-certificate:
 
 anonymizer:
   # Field data file is a schema file for the data format used by Opendata module.
@@ -69,6 +80,10 @@ anonymizer:
   #
   # By default no rules are defined and all fields are included in the anonymized records.
   substitution-rules: []
+
+metrics-statistics:
+  # how many services sorted by requests counts to store in PG
+  num-max-services-requests:
 
 mongodb:
   host: localhost

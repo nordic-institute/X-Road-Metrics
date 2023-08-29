@@ -22,12 +22,13 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
 
-from datetime import datetime, timedelta
 import logging
 import urllib.parse
-from typing import Any, Dict, List, Mapping, Optional, TypedDict
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Mapping, Optional, Sequence, TypedDict
 
 from pymongo import MongoClient
+from pymongo.command_cursor import CommandCursor
 
 # All ts in metrics are in milliseconds.
 METRICS_TS_MULTIPLIER = 1000
@@ -227,3 +228,62 @@ class DatabaseManager:
         }
 
         return requests_counts
+
+    def get_services_counts(self, services,
+                            max_services_by_requests: Optional[int] = None) -> Dict[str, Any]:
+        result = self._get_db_service_request_counts(services)
+        rows = [row for row in result]
+        # TODO: do we need labels for services?
+        services_counts_raw = {
+            key: value[0]['count']
+            if value else 0
+            for key, value in rows[0].items()
+        }
+        # sort dict by max counts
+        sorted_counts = sorted(services_counts_raw.items(), key=lambda x: x[1], reverse=True)
+
+        # get top services by max_services_by_requests
+        if max_services_by_requests and len(sorted_counts) > max_services_by_requests:
+            sorted_counts = sorted_counts[:max_services_by_requests]
+
+        return dict(sorted_counts)
+
+    def _get_db_service_request_counts(self, services: List[str]) -> CommandCursor:
+        client = MongoClient(self.mongo_uri, **dict(self.connect_args))
+        db = client[self.db_name]
+        collection = db['clean_data']
+        pipeline = DatabaseManager.generate_services_count_pipeline(services)
+        result = collection.aggregate(pipeline)
+        return result
+
+    @staticmethod
+    def generate_services_count_pipeline(services) -> List[Mapping[str, Any]]:
+        service_key_map = {
+            f'service_{service.strip().replace(" ","_").lower()}': service
+            for service in services
+
+        }
+
+        def generate_facet(service: str) -> List[Dict[str, Any]]:
+            facet = [
+                {
+                    '$match': {
+                        'client.serviceSubsystemCode': service,
+                    }
+                },
+                {
+                    '$group': {'_id': '$_id'}
+                },
+                {
+                    '$group': {'_id': 1, 'count': {'$sum': 1}}
+                }
+            ]
+            return [facet_item for facet_item in facet if isinstance(facet_item, dict)]
+        return [
+            {
+                '$facet': {
+                    key: generate_facet(value)
+                    for key, value in service_key_map.items()
+                }
+            }
+        ]

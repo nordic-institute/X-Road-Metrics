@@ -1,6 +1,7 @@
-from datetime import datetime
 import logging
 import sqlite3
+from datetime import datetime
+from typing import Union
 
 import pytest
 from freezegun import freeze_time
@@ -8,6 +9,25 @@ from freezegun import freeze_time
 from metrics_statistics.statistics_manager import collect_statistics
 
 logger = logging.getLogger()
+
+MOCK_MEMBERS = [
+    {
+        'member_class': 'COM',
+        'member_code': '234567-8'
+    },
+    {
+        'member_class': 'COM',
+        'member_code': '999999-1'
+    },
+    {
+        'member_class': 'GOV',
+        'member_code': '876543-2'
+    },
+    {
+        'member_class': 'ORG',
+        'member_code': ''
+    },
+]
 
 TEST_SETTINGS = {
     'logger': {
@@ -18,7 +38,12 @@ TEST_SETTINGS = {
         'heartbeat-path': 'test',
     },
     'xroad': {
-        'instance': 'TEST'
+        'instance': 'TEST',
+        'central-server': {
+            'host': 'test',
+            'protocol': 'test',
+            'timeout': 0,
+        }
     },
     'postgres': {
         'table-name': 'logs',
@@ -30,8 +55,104 @@ TEST_SETTINGS = {
         'user': 'test-user',
         'password': 'test-password',
         'host': 'test host'
+    },
+    'metrics-statistics': {
     }
 }
+
+
+def log_factory(db_session: sqlite3.Cursor,
+                request_in_dt: Union[str, datetime, None] = None, **kwargs) -> None:
+    overrides: dict = {}
+    overrides.update(**kwargs)
+    if request_in_dt:
+        if isinstance(request_in_dt, str):
+            forma = '%Y-%m-%dT%H:%M:%S'
+            request_in_dt = datetime.strptime(request_in_dt, forma)
+        request_in_ts = int(request_in_dt.timestamp() * 1000)
+        overrides.update(
+            {
+                'requestints': request_in_ts,
+                'requestindate': request_in_dt.strftime('%Y-%m-%d')
+            }
+        )
+
+    make_log(db_session, **overrides)
+
+
+def make_log(db_session, **kwargs):
+    defaults = {
+        'id': 0,
+        'requestints': 1667854800000,
+        'clientmemberclass': 'ORG',
+        'clientmembercode': '2908758-4',
+        'clientsubsystemcode': 'MonitoringClient',
+        'clientxroadinstance': 'TEST',
+        'messageid': 'ce724af7-b2cf-4a3d-a60f-0979578b1434',
+        'messageprotocolversion': '4.0',
+        'producerdurationproducerview': '',
+        'representedpartyclass': '',
+        'representedpartycode': '',
+        'requestattachmentcount': 0,
+        'requestindate': '2022-11-07',
+        'requestmimesize': 1089,
+        'requestsize': 0,
+        'responseattachmentcount': 2439,
+        'responsemimesize': '',
+        'responsesize': '2439',
+        'securityservertype': 'Client',
+        'servicecode': 'listMethods',
+        'servicememberclass': 'ORG',
+        'servicemembercode': '2908758-4',
+        'servicesubsystemcode': 'Management',
+        'servicetype': 'WSDL',
+        'serviceversion': '',
+        'servicexroadinstance': 'TEST',
+        'succeeded': 'TRUE',
+        'totalduration': 469
+    }
+    defaults.update(**kwargs)
+    db_session.execute(
+        """INSERT INTO LOGS(
+        id, requestints, clientmemberclass, clientmembercode, clientsubsystemcode, clientxroadinstance, messageid,
+        messageprotocolversion, producerdurationproducerview, representedpartyclass, representedpartycode,
+       requestattachmentcount, requestindate, requestints, requestmimesize, requestsize, responseattachmentcount,
+       responsemimesize, responsesize, securityservertype, servicecode, servicememberclass, servicemembercode,
+        servicesubsystemcode, servicetype, serviceversion, servicexroadinstance, succeeded, totalduration
+        )
+        VALUES(
+        :id,
+        :requestints,
+        :clientmemberclass,
+        :clientmembercode,
+        :clientsubsystemcode,
+        :clientxroadinstance,
+        :messageid,
+        :messageprotocolversion,
+        :producerdurationproducerview,
+        :representedpartyclass,
+        :representedpartycode,
+        :requestattachmentcount,
+        :requestindate,
+        :requestints,
+        :requestmimesize,
+        :requestsize,
+        :responseattachmentcount,
+       :responsemimesize,
+       :responsesize,
+       :securityservertype,
+       :servicecode,
+       :servicememberclass,
+       :servicemembercode,
+       :servicesubsystemcode,
+       :servicetype,
+       :serviceversion,
+       :servicexroadinstance,
+       :succeeded,
+       :totalduration
+        )""",
+        defaults
+    )
 
 
 class MockPsyContextManager:
@@ -83,8 +204,8 @@ class MockSQLiteCursor(object):
 
 @pytest.fixture
 def pg(mocker):
-    mocker.patch('metrics_statistics.postgresql_manager.PostgreSqlManager._ensure_table')
-    mocker.patch('metrics_statistics.postgresql_manager.PostgreSqlManager._ensure_privileges')
+    mocker.patch('metrics_statistics.postgresql_manager.PostgreSQL_StatisticsManager._ensure_table')
+    mocker.patch('metrics_statistics.postgresql_manager.PostgreSQL_StatisticsManager._ensure_privileges')
     connection = sqlite3.connect(':memory:', detect_types=sqlite3.PARSE_COLNAMES)
     db_session = connection.cursor()
     db_session.row_factory = sqlite3.Row
@@ -98,8 +219,43 @@ def pg(mocker):
         previous_year_request_count integer,
         today_request_count integer,
         total_request_count integer,
+        member_gov_count integer,
+        member_com_count integer,
+        member_org_count integer,
+        service_count integer,
+        services_request_counts json,
         update_time timestamp);
     """)
+    db_session.execute("""CREATE TABLE logs (
+        id integer NOT NULL,
+        clientmemberclass character varying(255),
+        clientmembercode character varying(255),
+        clientsubsystemcode character varying(255),
+        clientxroadinstance character varying(255),
+        messageid character varying(255),
+        messageprotocolversion character varying(255),
+        producerdurationproducerview integer,
+        representedpartyclass character varying(255),
+        representedpartycode character varying(255),
+        requestattachmentcount integer,
+        requestindate date,
+        requestints bigint,
+        requestmimesize bigint,
+        requestsize bigint,
+        responseattachmentcount integer,
+        responsemimesize bigint,
+        responsesize bigint,
+        securityservertype character varying(255),
+        servicecode character varying(255),
+        servicememberclass character varying(255),
+        servicemembercode character varying(255),
+        servicesubsystemcode character varying(255),
+        servicetype character varying(255),
+        serviceversion character varying(255),
+        servicexroadinstance character varying(255),
+        succeeded boolean,
+        totalduration integer
+    );""")
     mocker.patch(
         'psycopg2.connect',
         return_value=MockPsyContextManager(MockSQLiteCursor(db_session))
@@ -110,7 +266,18 @@ def pg(mocker):
 
 @freeze_time('2022-12-10')
 def test_statistics_collector(pg, mocker):
-    mock_statistics = {
+    mocker.patch(
+        'metrics_statistics.central_server_client.CentralServerClient.get_members',
+        return_value=MOCK_MEMBERS
+    )
+    make_log(pg, servicesubsystemcode='TestSerive1')
+    make_log(pg, servicesubsystemcode='TestSerive1')
+    make_log(pg, servicesubsystemcode='TestSerive2')
+    make_log(pg, servicesubsystemcode='TestSerive3')
+    make_log(pg, servicesubsystemcode='TestSerive4')
+    make_log(pg, servicesubsystemcode='TestSerive5')
+
+    mock_time_range_requests_counts = {
         'current_month_request_count': 100,
         'current_year_request_count': 2000,
         'previous_month_request_count': 1111,
@@ -120,8 +287,21 @@ def test_statistics_collector(pg, mocker):
     }
     mocker.patch(
         'metrics_statistics.mongodb_manager.DatabaseManager.get_requests_counts',
-        return_value=mock_statistics
+        return_value=mock_time_range_requests_counts
     )
+    mock_services_requests_counts = [{
+        'service_testservice1': [{'count': 10}],
+        'service_testservice2': [{'count': 8}],
+        'service_testservice3': [{'count': 25}],
+        'service_testservice4': [{'count': 3}],
+        'service_testservice5': [{'count': 1}],
+    }]
+    mocker.patch(
+        'metrics_statistics.mongodb_manager.DatabaseManager._get_db_service_request_counts',
+        return_value=mock_services_requests_counts
+    )
+    TEST_SETTINGS['metrics-statistics']['num-max-services-requests'] = 3
+
     collect_statistics(TEST_SETTINGS, logger)
     cursor = pg.execute('SELECT * FROM metrics_statistics')
     rows = cursor.fetchall()
@@ -135,5 +315,10 @@ def test_statistics_collector(pg, mocker):
         'previous_year_request_count': 4000,
         'today_request_count': 10,
         'total_request_count': 100000,
+        'member_gov_count': 1,
+        'member_com_count': 2,
+        'member_org_count': 0,
+        'service_count': 5,
+        'services_request_counts': '{"service_testservice3": 25, "service_testservice1": 10, "service_testservice2": 8}',
         'update_time': '2022-12-10 00:00:00'
     }
