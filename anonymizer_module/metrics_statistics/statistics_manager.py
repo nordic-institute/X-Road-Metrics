@@ -37,6 +37,7 @@ def collect_statistics(settings: dict, logger: Logger, output_only: bool = False
     statistics: StatisticalData = {
         **member_counts,
         **requests_counts,
+        **{'service_count': len(services)},
         **{'services_request_counts': json.dumps(services_counts)}
     }
     if output_only:

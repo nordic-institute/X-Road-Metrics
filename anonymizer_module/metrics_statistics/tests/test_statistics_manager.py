@@ -222,6 +222,7 @@ def pg(mocker):
         member_gov_count integer,
         member_com_count integer,
         member_org_count integer,
+        service_count integer,
         services_request_counts json,
         update_time timestamp);
     """)
@@ -317,6 +318,7 @@ def test_statistics_collector(pg, mocker):
         'member_gov_count': 1,
         'member_com_count': 2,
         'member_org_count': 0,
+        'service_count': 5,
         'services_request_counts': '{"service_testservice3": 25, "service_testservice1": 10, "service_testservice2": 8}',
         'update_time': '2022-12-10 00:00:00'
     }

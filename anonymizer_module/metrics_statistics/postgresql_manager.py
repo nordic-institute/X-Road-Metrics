@@ -39,6 +39,7 @@ class StatisticalData(RequestsCountData):
     member_gov_count: int
     member_com_count: int
     member_org_count: int
+    service_count: int
     services_request_counts: str
 
 
@@ -80,6 +81,10 @@ METRICS_STATISTICS_SCHEMA: Dict[str, MetricsStatisticsField] = {
         'index': False,
     },
     'member_org_count': {
+        'type': 'integer',
+        'index': False,
+    },
+    'service_count': {
         'type': 'integer',
         'index': False,
     },
