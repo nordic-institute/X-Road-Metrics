@@ -81,6 +81,10 @@ anonymizer:
   # By default no rules are defined and all fields are included in the anonymized records.
   substitution-rules: []
 
+metrics-statistics:
+  # how many services sorted by requests counts to store in PG
+  num-max-services-requests:
+
 mongodb:
   host: localhost
   user: <FILL>

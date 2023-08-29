@@ -39,6 +39,7 @@ class StatisticalData(RequestsCountData):
     member_gov_count: int
     member_com_count: int
     member_org_count: int
+    services_request_counts: str
 
 
 METRICS_STATISTICS_SCHEMA: Dict[str, MetricsStatisticsField] = {
@@ -81,11 +82,35 @@ METRICS_STATISTICS_SCHEMA: Dict[str, MetricsStatisticsField] = {
     'member_org_count': {
         'type': 'integer',
         'index': False,
+    },
+    'services_request_counts': {
+        'type': 'json',
+        'index': False
     }
 }
 
 
-class PostgreSqlManager:
+class BasePostgreSQL_Manager:
+    def __init__(self, settings: dict):
+        self._settings = settings
+        self._connection_string = self._get_connection_string()
+        self._connect_args = {
+            'sslmode': settings.get('ssl-mode'),
+            'sslrootcert': settings.get('ssl-root-cert')
+        }
+
+    def _get_connection_string(self) -> str:
+        args = [
+            f"host={self._settings['host']}",
+            f"dbname={self._settings['database-name']}"
+        ]
+
+        optional_settings = {key: self._settings.get(key) for key in ['port', 'user', 'password']}
+        optional_args = [f'{key}={value}' if value else '' for key, value in optional_settings.items()]
+        return ' '.join(args + optional_args)
+
+
+class PostgreSQL_StatisticsManager(BasePostgreSQL_Manager):
 
     def __init__(self, postgres_settings: dict, logger: Logger) -> None:
         self._logger = logger
@@ -93,14 +118,11 @@ class PostgreSqlManager:
         self._table_name = METRICS_STATISTICS_TABLE
         self._readonly_users = postgres_settings['readonly-users']
         self._connection_string = self._get_connection_string()
-        self._connect_args = {
-            'sslmode': postgres_settings.get('ssl-mode'),
-            'sslrootcert': postgres_settings.get('ssl-root-cert')
-        }
 
-        table_schema = PostgreSqlManager.get_schema()
-        index_columns = PostgreSqlManager.get_indices()
+        table_schema = PostgreSQL_StatisticsManager.get_schema()
+        index_columns = PostgreSQL_StatisticsManager.get_indices()
         self._field_order = [field_name for field_name, _ in table_schema]
+        super().__init__(self._settings)
         if table_schema:
             self._ensure_table(table_schema, index_columns)
             self._ensure_privileges()
@@ -216,13 +238,16 @@ class PostgreSqlManager:
                                    + f' existence with connection {self._connection_string}. ERROR: {str(e)}')
             raise
 
-    def _get_connection_string(self) -> str:
-        args = [
-            f"host={self._settings['host']}",
-            f"dbname={self._settings['database-name']}"
-        ]
 
-        optional_settings = {key: self._settings.get(key) for key in ['port', 'user', 'password']}
-        optional_args = [f'{key}={value}' if value else '' for key, value in optional_settings.items()]
+class PostgreSQL_LogManager(BasePostgreSQL_Manager):
+    def __init__(self, postgres_settings: dict, logger: Logger):
+        self._logger = logger
+        self._table_name = postgres_settings['table-name']
+        super().__init__(postgres_settings)
 
-        return ' '.join(args + optional_args)
+    def get_services(self) -> List[str]:
+        with pg.connect(self._connection_string, **self._connect_args) as connection:
+            cursor = connection.cursor()
+            cursor.execute('SELECT servicesubsystemcode FROM {table_name} GROUP BY servicesubsystemcode;'.format(**{'table_name': self._table_name}))
+            data = cursor.fetchall()
+            return [service[0] for service in data if service[0]]
