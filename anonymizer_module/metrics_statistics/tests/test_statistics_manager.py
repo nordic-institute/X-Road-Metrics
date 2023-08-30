@@ -297,12 +297,12 @@ def test_statistics_collector(pg, mocker):
         'metrics_statistics.central_server_client.CentralServerClient.get_members',
         return_value=MOCK_MEMBERS
     )
-    make_log(pg, servicesubsystemcode='TestSerive1')
-    make_log(pg, servicesubsystemcode='TestSerive1')
-    make_log(pg, servicesubsystemcode='TestSerive2')
-    make_log(pg, servicesubsystemcode='TestSerive3')
-    make_log(pg, servicesubsystemcode='TestSerive4')
-    make_log(pg, servicesubsystemcode='TestSerive5')
+    make_log(pg, servicesubsystemcode='TestService1')
+    make_log(pg, servicesubsystemcode='TestService1')
+    make_log(pg, servicesubsystemcode='TestService2')
+    make_log(pg, servicesubsystemcode='TestService3')
+    make_log(pg, servicesubsystemcode='TestService4')
+    make_log(pg, servicesubsystemcode='TestService5')
 
     mock_time_range_requests_counts = {
         'current_month_request_count': 100,
@@ -348,6 +348,10 @@ def test_statistics_collector(pg, mocker):
             {'class_name': 'ORG', 'description': 'Test organizations', 'count': 0},
             {'class_name': 'UNUSED', 'description': 'Just for test', 'count': 0}]),
         'service_count': 5,
-        'service_request_count': '{"service_testservice3": 25, "service_testservice1": 10, "service_testservice2": 8}',
+        'service_request_count': json.dumps([
+            {'title': 'TestService1', 'count': 10},
+            {'title': 'TestService2', 'count': 8},
+            {'title': 'TestService3', 'count': 25}
+        ]),
         'update_time': '2022-12-10 00:00:00'
     }
