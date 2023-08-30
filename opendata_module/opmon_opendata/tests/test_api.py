@@ -422,6 +422,7 @@ def test_get_harvest_error_unsupported_method(http_client):
 
 @freeze_time('2022-12-10')
 def test_get_statistics_data_success(db, http_client, caplog):
+    test_service_counts = {'service_test1': 60, 'service_test2': 50}
     make_m_statistics(db, **{
         'current_month_request_count': 3742,
         'current_year_request_count': 4648,
@@ -429,6 +430,11 @@ def test_get_statistics_data_success(db, http_client, caplog):
         'previous_year_request_count': 0,
         'today_request_count': 0,
         'total_request_count': 4648,
+        'member_gov_count': 10,
+        'member_com_count': 20,
+        'member_org_count': 30,
+        'service_count': 50,
+        'services_request_counts': json.dumps(test_service_counts),
     })
     response = http_client.get('/api/statistics')
     assert response.status_code == 200
@@ -439,6 +445,11 @@ def test_get_statistics_data_success(db, http_client, caplog):
         'previous_year_request_count': 0,
         'today_request_count': 0,
         'total_request_count': 4648,
+        'member_gov_count': 10,
+        'member_com_count': 20,
+        'member_org_count': 30,
+        'service_count': 50,
+        'services_request_counts': json.dumps(test_service_counts),
         'update_time': '2022-12-10T00:00:00'
     }
     assert 'Statistics data fetched successfully' in caplog.text
