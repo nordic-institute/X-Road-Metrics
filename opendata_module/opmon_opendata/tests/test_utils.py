@@ -1,7 +1,7 @@
 import datetime
 import sqlite3
 from logging import StreamHandler
-from typing import Union
+from typing import Optional, Union
 
 import pytest
 from django.test import Client
@@ -130,7 +130,8 @@ class MockPsyContextManager(object):
     def __enter__(self):
         return self
 
-    def cursor(self, name=None, withhold=None):
+    def cursor(self, name: Optional[str] = None,
+               withhold: Optional[bool] = None):
         return self._mock_cursor
 
     def __exit__(self, _, __, ___):
