@@ -329,6 +329,11 @@ def get_statistics_data(request: WSGIRequest, profile: Optional[str] = None) -> 
         'previous_year_request_count': statistics['previous_year_request_count'],
         'today_request_count': statistics['today_request_count'],
         'total_request_count': statistics['total_request_count'],
+        'member_gov_count': statistics['member_gov_count'],
+        'member_com_count': statistics['member_com_count'],
+        'member_org_count': statistics['member_org_count'],
+        'service_count': statistics['service_count'],
+        'services_request_counts': statistics['services_request_counts'],
         'update_time': statistics['update_time'].strftime('%Y-%m-%dT%H:%M:%S')
     }
     return HttpResponse(

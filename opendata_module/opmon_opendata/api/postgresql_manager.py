@@ -236,9 +236,19 @@ class PostgreSQL_StatisticsManager(BasePostgreSQL_Manager):
         with pg.connect(self._connection_string, **self._connect_args) as connection:
             cursor = connection.cursor()
             cursor.execute(
-                '''SELECT current_month_request_count, current_year_request_count,
-                   previous_month_request_count, previous_year_request_count,
-                    today_request_count, total_request_count, update_time
+                '''SELECT
+                    current_month_request_count,
+                    current_year_request_count,
+                    previous_month_request_count,
+                    previous_year_request_count,
+                    today_request_count,
+                    total_request_count,
+                    update_time,
+                    member_gov_count,
+                    member_com_count,
+                    member_org_count,
+                    service_count,
+                    services_request_counts
                     FROM {table_name}
                     WHERE update_time = (SELECT MAX(update_time)
                 FROM {table_name})'''.format(**{'table_name': self._table_name})
@@ -252,4 +262,9 @@ class PostgreSQL_StatisticsManager(BasePostgreSQL_Manager):
             'today_request_count': row[4],
             'total_request_count': row[5],
             'update_time': row[6],
+            'member_gov_count': row[7],
+            'member_com_count': row[8],
+            'member_org_count': row[9],
+            'service_count': row[10],
+            'services_request_counts': row[11]
         } if row else None

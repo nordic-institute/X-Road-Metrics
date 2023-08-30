@@ -1,7 +1,7 @@
 import datetime
 import sqlite3
 from logging import StreamHandler
-from typing import Union
+from typing import Optional, Union
 
 import pytest
 from django.test import Client
@@ -130,7 +130,8 @@ class MockPsyContextManager(object):
     def __enter__(self):
         return self
 
-    def cursor(self):
+    def cursor(self, name: Optional[str] = None,
+               withhold: Optional[bool] = None):
         return self._mock_cursor
 
     def __exit__(self, _, __, ___):
@@ -227,6 +228,11 @@ def db(mocker):
         previous_year_request_count integer,
         today_request_count integer,
         total_request_count integer,
+        member_gov_count integer,
+        member_com_count integer,
+        member_org_count integer,
+        service_count integer,
+        services_request_counts json,
         update_time timestamp);
     """)
     connection.commit()
@@ -278,6 +284,11 @@ def make_m_statistics(db_session, **kwargs):
                         previous_year_request_count,
                         today_request_count,
                         total_request_count,
+                        member_gov_count,
+                        member_com_count,
+                        member_org_count,
+                        service_count,
+                        services_request_counts,
                         update_time
                     )
                     VALUES(
@@ -288,6 +299,11 @@ def make_m_statistics(db_session, **kwargs):
                         :previous_year_request_count,
                         :today_request_count,
                         :total_request_count,
+                        :member_gov_count,
+                        :member_com_count,
+                        :member_org_count,
+                        :service_count,
+                        :services_request_counts,
                         :update_time
                     )
                     """,
