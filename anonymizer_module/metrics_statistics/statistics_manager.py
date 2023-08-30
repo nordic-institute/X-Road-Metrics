@@ -28,17 +28,18 @@ def collect_statistics(settings: dict, logger: Logger, output_only: bool = False
     pg_log_manager = PostgreSQL_LogManager(settings['postgres'], logger)
     cs_client = CentralServerClient(settings['xroad'], logger)
 
-    member_counts = cs_client.get_member_count()
+    members_in_config = cs_client.get_members_in_config()
+    member_counts = cs_client.get_member_count(members_in_config)
     requests_counts = database_manager.get_requests_counts()
     services = pg_log_manager.get_services()
     max_services_by_requests = settings.get('metrics-statistics', {}).get('num-max-services-requests', 5)
     services_counts = database_manager.get_services_counts(services, max_services_by_requests)
 
     statistics: StatisticalData = {
-        **member_counts,
         **requests_counts,
+        **{'member_count': json.dumps(member_counts)},
         **{'service_count': len(services)},
-        **{'services_request_counts': json.dumps(services_counts)}
+        **{'service_request_count': json.dumps(services_counts)}
     }
     if output_only:
         logger.info('Metrics statistical data:\n\n%s', pformat(statistics, indent=2, width=2))

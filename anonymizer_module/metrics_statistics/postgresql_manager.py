@@ -36,11 +36,9 @@ class MetricsStatisticsField(TypedDict):
 
 
 class StatisticalData(RequestsCountData):
-    member_gov_count: int
-    member_com_count: int
-    member_org_count: int
+    member_count: str
     service_count: int
-    services_request_counts: str
+    service_request_count: str
 
 
 METRICS_STATISTICS_SCHEMA: Dict[str, MetricsStatisticsField] = {
@@ -72,23 +70,15 @@ METRICS_STATISTICS_SCHEMA: Dict[str, MetricsStatisticsField] = {
         'type': 'integer',
         'index': True
     },
-    'member_gov_count': {
-        'type': 'integer',
-        'index': False,
-    },
-    'member_com_count': {
-        'type': 'integer',
-        'index': False,
-    },
-    'member_org_count': {
-        'type': 'integer',
+    'member_count': {
+        'type': 'json',
         'index': False,
     },
     'service_count': {
         'type': 'integer',
         'index': False,
     },
-    'services_request_counts': {
+    'service_request_count': {
         'type': 'json',
         'index': False
     }
