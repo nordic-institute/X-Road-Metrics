@@ -60,7 +60,8 @@ Submit a pull request to
 or an enhancement request to the
 [ideas category under discussions](https://github.com/nordic-institute/X-Road-Metrics/discussions/new?category=ideas).
 
-When opening a pull request, please provide a signed Contributor Licence Agreement (CLA). More information can be found [here](https://github.com/nordic-institute/X-Road-development/#contributor-licence-agreement).
+When opening a pull request, please provide a signed Contributor Licence Agreement (CLA). More information can be found
+[here](https://github.com/nordic-institute/X-Road/blob/develop/CONTRIBUTING.md#legal-notice).
 
 ## Support disclaimer
 
