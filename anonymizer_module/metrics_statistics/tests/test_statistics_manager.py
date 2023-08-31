@@ -1,3 +1,4 @@
+import json
 import logging
 import sqlite3
 from datetime import datetime
@@ -9,6 +10,26 @@ from freezegun import freeze_time
 from metrics_statistics.statistics_manager import collect_statistics
 
 logger = logging.getLogger()
+
+MOCK_CONFIG_MEMBERS = [
+    {
+        'class_name': 'COM',
+        'description': 'Test companies'
+    },
+    {
+        'class_name': 'GOV',
+        'description': 'Test govermental entities'
+    },
+    {
+        'class_name': 'ORG',
+        'description': 'Test organizations'
+    },
+    {
+        'class_name': 'UNUSED',
+        'description': 'Just for test'
+    },
+
+]
 
 MOCK_MEMBERS = [
     {
@@ -27,6 +48,10 @@ MOCK_MEMBERS = [
         'member_class': 'ORG',
         'member_code': ''
     },
+    {
+        'member_class': 'ORPHAN',
+        'member_code': 'ABCD-1234'
+    }
 ]
 
 TEST_SETTINGS = {
@@ -219,11 +244,9 @@ def pg(mocker):
         previous_year_request_count integer,
         today_request_count integer,
         total_request_count integer,
-        member_gov_count integer,
-        member_com_count integer,
-        member_org_count integer,
+        member_count json,
         service_count integer,
-        services_request_counts json,
+        service_request_count json,
         update_time timestamp);
     """)
     db_session.execute("""CREATE TABLE logs (
@@ -267,15 +290,19 @@ def pg(mocker):
 @freeze_time('2022-12-10')
 def test_statistics_collector(pg, mocker):
     mocker.patch(
+        'metrics_statistics.central_server_client.CentralServerClient.get_members_in_config',
+        return_value=MOCK_CONFIG_MEMBERS
+    )
+    mocker.patch(
         'metrics_statistics.central_server_client.CentralServerClient.get_members',
         return_value=MOCK_MEMBERS
     )
-    make_log(pg, servicesubsystemcode='TestSerive1')
-    make_log(pg, servicesubsystemcode='TestSerive1')
-    make_log(pg, servicesubsystemcode='TestSerive2')
-    make_log(pg, servicesubsystemcode='TestSerive3')
-    make_log(pg, servicesubsystemcode='TestSerive4')
-    make_log(pg, servicesubsystemcode='TestSerive5')
+    make_log(pg, servicesubsystemcode='TestService1')
+    make_log(pg, servicesubsystemcode='TestService1')
+    make_log(pg, servicesubsystemcode='TestService2')
+    make_log(pg, servicesubsystemcode='TestService3')
+    make_log(pg, servicesubsystemcode='TestService4')
+    make_log(pg, servicesubsystemcode='TestService5')
 
     mock_time_range_requests_counts = {
         'current_month_request_count': 100,
@@ -315,10 +342,16 @@ def test_statistics_collector(pg, mocker):
         'previous_year_request_count': 4000,
         'today_request_count': 10,
         'total_request_count': 100000,
-        'member_gov_count': 1,
-        'member_com_count': 2,
-        'member_org_count': 0,
+        'member_count': json.dumps([
+            {'class_name': 'COM', 'description': 'Test companies', 'count': 2},
+            {'class_name': 'GOV', 'description': 'Test govermental entities', 'count': 1},
+            {'class_name': 'ORG', 'description': 'Test organizations', 'count': 0},
+            {'class_name': 'UNUSED', 'description': 'Just for test', 'count': 0}]),
         'service_count': 5,
-        'services_request_counts': '{"service_testservice3": 25, "service_testservice1": 10, "service_testservice2": 8}',
+        'service_request_count': json.dumps([
+            {'title': 'TestService1', 'count': 10},
+            {'title': 'TestService2', 'count': 8},
+            {'title': 'TestService3', 'count': 25}
+        ]),
         'update_time': '2022-12-10 00:00:00'
     }

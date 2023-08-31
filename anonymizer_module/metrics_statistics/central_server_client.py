@@ -22,16 +22,22 @@
 
 import re
 import xml.etree.ElementTree as ET
+from functools import lru_cache
 from logging import Logger
-from typing import Dict, Sequence, TypedDict
+from typing import Dict, Optional, Sequence, TypedDict
 
 import requests
 
 
 class MemberCountData(TypedDict):
-    member_gov_count: int
-    member_com_count: int
-    member_org_count: int
+    class_name: str
+    description: str
+    count: int
+
+
+class MemberInConfig(TypedDict):
+    class_name: str
+    description: Optional[str]
 
 
 class MemberData(TypedDict):
@@ -53,27 +59,42 @@ class CentralServerClient:
             self.logger.exception(f'CentralServerClient.get_members: {repr(e)}')
             raise e
 
-    def get_member_count(self) -> MemberCountData:
+    def get_members_in_config(self) -> Sequence[MemberInConfig]:
+        try:
+            shared_params = self._get_shared_params()
+            return self._parse_memebers_in_config(shared_params)
+        except Exception as e:
+            self.logger.exception(f'CentralServerClient.get_members_in_config: {repr(e)}')
+            raise e
+
+    def get_member_count(self, members_in_config: Sequence[MemberInConfig]) -> Sequence[MemberCountData]:
         members_list = self.get_members()
         unique_counts: Dict[str, set] = {}
+
+        for member_in_config in members_in_config:
+            member_class = member_in_config['class_name']
+            unique_counts[member_class.lower()] = set()
 
         for member in members_list:
             member_class = member['member_class']
             member_code = member['member_code']
-            member_count_key = f'member_{member_class.lower()}_count'
 
-            if member_count_key not in unique_counts:
-                unique_counts[member_count_key] = set()
+            member_count_set = unique_counts.get(member_class.lower())
+            if member_code and member_count_set is not None:
+                if member_code not in member_count_set:
+                    unique_counts[member_class.lower()].add(member_code)
 
-            if member_code:
-                unique_counts[member_count_key].add(member_code)
-        members_count: MemberCountData = {
-            'member_gov_count': len(unique_counts['member_gov_count']),
-            'member_com_count': len(unique_counts['member_com_count']),
-            'member_org_count': len(unique_counts['member_org_count'])
-        }
-        return members_count
+        members_counts = [
+            MemberCountData(
+                class_name=member['class_name'],
+                description=member['description'] or '',
+                count=len(unique_counts[member['class_name'].lower()])
+            )
+            for member in members_in_config
+        ]
+        return members_counts
 
+    @lru_cache(maxsize=1)
     def _get_shared_params(self) -> requests.Response:
         internal_conf_url = f'{self.url}/internalconf'
 
@@ -120,3 +141,22 @@ class CentralServerClient:
 
             members_list.append(member_data)
         return members_list
+
+    @staticmethod
+    def _parse_memebers_in_config(shared_params: requests.Response) -> Sequence[MemberInConfig]:
+        global_members = []
+        root = ET.fromstring(shared_params.content)
+        for member in root.findall('./globalSettings/memberClass'):
+            if member is None:
+                continue
+            member_code = member.find('./code')
+            if member_code is None or member_code.text is None:
+                continue
+            member_description = member.find('./description')
+            global_members.append(
+                MemberInConfig(
+                    class_name=member_code.text,
+                    description=member_description.text if member_description is not None else ''
+                )
+            )
+        return global_members

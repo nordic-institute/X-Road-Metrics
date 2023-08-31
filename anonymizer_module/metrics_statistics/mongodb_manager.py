@@ -57,6 +57,11 @@ class RequestCountDateTimeRange(TypedDict):
     today_request_count: 'DateTimeRange'
 
 
+class ServiceRequestCount(TypedDict):
+    title: str
+    count: int
+
+
 class DateTimeRange:
     def __init__(self, from_dt: datetime, to_dt: Optional[datetime] = None) -> None:
         """
@@ -229,40 +234,54 @@ class DatabaseManager:
 
         return requests_counts
 
-    def get_services_counts(self, services,
-                            max_services_by_requests: Optional[int] = None) -> Dict[str, Any]:
+    def get_services_counts(self, services: List[str],
+                            max_services_by_requests: Optional[int] = None) -> Sequence[ServiceRequestCount]:
+        service_count_data = []
         result = self._get_db_service_request_counts(services)
         rows = [row for row in result]
-        # TODO: do we need labels for services?
-        services_counts_raw = {
+        service_count = {
             key: value[0]['count']
             if value else 0
             for key, value in rows[0].items()
         }
         # sort dict by max counts
-        sorted_counts = sorted(services_counts_raw.items(), key=lambda x: x[1], reverse=True)
+        sorted_counts = sorted(service_count.items(), key=lambda x: x[1], reverse=True)
 
         # get top services by max_services_by_requests
         if max_services_by_requests and len(sorted_counts) > max_services_by_requests:
             sorted_counts = sorted_counts[:max_services_by_requests]
 
-        return dict(sorted_counts)
+        service_count = dict(sorted_counts)
+        service_key_map = self._get_service_key_map(services)
+
+        for service_key, title in service_key_map.items():
+            if not service_count.get(service_key):
+                continue
+            service_count_data.append(
+                ServiceRequestCount(
+                    title=title,
+                    count=service_count[service_key]
+                )
+            )
+        return service_count_data
+
+    @staticmethod
+    def _get_service_key_map(services: List[str]) -> Dict[str, str]:
+        return {
+            f'service_{service.strip().replace(" ","_").lower()}': service
+            for service in services
+        }
 
     def _get_db_service_request_counts(self, services: List[str]) -> CommandCursor:
         client = MongoClient(self.mongo_uri, **dict(self.connect_args))
         db = client[self.db_name]
         collection = db['clean_data']
-        pipeline = DatabaseManager.generate_services_count_pipeline(services)
+        pipeline = self.generate_services_count_pipeline(services)
         result = collection.aggregate(pipeline)
         return result
 
-    @staticmethod
-    def generate_services_count_pipeline(services) -> List[Mapping[str, Any]]:
-        service_key_map = {
-            f'service_{service.strip().replace(" ","_").lower()}': service
-            for service in services
-
-        }
+    def generate_services_count_pipeline(self, services) -> List[Mapping[str, Any]]:
+        service_key_map = self._get_service_key_map(services)
 
         def generate_facet(service: str) -> List[Dict[str, Any]]:
             facet = [

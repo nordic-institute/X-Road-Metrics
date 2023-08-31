@@ -228,11 +228,9 @@ def db(mocker):
         previous_year_request_count integer,
         today_request_count integer,
         total_request_count integer,
-        member_gov_count integer,
-        member_com_count integer,
-        member_org_count integer,
+        member_count json,
         service_count integer,
-        services_request_counts json,
+        service_request_count json,
         update_time timestamp);
     """)
     connection.commit()
@@ -284,11 +282,9 @@ def make_m_statistics(db_session, **kwargs):
                         previous_year_request_count,
                         today_request_count,
                         total_request_count,
-                        member_gov_count,
-                        member_com_count,
-                        member_org_count,
+                        member_count,
                         service_count,
-                        services_request_counts,
+                        service_request_count,
                         update_time
                     )
                     VALUES(
@@ -299,11 +295,9 @@ def make_m_statistics(db_session, **kwargs):
                         :previous_year_request_count,
                         :today_request_count,
                         :total_request_count,
-                        :member_gov_count,
-                        :member_com_count,
-                        :member_org_count,
+                        :member_count,
                         :service_count,
-                        :services_request_counts,
+                        :service_request_count,
                         :update_time
                     )
                     """,
