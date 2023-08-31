@@ -7,13 +7,19 @@
 
 ## Introduction
 
-X-Road® Metrics is a tool for collecting, storing and analysing reporting data and metrics from an [X-Road®](https://github.com/nordic-institute/X-Road) ecosystem. The data can be used to measure usage of individual services, understand dependencies and relationships between different information systems and services, monitor service health, etc. Also, the information can be published as open data.
+X-Road® Metrics is a tool for collecting, storing and analysing reporting data and metrics from an
+[X-Road®](https://github.com/nordic-institute/X-Road) ecosystem. The data can be used to measure usage of individual
+services, understand dependencies and relationships between different information systems and services, monitor service
+health, etc. Also, the information can be published as open data.
 
-X-Road Metrics can be used by both X-Road Operators and X-Road Members. The X-Road Operator can use X-Road Metrics to collect data from an entire X-Road ecosystem while X-Road Members can access their own data.
+X-Road Metrics can be used by both X-Road Operators and X-Road Members. The X-Road Operator can use X-Road Metrics to
+collect data from an entire X-Road ecosystem while X-Road Members can access their own data.
 
 ![X-Road Metrics Overview](docs/img/x-road-metrics-official-modules.png)
 
-The X-Road Metrics software is released under the [MIT](LICENSE.MD) open source license and is available free of charge. The documentation is licensed under the [Creative Commons Attribution-ShareAlike 4.0 International License](https://creativecommons.org/licenses/by-sa/4.0/).
+The X-Road Metrics software is released under the [MIT](LICENSE.MD) open source license and is available free of
+charge. The documentation is licensed under the
+[Creative Commons Attribution-ShareAlike 4.0 International License](https://creativecommons.org/licenses/by-sa/4.0/).
 
 ## Architecture
 
@@ -45,14 +51,17 @@ Networking module is written in [**R**](https://www.r-project.org/).
 
 ## How to contribute?
 
-[Sign up](https://jira.niis.org/secure/Signup!default.jspa) for an account and
-get access to the [X-Road Service Desk](https://jira.niis.org/servicedesk/customer/portal/1) and
-[X-Road Metrics Backlog](https://jira.niis.org/projects/OPMONDEV/).
+[Sign up](https://id.atlassian.com/signup) for an account and
+get access to the
+[X-Road Metrics Backlog](https://nordic-institute.atlassian.net/jira/software/c/projects/OPMONDEV/boards/2/backlog).
 
-Submit a pull request to [X-Road Metrics source code Github repository](https://github.com/nordic-institute/X-Road-Metrics)
-or an enhancement request to the [X-Road Service Desk](https://jira.niis.org/servicedesk/customer/portal/1).
+Submit a pull request to
+[X-Road Metrics source code Github repository](https://github.com/nordic-institute/X-Road-Metrics)
+or an enhancement request to the
+[ideas category under discussions](https://github.com/nordic-institute/X-Road-Metrics/discussions/new?category=ideas).
 
-When opening a pull request, please provide a signed Contributor Licence Agreement (CLA). More information can be found [here](https://github.com/nordic-institute/X-Road-development/#contributor-licence-agreement).
+When opening a pull request, please provide a signed Contributor Licence Agreement (CLA). More information can be found
+[here](https://github.com/nordic-institute/X-Road/blob/develop/CONTRIBUTING.md#legal-notice).
 
 ## Support disclaimer
 
@@ -68,11 +77,16 @@ with regard to X-Road Metrics:
 * providing second-line support for the NIIS members
 * international cooperation.
 
-[X-Road Technology Partners](https://x-road.global/xroad-technology-partners) are enterprises providing X-Road consultation services, e.g. deploying independent X-Road instances, developing X-Road extensions and X-Road-compatible services, integrating informations systems with X-Road etc.
+[X-Road Technology Partners](https://x-road.global/xroad-technology-partners) are enterprises providing X-Road
+consultation services, e.g. deploying independent X-Road instances, developing X-Road extensions and X-Road-compatible
+services, integrating informations systems with X-Road etc.
 
 No support for X-Road Metrics deployment is provided here.
 
 ## Credits
 
-* X-Road Metrics was initially developed by: [STACC (Software Technology and Applications Competence Center)](https://www.stacc.ee/en/) according to procurement [RHR 183990](https://riigihanked.riik.ee/register/hange/183990)
-* In 2020 it was agreed that [Nordic Institute for Interoperability Solutions (NIIS)](https://www.niis.org/) takes maintenance responsibility.
+* X-Road Metrics was initially developed by:
+  [STACC (Software Technology and Applications Competence Center)](https://www.stacc.ee/en/) according to procurement
+  [RHR 183990](https://riigihanked.riik.ee/register/hange/183990)
+* In 2020 it was agreed that [Nordic Institute for Interoperability Solutions (NIIS)](https://www.niis.org/) takes
+  maintenance responsibility.
