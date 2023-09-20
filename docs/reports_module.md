@@ -50,7 +50,7 @@ Reports-module doesn't need any **incoming** connections.
 
 ## Installation
 
-This sections describes the necessary steps to install the **reports module** on an Ubuntu 20.04 Linux host.
+This sections describes the necessary steps to install the **reports module** on an Ubuntu 20.04 or Ubuntu 22.04 Linux host.
 To a complete overview of different modules and machines, please refer to the ==> [System Architecture](system_architecture.md) <== documentation.
 
 ### Add X-Road Extensions Package Repository for Ubuntu

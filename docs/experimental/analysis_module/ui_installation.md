@@ -13,7 +13,7 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
 
 ## Installation
 
-This sections describes the necessary steps to install the **analyzer module** on an Ubuntu 20.04 Linux host. For a complete overview of different modules and machines, please refer to the ==> [System Architecture](../system_architecture.md) <== documentation.
+This sections describes the necessary steps to install the **analyzer module** on an Ubuntu 20.04 or Ubuntu 22.04 Linux host. For a complete overview of different modules and machines, please refer to the ==> [System Architecture](../system_architecture.md) <== documentation.
 
 ### Firewall Setup
 Opmon Analyzer User Interface is hosted on an Apache web server.
