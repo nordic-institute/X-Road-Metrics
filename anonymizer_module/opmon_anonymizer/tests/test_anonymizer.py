@@ -48,9 +48,6 @@ class TestAnonymizer(unittest.TestCase):
     def test_hiding_rules_parsing(self):
         self.assertTrue(True)
 
-    def test_hiding_rules_parsing(self):
-        self.assertTrue(True)
-
     def test_substitution_rules_parsing(self):
         self.assertTrue(True)
 

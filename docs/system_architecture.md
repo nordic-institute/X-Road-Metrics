@@ -94,11 +94,9 @@ Diagram below shows an example setup where private modules are on hosts in VLAN1
 The diagram includes also the experimental Analyzer module that has not been published yet.
 
 Specifications for each host in the example setup is in the following chapters.
-Ubuntu Server 20.04 is currently the only supported OS to run X-Road Metrics.
-
 
 ### Software Specifications
-Ubuntu Server 20.04 is currently the only supported OS to run X-Road Metrics.
+Ubuntu Server 20.04 and 22.04 are currently the supported operating systems to run X-Road Metrics.
 
 In addition to the X-Road Metrics packages, following 3rd party software needs to be installed:
  - MongoDb 4.4

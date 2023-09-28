@@ -19,6 +19,7 @@ The **Database module** is part of [X-Road Metrics](../README.md), which include
  - [Anonymizer module](./anonymizer_module.md)
  - [Opendata module](./opendata_module.md)
  - [Networking/Visualizer module](./networking_module.md)
+ - [Opendata Collector module](./opendata_collector_module.md)
 
 The **Database module** provides storage and synchronization between the other modules.
 
@@ -177,6 +178,21 @@ escaped format that can be directly added to the config files.
 The command also creates default MongoDB indexes needed by the X-Road Metrics modules. For more information about
 the indexes, see chapter [Indexes](#Indexes).
 
+### Single User creation.
+Each user for the X-Road Metrics module can be installed individually. To do this, use the
+`--user-to-generate` parameter as shown below:
+```bash
+sudo su xroad-metrics
+xroad-metrics-init-mongo --host xroad-metrics-centraldb:27017 --user root --password mysecret EX --user-to-generate opendata_collector
+```
+The command above creates user with the password.
+
+```bash
+Username                      | Password     | Escaped Password
+------------------------------+--------------+--------------------
+opendata_collector_PLAYGROUND | 108@#fZ~d[SP | "108@#fZ~d[SP"
+Created 20 indexes.
+```
 
 ### Manually Create Optional Users
 This Chapter can be skipped unless you want to install the optional users for integration test or read-only use.

@@ -19,6 +19,7 @@ The **Collector module** is part of [X-Road Metrics](../README.md), which includ
  - [Anonymizer module](./anonymizer_module.md)
  - [Opendata module](./opendata_module.md)
  - [Networking/Visualizer module](./networking_module.md)
+ - [Opendata Collector module](./opendata_collector_module.md)
 
 The **Collector module** is responsible to retrieve data from X-Road Security Servers and insert into the database module. The execution of the collector module is performed automatically via a **cron job** task.
 

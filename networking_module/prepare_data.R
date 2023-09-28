@@ -60,11 +60,11 @@ xroad.descriptor <- settings$networking$"xroad-descriptor-file"
 days <- (settings$networking$interval + settings$networking$buffer)
 fetchsize <- ifelse(is.null(settings$networking$fetchsize), 100000, settings$networking$fetchsize)
 
-if ("ssl_mode" %in% names(settings$postgres)) {
-    Sys.setenv(PGSSLMODE = settings$postgres$ssl_mode)
-}
-if ("ssl_root_cert" %in% names(settings$postgres)) {
-    Sys.setenv(PGSSLROOTCERT = settings$postgres$ssl_root_cert)
+if ("ssl_root_cert" %in% names(settings$postgres) &&
+    !is.null(settings$postgres$ssl_root_cert) &&
+    !is.na(settings$postgres$ssl_root_cert) &&
+    settings$postgres$ssl_root_cert != "") {
+  Sys.setenv(PGSSLROOTCERT = settings$postgres$ssl_root_cert)
 }
 
 tryCatch(
@@ -78,6 +78,7 @@ tryCatch(
       ";Pwd=", settings$postgres$password,
       ";UseDeclareFetch=1",
       ";Fetch=", fetchsize,
+      ";sslmode=", settings$postgres$ssl_mode,
       ";"
     )
   ),

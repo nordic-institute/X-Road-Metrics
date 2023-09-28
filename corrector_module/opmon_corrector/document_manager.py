@@ -23,11 +23,11 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
 
-import collections
-import hashlib
+import bleach
 
-from .logger_manager import LoggerManager
-from . import __version__
+from opmon_corrector import (SECURITY_SERVER_TYPE_CLIENT,
+                             SECURITY_SERVER_TYPE_PRODUCER, __version__)
+from opmon_corrector.logger_manager import LoggerManager
 
 
 class DocumentManager:
@@ -246,11 +246,11 @@ class DocumentManager:
             return False
 
         # Divide document into client and producer
-        security_type = document_a.get('securityServerType', None)
-        if security_type == 'Client':
+        security_type = document_a.get('securityServerType', '')
+        if security_type.lower() == SECURITY_SERVER_TYPE_CLIENT:
             client = document_a
             producer = document_b.get('producer')
-        elif security_type == 'Producer':
+        elif security_type.lower() == SECURITY_SERVER_TYPE_PRODUCER:
             producer = document_a
             client = document_b.get('client')
         else:
@@ -307,6 +307,19 @@ class DocumentManager:
             'producer': producer_document,
             'xRequestId': x_request_id
         }
+
+    @staticmethod
+    def sanitise_document(document: dict) -> dict:
+        """
+        Sanitizes the document by cleaning string values using bleach if they are present.
+        :param document: The document to be sanitised.
+        :return: Returns the sanitised document.
+        """
+        sanitised_document = {
+            key: bleach.clean(value) if isinstance(value, str) else value
+            for key, value in document.items()
+        }
+        return sanitised_document
 
     def correct_structure(self, doc):
         """

@@ -51,7 +51,7 @@ setup(
     author_email='info@niis.org',
     packages=find_packages(),
     include_package_data=True,
-    scripts=['bin/xroad-metrics-anonymizer'],
+    scripts=['bin/xroad-metrics-anonymizer', 'bin/xroad-metrics-statistics'],
     install_requires=requirements,
     classifiers=classifiers,
     platforms='POSIX',

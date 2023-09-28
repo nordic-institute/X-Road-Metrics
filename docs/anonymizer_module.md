@@ -20,6 +20,7 @@ which include following modules:
  - [Anonymizer module](./anonymizer_module.md)
  - [Opendata module](./opendata_module.md)
  - [Networking/Visualizer module](./networking_module.md)
+ - [Opendata Collector module](./opendata_collector_module.md)
 
 The **Anonymizer module** is responsible of preparing the operational monitoring data for publication through
 the [Opendata module](opendata_module.md). Anonymizer configuration allows X-Road Metrics extension administrator to set
@@ -271,6 +272,22 @@ If collector is to be run only manually, comment out the default cron task:
 # 15 30 15 * * xroad-metrics xroad-metrics-anonymizer
 ```
 
+## Opendata Anonymization
+
+Opendata is already anonymized in some way.
+To be sure data does not contain any sensitive information we need to skip certain, not relevant anonymization steps like field translation and masking and apply hiding rules, substitution and transformation.
+
+To anonymize opendata add crontab entry to _/etc/cron.d/xroad-metrics-anonymizer-cron_:
+
+```bash
+*/15  *  *  *  1-5  xroad-metrics  xroad-metrics-anonymizer --profile TEST --only_opendata
+```
+
+### Database indexes
+
+Anonymizer module would benefit in  `insertTime` index while perfoming opendata anonymization.
+Refer to [Indexes](database_module.md#indexes)
+
 ## Monitoring and Status
 
 ### Logging
@@ -345,3 +362,30 @@ The above example configuration would write logs to
 The heartbeat file consists last message of log file and status
 
 - **status**: possible values "FAILED", "SUCCEEDED"
+
+## Metrics statistics
+
+Metrics statistics is executable script to calculate usefull statistical data on Metrics.
+Gethered data is stored in database.
+Opendata module has API endpoint to view this data by accessing `api/statistics`
+
+### Database Configuration
+
+Before viewing statistics data, make sure you have installed and configured the [Database_Module](database_module.md)
+and created the database credentials. See [Database_Module](database_module.md#single-user-creation)
+
+### Cron Settings
+
+Add cronjob entry to calculate metrics statistics regulary:
+
+```
+* * * * * xroad-metrics-statistics --profile TEST
+```
+
+This task will calculate statistical data and will store it into database
+
+To view this data only in output without storing data into database use optional parameter `--output_only`:
+
+```
+xroad-metrics-statistics --profile TEST --output_only
+```

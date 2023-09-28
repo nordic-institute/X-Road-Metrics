@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+   <SOAP-ENV:Body>
+      <SOAP-ENV:Fault>
+         <faultcode>Server.ClientProxy.SslAuthenticationFailed</faultcode>
+         <faultstring>Client (SUBSYSTEM:PLAYGROUND/COM/1234567-8/TestClient) specifies HTTPS but did not supply TLS certificate</faultstring>
+         <faultactor />
+         <detail>
+            <faultDetail>b782c3a4-f279-43d1-8684-2af318ec2ca5</faultDetail>
+         </detail>
+      </SOAP-ENV:Fault>
+   </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

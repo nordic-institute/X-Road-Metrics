@@ -118,7 +118,7 @@ class DatabaseManager:
             cursor = raw_data.find(q).sort('requestInTs', 1).limit(limit)
             return list(cursor)
         except Exception as e:
-            self.logger_m.log_error('DatabaseManager.get_faulty_raw_documents', '{0}'.format(repr(e)))
+            self.logger_m.log_exception('DatabaseManager.get_faulty_raw_documents', repr(e))
             raise e
 
     def get_raw_documents(self, limit: int = 1000) -> List[dict]:
@@ -135,7 +135,7 @@ class DatabaseManager:
             cursor = raw_data.find(q).sort('requestInTs', 1).limit(limit)
             return list(cursor)
         except Exception as e:
-            self.logger_m.log_error('DatabaseManager.get_raw_documents', '{0}'.format(repr(e)))
+            self.logger_m.log_exception('DatabaseManager.get_raw_documents', repr(e))
             raise e
 
     def get_processing_document(self, current_doc: dict) -> Optional[dict]:
@@ -154,7 +154,7 @@ class DatabaseManager:
             document = clean_data.find_one(q)
             return document
         except Exception as e:
-            self.logger_m.log_error('DatabaseManager.get_processing_documents', '{0}'.format(repr(e)))
+            self.logger_m.log_exception('DatabaseManager.get_processing_documents', repr(e))
             raise e
 
     def get_timeout_documents_client(self, timeout_days: int, limit: int = 1000) -> List[dict]:
@@ -176,7 +176,7 @@ class DatabaseManager:
             cursor = clean_data.find(q).limit(limit)
             return list(cursor)
         except Exception as e:
-            self.logger_m.log_error('DatabaseManager.get_timeout_documents_client', '{0}'.format(repr(e)))
+            self.logger_m.log_exception('DatabaseManager.get_timeout_documents_client', repr(e))
             raise e
 
     def get_timeout_documents_producer(self, timeout_days: int, limit: int = 1000) -> List[dict]:
@@ -199,7 +199,7 @@ class DatabaseManager:
             cursor = clean_data.find(q).limit(limit)
             return list(cursor)
         except Exception as e:
-            self.logger_m.log_error('DatabaseManager.get_timeout_documents_producer', '{0}'.format(repr(e)))
+            self.logger_m.log_exception('DatabaseManager.get_timeout_documents_producer', repr(e))
             raise e
 
     def add_to_clean_data(self, document: dict) -> None:
@@ -213,7 +213,7 @@ class DatabaseManager:
             clean_data = db[CLEAN_DATA_COLLECTION]
             clean_data.insert_one(document)
         except Exception as e:
-            self.logger_m.log_error('DatabaseManager.add_to_clean_data', '{0}'.format(repr(e)))
+            self.logger_m.log_exception('DatabaseManager.add_to_clean_data', repr(e))
             raise e
 
     def update_document_clean_data(self, document: dict) -> None:
@@ -228,7 +228,7 @@ class DatabaseManager:
             clean_data = db[CLEAN_DATA_COLLECTION]
             clean_data.update({'_id': document['_id']}, document)
         except Exception as e:
-            self.logger_m.log_error('DatabaseManager.update_form_clean_data', '{0}'.format(repr(e)))
+            self.logger_m.log_exception('DatabaseManager.update_form_clean_data', repr(e))
             raise e
 
     def update_old_to_done(self, list_of_docs: List[dict]) -> int:
@@ -247,7 +247,7 @@ class DatabaseManager:
                 number_of_updated_docs += 1
 
         except Exception as e:
-            self.logger_m.log_error('DatabaseManager.update_old_to_done', '{0}'.format(repr(e)))
+            self.logger_m.log_exception('DatabaseManager.update_old_to_done', repr(e))
             raise e
 
         return number_of_updated_docs
@@ -284,5 +284,5 @@ class DatabaseManager:
             raw_messages = db[RAW_DATA_COLLECTION]
             raw_messages.remove({'_id': message_id})
         except Exception as e:
-            self.logger_m.log_error('DatabaseManager.remove_duplicate_from_raw', '{0}'.format(repr(e)))
+            self.logger_m.log_exception('DatabaseManager.remove_duplicate_from_raw', repr(e))
             raise e

@@ -528,3 +528,23 @@ def test_correct_structure(mock_logger_manager, basic_settings):
 
     assert set(doc.keys()) == set(dm.must_fields)
     assert all([v is None for v in doc.values()])
+
+
+def test_sanitise_document(mock_logger_manager, basic_settings):
+    dm = DocumentManager(basic_settings)
+    sanitised_doc = dm.sanitise_document({
+        'field1': '<img src/onerror=prompt(8)>',
+        'field2': '</scrip</script>t><img src =q onerror=prompt(8)>',
+        'field3': 100,
+        'field4': True,
+        'field5': None,
+        'field6': {'sub': 'test'}
+    })
+    assert sanitised_doc == {
+        'field1': '&lt;img src/onerror=prompt(8)&gt;',
+        'field2': '&lt;/scrip&lt;/script&gt;t&gt;&lt;img src =q onerror=prompt(8)&gt;',
+        'field3': 100,
+        'field4': True,
+        'field5': None,
+        'field6': {'sub': 'test'}
+    }

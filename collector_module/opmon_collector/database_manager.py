@@ -64,7 +64,7 @@ class DatabaseManager:
             data['collector_id'] = self.collector_id
             collection.insert_one(data)
         except Exception as e:
-            self.logger_m.log_error('ServerManager.get_server_list_database', '{0}'.format(repr(e)))
+            self.logger_m.log_exception('ServerManager.get_server_list_database', repr(e))
             raise e
 
     def get_server_list_from_database(self):
@@ -77,7 +77,7 @@ class DatabaseManager:
             data = db['server_list'].find({'collector_id': self.collector_id}).sort([('timestamp', -1)]).limit(1)[0]
             return data['server_list'], data['timestamp']
         except Exception as e:
-            self.logger_m.log_error('ServerManager.get_server_list_database', '{0}'.format(repr(e)))
+            self.logger_m.log_exception('ServerManager.get_server_list_database', repr(e))
             raise e
 
     def get_next_records_timestamp(self, server_key, records_from_offset):
@@ -99,7 +99,7 @@ class DatabaseManager:
             # Return pointers
             records_from = data['records_from']
         except Exception as e:
-            self.logger_m.log_error('ServerManager.get_next_records_timestamp', '{0}'.format(repr(e)))
+            self.logger_m.log_exception('ServerManager.get_next_records_timestamp', repr(e))
             raise e
         return records_from
 
@@ -123,7 +123,7 @@ class DatabaseManager:
                 raise IndexError(f"Document not found. MongoDb collection {str(collection)}, server key {server_key}.")
 
         except Exception as e:
-            self.logger_m.log_error('ServerManager.set_next_records_timestamp', '{0}'.format(repr(e)))
+            self.logger_m.log_exception('ServerManager.set_next_records_timestamp', repr(e))
             raise e
 
     def insert_data_to_raw_messages(self, data_list):
@@ -138,5 +138,5 @@ class DatabaseManager:
             # Save all
             raw_msg.insert_many(data_list)
         except Exception as e:
-            self.logger_m.log_error('ServerManager.insert_data_to_raw_messages', '{0}'.format(repr(e)))
+            self.logger_m.log_exception('ServerManager.insert_data_to_raw_messages', repr(e))
             raise e

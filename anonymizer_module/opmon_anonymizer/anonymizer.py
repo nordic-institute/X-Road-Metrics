@@ -23,7 +23,6 @@
 import os
 import re
 import yaml
-import traceback
 
 from .transformers import get_enabled_transformers
 
@@ -86,13 +85,11 @@ class Anonymizer(object):
                 batch_end_mongodb_timestamp = self._reader.last_processed_timestamp
                 try:
                     self._anonymization_job.run(record_buffer)
-                except Exception:
-                    self._logger.log_error('failed_anonymizing_record_batch',
-                                           "Record batch with correctorTime within range [{0}, {1}] failed. "
-                                           + "Last successful correctorTime was {2}".format(
-                                               batch_start_mongodb_timestamp,
-                                               batch_end_mongodb_timestamp,
-                                               last_successful_batch_timestamp))
+                except Exception as e:
+                    self._logger.log_exception('failed_anonymizing_record_batch',
+                                               f'Record batch with correctorTime within range [{batch_start_mongodb_timestamp}, {batch_end_mongodb_timestamp}] '
+                                               'failed. Last successful correctorTime was {last_successful_batch_timestamp}'
+                                               f'Error: {str(e)}')
                     self._reader.update_last_processed_timestamp(last_successful_batch_timestamp)
                     return processed_count
 
@@ -100,8 +97,8 @@ class Anonymizer(object):
                 record_buffer = []
                 self._logger.log_info(
                     'record_batch_anonymized',
-                    f"{processed_count} records anonymized."
-                    + f"correctorTime within range [{batch_start_mongodb_timestamp}, {batch_end_mongodb_timestamp}]"
+                    f'{processed_count} records anonymized.'
+                    + f'correctorTime within range [{batch_start_mongodb_timestamp}, {batch_end_mongodb_timestamp}]'
                 )
 
                 batch_start_mongodb_timestamp = None
@@ -120,11 +117,10 @@ class Anonymizer(object):
                 allowed_fields = [line.strip().split(' -> ')[0] for line in field_translations_file if line.strip()]
 
             return allowed_fields
-        except Exception:
-            trace = traceback.format_exc().replace('\n', '')
+        except Exception as e:
             path = os.path.abspath(field_translations_file_path)
-            logger.log_error('allowed_fields_parsing_failed',
-                             f"Failed to parse allowed fields from field translations file at {path}. ERROR: {trace}")
+            logger.log_exception('allowed_fields_parsing_failed',
+                                 f'Failed to parse allowed fields from field translations file at {path}. Error: {str(e)}')
             raise
 
     def _get_hiding_rules(self):
@@ -136,11 +132,9 @@ class Anonymizer(object):
                 rules.append(field_pattern_pairs)
 
             return rules
-        except Exception:
-            self._logger.log_error('hiding_rules_parsing_failed',
-                                   "Failed to parse config attribute `hiding_rules`. ERROR: {0}".format(
-                                       traceback.format_exc().replace('\n', '')
-                                   ))
+        except Exception as e:
+            self._logger.log_exception('hiding_rules_parsing_failed',
+                                       f'Failed to parse config attribute `hiding_rules`. ERROR: {str(e)}')
             raise
 
     def _get_substitution_rules(self):
@@ -157,27 +151,24 @@ class Anonymizer(object):
                 rules.append(processed_rule)
 
             return rules
-        except Exception:
-            self._logger.log_error('substitution_rules_parsing_failed',
-                                   "Failed to parse config attribute `substitution_rules`. ERROR: {0}".format(
-                                       traceback.format_exc().replace('\n', '')
-                                   ))
+        except Exception as e:
+            self._logger.log_exception('substitution_rules_parsing_failed',
+                                       f'Failed to parse config attribute `substitution_rules`. ERROR: {str(e)}')
             raise
 
     def _get_transformers(self):
         """Autobots, transform and roll out!"""
         try:
             return get_enabled_transformers(self._settings['anonymizer']['transformers'])
-        except Exception:
-            self._logger.log_error('transformers_parsing_failed',
-                                   "Failed to parse config attribute `anonymizer.transformers`.".format(
-                                       traceback.format_exc().replace('\n', '')
-                                   ))
+        except Exception as e:
+            self._logger.log_exception('transformers_parsing_failed',
+                                       f'Failed to parse config attribute `anonymizer.transformers`. ERROR: {str(e)}')
             raise
 
     def _get_field_translations(self, field_translations_file_path):
         try:
             translations = {'client': {}, 'producer': {}}
+            translations_file_path = os.path.abspath(field_translations_file_path)
 
             with open(field_translations_file_path) as field_translations_file:
                 for line in field_translations_file:
@@ -191,15 +182,13 @@ class Anonymizer(object):
                         translations[original_name_parts[0]][original_name_parts[1]] = new_name
 
             return translations
-        except Exception:
-            self._logger.log_error('field_translations_parsing_failed',
-                                   "Failed to parse field translations from {0}. ERROR: {1}".format(
-                                       os.path.abspath(field_translations_file_path),
-                                       traceback.format_exc().replace('\n', '')
-                                   ))
+        except Exception as e:
+            self._logger.log_exception('field_translations_parsing_failed',
+                                       f'Failed to parse field translations from {translations_file_path}. ERROR: {str(e)}')
             raise
 
     def _get_field_value_masks(self, field_data_file_path):
+        data_file_path = os.path.abspath(field_data_file_path)
         try:
             masks = {'client': set(), 'producer': set()}
             with open(field_data_file_path) as field_data_file:
@@ -209,12 +198,9 @@ class Anonymizer(object):
                         masks[masked_agent].add(field_name)
 
             return masks
-        except Exception:
-            self._logger.log_error('field_value_masks_parsing_failed',
-                                   "Failed to parse field value masks from {0}. ERROR: {1}".format(
-                                       os.path.abspath(field_data_file_path),
-                                       traceback.format_exc().replace('\n', '')
-                                   ))
+        except Exception as e:
+            self._logger.log_exception('field_value_masks_parsing_failed',
+                                       f'Failed to parse field value masks from {data_file_path}. ERROR: {str(e)}')
             raise
 
 
@@ -261,11 +247,9 @@ class AnonymizationJob(object):
             self._logger_manager.log_info('AnonymizationJob.run',
                                           f'Processing done. Records to write {len(processed_records)}.')
             self._writer.write_records(processed_records)
-        except Exception:
-            logger.log_error('record_batch_anonymization_failed',
-                             "Failed processing a batch of records. ERROR: {0}".format(
-                                 traceback.format_exc().replace('\n', '')
-                             ))
+        except Exception as e:
+            logger.log_exception('record_batch_anonymization_failed',
+                                 f'Failed processing a batch of records. ERROR: {str(e)}')
             raise
 
     def _should_be_hidden(self, record, logger):
@@ -275,11 +259,9 @@ class AnonymizationJob(object):
                     return True
 
             return False
-        except Exception:
-            logger.log_error('record_hiding_verification_failed',
-                             "Error at verifying whether a record should be hidden using the provided hiding rules. ERROR: {0}".format(
-                                 traceback.format_exc().replace('\n', '')
-                             ))
+        except Exception as e:
+            logger.log_exception('record_hiding_verification_failed',
+                                 f'Error at verifying whether a record should be hidden using the provided hiding rules. ERROR: {str(e)}')
             raise
 
     @staticmethod
@@ -306,11 +288,9 @@ class AnonymizationJob(object):
                         record[substitute['feature']] = substitute['value']
 
             return record
-        except Exception:
-            logger.log_error('applying_substitution_rules_failed',
-                             "Error at applying substitution rules to a record. ERROR: {0}".format(
-                                 traceback.format_exc().replace('\n', '')
-                             ))
+        except Exception as e:
+            logger.log_exception('applying_substitution_rules_failed',
+                                 f'Error at applying substitution rules to a record. ERROR: {str(e)}')
             raise
 
     def _get_records(self, dual_record, logger):
@@ -325,11 +305,9 @@ class AnonymizationJob(object):
                 records.append(record)
 
             return records
-        except Exception:
-            logger.log_error('extracting_single_logs_from_record_failed',
-                             "Error at extracting single logs from dual record. ERROR: {0}".format(
-                                 traceback.format_exc().replace('\n', '')
-                             ))
+        except Exception as e:
+            logger.log_exception('extracting_single_logs_from_record_failed',
+                                 f'Error at extracting single logs from dual record. ERROR: {str(e)}')
             raise
 
     def _get_agent_record(self, agent, dual_record):

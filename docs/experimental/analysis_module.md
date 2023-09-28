@@ -72,7 +72,7 @@ It is important to note that it can take up to 7 days for the [Collector module]
 This means that Analyzer results are available at least 10 days after data received.
 
 ## Installation
-The Analyzer and Interface are distributed as .deb packages for Ubuntu 20.04. Detailed installation instructions are in these documents: 
+The Analyzer and Interface are distributed as .deb packages for Ubuntu 20.04 and Ubuntu 22.04. Detailed installation instructions are in these documents: 
 * [Analyzer](analysis_module/analyzer_installation.md)
 * [User Interface](analysis_module/ui_installation.md)
 

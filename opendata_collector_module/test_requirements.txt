@@ -1,0 +1,6 @@
+coverage
+pytest
+pytest-mock
+pytest-pycodestyle
+vcrpy==1.5.2
+pymongo-stubs

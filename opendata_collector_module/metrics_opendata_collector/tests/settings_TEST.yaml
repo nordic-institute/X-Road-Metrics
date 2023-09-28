@@ -1,0 +1,25 @@
+xroad:
+  instance: TEST
+opendata-collector:
+  thread-count: 1
+  sources-settings-path: test_opendata_sources_settings.yaml
+  sources-settings:
+mongodb:
+  host: localhost
+  user: test_user
+  password: test_password
+  # set to True to enable secure connection
+  tls:
+  # path to CA pem file
+  tls-ca-file:
+
+logger:
+  name: opendata-collector
+  module: opendata-collector
+  # Possible logging levels from least to most verbose are:
+  # CRITICAL, FATAL, ERROR, WARNING, INFO, DEBUG
+  level: INFO
+  # Logs and heartbeat files are stored under these paths.
+  # Also configure external log rotation and app monitoring accordingly.
+  log-path: /var/log/xroad-metrics/opendata-collector/logs
+  heartbeat-path: /var/log/xroad-metrics/opendata-collector/heartbeat

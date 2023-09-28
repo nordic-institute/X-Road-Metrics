@@ -20,9 +20,9 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
 
-import psycopg2 as pg
 from datetime import datetime
-import traceback
+
+import psycopg2 as pg
 
 
 class PostgreSqlManager(object):
@@ -57,9 +57,8 @@ class PostgreSqlManager(object):
                 query = self._generate_insert_query(cursor, data)
                 cursor.execute(query)
                 self._logger.log_info('PostgreSqlManager.add_data', f'Inserted {len(data)} rows to PostgreSQL.')
-        except Exception:
-            trace = traceback.format_exc().replace('\n', '')
-            self._logger.log_error('log_insertion_failed', f"Failed to insert logs to postgres. ERROR: {trace}")
+        except Exception as e:
+            self._logger.log_exception('log_insertion_failed', f'Failed to insert logs to postgres. ERROR: {str(e)}')
             raise
 
     def _generate_insert_query(self, cursor, data):
@@ -77,14 +76,13 @@ class PostgreSqlManager(object):
 
     def is_alive(self):
         try:
-            with pg.connect(self._connection_string, **self._connect_args) as connection:
+            with pg.connect(self._connection_string, **self._connect_args):
                 pass
             return True
 
-        except Exception:
-            trace = traceback.format_exc().replace('\n', '')
-            error = f"Failed to connect to postgres with connection string {self._connection_string}. ERROR: {trace}"
-            self._logger.log_error('postgres_connection_failed', error)
+        except Exception as e:
+            error = f'Failed to connect to postgres with connection string {self._connection_string}. ERROR: {str(e)}'
+            self._logger.log_exception('postgres_connection_failed', error)
 
             return False
 
@@ -95,11 +93,10 @@ class PostgreSqlManager(object):
                 if not self._table_exists(cursor):
                     self._create_table(cursor, schema, index_columns)
 
-        except Exception:
-            trace = traceback.format_exc().replace('\n', '')
-            error = f"Failed to ensure postgres table {self._table_name} " \
-                    + f"existence with connection {self._connection_string}. ERROR: {trace}"
-            self._logger.log_error('failed_ensuring_postgres_table', error)
+        except Exception as e:
+            error = f'Failed to ensure postgres table {self._table_name} ' \
+                    + f'existence with connection {self._connection_string}. ERROR: {str(e)}'
+            self._logger.log_exception('failed_ensuring_postgres_table', error)
             raise
 
     def _table_exists(self, cursor):
@@ -118,10 +115,10 @@ class PostgreSqlManager(object):
         if column_schema:
             column_schema = ', ' + column_schema
 
-            cursor.execute(f"CREATE TABLE {self._table_name} (id SERIAL PRIMARY KEY{column_schema});")
+            cursor.execute(f'CREATE TABLE {self._table_name} (id SERIAL PRIMARY KEY{column_schema});')
 
             for column_name in index_columns:
-                cursor.execute(f"CREATE INDEX {column_name}_idx ON {self._table_name} ({column_name});")
+                cursor.execute(f'CREATE INDEX {column_name}_idx ON {self._table_name} ({column_name});')
 
     def _ensure_privileges(self):
         try:
@@ -129,28 +126,24 @@ class PostgreSqlManager(object):
                 cursor = connection.cursor()
 
                 for readonly_user in self._readonly_users:
-                    try:
-                        cursor.execute(
-                            "GRANT USAGE ON SCHEMA public TO {readony_user};".format(
-                                **{
-                                    'readonly_user': readonly_user
-                                })
-                        )
-                        cursor.execute(
-                            "GRANT SELECT ON {table_name} TO {readonly_user};".format(
-                                **{
-                                    'table_name': self._table_name,
-                                    'readonly_user': readonly_user
-                                })
-                        )
-                    except Exception:
-                        pass  # Privileges existed
+                    cursor.execute(
+                        'GRANT USAGE ON SCHEMA public TO {readonly_user};'.format(
+                            **{
+                                'readonly_user': readonly_user
+                            })
+                    )
+                    cursor.execute(
+                        'GRANT SELECT ON {table_name} TO {readonly_user};'.format(
+                            **{
+                                'table_name': self._table_name,
+                                'readonly_user': readonly_user
+                            })
+                    )
 
-        except Exception:
-            trace = traceback.format_exc().replace('\n', '')
-            self._logger.log_error('ensuring_readolny_users_permissions_failed',
-                                   f"Failed to ensure readonly users' permissions for postgres table {self._table_name}"
-                                   + f" existence with connection {self._connection_string}. ERROR: {trace}")
+        except Exception as e:
+            self._logger.log_exception('ensuring_readolny_users_permissions_failed',
+                                       f'Failed to ensure readonly users permissions for postgres table {self._table_name}'
+                                       + f' existence with connection {self._connection_string}. ERROR: {str(e)}')
             raise
 
     def _get_connection_string(self):
@@ -160,6 +153,6 @@ class PostgreSqlManager(object):
         ]
 
         optional_settings = {key: self._settings.get(key) for key in ['port', 'user', 'password']}
-        optional_args = [f"{key}={value}" if value else "" for key, value in optional_settings.items()]
+        optional_args = [f'{key}={value}' if value else '' for key, value in optional_settings.items()]
 
         return ' '.join(args + optional_args)

@@ -17,6 +17,7 @@ which includes the following modules:
  - [Anonymizer module](./anonymizer_module.md)
  - [Opendata module](./opendata_module.md)
  - [Networking/Visualizer module](./networking_module.md)
+ - [Opendata Collector module](./opendata_collector_module.md)
 
 The **Opendata module** is used to publish the X-Road operational monitoring data.
 The module has a UI and a REST API that allow filtering the anonymized operational monitoring data and downloading it
@@ -425,3 +426,8 @@ The heartbeat is updated every time that end-users make calls to the opendata AP
 If the end-user traffic is infrequent, the heartbeat can be updated manually by curling the opendata module's
 heartbeat API e.g. periodically in a cronjob.
 
+## Metrics statistics
+
+### Endpoint
+
+GET  `api/statistics` will return statistical data stored in database.

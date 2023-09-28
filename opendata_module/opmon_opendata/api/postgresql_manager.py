@@ -20,75 +20,20 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
 
+from typing import Dict, List, Optional, Tuple
+
 import psycopg2 as pg
 from dateutil import relativedelta
-from typing import Optional, List
 
 
-class PostgreSQL_Manager(object):
-
+class BasePostgreSQL_Manager:
     def __init__(self, settings):
-
         self._settings = settings['postgres']
-        self._table_name = settings['postgres']['table-name']
         self._connection_string = self._get_connection_string()
-        self._field_name_map = self._get_field_name_map(settings['opendata']['field-descriptions'].keys())
-        self._logs_time_buffer = relativedelta.relativedelta(days=settings['opendata']['delay-days'])
         self._connect_args = {
             'sslmode': settings['postgres'].get('ssl-mode'),
             'sslrootcert': settings['postgres'].get('ssl-root-cert')
         }
-
-    def get_column_names_and_types(self):
-        with pg.connect(self._connection_string, **self._connect_args) as connection:
-            cursor = connection.cursor()
-            cursor.execute("SELECT column_name,data_type FROM information_schema.columns WHERE table_name = %s;",
-                           (self._table_name,))
-            data = cursor.fetchall()
-
-        return [(self._field_name_map[name], type_) for name, type_ in data]
-
-    def get_data_cursor(
-        self, constraints: Optional[List] = None, order_by: Optional[List] = None,
-        columns: Optional[List] = None, limit: Optional[int] = None
-    ) -> pg.extensions.cursor:
-        with pg.connect(self._connection_string, **self._connect_args) as connection:
-            cursor = connection.cursor()
-
-            subquery_name = 'T'
-            selected_columns_str = self._get_selected_columns_string(columns, subquery_name)
-            request_in_date_constraint_str, other_constraints_str = self._get_constraints_string(cursor, constraints,
-                                                                                                 subquery_name)
-            order_by_str = self._get_order_by_string(order_by, subquery_name)
-            limit_str = self._get_limit_string(cursor, limit)
-
-            cursor.execute(
-                ("SELECT {selected_columns} FROM (SELECT * "
-                 "FROM {table_name} {request_in_date_constraint}) as {subquery_name} {other_constraints}"
-                 "{order_by} {limit};").format(
-                    **{
-                        'selected_columns': selected_columns_str,
-                        'table_name': self._table_name,
-                        'request_in_date_constraint': request_in_date_constraint_str,
-                        'other_constraints': other_constraints_str,
-                        'order_by': order_by_str,
-                        'limit': limit_str,
-                        'subquery_name': subquery_name}
-                )
-            )
-
-            return cursor
-
-    def get_data(self, constraints=None, order_by=None, columns=None, limit=None):
-        return self.get_data_cursor(constraints=constraints, order_by=order_by, columns=columns, limit=limit).fetchall()
-
-    def get_min_and_max_dates(self):
-        with pg.connect(self._connection_string, **self._connect_args) as connection:
-            cursor = connection.cursor()
-            cursor.execute('SELECT min(requestindate), max(requestindate) FROM ' + self._table_name)
-            min_and_max = [date - self._logs_time_buffer for date in cursor.fetchone()]
-
-        return min_and_max
 
     def _get_connection_string(self):
         args = [
@@ -97,18 +42,114 @@ class PostgreSQL_Manager(object):
         ]
 
         optional_settings = {key: self._settings.get(key) for key in ['port', 'user', 'password']}
-        optional_args = [f"{key}={value}" if value else "" for key, value in optional_settings.items()]
-
+        optional_args = [f'{key}={value}' if value else '' for key, value in optional_settings.items()]
         return ' '.join(args + optional_args)
 
-    def _get_database_settings(self, config):
-        settings = {'host_address': config['writer']['host_address'],
-                    'port': config['writer']['port'],
-                    'database_name': config['writer']['database_name'],
-                    'user': config['writer']['user'],
-                    'password': config['writer']['password']}
 
-        return settings
+class PostgreSQL_LogManager(BasePostgreSQL_Manager):
+
+    def __init__(self, settings):
+        self._table_name = settings['postgres']['table-name']
+        self._field_name_map = self._get_field_name_map(settings['opendata']['field-descriptions'].keys())
+        self._logs_time_buffer = relativedelta.relativedelta(days=settings['opendata']['delay-days'])
+        super().__init__(settings)
+
+    def get_column_names_and_types(self):
+        with pg.connect(self._connection_string, **self._connect_args) as connection:
+            cursor = connection.cursor()
+            cursor.execute('SELECT column_name,data_type FROM information_schema.columns WHERE table_name = %s;',
+                           (self._table_name,))
+            data = cursor.fetchall()
+
+        return [(self._field_name_map[name], type_) for name, type_ in data]
+
+    def get_rows_count(self, constraints: List[Dict[str, object]]) -> Tuple[int]:
+        """
+        Returns the number of rows in the specified table that satisfy the given constraints.
+
+        :param constraints: A list of tuples containing the constraints to be applied to the query
+
+        :return: tuple: A tuple containing a single element which is the number of rows that satisfy the constraints.
+        """
+        with pg.connect(self._connection_string, **self._connect_args) as connection:
+            cursor = connection.cursor()
+
+            subquery_name = 'T'
+            request_in_date_constraint_str, other_constraints_str = self._get_constraints_string(cursor, constraints,
+                                                                                                 subquery_name)
+            cursor.execute(
+                ('SELECT COUNT(*) FROM (SELECT * '
+                 'FROM {table_name} {request_in_date_constraint}) as {subquery_name} {other_constraints}').format(
+                    **{
+                        'table_name': self._table_name,
+                        'request_in_date_constraint': request_in_date_constraint_str,
+                        'other_constraints': other_constraints_str,
+                        'subquery_name': subquery_name,
+                    }
+                )
+            )
+            return cursor.fetchone()
+
+    def get_data_cursor(
+        self, constraints: Optional[List] = None, order_by: Optional[List] = None,
+        columns: Optional[List] = None, limit: Optional[int] = None, offset: Optional[int] = None
+    ) -> pg.extensions.cursor:
+        """
+        Return a cursor object from a PostgreSQL database connection that executes a SQL SELECT statement
+            with optional constraints, ordering, columns selection, and pagination.
+
+        :param constraints: A list of tuples containing the constraints to be applied to the query. Default is None.
+        :param order_by: A list of tuples containing the columns to order the query by. Default is None.
+        :param columns: A list of column names to select in the query. Default is None (all columns selected).
+        :param limit: An integer representing the maximum number of rows to be returned by the query. Default is None (no limit).
+        :param offset: An integer representing the number of rows to skip before starting to return rows. Default is None.
+
+        :return: A PostgreSQL cursor object that executes the SQL query.
+        """
+        with pg.connect(self._connection_string, **self._connect_args) as connection:
+            # Using server side cursor to avoid fetching whole query result into memory.
+            # A cursor created without HOLD would get automatically closed in the current programm before data is read from it.
+            # PostgreSQL logs show COMMIT right after DECLARE CURSOR, probably because Python detects end of "with pg.connect" block.
+            # A cursor created with HOLD is automatically closed when PostgreSQL session (connection) ends.
+            # As programm creates a new connection for every operation a unique name for cursor is not required.
+            cursor = connection.cursor('opendata', withhold=True)
+
+            subquery_name = 'T'
+            selected_columns_str = self._get_selected_columns_string(columns, subquery_name)
+            request_in_date_constraint_str, other_constraints_str = self._get_constraints_string(cursor, constraints,
+                                                                                                 subquery_name)
+            order_by_str = self._get_order_by_string(order_by, subquery_name)
+            limit_str = self._get_limit_string(cursor, limit)
+            offset_str = self._get_offset_string(cursor, offset)
+
+            cursor.execute(
+                ('SELECT {selected_columns} FROM (SELECT * '
+                 'FROM {table_name} {request_in_date_constraint}) as {subquery_name} {other_constraints}'
+                 ' {order_by} {limit} {offset};').format(
+                    **{
+                        'selected_columns': selected_columns_str,
+                        'table_name': self._table_name,
+                        'request_in_date_constraint': request_in_date_constraint_str,
+                        'other_constraints': other_constraints_str,
+                        'order_by': order_by_str,
+                        'limit': limit_str,
+                        'subquery_name': subquery_name,
+                        'offset': offset_str,
+                    }
+                )
+            )
+            return cursor
+
+    def get_data(self, constraints=None, order_by=None, columns=None, limit=None):
+        return self.get_data_cursor(constraints=constraints, order_by=order_by, columns=columns, limit=limit).fetchall()
+
+    def get_min_and_max_dates(self):
+        with pg.connect(self._connection_string, **self._connect_args) as connection:
+            cursor = connection.cursor()
+            cursor.execute('SELECT min(requestindate) as "min [date]", max(requestindate) as "max [date]" FROM ' + self._table_name)
+            min_and_max = [date - self._logs_time_buffer for date in cursor.fetchone()]
+
+        return min_and_max
 
     def _get_field_name_map(self, field_names):
         return {field_name.lower(): field_name for field_name in field_names}
@@ -162,4 +203,58 @@ class PostgreSQL_Manager(object):
         }) for clause in order_by)
 
     def _get_limit_string(self, cursor, limit):
-        return cursor.mogrify("LIMIT %s", (limit,)).decode('utf8')
+        return cursor.mogrify('LIMIT %s', (limit,)).decode('utf8')
+
+    def _get_offset_string(self, cursor: pg.extensions.cursor, offset: Optional[int] = None) -> str:
+        """
+        Return a SQL string to be used in a query to set the offset for pagination.
+
+        :param cursor: A PostgreSQL cursor object.
+        :param offset: An integer representing the number of rows to skip before starting to return rows.
+        :return: A string containing the SQL command to set the offset for pagination.
+        """
+        return cursor.mogrify('OFFSET %s', (offset,)).decode('utf8')
+
+
+class PostgreSQL_StatisticsManager(BasePostgreSQL_Manager):
+    def __init__(self, settings):
+        self._table_name = 'metrics_statistics'
+        super().__init__(settings)
+
+    def get_latest_metrics_statistics(self):
+        """
+            Retrieve the latest metrics statistics from the database.
+
+            :return: A dictionary representing the latest metrics statistics if available, else None.
+        """
+        with pg.connect(self._connection_string, **self._connect_args) as connection:
+            cursor = connection.cursor()
+            cursor.execute(
+                '''SELECT
+                    current_month_request_count,
+                    current_year_request_count,
+                    previous_month_request_count,
+                    previous_year_request_count,
+                    today_request_count,
+                    total_request_count,
+                    update_time,
+                    member_count,
+                    service_count,
+                    service_request_count
+                    FROM {table_name}
+                    WHERE update_time = (SELECT MAX(update_time)
+                FROM {table_name})'''.format(**{'table_name': self._table_name})
+            )
+            row = cursor.fetchone()
+        return {
+            'current_month_request_count': row[0],
+            'current_year_request_count': row[1],
+            'previous_month_request_count': row[2],
+            'previous_year_request_count': row[3],
+            'today_request_count': row[4],
+            'total_request_count': row[5],
+            'update_time': row[6],
+            'member_count': row[7],
+            'service_count': row[8],
+            'service_request_count': row[9]
+        } if row else None

@@ -40,8 +40,8 @@ def main():
             process_dict = run_batch(settings, logger_m)
             handle_results(process_dict, settings, logger_m)
         except Exception as e:
-            logger_m.log_error('corrector_main', f'Internal error: {repr(e)}')
-            logger_m.log_heartbeat("error", "FAILED")
+            logger_m.log_exception('corrector_main', f'Internal error: {repr(e)}')
+            logger_m.log_heartbeat('error', 'FAILED')
             # If here, it is not possible to restart the processing batch. Raise exception again
             raise e
 

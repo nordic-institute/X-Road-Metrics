@@ -20,15 +20,19 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
 
-from pymongo import MongoClient
-import pymongo
 import datetime
-import traceback
-import urllib.parse
 import sys
+import urllib.parse
+from typing import Generator
+
+import pymongo
+from opmon_anonymizer.utils.logger_manager import LoggerManager
+from pymongo import MongoClient
+
+MAX_DOCUMENTS_BATCH_SIZE = 1000
 
 
-class MongoDbManager(object):
+class BaseMongoDbManager:
 
     def __init__(self, settings, logger):
         self.settings = settings
@@ -40,17 +44,22 @@ class MongoDbManager(object):
             'tlsCAFile': settings['mongodb'].get('tls-ca-file'),
         }
         self.client = MongoClient(self.get_mongo_uri(settings), **connect_args)
-        self.query_db = self.client[f"query_db_{xroad}"]
-        self.state_db = self.client[f"anonymizer_state_{xroad}"]
-
-        self.last_processed_timestamp = self.get_last_processed_timestamp()
+        self.query_db = self.client[f'query_db_{xroad}']
+        self.state_db = self.client[f'anonymizer_state_{xroad}']
 
     @staticmethod
     def get_mongo_uri(settings):
         user = settings['mongodb']['user']
         password = urllib.parse.quote(settings['mongodb']['password'], safe='')
         host = settings['mongodb']['host']
-        return f"mongodb://{user}:{password}@{host}/auth_db"
+        return f'mongodb://{user}:{password}@{host}/auth_db'
+
+
+class MongoDbManager(BaseMongoDbManager):
+
+    def __init__(self, settings: dict, logger: LoggerManager) -> None:
+        super().__init__(settings, logger)
+        self.last_processed_timestamp = self.get_last_processed_timestamp()
 
     def get_records(self, allowed_fields):
         collection = self.query_db.clean_data
@@ -75,7 +84,7 @@ class MongoDbManager(object):
         ).sort('correctorTime', pymongo.ASCENDING)
 
         for document in documents:
-            if batch_idx == 1000:
+            if batch_idx == MAX_DOCUMENTS_BATCH_SIZE:
                 self.set_last_processed_timestamp()
                 batch_idx = 0
 
@@ -92,10 +101,9 @@ class MongoDbManager(object):
             self.query_db.clean_data.find_one()
             return True
 
-        except Exception:
-            trace = traceback.format_exc().replace('\n', '')
-            self._logger.log_error('mongodb_connection_failed',
-                                   f"Failed to connect to mongodb at {self.client.address}. ERROR: {trace}")
+        except Exception as e:
+            self._logger.log_exception('mongodb_connection_failed',
+                                       f'Failed to connect to mongodb at {self.client.address}. ERROR: {str(e)}')
             return False
 
     def _add_missing_fields(self, document, allowed_fields):
@@ -114,10 +122,10 @@ class MongoDbManager(object):
                         document[field_path[0]] = None
 
             return document
-        except Exception:
-            self._logger.log_error('adding_missing_fields_failed',
-                                   ("Failed adding missing fields from {0} to document {1}. ERROR: {2}".format(
-                                       str(allowed_fields), str(document), traceback.format_exc().replace('\n', ''))))
+        except Exception as e:
+            self._logger.log_exception('adding_missing_fields_failed',
+                                       f'Failed adding missing fields from {allowed_fields} '
+                                       f'to document {document}. ERROR: {str(e)}')
             raise
 
     def get_last_processed_timestamp(self):
@@ -138,3 +146,79 @@ class MongoDbManager(object):
         print('signal', signum, frame)
         self.save_on_exit()
         sys.exit(1)
+
+
+class MongoDbOpenDataManager(BaseMongoDbManager):
+
+    def __init__(self, settings: dict, logger: LoggerManager) -> None:
+        super().__init__(settings, logger)
+        self.last_processed_timestamp = self.get_last_processed_timestamp()
+
+    def get_records(self, allowed_fields: dict) -> Generator:
+        collection = self.query_db.opendata_data
+
+        min_timestamp = self.get_last_processed_timestamp()
+
+        projection = {field: True for field in allowed_fields}
+        projection['insertTime'] = True
+
+        batch_idx = 0
+        current_timestamp = datetime.datetime.now().timestamp()
+
+        documents = collection.find(
+            {
+                'insertTime': {'$gt': min_timestamp, '$lte': current_timestamp},
+                'clientXRoadInstance': {'$ne': None}
+            },
+            projection=projection,
+            no_cursor_timeout=True
+        ).sort('insertTime', pymongo.ASCENDING)
+
+        for document in documents:
+            if batch_idx == MAX_DOCUMENTS_BATCH_SIZE:
+                self.set_last_processed_timestamp()
+                batch_idx = 0
+
+            self.last_processed_timestamp = document['insertTime']
+            del document['_id']
+            del document['insertTime']
+            yield self._add_missing_fields(document, allowed_fields)
+            batch_idx += 1
+
+        self.set_last_processed_timestamp()
+
+    def is_alive(self) -> bool:
+        try:
+            self.query_db.opendata_data.find_one()
+            return True
+
+        except Exception as e:
+            self._logger.log_exception('mongodb_connection_failed',
+                                       f'Failed to connect to mongodb at {self.client.address}. ERROR: {str(e)}')
+            return False
+
+    def _add_missing_fields(self, document: dict, allowed_fields: dict) -> dict:
+        try:
+            for field in allowed_fields:
+                if field not in document:
+                    document[field] = None
+            return document
+        except Exception as e:
+            self._logger.log_exception('adding_missing_fields_failed',
+                                       f'Failed adding missing fields from {allowed_fields} '
+                                       f'to document {document}. ERROR: {str(e)}')
+            raise
+
+    def get_last_processed_timestamp(self) -> float:
+        state = self.state_db.opendata_state.find_one({'key': 'last_mongodb_timestamp'}) or {}
+        return float(state.get('value') or 0.0)
+
+    def set_last_processed_timestamp(self) -> None:
+        if not self.last_processed_timestamp:
+            return
+
+        self.state_db.opendata_state.update(
+            {'key': 'last_mongodb_timestamp'},
+            {'key': 'last_mongodb_timestamp', 'value': str(self.last_processed_timestamp)},
+            upsert=True
+        )

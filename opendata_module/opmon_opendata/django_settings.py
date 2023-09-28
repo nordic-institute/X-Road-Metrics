@@ -137,3 +137,5 @@ LOGGING = None
 
 # Disable Django admin-ui
 ADMIN_ENABLED = False
+
+DISABLE_OPENDATA_HARVEST = bool(opmon_settings['opendata'].get('disable-opendata-harvest'))
