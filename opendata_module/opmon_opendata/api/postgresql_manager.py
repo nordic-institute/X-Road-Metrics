@@ -45,12 +45,6 @@ class BasePostgreSQL_Manager:
         optional_args = [f'{key}={value}' if value else '' for key, value in optional_settings.items()]
         return ' '.join(args + optional_args)
 
-    def _get_connect_args(self):
-        {
-            'sslmode': self._settings['postgres'].get('ssl-mode'),
-            'sslrootcert': self._settings['postgres'].get('ssl-root-cert')
-        }
-
 
 class PostgreSQL_LogManager(BasePostgreSQL_Manager):
 
