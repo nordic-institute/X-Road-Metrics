@@ -129,7 +129,7 @@ sudo apt install postgresql
 
 ### Automatic PostgreSQL User Creation
 The X-Road Metrics Opendata package includes a command that creates the PostgreSQL users automatically.
-To create PostgreSQL users for X-Road instance *EX* run the following commands:
+To create PostgreSQL users for X-Road instance *LTT* run the following commands:
 
 ```bash
 sudo su postgres
@@ -219,14 +219,14 @@ For detailed information see https://www.postgresql.org/docs/current/libpq-ssl.h
 
 To configure path to the SSL root certificate, set `ssl-root-cert`
 
-Example of `/etc/settings.yaml` entry:
+Example of `/etc/[module]/settings.yaml` entry:
 ```
 postgres:
   host: localhost
   port: 5432
   user: postgres
   password: *******
-  database-name: postgres
+  database-name: opendata_LTT
   table-name: logs
   ssl-mode: verify-full
   ssl-root-cert: /etc/ssl/certs/root.crt
