@@ -10,8 +10,8 @@
 
 xroad:
   instance: <FILL>
-  # Security server used to collect member statistics
-  security-server:
+  # Central Server global conf used to collect member statistics
+  central-server:
     protocol: http://
     host: <FILL>
     timeout: 60.0
