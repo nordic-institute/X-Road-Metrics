@@ -195,7 +195,7 @@ host    all    all   0.0.0.0/0    reject
 
 **Note:** `host` type access can be substituted with `hostssl` if using SSL-encrypted connections.
 
-Then edit the `/etc/postgresql/12/main/postgresql.conf` or `/etc/postgresql/14/main/pg_hba.conf` and change the *listen_addresses* to
+Then edit the `/etc/postgresql/12/main/postgresql.conf` or `/etc/postgresql/14/main/postgresql.conf` and change the *listen_addresses* to
 ```
 listen_addresses = '*'
 ```
