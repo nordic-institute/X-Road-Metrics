@@ -183,7 +183,9 @@ function displayPreview() {
             ajax: API_ROOT + '/logs_sample' + getQuery(),
             cache: false,
             scrollX: true,
-            ordering: false
+            ordering: false,
+            lengthChange: false,
+            searching: false,
         } );
     })
 }
