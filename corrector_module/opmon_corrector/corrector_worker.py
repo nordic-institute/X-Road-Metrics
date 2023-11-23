@@ -1,4 +1,3 @@
-
 #  The MIT License
 #  Copyright (c) 2021- Nordic Institute for Interoperability Solutions (NIIS)
 #  Copyright (c) 2017-2020 Estonian Information System Authority (RIA)
@@ -63,7 +62,11 @@ class CorrectorWorker:
         logger_manager = data['logger_manager']
         doc_m = data['document_manager']
         x_request_id = data['x_request_id']
-        documents = data['documents']
+        documents = []
+        for _doc in data['documents']:
+            sanitised_doc = doc_m.sanitise_document(_doc)
+            fix_doc = doc_m.correct_structure(sanitised_doc)
+            documents.append(fix_doc)
         to_remove_queue = data['to_remove_queue']
         duplicates = no_requestInTs = 0
 

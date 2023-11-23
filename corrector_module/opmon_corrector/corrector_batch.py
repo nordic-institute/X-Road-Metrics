@@ -102,12 +102,10 @@ class CorrectorBatch:
         # Process documents with xRequestId
         doc_map = defaultdict(list)
         for _doc in cursor:
-            sanitised_doc = document_manager.DocumentManager.sanitise_document(_doc)
-            x_request_id = sanitised_doc.get('xRequestId')
+            x_request_id = _doc.get('xRequestId')
             if not x_request_id:
                 continue
-            fix_doc = doc_m.correct_structure(sanitised_doc)
-            doc_map[x_request_id].append(fix_doc)
+            doc_map[x_request_id].append(_doc)
 
         # Build queue to be processed
         list_to_process = multiprocessing.Queue()
@@ -155,7 +153,7 @@ class CorrectorBatch:
         self.logger_m.log_info('corrector_batch_raw', 'Processing {0} faulty raw documents'.format(len(cursor)))
 
         for _doc in cursor:
-            sanitised_doc = document_manager.DocumentManager.sanitise_document(_doc)
+            sanitised_doc = doc_m.sanitise_document(_doc)
             fixed_doc = doc_m.correct_structure(sanitised_doc)
             producer = fixed_doc if fixed_doc['securityServerType'].lower() == SECURITY_SERVER_TYPE_PRODUCER else None
             client = fixed_doc if fixed_doc['securityServerType'].lower() == SECURITY_SERVER_TYPE_CLIENT else None
