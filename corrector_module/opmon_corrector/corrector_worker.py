@@ -55,11 +55,11 @@ class CorrectorWorker:
     def consume_data(self, data):
         """
         The Corrector worker. Processes a batch of documents with the same xRequestId
-        :param data: Contains LoggerManager, DatabaseManager, DocumentManager, x_request_id and documents to be processed.
+        :param data: Contains LoggerManager, DocumentManager, x_request_id and documents to be processed.
         :return: Returns number of duplicates found.
         """
         # Get parameters
-        logger_manager = data['logger_manager']
+        # logger_manager = data['logger_manager']
         doc_m = data['document_manager']
         x_request_id = data['x_request_id']
         documents = []
@@ -67,8 +67,7 @@ class CorrectorWorker:
             sanitised_doc = doc_m.sanitise_document(_doc)
             fix_doc = doc_m.correct_structure(sanitised_doc)
             documents.append(fix_doc)
-        to_remove_queue = data['to_remove_queue']
-        duplicates = no_requestInTs = 0
+        duplicates = 0
 
         matched_pair = {}
         clients = [
@@ -94,39 +93,13 @@ class CorrectorWorker:
             )
         ]
         for current_document in docs_to_remove:
-
-            # Mark to removal documents without requestInTs immediately (as of bug in xRoad software ver 6.22.0) # noqa
-            if (
-                current_document['requestInTs'] is None
-                and current_document['securityServerType'] is None
-            ):
-                to_remove_queue.put(current_document['_id'])
-                no_requestInTs += 1
-                self.db_m.mark_as_corrected(current_document)
-                """
-                :logger_manager.log_warning('no_requestInTs',
-                :'_id : ObjectId(\'' + str(current_document['_id']) + '\'),
-                :messageId : ' + str(current_document['messageId']))
-                """
-                continue
-
-            if self.db_m.check_clean_document_exists(
-                    x_request_id, current_document
-            ):
-                to_remove_queue.put(current_document['_id'])
-                duplicates += 1
-                self.db_m.mark_as_corrected(current_document)
-                continue
-
-            # duplicates
-            to_remove_queue.put(current_document['_id'])
+            self.db_m.remove_duplicate_from_raw(current_document['_id'])
             duplicates += 1
-            self.db_m.mark_as_corrected(current_document)
             """
             :logger_manager.log_warning('batch_duplicated',
             :'_id : ObjectId(\'' + str(current_document['_id']) + '\'),
             :messageId : ' + str(current_document['messageId']))
-                """
+            """
 
         if not matched_pair:
             return duplicates
@@ -169,9 +142,5 @@ class CorrectorWorker:
 
         for party in matched_pair:
             self.db_m.mark_as_corrected(matched_pair[party])
-
-        if no_requestInTs:
-            msg = '[{0}] {1} document(s) without requestInTs present'.format(self.worker_name, no_requestInTs)
-            logger_manager.log_warning('corrector_no_requestInTs', msg)
 
         return duplicates

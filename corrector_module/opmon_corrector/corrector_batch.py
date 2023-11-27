@@ -79,7 +79,7 @@ class CorrectorBatch:
 
     def _batch_run(self, process_dict):
         """
-        Gets unique xRequestId's, gets documents by xRequestId, corrects documents, unitializes workers,
+        Gets unique xRequestId's, gets documents by xRequestId, corrects documents, initializes workers,
         gets raw documents, groups by "messageId", corrects documents' structure, initializes workers,
         updates timeout documents to "done", removes duplicates from raw_messages.
         :param process_dict:
@@ -111,9 +111,6 @@ class CorrectorBatch:
         list_to_process = multiprocessing.Queue()
         duplicates = multiprocessing.Value('i', 0, lock=True)
 
-        m = multiprocessing.Manager()
-        to_remove_queue = m.Queue()
-
         for x_request_id in doc_map:
             documents = doc_map[x_request_id]
             data = dict()
@@ -121,32 +118,18 @@ class CorrectorBatch:
             data['document_manager'] = doc_m
             data['x_request_id'] = x_request_id
             data['documents'] = documents
-            data['to_remove_queue'] = to_remove_queue
             list_to_process.put(data)
             doc_len += len(documents)
 
         self._process_workers(list_to_process, duplicates)
 
-        # Go through the to_remove list and remove the duplicates
-        element_in_queue = True
-        total_raw_removed = 0
-        while element_in_queue:
-            try:
-                # Do not block queue and return element immediately else raise the queue.Empty
-                element = to_remove_queue.get(block=False)
-                db_m.remove_duplicate_from_raw(element)
-                total_raw_removed += 1
-            except queue.Empty:
-                element_in_queue = False
-        if total_raw_removed > 0:
+        if duplicates.value > 0:
             self.logger_m.log_info('corrector_batch_remove_duplicates_from_raw',
                                    'Total of {0} duplicate documents removed from raw messages.'.format(
-                                       total_raw_removed))
+                                       duplicates.value))
         else:
             self.logger_m.log_info('corrector_batch_remove_duplicates_from_raw',
                                    'No raw documents marked to removal.')
-
-        doc_len += total_raw_removed
 
         # Process documents without xRequestId
         cursor = db_m.get_faulty_raw_documents(limit)
@@ -174,7 +157,6 @@ class CorrectorBatch:
                                f'Updating timed out [{timeout} days] orphans to done.')
 
         # Update Status of older documents according to client.requestInTs
-
         cursor = db_m.get_timeout_documents_client(timeout, limit=limit)
         list_of_docs = list(cursor)
         number_of_updated_docs = db_m.update_old_to_done(list_of_docs)
