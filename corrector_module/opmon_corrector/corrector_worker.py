@@ -80,10 +80,12 @@ class CorrectorWorker:
         ]
 
         if clients:
-            matched_pair['client'] = clients[0]
+            if not self.db_m.check_clean_document_exists(x_request_id, clients[0]):
+                matched_pair['client'] = clients[0]
 
         if producers:
-            matched_pair['producer'] = producers[0]
+            if not self.db_m.check_clean_document_exists(x_request_id, producers[0]):
+                matched_pair['producer'] = producers[0]
 
         docs_to_remove = [
             doc for doc in documents
