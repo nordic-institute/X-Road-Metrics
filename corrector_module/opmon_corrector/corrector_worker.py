@@ -35,10 +35,11 @@ class CorrectorWorker:
         self.db_m = None
         self.worker_name = name
 
-    def run(self, to_process, duplicates):
+    def run(self, to_process, duplicates, job_type='consume'):
         """ Process run entry point
         :param to_process: Queue of documents to be processed
         :param duplicates: Variable to hold the number of duplicates
+        :param job_type: Job type (consume / timeout)
         :return: None
         """
         self.db_m = database_manager.DatabaseManager(self.settings)
@@ -46,9 +47,12 @@ class CorrectorWorker:
             # Process queue while is not empty
             while True:
                 data = to_process.get(True, 1)
-                duplicate_count = self.consume_data(data)
-                with duplicates.get_lock():
-                    duplicates.value += duplicate_count
+                if job_type == 'consume':
+                    duplicate_count = self.consume_data(data)
+                    with duplicates.get_lock():
+                        duplicates.value += duplicate_count
+                elif job_type == 'timeout':
+                    self.db_m.update_old_doc_to_done(data)
         except queue.Empty:
             pass
 
