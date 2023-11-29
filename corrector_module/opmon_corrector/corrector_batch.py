@@ -135,24 +135,18 @@ class CorrectorBatch:
 
         # Process documents without xRequestId
         cursor = db_m.get_faulty_raw_documents(limit)
-        self.logger_m.log_info('corrector_batch_raw', 'Processing {0} faulty raw documents'.format(len(cursor)))
-
-        for _doc in cursor:
-            sanitised_doc = doc_m.sanitise_document(_doc)
-            fixed_doc = doc_m.correct_structure(sanitised_doc)
-            producer = fixed_doc if fixed_doc['securityServerType'].lower() == SECURITY_SERVER_TYPE_PRODUCER else None
-            client = fixed_doc if fixed_doc['securityServerType'].lower() == SECURITY_SERVER_TYPE_CLIENT else None
-            cleaned_document = doc_m.create_json(
-                client, producer, ''
-            )
-            cleaned_document = doc_m.apply_calculations(cleaned_document)
-            cleaned_document['correctorTime'] = database_manager.get_timestamp()
-            cleaned_document['correctorStatus'] = 'done'
-            cleaned_document['xRequestId'] = ''
-            cleaned_document['matchingType'] = 'orphan'
-            cleaned_document['messageId'] = fixed_doc.get('message_id') or ''
-            db_m.add_to_clean_data(cleaned_document)
-            db_m.mark_as_corrected(fixed_doc)
+        self.logger_m.log_info(
+            'corrector_batch_raw', f'Processing {len(cursor)} faulty raw documents')
+        if len(cursor) > 0:
+            doc_len += len(cursor)
+            list_to_process = multiprocessing.Queue()
+            for _doc in cursor:
+                data = dict()
+                data['logger_manager'] = self.logger_m
+                data['document_manager'] = doc_m
+                data['document'] = _doc
+                list_to_process.put(data)
+            self._process_workers(list_to_process, None, 'faulty')
 
         # Updating Status of older documents from processing to done
         timeout = self.settings['corrector']['timeout-days']
