@@ -71,8 +71,8 @@ class CorrectorWorker:
         x_request_id = data['x_request_id']
         documents = []
         for _doc in data['documents']:
-            sanitised_doc = doc_m.sanitise_document(_doc)
-            fix_doc = doc_m.correct_structure(sanitised_doc)
+            sanitized_doc = doc_m.sanitize_document(_doc)
+            fix_doc = doc_m.correct_structure(sanitized_doc)
             documents.append(fix_doc)
         duplicates = 0
 
@@ -163,8 +163,8 @@ class CorrectorWorker:
         # Get parameters
         # logger_manager = data['logger_manager']
         doc_m = data['document_manager']
-        sanitised_doc = doc_m.sanitise_document(data['document'])
-        fixed_doc = doc_m.correct_structure(sanitised_doc)
+        sanitized_doc = doc_m.sanitize_document(data['document'])
+        fixed_doc = doc_m.correct_structure(sanitized_doc)
         producer = fixed_doc if (
             fixed_doc['securityServerType'].lower() == SECURITY_SERVER_TYPE_PRODUCER) else None
         client = fixed_doc if (
