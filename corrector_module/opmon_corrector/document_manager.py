@@ -23,8 +23,6 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
 
-import bleach
-
 from opmon_corrector import (SECURITY_SERVER_TYPE_CLIENT,
                              SECURITY_SERVER_TYPE_PRODUCER, __version__)
 from opmon_corrector.logger_manager import LoggerManager
@@ -309,17 +307,26 @@ class DocumentManager:
         }
 
     @staticmethod
-    def sanitise_document(document: dict) -> dict:
+    def escape_html(value: str) -> str:
         """
-        Sanitizes the document by cleaning string values using bleach if they are present.
-        :param document: The document to be sanitised.
-        :return: Returns the sanitised document.
+        Escape html to avoid potential XSS attacks during log processing.
+        :param value: The string to be escaped.
+        :return: Returns escaped string.
         """
-        sanitised_document = {
-            key: bleach.clean(value) if isinstance(value, str) else value
+        return value.translate(str.maketrans({'<': '&lt;', '>': '&gt;', '&': '&amp;'}))
+
+    @staticmethod
+    def sanitize_document(document: dict) -> dict:
+        """
+        Sanitizes the document by HTML escaping string values if they are present.
+        :param document: The document to be sanitized.
+        :return: Returns the sanitized document.
+        """
+        sanitized_document = {
+            key: DocumentManager.escape_html(value) if isinstance(value, str) else value
             for key, value in document.items()
         }
-        return sanitised_document
+        return sanitized_document
 
     def correct_structure(self, doc):
         """
