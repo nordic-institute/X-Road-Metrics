@@ -512,6 +512,35 @@ class ReportManager:
 
         return report_name
 
+    def save_csv_to_file(self, data_frames, creation_time):
+        settings = self.reports_arguments.settings['reports']
+        output_directory = os.path.join(
+            settings['report-path'],
+            self.target.xroad_instance,
+            self.target.member_class,
+            self.target.member_code,
+            'csv'
+        )
+        if not os.path.isdir(output_directory):
+            os.makedirs(output_directory)
+
+        csv_suffixes = (
+            'prod_serv',
+            'prod_meta',
+            'cons_serv',
+            'cons_meta'
+        )
+
+        for i in range(len(csv_suffixes)):
+            report_name = (
+                f'{tools.format_string(self.target.subsystem_code)}_{self.start_date}_'
+                f'{self.end_date}_{creation_time}_{csv_suffixes[i]}.csv')
+            report_file = os.path.join(output_directory, report_name)
+
+            self.logger_manager.log_info(
+                'save_csv_to_file', f'Saving CSV report file "{report_file}".')
+            data_frames[i].to_csv(path_or_buf=report_file)
+
     def generate_report(self):
         start_generate_report = time.time()
 
@@ -524,6 +553,8 @@ class ReportManager:
             creation_time = time_date_tools.datetime_to_modified_string(datetime.now())
             template = self.prepare_template(plots, data_frames, creation_time)
             report_name = self.save_pdf_to_file(template, creation_time)
+            if self.reports_arguments.settings['reports'].get('generate-csv', False):
+                self.save_csv_to_file(data_frames, creation_time)
 
         end_generate_report = time.time()
         total_time = time.strftime("%H:%M:%S", time.gmtime(end_generate_report - start_generate_report))

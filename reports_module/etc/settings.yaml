@@ -32,6 +32,9 @@ reports:
   # Generated report pdf-files will be stored in this path
   report-path: /var/lib/xroad-metrics/reports
 
+  # Additionally generate csv reports
+  # generate-csv: False
+
   # Language translation config files are stored in this path
   translation-path: /etc/xroad-metrics/reports/lang
 
@@ -73,6 +76,14 @@ reports:
 
 
       Report name: {REPORT_NAME}
+
+      Produced services (CSV): csv/{REPORT_NAME_NO_EXT}_prod_serv.csv
+
+      Produced metaservices (CSV): csv/{REPORT_NAME_NO_EXT}_prod_meta.csv
+
+      Consumed services (CSV): csv/{REPORT_NAME_NO_EXT}_cons_serv.csv
+
+      Consumed metaservices (CSV): csv/{REPORT_NAME_NO_EXT}_cons_meta.csv
 
       X-Road subsystem: {X_ROAD_INSTANCE}:{MEMBER_CLASS}:{MEMBER_CODE}:{SUBSYSTEM_CODE}
 
