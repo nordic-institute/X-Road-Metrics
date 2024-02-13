@@ -215,9 +215,9 @@ class DatabaseManager:
                     "producer.requestInTs": {"$gte": start_time, "$lte": end_time}
                 },
                 "hint": [
-                    ("client.serviceMemberCode", 1),
-                    ("client.serviceSubsystemCode", 1),
-                    ("client.requestInTs", 1)
+                    ("producer.clientMemberCode", 1),
+                    ("producer.clientSubsystemCode", 1),
+                    ("producer.requestInTs", 1)
                 ]
             }
 
