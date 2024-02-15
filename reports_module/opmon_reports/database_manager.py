@@ -176,62 +176,6 @@ class DatabaseManager:
             self.logger_m.log_error('DatabaseManager.get_matching_documents', '{0}'.format(repr(e)))
             raise e
 
-    def get_faulty_documents(self, target, start_time, end_time):
-        try:
-            db = self.mongodb_handler.get_query_db()
-            collection = db[CLEAN_DATA_COLLECTION]
-
-            query_a = {
-                "query": {
-                    "producer.serviceXRoadInstance": target.xroad_instance,
-                    "producer.serviceMemberCode": target.member_code,
-                    "producer.serviceSubsystemCode": target.subsystem_code,
-                    "producer.serviceMemberClass": target.member_class,
-                    "producer.requestInTs": {"$gte": start_time, "$lte": end_time},
-                    "client.clientXRoadInstance": target.xroad_instance,
-                    "client.clientMemberCode": target.member_code,
-                    "client.clientSubsystemCode": target.subsystem_code,
-                    "client.clientMemberClass": target.member_class,
-                    "client.requestInTs": {"$gte": start_time, "$lte": end_time}
-                },
-                "hint": [
-                    ("client.clientMemberCode", 1),
-                    ("client.clientSubsystemCode", 1),
-                    ("client.requestInTs", 1)
-                ]
-            }
-
-            query_b = {
-                "query": {
-                    "client.serviceXRoadInstance": target.xroad_instance,
-                    "client.serviceMemberCode": target.member_code,
-                    "client.serviceSubsystemCode": target.subsystem_code,
-                    "client.serviceMemberClass": target.member_class,
-                    "client.requestInTs": {"$gte": start_time, "$lte": end_time},
-                    "producer.clientXRoadInstance": target.xroad_instance,
-                    "producer.clientMemberCode": target.member_code,
-                    "producer.clientSubsystemCode": target.subsystem_code,
-                    "producer.clientMemberClass": target.member_class,
-                    "producer.requestInTs": {"$gte": start_time, "$lte": end_time}
-                },
-                "hint": [
-                    ("producer.clientMemberCode", 1),
-                    ("producer.clientSubsystemCode", 1),
-                    ("producer.requestInTs", 1)
-                ]
-            }
-
-            faulty_set = set()
-
-            for q in [query_a, query_b]:
-                for doc in collection.find(q["query"], {"_id": 1}).hint(q["hint"]):
-                    faulty_set.add(doc['_id'])
-
-        except Exception as e:
-            self.logger_m.log_error('DatabaseManager.get_matching_documents', '{0}'.format(repr(e)))
-            raise e
-        return faulty_set
-
     def get_documents_within_time_frame(self, start_time, end_time):
         """
         Get all the documents for specified time period.

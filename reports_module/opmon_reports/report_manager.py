@@ -139,12 +139,7 @@ class ReportManager:
     def get_documents(self):
         report_map = dict()
 
-        faulty_doc_set = self.database_manager.get_faulty_documents(
-            self.target,
-            self.reports_arguments.start_time_milliseconds,
-            self.reports_arguments.end_time_milliseconds
-        )
-        faulty_docs_found = set()
+        duplicate_docs_found = set()
 
         matching_docs = self.database_manager.get_matching_documents(
             self.target,
@@ -154,12 +149,19 @@ class ReportManager:
 
         # Iterate over all the docs and append to report map
         for doc in matching_docs:
-            if doc['_id'] in faulty_docs_found:
+            if doc['_id'] in duplicate_docs_found:
                 continue
-            if doc['_id'] in faulty_doc_set:
-                faulty_docs_found.add(doc['_id'])
 
             doc = self.reduce_to_plain_json(doc)
+            # If client and service is the same subsystem,
+            # then matching_docs contain two identical documents
+            if (
+                    doc['serviceXRoadInstance'] == doc['clientXRoadInstance']
+                    and doc['serviceMemberClass'] == doc['clientMemberClass']
+                    and doc['serviceMemberCode'] == doc['clientMemberCode']
+                    and doc['serviceSubsystemCode'] == doc['clientSubsystemCode']
+            ):
+                duplicate_docs_found.add(doc['_id'])
 
             # "ps" / "pms" / "cs" / "cms"
             sorted_service_type = self.get_service_type(doc)
