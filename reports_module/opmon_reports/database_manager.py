@@ -66,40 +66,68 @@ class DatabaseManager:
             # ------------------------------------
             # Query matching documents as producer
             query_a = {
-                "producer.serviceXRoadInstance": target.xroad_instance,
-                "producer.serviceMemberCode": target.member_code,
-                "producer.serviceSubsystemCode": target.subsystem_code,
-                "producer.serviceMemberClass": target.member_class,
-                "producer.requestInTs": {"$gte": start_time, "$lte": end_time}
+                "query": {
+                    "producer.serviceXRoadInstance": target.xroad_instance,
+                    "producer.serviceMemberCode": target.member_code,
+                    "producer.serviceSubsystemCode": target.subsystem_code,
+                    "producer.serviceMemberClass": target.member_class,
+                    "producer.requestInTs": {"$gte": start_time, "$lte": end_time}
+                },
+                "hint": [
+                    ("producer.serviceMemberCode", 1),
+                    ("producer.serviceSubsystemCode", 1),
+                    ("producer.requestInTs", 1)
+                ]
             }
             # Query matching documents as producer from client field
             query_c = {
-                "client.serviceXRoadInstance": target.xroad_instance,
-                "client.serviceMemberCode": target.member_code,
-                "client.serviceSubsystemCode": target.subsystem_code,
-                "client.serviceMemberClass": target.member_class,
-                "producer": None,
-                "client.requestInTs": {"$gte": start_time, "$lte": end_time}
+                "query": {
+                    "client.serviceXRoadInstance": target.xroad_instance,
+                    "client.serviceMemberCode": target.member_code,
+                    "client.serviceSubsystemCode": target.subsystem_code,
+                    "client.serviceMemberClass": target.member_class,
+                    "producer": None,
+                    "client.requestInTs": {"$gte": start_time, "$lte": end_time}
+                },
+                "hint": [
+                    ("client.serviceMemberCode", 1),
+                    ("client.serviceSubsystemCode", 1),
+                    ("client.requestInTs", 1)
+                ]
             }
             # ------------------------------------
             # Client group
             # ------------------------------------
             # Query matching documents as client
             query_d = {
-                "client.clientXRoadInstance": target.xroad_instance,
-                "client.clientMemberCode": target.member_code,
-                "client.clientSubsystemCode": target.subsystem_code,
-                "client.clientMemberClass": target.member_class,
-                "client.requestInTs": {"$gte": start_time, "$lte": end_time}
+                "query": {
+                    "client.clientXRoadInstance": target.xroad_instance,
+                    "client.clientMemberCode": target.member_code,
+                    "client.clientSubsystemCode": target.subsystem_code,
+                    "client.clientMemberClass": target.member_class,
+                    "client.requestInTs": {"$gte": start_time, "$lte": end_time}
+                },
+                "hint": [
+                    ("client.clientMemberCode", 1),
+                    ("client.clientSubsystemCode", 1),
+                    ("client.requestInTs", 1)
+                ]
             }
             # Query matching documents as client from producer
             query_b = {
-                "producer.clientXRoadInstance": target.xroad_instance,
-                "producer.clientMemberCode": target.member_code,
-                "producer.clientSubsystemCode": target.subsystem_code,
-                "producer.clientMemberClass": target.member_class,
-                "client": None,
-                "producer.requestInTs": {"$gte": start_time, "$lte": end_time}
+                "query": {
+                    "producer.clientXRoadInstance": target.xroad_instance,
+                    "producer.clientMemberCode": target.member_code,
+                    "producer.clientSubsystemCode": target.subsystem_code,
+                    "producer.clientMemberClass": target.member_class,
+                    "client": None,
+                    "producer.requestInTs": {"$gte": start_time, "$lte": end_time}
+                },
+                "hint": [
+                    ("producer.clientMemberCode", 1),
+                    ("producer.clientSubsystemCode", 1),
+                    ("producer.requestInTs", 1)
+                ]
             }
 
             # Define projection
@@ -142,53 +170,11 @@ class DatabaseManager:
 
             queries = [query_a, query_b, query_c, query_d]
             for q in queries:
-                for doc in collection.find(q, projection):
+                for doc in collection.find(q["query"], projection).hint(q["hint"]):
                     yield doc
         except Exception as e:
             self.logger_m.log_error('DatabaseManager.get_matching_documents', '{0}'.format(repr(e)))
             raise e
-
-    def get_faulty_documents(self, target, start_time, end_time):
-        try:
-            db = self.mongodb_handler.get_query_db()
-            collection = db[CLEAN_DATA_COLLECTION]
-
-            query_a = {
-                "producer.serviceXRoadInstance": target.xroad_instance,
-                "producer.serviceMemberCode": target.member_code,
-                "producer.serviceSubsystemCode": target.subsystem_code,
-                "producer.serviceMemberClass": target.member_class,
-                "producer.requestInTs": {"$gte": start_time, "$lte": end_time},
-                "client.clientXRoadInstance": target.xroad_instance,
-                "client.clientMemberCode": target.member_code,
-                "client.clientSubsystemCode": target.subsystem_code,
-                "client.clientMemberClass": target.member_class,
-                "client.requestInTs": {"$gte": start_time, "$lte": end_time}
-            }
-
-            query_b = {
-                "client.serviceXRoadInstance": target.xroad_instance,
-                "client.serviceMemberCode": target.member_code,
-                "client.serviceSubsystemCode": target.subsystem_code,
-                "client.serviceMemberClass": target.member_class,
-                "client.requestInTs": {"$gte": start_time, "$lte": end_time},
-                "producer.clientXRoadInstance": target.xroad_instance,
-                "producer.clientMemberCode": target.member_code,
-                "producer.clientSubsystemCode": target.subsystem_code,
-                "producer.clientMemberClass": target.member_class,
-                "producer.requestInTs": {"$gte": start_time, "$lte": end_time}
-            }
-
-            faulty_set = set()
-
-            for q in [query_a, query_b]:
-                for doc in collection.find(q, {"_id": 1}):
-                    faulty_set.add(doc['_id'])
-
-        except Exception as e:
-            self.logger_m.log_error('DatabaseManager.get_matching_documents', '{0}'.format(repr(e)))
-            raise e
-        return faulty_set
 
     def get_documents_within_time_frame(self, start_time, end_time):
         """
