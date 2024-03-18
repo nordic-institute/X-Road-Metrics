@@ -1,4 +1,3 @@
-
 #  The MIT License
 #  Copyright (c) 2021- Nordic Institute for Interoperability Solutions (NIIS)
 #  Copyright (c) 2017-2020 Estonian Information System Authority (RIA)
@@ -36,10 +35,11 @@ class CorrectorWorker:
         self.db_m = None
         self.worker_name = name
 
-    def run(self, to_process, duplicates):
+    def run(self, to_process, duplicates, job_type='consume'):
         """ Process run entry point
         :param to_process: Queue of documents to be processed
         :param duplicates: Variable to hold the number of duplicates
+        :param job_type: Job type (consume / timeout)
         :return: None
         """
         self.db_m = database_manager.DatabaseManager(self.settings)
@@ -47,25 +47,34 @@ class CorrectorWorker:
             # Process queue while is not empty
             while True:
                 data = to_process.get(True, 1)
-                duplicate_count = self.consume_data(data)
-                with duplicates.get_lock():
-                    duplicates.value += duplicate_count
+                if job_type == 'consume':
+                    duplicate_count = self.consume_data(data)
+                    with duplicates.get_lock():
+                        duplicates.value += duplicate_count
+                elif job_type == 'faulty':
+                    self.consume_faulty_data(data)
+                elif job_type == 'timeout':
+                    self.db_m.update_old_doc_to_done(data)
         except queue.Empty:
             pass
 
     def consume_data(self, data):
         """
         The Corrector worker. Processes a batch of documents with the same xRequestId
-        :param data: Contains LoggerManager, DatabaseManager, DocumentManager, x_request_id and documents to be processed.
+        :param data: Contains LoggerManager, DocumentManager, x_request_id and documents to be
+        processed.
         :return: Returns number of duplicates found.
         """
         # Get parameters
-        logger_manager = data['logger_manager']
+        # logger_manager = data['logger_manager']
         doc_m = data['document_manager']
         x_request_id = data['x_request_id']
-        documents = data['documents']
-        to_remove_queue = data['to_remove_queue']
-        duplicates = no_requestInTs = 0
+        documents = []
+        for _doc in data['documents']:
+            sanitized_doc = doc_m.sanitize_document(_doc)
+            fix_doc = doc_m.correct_structure(sanitized_doc)
+            documents.append(fix_doc)
+        duplicates = 0
 
         matched_pair = {}
         clients = [
@@ -78,10 +87,12 @@ class CorrectorWorker:
         ]
 
         if clients:
-            matched_pair['client'] = clients[0]
+            if not self.db_m.check_clean_document_exists(x_request_id, clients[0]):
+                matched_pair['client'] = clients[0]
 
         if producers:
-            matched_pair['producer'] = producers[0]
+            if not self.db_m.check_clean_document_exists(x_request_id, producers[0]):
+                matched_pair['producer'] = producers[0]
 
         docs_to_remove = [
             doc for doc in documents
@@ -91,39 +102,13 @@ class CorrectorWorker:
             )
         ]
         for current_document in docs_to_remove:
-
-            # Mark to removal documents without requestInTs immediately (as of bug in xRoad software ver 6.22.0) # noqa
-            if (
-                current_document['requestInTs'] is None
-                and current_document['securityServerType'] is None
-            ):
-                to_remove_queue.put(current_document['_id'])
-                no_requestInTs += 1
-                self.db_m.mark_as_corrected(current_document)
-                """
-                :logger_manager.log_warning('no_requestInTs',
-                :'_id : ObjectId(\'' + str(current_document['_id']) + '\'),
-                :messageId : ' + str(current_document['messageId']))
-                """
-                continue
-
-            if self.db_m.check_clean_document_exists(
-                    x_request_id, current_document
-            ):
-                to_remove_queue.put(current_document['_id'])
-                duplicates += 1
-                self.db_m.mark_as_corrected(current_document)
-                continue
-
-            # duplicates
-            to_remove_queue.put(current_document['_id'])
+            self.db_m.remove_duplicate_from_raw(current_document['_id'])
             duplicates += 1
-            self.db_m.mark_as_corrected(current_document)
             """
             :logger_manager.log_warning('batch_duplicated',
             :'_id : ObjectId(\'' + str(current_document['_id']) + '\'),
             :messageId : ' + str(current_document['messageId']))
-                """
+            """
 
         if not matched_pair:
             return duplicates
@@ -167,8 +152,31 @@ class CorrectorWorker:
         for party in matched_pair:
             self.db_m.mark_as_corrected(matched_pair[party])
 
-        if no_requestInTs:
-            msg = '[{0}] {1} document(s) without requestInTs present'.format(self.worker_name, no_requestInTs)
-            logger_manager.log_warning('corrector_no_requestInTs', msg)
-
         return duplicates
+
+    def consume_faulty_data(self, data):
+        """
+        The Corrector worker for faulty documents without xRequestId.
+        :param data: Contains LoggerManager, DocumentManager and document to be processed.
+        :return: None.
+        """
+        # Get parameters
+        # logger_manager = data['logger_manager']
+        doc_m = data['document_manager']
+        sanitized_doc = doc_m.sanitize_document(data['document'])
+        fixed_doc = doc_m.correct_structure(sanitized_doc)
+        producer = fixed_doc if (
+            fixed_doc['securityServerType'].lower() == SECURITY_SERVER_TYPE_PRODUCER) else None
+        client = fixed_doc if (
+            fixed_doc['securityServerType'].lower() == SECURITY_SERVER_TYPE_CLIENT) else None
+        cleaned_document = doc_m.create_json(
+            client, producer, ''
+        )
+        cleaned_document = doc_m.apply_calculations(cleaned_document)
+        cleaned_document['correctorTime'] = database_manager.get_timestamp()
+        cleaned_document['correctorStatus'] = 'done'
+        cleaned_document['xRequestId'] = ''
+        cleaned_document['matchingType'] = 'orphan'
+        cleaned_document['messageId'] = fixed_doc.get('message_id') or ''
+        self.db_m.add_to_clean_data(cleaned_document)
+        self.db_m.mark_as_corrected(fixed_doc)

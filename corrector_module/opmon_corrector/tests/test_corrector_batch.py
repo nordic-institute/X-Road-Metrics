@@ -19,9 +19,9 @@ TEST_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
 class SingleProcessedCorrectorBatch(CorrectorBatch):
-    def _process_workers(self, list_to_process, duplicates):
+    def _process_workers(self, list_to_process, duplicates, job_type='consume'):
         worker = CorrectorWorker(self.settings, 'worker 1')
-        worker.run(list_to_process, duplicates)
+        worker.run(list_to_process, duplicates, job_type)
 
 
 def read_data_from_json(path):
