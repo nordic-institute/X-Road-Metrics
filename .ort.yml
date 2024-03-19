@@ -41,10 +41,6 @@ excludes:
     reason: "DEV_DEPENDENCY_OF"
     comment: "Packages for development only."
 
-  - pattern: "Jinja2-2.10.1/ext/jinja.el"
-    reason: "OPTIONAL_COMPONENT_OF"
-    comment: "The path only contains optional components for the code that is built which are not included in distributed build artifacts."
-
 resolutions:
   rule_violations:
     - message: "copyleft-strong license GPL-2.0-or-later in PyPI::jinja2:2.10.1."
@@ -70,3 +66,11 @@ resolutions:
     - message: "free-restricted license Bitstream-Vera in PyPI::matplotlib:3.1.2."
       reason: "LICENSE_ACQUIRED_EXCEPTION"
       comment: "Font files that are not modified, hence license acquired."
+
+package_configurations:
+  - id: "PyPI::jinja2:2.10.1"
+    source_artifact_url: "https://files.pythonhosted.org/packages/93/ea/d884a06f8c7f9b7afbc8138b762e80479fb17aedbbe2b06515a12de9378d/Jinja2-2.10.1.tar.gz"
+    path_excludes:
+      - pattern: "Jinja2-2.10.1/ext/jinja.el"
+        reason: "OPTIONAL_COMPONENT_OF"
+        comment: "The path only contains optional components for the code that is built which are not included in distributed build artifacts."
