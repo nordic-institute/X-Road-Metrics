@@ -66,7 +66,3 @@ resolutions:
     - message: "free-restricted license Bitstream-Vera in PyPI::matplotlib:3.1.2."
       reason: "LICENSE_ACQUIRED_EXCEPTION"
       comment: "Font files that are not modified, hence license acquired."
-
-    - message: "copyleft-strong license GPL-2.0-or-later in PyPI::jinja2:2.10.1."
-      reason: "LICENSE_ACQUIRED_EXCEPTION"
-      comment: "This "GPL-2.0-only licensed extra is not used, therefore license is complied with."
