@@ -5,8 +5,7 @@ import pytest
 import pytz
 from freezegun import freeze_time
 
-from .test_utils import (COLUMNS, TEST_SETTINGS, db, http_client, log_factory,
-                         make_m_statistics, mock_logger_manager, mock_settings)
+from .test_utils import (COLUMNS, TEST_SETTINGS, log_factory, make_m_statistics)
 
 
 def test_get_harvest_empty_response(db, http_client):

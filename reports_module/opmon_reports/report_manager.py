@@ -40,7 +40,7 @@ from .report_row import ReportRow
 from . import constants
 from .reports_arguments import OpmonReportsArguments
 from .translator import Translator
-from .xroad_descriptor import OpmonXroadDescriptor, OpmonXroadSubsystemDescriptor
+from .xroad_descriptor import OpmonXroadSubsystemDescriptor
 
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt

@@ -7,7 +7,6 @@ from integration_tests.ci_analyzer.ci_analyzer_settings import Settings
 from analysis_module.opmon_analyzer.AnalyzerDatabaseManager import AnalyzerDatabaseManager
 
 from datetime import datetime
-import time
 
 
 class TestAnalyzerAggregationQueriesCI(unittest.TestCase):
