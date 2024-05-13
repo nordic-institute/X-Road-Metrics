@@ -1,6 +1,6 @@
 
-|  [![X-ROAD](img/xroad-metrics-100.png)](https://x-road.global/) | ![European Union / European Regional Development Fund / Investing in your future](img/eu_rdf_100_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.11.2022. If it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
-| :-------------------------------------------------- | -------------------------: |
+| [![X-ROAD](img/xroad-metrics-100.png)](https://x-road.global/) | ![European Union / European Regional Development Fund / Investing in your future](img/eu_rdf_100_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.11.2022. If it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
+|:---------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
 
 # X-Road Metrics - Collector Module
 
@@ -68,13 +68,13 @@ sudo apt-get install xroad-metrics-collector
 ```
 
 The installation package automatically installs following items:
- * xroad-metrics-collector command to run the collector manually
+ * `xroad-metrics-collector` command to run the collector manually
  * Linux user named _xroad-metrics_ and group _xroad-metrics_
  * settings file _/etc/xroad-metrics/collector/settings.yaml_
  * cronjob in _/etc/cron.d/xroad-metrics-collector-cron_ to run collector automatically every three hours
  * log folders to _/var/log/xroad-metrics/collector/_
 
-Only _xroad-metrics_ user can access the settings files and run xroad-metrics-collector command.
+Only _xroad-metrics_ user can access the settings files and run `xroad-metrics-collector` command.
 
 To use collector you need to fill in your X-Road and MongoDB configuration into the settings file.
 Refer to section [Collector Configuration](#collector-configuration)
@@ -92,23 +92,29 @@ To use collector you need to fill in your X-Road and MongoDB configuration into 
 ```bash
 sudo vi /etc/xroad-metrics/collector/settings.yaml
 ```
+> [!TIP]  
+> For a complete list of available settings, please refer to this [settings.yaml](../collector_module/etc/settings.yaml) template file.
 
 Settings that the user must fill in:
 * X-Road instance name
-* Central- and Security Server hosts
+* Central and Security Server hosts
 * X-Road client used to collect the monitoring data
 * username and password for the collector module MongoDB user
 
-To run collector for multiple X-Road instances, a settings profile for each instance can be created. For example to have profiles DEV, TEST and PROD create three copies of `setting.yaml`
-file named `settings_DEV.yaml`, `settings_TEST.yaml` and `settings_PROD.yaml`.
-Then fill the profile specific settings to each file and use the --profile
-flag when running xroad-metrics-collector. For example to run using the TEST profile:
-```
-xroad-metrics-collector --profile TEST collect
-```
+#### Configurations for multiple X-Road instances
 
-`xroad-metrics-collector` command searches the settings file first in current working direcrtory, then in
-_/etc/xroad-metrics/collector/_
+To run collector for multiple X-Road instances, a settings profile for each instance can be created.   
+1. To have profiles `DEV`, `TEST` and `PROD`, create three copies of `setting.yaml`
+file named `settings_DEV.yaml`, `settings_TEST.yaml` and `settings_PROD.yaml` respectively.
+2. Fill the profile specific settings to each file.
+3. Use the `--profile` flag when running `xroad-metrics-collector`.   
+   For example, to run using the `TEST` profile:
+   ```shell
+   xroad-metrics-collector --profile TEST collect
+   ```
+> [!IMPORTANT]  
+> `xroad-metrics-collector` command searches the settings file first in current working directory, then in
+`/etc/xroad-metrics/collector/`
 
 ### Using client certificate (mTLS) to connect to security server
 
@@ -213,7 +219,7 @@ logger:
 
 ```
 
-The log file is written to `log-path` and log file name contains the X-Road instance name.
+The log file is written to `log-path` and log file name contains the X-Road instance name.   
 The above example configuration would write logs to `/var/log/xroad-metrics/collector/logs/log_collector_EXAMPLE.json`.
 
 Every log line includes:
@@ -234,7 +240,7 @@ In case of "activity": "collector_end", the "msg" includes values separated by c
 
 The **collector module** log handler is compatible with the logrotate utility. To configure log rotation for the example setup above, create the file:
 
-```
+```bash
 sudo vi /etc/logrotate.d/xroad-metrics-collector
 ```
 

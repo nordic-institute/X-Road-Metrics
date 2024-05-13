@@ -36,12 +36,14 @@ Instructions on setting up the MongoDB can be found in the [Database Module](./d
 
 The modules should be set up in the following order:
 
-1. [Collector](./docs/collector_module.md) (before others)
-2. [Corrector](./docs/corrector_module.md) (after Collector, before others)
-3. [Reports](./docs/reports_module.md) (optional, after previous)
-4. [Opendata](./docs/opendata_module.md) (optional, after previous)
-5. [Networking](./docs/networking_module.md) (optional, after Opendata)
-6. [Opendata Collector module](./docs/opendata_collector_module.md) (optional, after Opendata)
+ - [Database module](./docs/database_module.md)
+ - [Collector module](./docs/collector_module.md)
+ - [Corrector module](./docs/corrector_module.md)
+ - [Reports module](./docs/reports_module.md)
+ - [Anonymizer module](./docs/anonymizer_module.md)
+ - [Opendata module](./docs/opendata_module.md)
+ - [Networking/Visualizer module](./docs/networking_module.md)
+ - [Opendata Collector module](./docs/opendata_collector_module.md)
 
 ## Programming language
 
