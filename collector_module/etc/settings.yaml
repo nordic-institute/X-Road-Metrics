@@ -67,6 +67,12 @@ xroad:
     protocol: http://
     host: <FILL>
     timeout: 10
+    # path to client's certificate
+    tls-client-certificate:
+    # path to client's private key
+    tls-client-key:
+    # path to server's certificate, or False to disable server certificate verification
+    tls-server-certificate:
 
   # Security server used to contact
   security-server:
@@ -77,7 +83,7 @@ xroad:
     tls-client-certificate:
     # path to client's private key
     tls-client-key:
-    # path to server's certificate
+    # path to server's certificate, or False to disable server certificate verification
     tls-server-certificate:
 
   # X-Road service configuration used to fetch operational monitoring requests.

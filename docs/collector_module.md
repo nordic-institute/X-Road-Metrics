@@ -128,10 +128,14 @@ security-server:
     tls-client-key: /path/to/client.key # path to client's private key
     tls-server-certificate: /path/to/server.crt # path to server's certificate
 ```
-Notes:
-  Client's certificate has to be sent to security server administrator.
-  Server certificate has to be sent by server's administrator and save in client's location.
-  `tls-server-certificate` can be set to `False` to disable server certificate verification.
+
+> [!IMPORTANT]
+> - Client's certificate has to be sent to security server administrator.
+> - Server certificate has to be sent by server's administrator and save in client's location.
+
+> [!Note]  
+> **For non-production environments only**:
+> To disable server certificate verification, set `tls-server-certificate` to `False`.
 
 ### Manual usage
 
