@@ -30,7 +30,7 @@ requirements = [
     'django==3.2.20',
     'pymongo==3.10.1',
     'pyyaml==5.4.1',
-    'psycopg2-binary==2.8.6',
+    'psycopg2==2.8.6',
     'python-dateutil==2.8.1',
 ]
 

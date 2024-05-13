@@ -135,13 +135,10 @@ security-server:
     tls-server-certificate: /path/to/server.crt # path to server's certificate
 ```
 
-> [!IMPORTANT]
+> [!Note]
 > - Client's certificate has to be sent to security server administrator.
 > - Server certificate has to be sent by server's administrator and save in client's location.
-
-> [!Note]  
-> **For non-production environments only**:
-> To disable server certificate verification, set `tls-server-certificate` to `False`.
+> - `tls-server-certificate` can be set to `False` to disable server certificate verification.
 
 ### Manual usage
 
@@ -219,7 +216,7 @@ logger:
 
 ```
 
-The log file is written to `log-path` and log file name contains the X-Road instance name.   
+The log file is written to `log-path` and log file name contains the X-Road instance name.
 The above example configuration would write logs to `/var/log/xroad-metrics/collector/logs/log_collector_EXAMPLE.json`.
 
 Every log line includes:

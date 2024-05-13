@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# sudo python3 -m pip install pytest
+# pip install pytest
 # pip install flake8
+# pip install ruff
 
 export REPORTS_RUN_ENV="REPORTS_TEST"
 
