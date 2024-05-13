@@ -58,6 +58,6 @@ substitution_rules = [
 field_data_file = 'field_data.yaml'
 
 heartbeat_path = os.path.join('/srv/app/{0}/heartbeat'.format(x_road_instance),
-                              'opendata-anonymizer.json'.format(x_road_instance))
+                              'opendata-anonymizer.json')
 log_path = os.path.join('/srv/app/{0}/logs/'.format(x_road_instance),
-                        'opendata-anonymizer.log'.format(x_road_instance))
+                        'opendata-anonymizer.log')
