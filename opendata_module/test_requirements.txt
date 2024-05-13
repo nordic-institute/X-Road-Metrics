@@ -1,7 +1,9 @@
 coverage
 pytest
 pytest-mock
-pytest-pycodestyle
+pytest-html
+flake8
+ruff
 mongomock
 psycopg2-binary
 pytest-django

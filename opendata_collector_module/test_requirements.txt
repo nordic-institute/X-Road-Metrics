@@ -1,6 +1,8 @@
 coverage
 pytest
 pytest-mock
-pytest-pycodestyle
+pytest-html
+flake8
+ruff
 vcrpy==1.5.2
 pymongo-stubs

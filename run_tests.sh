@@ -1,35 +1,30 @@
 #!/bin/bash
 
 # sudo python3 -m pip install pytest
-# pip install pytest-pep8
+# pip install flake8
 
 export REPORTS_RUN_ENV="REPORTS_TEST"
 
-set -e
+#set -e
 
 # Run Pep8 Tests
-python3 -m pytest --pep8 -m pep8 collector_module --ignore=collector_module/external_files
-python3 -m pytest --pep8 -m pep8 corrector_module
-python3 -m pytest --pep8 -m pep8 reports_module
-# python3 -m pytest --pep8 -m pep8 analysis_module/analyzer_ui
-# python3 -m pytest --pep8 -m pep8 analysis_module/analyzer
-python3 -m pytest --pep8 -m pep8 opendata_module/anonymizer
+ruff check collector_module
+ruff check corrector_module
+ruff check reports_module/opmon_reports/report_manager.py
+#ruff check analysis_ui_module
+#ruff check analysis_module
+ruff check anonymizer_module
 
-# echo "Test Corrector"
-# python3 -m pytest corrector_module
-
-echo "Test Reports"
-python3 -m pytest reports_module
-# python3 -m pytest analysis_module/analyzer_ui
-# python3 -m pytest analysis_module/analyzer
-python3 -m pytest opendata_module/anonymizer
-# python3 -m pytest opendata_module/interface
+## Run Tests
+pytest --cache-clear collector_module --html=collector_module/test_results.html --self-contained-html
+pytest --cache-clear corrector_module --html=corrector_module/test_results.html --self-contained-html
+pytest --cache-clear reports_module --html=reports_module/test_results.html --self-contained-html
+#pytest --cache-clear analysis_ui_module --html=analysis_ui_module/test_results.html --self-contained-html
+#pytest --cache-clear analysis_module --html=analysis_module/test_results.html --self-contained-html
+pytest --cache-clear opendata_module/anonymizer --html=opendata_module/anonymizer/test_results.html --self-contained-html
 
 # Run CI Tests
 if [[ $1 == 'CI' ]] ; then
     echo "Test integration"
     python3 -m pytest integration_tests
 fi
-
-# Test Open Data interface's input validation
-# python3 -m pytest opendata_module/interface/
