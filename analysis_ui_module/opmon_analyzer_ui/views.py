@@ -25,7 +25,7 @@ import json
 from bson import ObjectId
 
 from django.shortcuts import render
-from django.http import HttpResponse, HttpResponseNotFound, HttpResponseServerError
+from django.http import HttpResponse, HttpResponseNotFound
 from django.template.defaulttags import register
 from django.views.decorators.csrf import ensure_csrf_cookie
 import numpy as np
