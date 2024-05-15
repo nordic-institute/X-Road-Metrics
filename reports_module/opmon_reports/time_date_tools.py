@@ -84,7 +84,7 @@ def calculate_closing_date(date, buffer_time):
     :param buffer_time: The buffer time in days (integer).
     :return: Returns a date object (datetime.date).
     """
-    if type(buffer_time) is not int:
+    if not isinstance(buffer_time, int):
         raise ValueError("The input must be of type int, not {0}".format(type(buffer_time)))
 
     if type(date) is not datetime.date:

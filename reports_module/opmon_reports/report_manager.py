@@ -30,7 +30,7 @@ import matplotlib
 import numpy as np
 import pandas as pd
 from jinja2 import Environment, FileSystemLoader
-import weasyprint
+import weasyprint  # type: ignore
 
 from . import time_date_tools
 from . import tools
