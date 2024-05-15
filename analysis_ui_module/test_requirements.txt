@@ -1,7 +1,7 @@
 coverage
 pytest
 pytest-mock
+pytest-ruff
 pytest-html
-flake8
 ruff
 mongomock

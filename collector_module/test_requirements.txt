@@ -1,8 +1,9 @@
 coverage
 pytest
 pytest-mock
+pytest-ruff
 pytest-html
-flake8
 ruff
 responses
 mongomock
+pymongo-stubs

@@ -2,7 +2,9 @@ coverage
 mongomock
 pytest
 pytest-mock
+pytest-ruff
 pytest-html
-flake8
 ruff
-
+pymongo-stubs
+matplotlib-stubs
+types-Jinja2
