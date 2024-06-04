@@ -20,6 +20,7 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
 
+import os
 import smtplib
 import ssl
 from typing import Iterable
@@ -85,7 +86,8 @@ class NotificationManager:
             'MEMBER_CODE': notification['member_code'],
             'SUBSYSTEM_CODE': notification['subsystem_code'],
             'START_DATE': notification['start_date'],
-            'END_DATE': notification['end_date']
+            'END_DATE': notification['end_date'],
+            'REPORT_NAME_NO_EXT': os.path.splitext(notification['report_name'])[0]
         }
 
         msg = MIMEText(self.settings['message'].format(
