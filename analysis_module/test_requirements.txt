@@ -2,4 +2,5 @@ coverage
 pytest
 pytest-mock
 pytest-pycodestyle
+pytest-html
 mongomock
