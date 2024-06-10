@@ -1,7 +1,8 @@
-name: X-Road Metrics tests
+name: X-Road Metrics Tests
 on: [pull_request]
 jobs:
   Test-Anonymizer:
+    name: Anonymizer Tests
     runs-on: ubuntu-22.04
     defaults:
       run:
@@ -20,6 +21,7 @@ jobs:
       - name: Run tox tests
         run: tox
   Test-Collector:
+    name: Collector Tests
     runs-on: ubuntu-22.04
     defaults:
       run:
@@ -38,6 +40,7 @@ jobs:
       - name: Run tox tests
         run: tox
   Test-Corrector:
+    name: Corrector Tests
     runs-on: ubuntu-22.04
     defaults:
       run:
@@ -56,6 +59,7 @@ jobs:
       - name: Run tox tests
         run: tox
   Test-Opendata:
+    name: OpenData Tests
     runs-on: ubuntu-22.04
     defaults:
       run:
@@ -74,6 +78,7 @@ jobs:
       - name: Run tox tests
         run: tox
   # Test-Opendata-Collector:
+  #   name: OpenData Collector Tests
   #   runs-on: ubuntu-22.04
   #   defaults:
   #     run:
@@ -92,6 +97,7 @@ jobs:
   #     - name: Run tox tests
   #       run: tox
   Test-Reports:
+    name: Reports Tests
     runs-on: ubuntu-22.04
     defaults:
       run:
