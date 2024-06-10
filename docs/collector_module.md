@@ -81,6 +81,7 @@ Refer to section [Collector Configuration](#collector-configuration)
 
 
 ## Usage
+
 ### Collector Configuration
 
 Before using the Collector module, make sure you have installed and configured the [Database_Module](database_module.md)
@@ -101,10 +102,10 @@ Settings that the user must fill in:
 * X-Road client used to collect the monitoring data
 * username and password for the collector module MongoDB user
 
-#### Configurations for multiple X-Road instances
+### Settings Profiles
 
 To run collector for multiple X-Road instances, a settings profile for each instance can be created.   
-1. To have profiles `DEV`, `TEST` and `PROD`, create three copies of `setting.yaml`
+1. To have profiles `DEV`, `TEST`, and `PROD`, create three copies of `setting.yaml`
 file named `settings_DEV.yaml`, `settings_TEST.yaml` and `settings_PROD.yaml` respectively.
 2. Fill the profile specific settings to each file.
 3. Use the `--profile` flag when running `xroad-metrics-collector`.   
@@ -158,6 +159,7 @@ xroad-metrics-collector settings get mongodb.host  # Read a value from settings 
 
 Above examples use the default settings file. To use another settings profile, you can use --profile flag:
 ```bash
+xroad-metrics-collector --profile TEST list
 xroad-metrics-collector --profile TEST update
 xroad-metrics-collector --profile TEST collect
 ```
@@ -166,10 +168,10 @@ xroad-metrics-collector --profile TEST collect
 Default installation includes a cronjob in _/etc/cron.d/xroad-metrics-collector-cron_ that runs collector every three hours. This job runs collector using default settings profile (_/etc/xroad-metrics/collector/settings.yaml_)
 
 If you want to change the collector cronjob scheduling or settings profiles, edit the file e.g. with vi
-```
+```bash
 vi /etc/cron.d/xroad-metrics-collector-cron
 ```
-and make your changes. For example to run collector every six hours using settings profiles PROD and TEST:
+and make your changes. For example to run collector every six hours using settings profiles `PROD` and `TEST`:
 ```bash
 SHELL=/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
@@ -251,7 +253,7 @@ and add the following content :
 
 For further log rotation options, please refer to logrotate manual:
 
-```
+```bash
 man logrotate
 ```
 

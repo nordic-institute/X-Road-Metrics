@@ -60,8 +60,8 @@ sudo add-apt-repository 'https://artifactory.niis.org/xroad-extensions-release-d
 ````
 
 The following information can be used to verify the key:
-- key hash: 935CC5E7FA5397B171749F80D6E3973B
-- key fingerprint: A01B FE41 B9D8 EAF4 872F A3F1 FB0D 532C 10F6 EC5B
+- key hash: `935CC5E7FA5397B171749F80D6E3973B`
+- key fingerprint: `A01B FE41 B9D8 EAF4 872F A3F1 FB0D 532C 10F6 EC5B`
 - 3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index)
 
 
@@ -98,32 +98,41 @@ To use xroad-metrics-reports you need to fill in your X-Road and MongoDB configu
 ```bash
 sudo vi /etc/xroad-metrics/reports/settings.yaml
 ```
+> [!TIP]  
+> For a complete list of available settings, please refer to this [settings.yaml](../reports_module/etc/settings.yaml) template file.
 
 Settings that the user must fill in:
 * X-Road instance name
 * username and password for the reports-module MongoDB user
 * e-mail template, SMTP server and port
 
-To run xroad-metrics-reports for multiple X-Road instances, a settings profile for each instance can be created.
-For example to have profiles DEV, TEST and PROD create three copies of `setting.yaml` file named
-`settings_DEV.yaml`, `settings_TEST.yaml` and `settings_PROD.yaml`.
-Then fill the profile specific settings to each file and use the --profile
-flag when running xroad-metrics-reports. For example to run using the TEST profile:
-```
-xroad-metrics-reports --profile TEST reports
-```
+### Settings Profiles
 
-`xroad-metrics-reports` command searches the settings file first in current working direcrtory, then in
-_/etc/xroad-metrics/reports/_
+To run xroad-metrics-reports for multiple X-Road instances, a settings profile for each instance can be created.
+1. To have profiles `DEV`, `TEST`, and `PROD` create three copies of `setting.yaml`
+file named `settings_DEV.yaml`, `settings_TEST.yaml`, and `settings_PROD.yaml`.
+2. Fill the profile specific settings to each file 
+3. Use the `--profile` flag when running `xroad-metrics-reports`.   
+   For example to run reports manually using the TEST profile:
+   ```bash
+   xroad-metrics-reports --profile TEST reports
+   ```
+> [!IMPORTANT]  
+> `xroad-metrics-reports` command searches the settings file first in current working direcrtory, then in
+`/etc/xroad-metrics/reports/`
 
 Available languages for the reports are:
 
-```
-en - english
-et - estonian
-```
+| Code | Language  |
+|------|-----------|
+| en   | English   |
+| et   | Estonian  |
 
-Report language translation files can be found in path _/etc/xroad-metrics/reports/lang_
+
+Report language translation files can be found in path `/etc/xroad-metrics/reports/lang`
+
+> [!TIP]  
+> Sample translation files can be found [here](../reports_module/etc/lang/).
 
 ### Report Targets
 
@@ -195,9 +204,9 @@ sudo su xroad-metrics
 
 Available actions:
 ```bash
-xroad-metrics-reports report                       # Generate reports using default arguments
-xroad-metrics-reports notify                       # Send pending e-mail notifications
-opmnon-reports --help                      # Show available command line arguments
+xroad-metrics-reports report      # Generate reports using default arguments
+xroad-metrics-reports notify      # Send pending e-mail notifications
+opmnon-reports --help             # Show available command line arguments
 ```
 
 Above examples use the default settings file. To use another settings profile, you can use --profile flag:
@@ -219,12 +228,12 @@ have finished processing data for that month. By default the cron job is configu
 which should allow for a long enough grace period.
 
 If you want to change the reports cronjob scheduling or settings profiles, edit the file e.g. with vi
-```
+```bash
 vi /etc/cron.d/xroad-metrics-reports-cron
 ```
-and make your changes. For example to run reports every six months on the 15th day using settings profiles PROD and TEST:
+and make your changes. For example to run reports every six months on the 15th day using settings profiles `PROD` and `TEST`:
 ```bash
-# m   h  dom  mon   dow  user     command
+# m   h   dom  mon   dow  user             command
   1   0   15   */6    *   xroad-metrics    xroad-metrics-reports --profile TEST report
   1   3   15   */6    *   xroad-metrics    xroad-metrics-reports --profile PROD report
 
@@ -368,7 +377,7 @@ Every log line includes:
 
 The **reports module** log handler is compatible with the logrotate utility. To configure log rotation for the example setup above, create the file:
 
-```
+```bash
 sudo vi /etc/logrotate.d/xroad-metrics-reports
 ```
 
@@ -382,7 +391,7 @@ and add the following content :
 
 For further log rotation options, please refer to logrotate manual:
 
-```
+```bash
 man logrotate
 ```
 
