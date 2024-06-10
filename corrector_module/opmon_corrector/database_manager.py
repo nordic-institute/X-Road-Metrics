@@ -232,7 +232,7 @@ class DatabaseManager:
         try:
             db = self.get_query_db()
             clean_data = db[CLEAN_DATA_COLLECTION]
-            clean_data.update({'_id': document['_id']}, document)
+            clean_data.replace_one({'_id': document['_id']}, document)
         except Exception as e:
             self.logger_m.log_exception('DatabaseManager.update_form_clean_data', repr(e))
             raise e
@@ -283,7 +283,7 @@ class DatabaseManager:
         try:
             db = self.get_query_db()
             raw_messages = db[RAW_DATA_COLLECTION]
-            raw_messages.remove({'_id': message_id})
+            raw_messages.delete_one({'_id': message_id})
         except Exception as e:
             self.logger_m.log_exception('DatabaseManager.remove_duplicate_from_raw', repr(e))
             raise e
