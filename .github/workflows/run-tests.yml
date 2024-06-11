@@ -8,9 +8,9 @@ jobs:
       run:
         working-directory: ./anonymizer_module
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python 3.8
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.8'
           cache: 'pip'
@@ -28,9 +28,9 @@ jobs:
       run:
         working-directory: ./collector_module
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python 3.8
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.8'
           cache: 'pip'
@@ -48,9 +48,9 @@ jobs:
       run:
         working-directory: ./corrector_module
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python 3.8
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.8'
           cache: 'pip'
@@ -68,9 +68,9 @@ jobs:
       run:
         working-directory: ./opendata_module
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python 3.8
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.8'
           cache: 'pip'
@@ -88,9 +88,9 @@ jobs:
   #     run:
   #       working-directory: ./opendata_collector_module
   #   steps:
-  #     - uses: actions/checkout@v3
+  #     - uses: actions/checkout@v4
   #     - name: Set up Python 3.8
-  #       uses: actions/setup-python@v4
+  #       uses: actions/setup-python@v5
   #       with:
   #         python-version: '3.8'
   #         cache: 'pip'
@@ -108,9 +108,9 @@ jobs:
       run:
         working-directory: ./reports_module
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python 3.8
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.8'
           cache: 'pip'
