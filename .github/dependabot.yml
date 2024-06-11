@@ -24,8 +24,6 @@ updates:
         applies-to: version-updates
         update-types:
           - "major"
-    reviewers:
-      - "nordic-institute/xrd-developers"
 
   - package-ecosystem: "github-actions"
     directory: "/.github/workflows"
@@ -37,5 +35,3 @@ updates:
         applies-to: version-updates
         patterns:
           - "*"
-    reviewers:
-      - "nordic-institute/xrd-developers"
