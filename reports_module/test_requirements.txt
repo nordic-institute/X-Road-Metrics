@@ -3,4 +3,4 @@ mongomock
 pytest
 pytest-mock
 pytest-pycodestyle
-
+pytest-html
