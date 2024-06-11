@@ -1,0 +1,41 @@
+version: 2
+
+updates:
+  - package-ecosystem: pip
+    directories:
+      #- "/analysis_module"
+      #- "/analysis_ui_module"
+      - "/anonymizer_module"
+      - "/collector_module"
+      - "/corrector_module"
+      #- "/opendata_collector_module"
+      - "/opendata_module"
+      - "/reports_module"
+    schedule:
+        interval: "weekly"
+        day: "thursday"
+    groups:
+      python-minor-patch:
+        applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"
+      python-major:
+        applies-to: version-updates
+        update-types:
+          - "major"
+    reviewers:
+      - "nordic-institute/xrd-developers"
+
+  - package-ecosystem: "github-actions"
+    directory: "/.github/workflows"
+    schedule:
+      interval: "weekly"
+      day: "thursday"
+    groups:
+      actions-update:
+        applies-to: version-updates
+        patterns:
+          - "*"
+    reviewers:
+      - "nordic-institute/xrd-developers"
