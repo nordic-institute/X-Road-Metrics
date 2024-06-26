@@ -66,10 +66,10 @@ file named `settings_DEV.yaml`, `settings_TEST.yaml` and `settings_PROD.yaml`.
 Then fill the profile specific settings to each file and use the --profile
 flag when running opmon-analyzer. For example to run model update using the TEST profile:
 ```
-opmon-analyzer --profile TEST upate
+opmon-analyzer --profile TEST update
 ```
 
-`opmon-analyzer` command searches the settings file first in current working direcrtory, then in
+`opmon-analyzer` command searches the settings file first in current working directory, then in
 _/etc/opmon/analyzer/_
 
 ### Manual usage

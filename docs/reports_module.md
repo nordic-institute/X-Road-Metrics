@@ -115,10 +115,10 @@ file named `settings_DEV.yaml`, `settings_TEST.yaml`, and `settings_PROD.yaml`.
 3. Use the `--profile` flag when running `xroad-metrics-reports`.   
    For example to run reports manually using the TEST profile:
    ```bash
-   xroad-metrics-reports --profile TEST reports
+   xroad-metrics-reports --profile TEST report
    ```
 > [!IMPORTANT]  
-> `xroad-metrics-reports` command searches the settings file first in current working direcrtory, then in
+> `xroad-metrics-reports` command searches the settings file first in current working directory, then in
 `/etc/xroad-metrics/reports/`
 
 Available languages for the reports are:
@@ -206,7 +206,7 @@ Available actions:
 ```bash
 xroad-metrics-reports report      # Generate reports using default arguments
 xroad-metrics-reports notify      # Send pending e-mail notifications
-opmnon-reports --help             # Show available command line arguments
+xroad-metrics-reports --help      # Show available command line arguments
 ```
 
 Above examples use the default settings file. To use another settings profile, you can use --profile flag:
@@ -244,7 +244,7 @@ If reports-generation is to be run only manually, comment out the default cron t
 #  1   0   10   *   *   xroad-metrics    xroad-metrics-reports report
 ```
 
-### Publishing Reoprts
+### Publishing Reports
 Using default settings the xroad-metrics-reports command generates report pdf files into folder _/home/xroad-metrics/reports_.
 If you want to publish the reports on some external file server, you can setup e.g. a rsync cronjob.
 Below example assumes your file-server hostname is _myfileserver_ and user _myuser_ can access it with from the
@@ -279,7 +279,7 @@ server {
 # enable new site:
 sudo ln -s /etc/nginx/sites-available/reports /etc/nginx/sites-enabled/
 
-# test  new configuratio
+# test  new configuration
 sudo nginx -t
 
 # set up relevant directories
@@ -411,7 +411,7 @@ logger:
 
 ```
 
-The heartbeat file is written to `heartbeat-path` and hearbeat file name contains the X-Road instance name.
+The heartbeat file is written to `heartbeat-path` and heartbeat file name contains the X-Road instance name.
 The above example configuration would write logs to `/var/log/xroad-metrics/reports/heartbeat/heartbeat_reports_EXAMPLE.json`.
 
 The heartbeat file consists last message of log file and status

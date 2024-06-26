@@ -307,7 +307,7 @@ file named `settings_DEV.yaml`, `settings_TEST.yaml`, and `settings_PROD.yaml`.
    xroad-metrics-correctord --profile TEST
    ```
 > [!IMPORTANT]  
-> `xroad-metrics-corrector` command searches the settings file first in current working direcrtory, then in
+> `xroad-metrics-corrector` command searches the settings file first in current working directory, then in
 `/etc/xroad-metrics/corrector/`
 
 ### Manual usage
@@ -417,7 +417,7 @@ Every log line includes:
 - **"local_timestamp"**: timestamp in local format '%Y-%m-%d %H:%M:%S %z'
 - **"module"**: "corrector"
 - **"version"**: in form of "v${MINOR}.${MAJOR}"
-- **"activity"**: possible valuse "corrector_main", "corrector_batch_run", "corrector_batch_start", "corrector_batch_raw", "DatabaseManager.get_raw_documents", "corrector_batch_update_timeout", "corrector_batch_update_old_to_done", "corrector_batch_remove_duplicates_from_raw", "corrector_batch_end"
+- **"activity"**: possible values "corrector_main", "corrector_batch_run", "corrector_batch_start", "corrector_batch_raw", "DatabaseManager.get_raw_documents", "corrector_batch_update_timeout", "corrector_batch_update_old_to_done", "corrector_batch_remove_duplicates_from_raw", "corrector_batch_end"
 - **level**: possible values "INFO", "WARNING", "ERROR"
 - **msg**: message
 
@@ -463,7 +463,7 @@ logger:
 
 ```
 
-The heartbeat file is written to `heartbeat-path` and hearbeat file name contains the X-Road instance name.
+The heartbeat file is written to `heartbeat-path` and heartbeat file name contains the X-Road instance name.
 The above example configuration would write logs to `/var/log/xroad-metrics/corrector/heartbeat/heartbeat_corrector_EXAMPLE.json`.
 
 The heartbeat file consists last message of log file and status

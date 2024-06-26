@@ -106,7 +106,7 @@ use admin
 db.createUser(
   {
     user: "root",
-    pwd: passwordPrompt(), // or cleartext password
+    pwd: passwordPrompt(), // or clear text password
     roles: [ { role: "userAdminAnyDatabase", db: "admin" }, "readWriteAnyDatabase" ]
   }
 )
@@ -491,7 +491,7 @@ vm.dirty_ratio = 15
 vm.dirty_background_ratio = 5
 ```
 
-### Swapiness
+### Swappiness
 
 See also https://en.wikipedia.org/wiki/Paging#Swappiness
 

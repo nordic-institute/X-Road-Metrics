@@ -45,7 +45,7 @@ The Opendata node needs no **outgoing** connections.
 
 ### Incoming
 
-- The Opendata node accepts incoming connections from [Anonymizer module](anonymizer.md) (see also [Opendata module](../opendata_module.md)).
+- The Opendata node accepts incoming connections from [Anonymizer module](anonymizer_module.md) (see also [Opendata module](opendata_module.md)).
 - The Opendata node accepts incoming access from the public (preferably HTTPS / port 443, but also redirecting HTTP / port 80).
 
 ## Installation
@@ -97,7 +97,7 @@ You have to fill in some environment specific settings to the settings file to m
 Refer to section [Opendata Module Configuration](#opendata-module-configuration)
 
 ## Database Setup
-Before installing the database, please install the X-Road Metrics as descibed above.
+Before installing the database, please install the X-Road Metrics as described above.
 After the PostgreSQL database is installed and configured you can proceed to finish configuration of the
 Opendata module.
 
@@ -150,7 +150,7 @@ to configure the X-Road Metrics modules. The 'Escaped Password' column contains 
 escaped format that can be directly added to the config files.
 
 Database relations and relevant indices will be created dynamically during the first run of
-[Anonymizer module](anonymizer.md), according to the supplied configuration.
+[Anonymizer module](anonymizer_module.md), according to the supplied configuration.
 
 **Note:** PostgreSQL doesn't allow dashes and case sensitivity comes with a hassle.
 This means that for PostgreSQL instance it is suggested to use underscores and lower characters.
@@ -213,7 +213,7 @@ sudo systemctl restart postgresql
 For a connection to be known SSL-secured, SSL usage must be configured on both the client and the server before the connection is made.
 If it is only configured on the server, the client may end up sending sensitive information before it knows that the server requires high security.
 
-To ensure secure connections `ssl-mode` and `ssl-root-cert` parameterers has to be provided in settings file.
+To ensure secure connections `ssl-mode` and `ssl-root-cert` parameters has to be provided in settings file.
 Possible values for `ssl-mode`: `disable`, `allow`, `prefer`, `require`, `verify-ca`, `verify-full`
 For detailed information see https://www.postgresql.org/docs/current/libpq-ssl.html
 
@@ -414,7 +414,7 @@ logger:
 
 ```
 
-The heartbeat file is written to `heartbeat-path` and hearbeat file name contains the X-Road instance name.
+The heartbeat file is written to `heartbeat-path` and heartbeat file name contains the X-Road instance name.
 The above example configuration would write logs to
  `/var/log/xroad-metrics/opendata/heartbeat/heartbeat_opendata_EXAMPLE.json`.
 

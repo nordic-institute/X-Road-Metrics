@@ -126,7 +126,7 @@ the command should be represented in the following way:
 ```
 
 Now the xroad-metrics-networking data preparation program will get configuration settings from a settings file named
-settings_TEST.yaml. The command searches the settings file first in current working direcrtory,
+settings_TEST.yaml. The command searches the settings file first in current working directory,
 then in _/etc/xroad-metrics/networking/_. xroad-metrics-networking command will then tag the generated output files with the profile
 name (TEST in this case).
 
@@ -143,7 +143,7 @@ See [Opendata database](opendata_module.md)
 For a connection to be known SSL-secured, SSL usage must be configured on both the client and the server before the connection is made.
 If it is only configured on the server, the client may end up sending sensitive information before it knows that the server requires high security.
 
-To ensure secure connections `ssl_mode` and `ssl_root_cert` parameterers has to be provided in settings file.
+To ensure secure connections `ssl_mode` and `ssl_root_cert` parameters has to be provided in settings file.
 Possible values for `ssl_mode`: `disable`, `allow`, `prefer`, `require`, `verify-ca`, `verify-full`
 For detailed information see https://www.postgresql.org/docs/current/libpq-ssl.html
 
@@ -216,16 +216,28 @@ The data preparation step can be started by the command `xroad-metrics-networkin
    ('interval' in settings file, default 30 days) from the most recent `requestindate`.
    The script retrieves only `succeeded=True` logs. The script retrieves the following fields:
 
-    ```
-    requestindate, clientmembercode, clientsubsystemcode,
-    servicemembercode, servicesubsystemcode, servicecode
+   ```yaml
+    # sorted alphabetically
+    - clientmembercode
+    - clientsubsystemcode
+
+    - requestindate
+
+    - servicecode
+    - servicemembercode
+    - servicesubsystemcode
     ```
 
 5. Calculates the count of service calls between each unique combination of the fields:
 
-    ```
-    clientmembercode, clientsubsystemcode, servicemembercode,
-    servicesubsystemcode, servicecode
+   ```yaml
+    # sorted alphabetically
+    - clientmembercode
+    - clientsubsystemcode
+
+    - servicecode
+    - servicemembercode
+    - servicesubsystemcode
     ```
 
 6. Adds the following concatenate fields `client`, `producer`, `producer.service`
@@ -275,7 +287,7 @@ The visualization output includes two different graphs:
 The numbers of queries between the members are logarithmed (log10) in both graphs in order to enable color and
 line thickness graduations.
 
-The back-end of the web application a Shiny-framework web-app installed into `/usrr/share/xroad-metrics/networking/shiny/app.R`.
+The back-end of the web application a Shiny-framework web-app installed into `/usr/share/xroad-metrics/networking/shiny/app.R`.
 In addition to setting up the user interface, the script also does service call counting and logarithming.
 The data file prepared by `prepare_data.R` includes counts of service calls on the service level.
 For displaying X-Road member networking on the higher levels (member, subsystem), the `app.R` script reactively

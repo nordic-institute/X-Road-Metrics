@@ -24,7 +24,7 @@ which include following modules:
 
 The **Anonymizer module** is responsible of preparing the operational monitoring data for publication through
 the [Opendata module](opendata_module.md). Anonymizer configuration allows X-Road Metrics extension administrator to set
-fine-grained rules for excluding whole operatinal monitoring data records or to modify selected data fields before the data is published.
+fine-grained rules for excluding whole operational monitoring data records or to modify selected data fields before the data is published.
 
 The anonymizer module uses the operational monitoring data that [Corrector module](corrector_module.md) has prepared and stored
 to MongoDb as input. The anonymizer processes the data using the configured ruleset and stores the output to the
@@ -40,7 +40,7 @@ through  [Opendata module](opendata_module.md) is diagram below:
 
 MongoDb is used to store "non-anonymized" operational monitoring data that should be accessible only by the X-Road Metrics administrators.
 Anonymized operational monitoring data that can be published for wider audience is stored in the PostgreSQL. The Opendata UI needs
-access only to the PostgreSQL. To follow the "principal of least priviledge" it is recommended to
+access only to the PostgreSQL. To follow the "principal of least privilege" it is recommended to
 install Opendata UI on a dedicated host that has no access at all to MongoDb.
 However, the Anonymizer module needs access also to the "not-public" data, so it should
 run on a host that has access to both MongoDb and PostgreSQL.
@@ -56,7 +56,7 @@ See [Opendata database](opendata_module.md)
 For a connection to be known SSL-secured, SSL usage must be configured on both the client and the server before the connection is made.
 If it is only configured on the server, the client may end up sending sensitive information before it knows that the server requires high security.
 
-To ensure secure connections `ssl-mode` and `ssl-root-cert` parameterers has to be provided in settings file.
+To ensure secure connections `ssl-mode` and `ssl-root-cert` parameters has to be provided in settings file.
 Possible values for `ssl-mode`: `disable`, `allow`, `prefer`, `require`, `verify-ca`, `verify-full`
 For detailed information see https://www.postgresql.org/docs/current/libpq-ssl.html
 
@@ -183,7 +183,7 @@ records that fulfill a set of conditions. These _substitution rules_ are defined
 
 A substitution rule has two parts. First *conditions* has a set of rules that defines the set of records
 where the substitution applies. These conditions have same format as the _hiding rules_ above.
-Second, there is the *subtitutions* part that consists of feature-value pairs, where feature is the name of the field
+Second, there is the *substitutions* part that consists of feature-value pairs, where feature is the name of the field
 to be substituted and value contains the substitute string.
 
 The below example defines two substitution rules.
@@ -229,7 +229,7 @@ flag when running xroad-metrics-anonymizer. For example to run anonymizer manual
 xroad-metrics-anonymizer --profile TEST
 ```
 
-`xroad-metrics-anonymizer` command searches the settings file first in current working direcrtory, then in
+`xroad-metrics-anonymizer` command searches the settings file first in current working directory, then in
 _/etc/xroad-metrics/anonymizer/_
 
 ### Manual usage
@@ -355,7 +355,7 @@ logger:
 
 ```
 
-The heartbeat file is written to `heartbeat-path` and hearbeat file name contains the X-Road instance name.
+The heartbeat file is written to `heartbeat-path` and heartbeat file name contains the X-Road instance name.
 The above example configuration would write logs to
  `/var/log/xroad-metrics/anonymizer/heartbeat/heartbeat_anonymizer_EXAMPLE.json`.
 
@@ -365,7 +365,7 @@ The heartbeat file consists last message of log file and status
 
 ## Metrics statistics
 
-Metrics statistics is executable script to calculate usefull statistical data on Metrics.
+Metrics statistics is executable script to calculate useful statistical data on Metrics.
 Gethered data is stored in database.
 Opendata module has API endpoint to view this data by accessing `api/statistics`
 
@@ -376,7 +376,7 @@ and created the database credentials. See [Database_Module](database_module.md#s
 
 ### Cron Settings
 
-Add cronjob entry to calculate metrics statistics regulary:
+Add cronjob entry to calculate metrics statistics regularly:
 
 ```
 * * * * * xroad-metrics-statistics --profile TEST

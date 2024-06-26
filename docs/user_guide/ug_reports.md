@@ -118,7 +118,7 @@ producerDurationProducerView = Producer responseOutTs (6) - Producer requestInTs
 
 ### What are `metaservices`
 
-Metaservices are services that provide informatin about the X-Road instance or
+Metaservices are services that provide information about the X-Road instance or
 the services located on it. An example of these are the `listMethods`, `getWsdl`
 ja `getOpenAPI` metaservices.
 
