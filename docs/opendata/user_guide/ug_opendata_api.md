@@ -16,7 +16,7 @@ Open Data API allows to query daily logs or log samples programmatically without
 In order to achieve that, handlers allow to query the following data:
 
 * Minimum and maximum date of the available logs;
-* Column names, types, descriptions and available oeprators;
+* Column names, types, descriptions and available operators;
 * All daily logs in **ndjson.gz** format;
 * Meta (description) file for daily logs;
 * Sample logs for a day in **JSON** format.
@@ -50,7 +50,7 @@ All API error messages are in JSON format and look similar to
 API supports all the HTTP/HTTPS request methods:
 
 * GET
-* POST (and its derivates)
+* POST (and its derivatives)
 
 **Note:** all resources (handlers) are available for both GET and POST type of requests.
 
@@ -282,7 +282,7 @@ curl --request --url "${URL}/api/daily_logs" \
 
 ### Daily logs meta
 
-Retrieve meta (description) file for daily logs in **JSON** fromat.
+Retrieve meta (description) file for daily logs in **JSON** format.
 
 #### Parameters
 

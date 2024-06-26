@@ -227,7 +227,7 @@ Every log line includes:
 - **"local_timestamp"**: timestamp in local format '%Y-%m-%d %H:%M:%S %z'
 - **"module"**: "collector"
 - **"version"**: in form of "v${MINOR}.${MAJOR}"
-- **"activity"**: possible valuse "collector_start", "collector_worker", "collector_end"
+- **"activity"**: possible values "collector_start", "collector_worker", "collector_end"
 - **level**: possible values "INFO", "WARNING", "ERROR"
 - **msg**: message
 
@@ -273,7 +273,7 @@ logger:
 
 ```
 
-The heartbeat file is written to `heartbeat-path` and hearbeat file name contains the X-Road instance name.
+The heartbeat file is written to `heartbeat-path` and heartbeat file name contains the X-Road instance name.
 The above example configuration would write logs to `/var/log/xroad-metrics/collector/heartbeat/heartbeat_collector_EXAMPLE.json`.
 
 The heartbeat file consists last message of log file and status

@@ -28,13 +28,13 @@ Logs are anonymized, ie sensitive fields are removed, incl:
 - clientSecurityServerAddress: External address of client's Security Server (IP or name)
 - serviceSecurityServerAddress: External address of service provider's Security Server (IP or name)
 
-Timestamps (specifically *requestInTs*) are rounded to hour precision and presented in form of Unix timstamp (epoch time).
+Timestamps (specifically *requestInTs*) are rounded to hour precision and presented in form of Unix timestamp (epoch time).
 
 Additional calculations from timestamps available are made:
 
 - requestInDate - human-readable date presentation of timestamp requestInTs
-- producerDurationProducerView - when available, then calculated as substraction 'Producer responseOutTs (6)' - 'Producer requestInTs (3)'
-- totalDuration - when available, then calculated as substraction 'Client responseOutTs (8)' - 'Client requestInTs (1)'
+- producerDurationProducerView - when available, then calculated as subtraction 'Producer responseOutTs (6)' - 'Producer requestInTs (3)'
+- totalDuration - when available, then calculated as subtraction 'Client responseOutTs (8)' - 'Client requestInTs (1)'
 
 Explanation of timestamps (1) - (8):
 ![Timestamps](../../img/opendata/0_timestamps.png "Timestamps")

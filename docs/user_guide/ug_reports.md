@@ -53,7 +53,7 @@ should be considered:
 * When the institution has changed administrators, the new administrator should
   now have access to old reports without the previous administrator forwarding
   the references to him
-* And administrator that has left the institution should no longer recieve
+* And administrator that has left the institution should no longer receive
   notifications about new reports
 
 Reports are generated in all configured environments based on the `cron`
@@ -118,7 +118,7 @@ producerDurationProducerView = Producer responseOutTs (6) - Producer requestInTs
 
 ### What are `metaservices`
 
-Metaservices are services that provide informatin about the X-Road instance or
+Metaservices are services that provide information about the X-Road instance or
 the services located on it. An example of these are the `listMethods`, `getWsdl`
 ja `getOpenAPI` metaservices.
 
