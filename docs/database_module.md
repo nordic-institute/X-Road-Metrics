@@ -231,7 +231,7 @@ For X-Road instance `EX` auth_db should have following users and access rights:
     * anonymizer_state_EX: readWrite
 * **collector_EX**:
     * query_db_EX: readWrite,
-    * collcetor_state_EX: readWrite
+    * collector_state_EX: readWrite
 * **corrector_EX**:
     * query_db_EX: readWrite
 * **reports_EX**:

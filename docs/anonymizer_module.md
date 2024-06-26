@@ -142,7 +142,7 @@ Settings that the user must fill in:
 * name of PostgreSQL database where to store the anonymized data
 * list of PostgreSQL users that should have read-only access to the anonymized data
 
-The read-only PostgrSQL users should be the users that Opendata-UI and Networking modules use to read data from the
+The read-only PostgreSQL users should be the users that Opendata-UI and Networking modules use to read data from the
 PostgreSQL.
 
 
@@ -242,7 +242,7 @@ sudo su xroad-metrics
 
 Currently following command line arguments are supported:
 ```bash
-xroad-metrics-anonymizer --help                     # Show description of the command line argumemts
+xroad-metrics-anonymizer --help                     # Show description of the command line arguments
 xroad-metrics-anonymizer --limit <number>           # Optional flag to limit the number of records to process.
 xroad-metrics-anonymizer --profile <profile name>   # Run with a non-default settings profile
 ```
@@ -285,7 +285,7 @@ To anonymize opendata add crontab entry to _/etc/cron.d/xroad-metrics-anonymizer
 
 ### Database indexes
 
-Anonymizer module would benefit in  `insertTime` index while perfoming opendata anonymization.
+Anonymizer module would benefit in  `insertTime` index while performing opendata anonymization.
 Refer to [Indexes](database_module.md#indexes)
 
 ## Monitoring and Status
@@ -366,7 +366,7 @@ The heartbeat file consists last message of log file and status
 ## Metrics statistics
 
 Metrics statistics is executable script to calculate useful statistical data on Metrics.
-Gethered data is stored in database.
+Gathered data is stored in database.
 Opendata module has API endpoint to view this data by accessing `api/statistics`
 
 ### Database Configuration

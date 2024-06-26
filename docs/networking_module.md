@@ -327,13 +327,13 @@ Heartbeat has two statuses: SUCCEEDED and FAILED
 
 ### Shiny Server
 
-Rstudio Shiny Server Open Source has its own built-in logging.
+RStudio Shiny Server Open Source has its own built-in logging.
 All information related to Shiny Server itself, rather than a particular Shiny application,
 is logged in the global system log stored in `/var/log/shiny-server.log`.
 Any errors and warnings that Shiny Server needs to communicate will be written here.
 The application-specific logs, in this case the applications residing in `/usr/share/xroad-metrics/networking/shiny` subfolders,
 are logged separately and stored in `/var/log/shiny-server`. The log files are created in the following format:
-`<application directory name>-YYYMMDD-HHmmss-<port number or socket ID>.log`, e.g. `sample-shiny-20171021-232458-41093.log`.
+`<application directory name>-YYYYMMDD-HHmmss-<port number or socket ID>.log`, e.g. `sample-shiny-20171021-232458-41093.log`.
 
 A log file will be created for each R process when it is started. However, if a process closes successfully,
 the error log associated with that process will be automatically deleted.

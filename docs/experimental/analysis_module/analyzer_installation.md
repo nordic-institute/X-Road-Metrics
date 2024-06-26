@@ -192,7 +192,7 @@ time period (e.g. 10 days), after which they are considered "expired" and will n
 Requests that are part of a "true incident" 
 (an anomaly that was marked as "incident" before the expiration date) 
 are not used to update the model. 
-This way, the historic averages remain to describe the "normal" behaviour. 
+This way, the historic averages remain to describe the "normal" behavior. 
 Note that updating the model does not change the anomalies that have already been found 
 (the existing anomalies are not recalculated).
 
@@ -201,7 +201,7 @@ only the data from time intervals that have already completed are used. This is 
 for example, the number of requests within 10 minutes is compared to the (historic) number of requests within 1 hour, 
 as such comparison would almost certainly yield an anomaly. 
 
-It is recommended that the model is given some time to learn the behaviour of a particular service call (e.g. 3 months). 
+It is recommended that the model is given some time to learn the behavior of a particular service call (e.g. 3 months). 
 Therefore, the following approach is implemented for **new** service calls:
 1. For the first 3 months since the first request was made by a given service call, 
 no anomalies are reported (this is the training period)

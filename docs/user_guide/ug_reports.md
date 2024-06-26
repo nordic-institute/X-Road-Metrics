@@ -53,7 +53,7 @@ should be considered:
 * When the institution has changed administrators, the new administrator should
   now have access to old reports without the previous administrator forwarding
   the references to him
-* And administrator that has left the institution should no longer recieve
+* And administrator that has left the institution should no longer receive
   notifications about new reports
 
 Reports are generated in all configured environments based on the `cron`

@@ -300,7 +300,7 @@ sudo usermod -aG www-data _myuser_
 # new user should be able access /var/data/reports and have permissions to create files there
 ```
 
-#### Set up SSH authentificaton for _myuser_ on reports server
+#### Set up SSH authentication for _myuser_ on reports server
 
 ```bash
 ssh-keygen -t rsa -b 4096 -N ""

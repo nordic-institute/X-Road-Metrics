@@ -34,7 +34,7 @@ through is in the diagram below:
 
 MongoDb is used to store "non-anonymized" operational monitoring data that should be accessible only by the X-Road administrators.
 Anonymized operational monitoring data that can be published for wider audience is stored in the PostgreSQL. The opendata UI needs
-access only to the PostgreSQL. To follow the "principal of least priviledge" it is recommended to
+access only to the PostgreSQL. To follow the "principal of least privilege" it is recommended to
 install Opendata UI on a dedicated host that has no access at all to MongoDb.
 
 The Opendata UI is served by Apache web server using HTTPS protocol (default port 443).

@@ -332,7 +332,7 @@ xroad-metrics-correctord
 > - The `CORRECTOR_DOCUMENTS_LIMIT` defines the processing batch size, and is executed continuously until the total of documents left is smaller than `CORRECTOR_DOCUMENTS_MIN` documents (default set to `CORRECTOR_DOCUMENTS_MIN` = `1`). 
 > - The estimated amount of memory per processing batch is indicated at [System Architecture](system_architecture.md) documentation.
 
-### sysetmd Service
+### systemd Service
 
 #### Default Settings Profile
 
