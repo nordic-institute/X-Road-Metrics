@@ -28,8 +28,14 @@ import requests
 
 class CentralServerClient:
     def __init__(self, xroad_settings, logger_m):
-        self.url = f"{xroad_settings['central-server']['protocol']}{xroad_settings['central-server']['host']}"
-        self.timeout = xroad_settings['central-server']['timeout']
+        central_server_settings = xroad_settings['central-server']
+        self.url = f"{central_server_settings['protocol']}{central_server_settings['host']}"
+        self.timeout = central_server_settings['timeout']
+        self.server_cert = central_server_settings.get('tls-server-certificate')
+        self.client_cert = (
+            central_server_settings.get('tls-client-certificate'),
+            central_server_settings.get('tls-client-key')
+        )
         self.logger_m = logger_m
 
     def get_security_servers(self):
@@ -43,13 +49,15 @@ class CentralServerClient:
     def _get_shared_params(self):
         internal_conf_url = f'{self.url}/internalconf'
 
-        global_conf = requests.get(internal_conf_url, timeout=self.timeout)
+        global_conf = requests.get(internal_conf_url, timeout=self.timeout, cert=self.client_cert,
+                                   verify=self.server_cert)
         global_conf.raise_for_status()
         #  NB! re.search global configuration regex might be changed
         # according version naming or other future naming conventions
         data = global_conf.content.decode('utf-8')
         s = re.search(r'Content-location: (/V\d+/\d+/shared-params.xml)', data)
-        shared_params = requests.get(f'{self.url}{s.group(1)}', timeout=self.timeout)
+        shared_params = requests.get(f'{self.url}{s.group(1)}', timeout=self.timeout,
+                                     cert=self.client_cert, verify=self.server_cert)
         shared_params.raise_for_status()
         return shared_params
 

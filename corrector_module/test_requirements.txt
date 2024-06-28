@@ -2,5 +2,6 @@ coverage
 pytest
 pytest-mock
 pytest-pycodestyle
+pytest-html
 mongomock
-freezegun==1.0.0
+freezegun==1.5.1

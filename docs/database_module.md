@@ -106,7 +106,7 @@ use admin
 db.createUser(
   {
     user: "root",
-    pwd: passwordPrompt(), // or cleartext password
+    pwd: passwordPrompt(), // or clear text password
     roles: [ { role: "userAdminAnyDatabase", db: "admin" }, "readWriteAnyDatabase" ]
   }
 )
@@ -231,7 +231,7 @@ For X-Road instance `EX` auth_db should have following users and access rights:
     * anonymizer_state_EX: readWrite
 * **collector_EX**:
     * query_db_EX: readWrite,
-    * collcetor_state_EX: readWrite
+    * collector_state_EX: readWrite
 * **corrector_EX**:
     * query_db_EX: readWrite
 * **reports_EX**:
@@ -491,7 +491,7 @@ vm.dirty_ratio = 15
 vm.dirty_background_ratio = 5
 ```
 
-### Swapiness
+### Swappiness
 
 See also https://en.wikipedia.org/wiki/Paging#Swappiness
 

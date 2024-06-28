@@ -157,12 +157,13 @@ class DatabaseManager:
             self.logger_m.log_exception('DatabaseManager.get_processing_documents', repr(e))
             raise e
 
-    def get_timeout_documents_client(self, timeout_days: int, limit: int = 1000) -> List[dict]:
+    def get_timeout_document_ids_client(self, timeout_days: int, limit: int = 1000) -> List[dict]:
         """
-        Gets the documents from Client that have been processing more than timeout_days.
+        Gets the document ids (without other fields) from Client that have been processing more
+        than timeout_days.
         :param timeout_days: The timeout days.
-        :param limit: Number of documents to return.
-        :return: Returns the documents that have been processing more than timeout_days.
+        :param limit: Number of document ids to return.
+        :return: Returns the document ids that have been processing more than timeout_days.
         """
         try:
             db = self.get_query_db()
@@ -173,18 +174,20 @@ class DatabaseManager:
                 'client.requestInTs': {'$lt': ref_time},
                 'client.xRequestId': {'$ne': None}
             }
-            cursor = clean_data.find(q).limit(limit)
+            cursor = clean_data.find(q, {'_id': True}).limit(limit)
             return list(cursor)
         except Exception as e:
-            self.logger_m.log_exception('DatabaseManager.get_timeout_documents_client', repr(e))
+            self.logger_m.log_exception(
+                'DatabaseManager.get_timeout_document_ids_client', repr(e))
             raise e
 
-    def get_timeout_documents_producer(self, timeout_days: int, limit: int = 1000) -> List[dict]:
+    def get_timeout_document_ids_producer(self, timeout_days: int, limit: int = 1000) -> List[dict]:
         """
-        Gets the documents from Producer that have been processing more than timeout_days.
+        Gets the document ids (without other fields) from Producer that have been processing more
+        than timeout_days.
         :param timeout_days: The timeout days.
-        :param limit: Number of documents to return.
-        :return: Returns the documents that have been processing more than timeout_days.
+        :param limit: Number of document ids to return.
+        :return: Returns the document ids that have been processing more than timeout_days.
         """
         try:
             db = self.get_query_db()
@@ -192,14 +195,17 @@ class DatabaseManager:
             ref_time = 1000 * (get_timestamp() - (timeout_days * 24 * 60 * 60))
             q = {
                 'correctorStatus': 'processing',
-                'client.requestInTs': {'$exists': False},
+                # This check does not seem to be necessary.
+                # Documents with both client and producer should never be in "processing" state.
+                # 'client.requestInTs': {'$exists': False},
                 'producer.requestInTs': {'$lt': ref_time},
                 'producer.xRequestId': {'$ne': None}
             }
-            cursor = clean_data.find(q).limit(limit)
+            cursor = clean_data.find(q, {'_id': True}).limit(limit)
             return list(cursor)
         except Exception as e:
-            self.logger_m.log_exception('DatabaseManager.get_timeout_documents_producer', repr(e))
+            self.logger_m.log_exception(
+                'DatabaseManager.get_timeout_document_ids_producer', repr(e))
             raise e
 
     def add_to_clean_data(self, document: dict) -> None:
@@ -226,31 +232,26 @@ class DatabaseManager:
         try:
             db = self.get_query_db()
             clean_data = db[CLEAN_DATA_COLLECTION]
-            clean_data.update({'_id': document['_id']}, document)
+            clean_data.replace_one({'_id': document['_id']}, document)
         except Exception as e:
             self.logger_m.log_exception('DatabaseManager.update_form_clean_data', repr(e))
             raise e
 
-    def update_old_to_done(self, list_of_docs: List[dict]) -> int:
+    def update_old_doc_to_done(self, doc_id: str) -> None:
         """
-        Updates then correctorStatus to "done" for the given list of documents. Also updates the correctorTime.
-        :param list_of_docs: The input list of documents to be updated.
-        :return: Number of documents updated.
+        Updates correctorStatus to "done" for the given document. Also updates the correctorTime.
+        :param doc_id: Document "_id" to be updated.
+        :return: None.
         """
-        number_of_updated_docs = 0
         try:
             db = self.get_query_db()
             clean_data = db[CLEAN_DATA_COLLECTION]
-            for doc in list_of_docs:
-                clean_data.update({'_id': doc['_id']},
-                                  {'$set': {'correctorStatus': 'done', 'correctorTime': get_timestamp()}})
-                number_of_updated_docs += 1
-
+            clean_data.update_one(
+                {'_id': doc_id},
+                {'$set': {'correctorStatus': 'done', 'correctorTime': get_timestamp()}})
         except Exception as e:
             self.logger_m.log_exception('DatabaseManager.update_old_to_done', repr(e))
             raise e
-
-        return number_of_updated_docs
 
     def check_clean_document_exists(self, x_request_id: str, document: dict) -> bool:
         """
@@ -282,7 +283,7 @@ class DatabaseManager:
         try:
             db = self.get_query_db()
             raw_messages = db[RAW_DATA_COLLECTION]
-            raw_messages.remove({'_id': message_id})
+            raw_messages.delete_one({'_id': message_id})
         except Exception as e:
             self.logger_m.log_exception('DatabaseManager.remove_duplicate_from_raw', repr(e))
             raise e

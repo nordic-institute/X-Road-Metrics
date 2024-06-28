@@ -171,21 +171,25 @@ class TestReportWorkerCI(unittest.TestCase):
             docs.append(doc_test_machine)
         mongodb_h.add_clean_documents(docs)
 
-        # Query faulty documents
-        faulty_doc_set = db_manager.get_faulty_documents(
-            test_machine[2], test_machine[3], test_machine[1],
-            test_machine[0], start_timestamp, end_timestamp)
-        faulty_docs_found = set()
+        duplicate_docs_found = set()
 
         # member_code, subsystem_code, member_class, x_road_instance, start_time_timestamp, end_time_timestamp
         matching_docs = []
         for doc in db_manager.get_matching_documents(test_machine[2], test_machine[3], test_machine[1],
                                                      test_machine[0], start_timestamp, end_timestamp):
 
-            if doc['_id'] in faulty_docs_found:
+            if doc['_id'] in duplicate_docs_found:
                 continue
-            if doc['_id'] in faulty_doc_set:
-                faulty_docs_found.add(doc['_id'])
+            doc = ReportManager.reduce_to_plain_json(doc)
+            # If client and service is the same subsystem,
+            # then matching_docs contain two identical documents
+            if (
+                    doc['serviceXRoadInstance'] == doc['clientXRoadInstance']
+                    and doc['serviceMemberClass'] == doc['clientMemberClass']
+                    and doc['serviceMemberCode'] == doc['clientMemberCode']
+                    and doc['serviceSubsystemCode'] == doc['clientSubsystemCode']
+            ):
+                duplicate_docs_found.add(doc['_id'])
             matching_docs.append(doc)
 
         self.assertEqual(len(matching_docs), total_ref_count)

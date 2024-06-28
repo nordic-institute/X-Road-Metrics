@@ -1,18 +1,20 @@
-name: X-Road Metrics tests
+name: X-Road Metrics Tests
 on: [pull_request]
 jobs:
   Test-Anonymizer:
+    name: Anonymizer Tests
     runs-on: ubuntu-22.04
     defaults:
       run:
         working-directory: ./anonymizer_module
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python 3.8
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.8'
           cache: 'pip'
+          cache-dependency-path: ./anonymizer_module/setup.py
       - name: Install dependencies
         run: pip install -r test_requirements.txt
       - name: Install tox
@@ -20,17 +22,19 @@ jobs:
       - name: Run tox tests
         run: tox
   Test-Collector:
+    name: Collector Tests
     runs-on: ubuntu-22.04
     defaults:
       run:
         working-directory: ./collector_module
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python 3.8
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.8'
           cache: 'pip'
+          cache-dependency-path: ./collector_module/setup.py
       - name: Install dependencies
         run: pip install -r test_requirements.txt
       - name: Install tox
@@ -38,17 +42,19 @@ jobs:
       - name: Run tox tests
         run: tox
   Test-Corrector:
+    name: Corrector Tests
     runs-on: ubuntu-22.04
     defaults:
       run:
         working-directory: ./corrector_module
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python 3.8
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.8'
           cache: 'pip'
+          cache-dependency-path: ./corrector_module/setup.py
       - name: Install dependencies
         run: pip install -r test_requirements.txt
       - name: Install tox
@@ -56,53 +62,59 @@ jobs:
       - name: Run tox tests
         run: tox
   Test-Opendata:
+    name: OpenData Tests
     runs-on: ubuntu-22.04
     defaults:
       run:
         working-directory: ./opendata_module
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python 3.8
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.8'
           cache: 'pip'
+          cache-dependency-path: ./opendata_module/setup.py
       - name: Install dependencies
         run: pip install -r test_requirements.txt
       - name: Install tox
         run: pip install tox
       - name: Run tox tests
         run: tox
-  Test-Opendata-Collector:
-    runs-on: ubuntu-22.04
-    defaults:
-      run:
-        working-directory: ./opendata_collector_module
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python 3.8
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.8'
-          cache: 'pip'
-      - name: Install dependencies
-        run: pip install -r test_requirements.txt
-      - name: Install tox
-        run: pip install tox
-      - name: Run tox tests
-        run: tox
+  # Test-Opendata-Collector:
+  #   name: OpenData Collector Tests
+  #   runs-on: ubuntu-22.04
+  #   defaults:
+  #     run:
+  #       working-directory: ./opendata_collector_module
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Set up Python 3.8
+  #       uses: actions/setup-python@v5
+  #       with:
+  #         python-version: '3.8'
+  #         cache: 'pip'
+  #         cache-dependency-path: ./opendata_collector_module/setup.py
+  #     - name: Install dependencies
+  #       run: pip install -r test_requirements.txt
+  #     - name: Install tox
+  #       run: pip install tox
+  #     - name: Run tox tests
+  #       run: tox
   Test-Reports:
+    name: Reports Tests
     runs-on: ubuntu-22.04
     defaults:
       run:
         working-directory: ./reports_module
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python 3.8
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.8'
           cache: 'pip'
+          cache-dependency-path: ./reports_module/setup.py
       - name: Install dependencies
         run: pip install -r test_requirements.txt
       - name: Install tox

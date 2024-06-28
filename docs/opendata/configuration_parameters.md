@@ -50,7 +50,7 @@ producerDurationProducerView -> producerDurationProducerView
 
 ### Transformers
 
-Transformers are custom Python functions which take in a singular record with the final Opendata database schema (no "client." or "producer." prefices, postgresql_column_name keys) in the form of Python dictionary and can change one or many values. By default, only a transformer for reducing *requestInTs* accuracy is implemented and installed.
+Transformers are custom Python functions which take in a singular record with the final Opendata database schema (no "client." or "producer." prefixes, postgresql_column_name keys) in the form of Python dictionary and can change one or many values. By default, only a transformer for reducing *requestInTs* accuracy is implemented and installed.
 
 The following statement says that only `opendata_module/anonymizer/transformers/default:reduce_request_in_ts_precision` is applied in the anonymization process. All other custom transformers must be located within the directory `transformers`.
 
@@ -72,7 +72,7 @@ def reduce_request_in_ts_precision(record):
 ### Processing threads
 
 Reading from MongoDB is done in the master thread. All the processing and writing is done in parallel among the defined number of threads (subprocesses due to [GIL](https://wiki.python.org/moin/GlobalInterpreterLock "Global Interpreter Lock")). 
-It is suggested to set number of threads match with nomber of server processor cores available.
+It is suggested to set number of threads match with number of server processor cores available.
 
 ```python
 anonymizer['threads'] = 2

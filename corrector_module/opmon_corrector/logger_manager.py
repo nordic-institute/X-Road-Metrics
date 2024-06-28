@@ -58,7 +58,7 @@ class LoggerManager:
 
     def _handler_is_set(self, handlers):
         for handler in handlers:
-            if handler is WatchedFileHandler and os.path.abspath(self.log_path) == handler.baseFilename:
+            if isinstance(handler, WatchedFileHandler) and os.path.abspath(self.log_path) == handler.baseFilename:
                 return True
         return False
 

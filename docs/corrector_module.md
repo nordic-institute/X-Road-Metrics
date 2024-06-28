@@ -40,77 +40,194 @@ The module source code can be found at:
 
 ## Pair matching logic
 The first step is to add the missing fields into the document (in case it is missing some).
-The value will be "None" for the missing fields.
+The value will be `None` for the missing fields.
 The fields that MUST be there for each document are the following:
 
-```
-'monitoringDataTs', 'securityServerInternalIp', 'securityServerType', 'requestInTs', 'requestOutTs',
-'responseInTs', 'responseOutTs', 'clientXRoadInstance', 'clientMemberClass', 'clientMemberCode',
-'clientSubsystemCode', 'serviceXRoadInstance', 'serviceMemberClass', 'serviceMemberCode',
-'serviceSubsystemCode', 'serviceCode', 'serviceVersion', 'representedPartyClass', 'representedPartyCode',
-'messageId', 'messageUserId', 'messageIssue', 'messageProtocolVersion', 'clientSecurityServerAddress',
-'serviceSecurityServerAddress', 'requestSoapSize', 'requestMimeSize', 'requestAttachmentCount',
-'responseSoapSize', 'responseMimeSize', 'responseAttachmentCount', 'succeeded', 'soapFaultCode',
-'soapFaultString'
+```yaml
+# sorted alphabetically
+- clientMemberClass
+- clientMemberCode
+- clientSecurityServerAddress
+- clientSubsystemCode
+- clientXRoadInstance
+
+- messageId
+- messageIssue
+- messageProtocolVersion
+- messageUserId
+- monitoringDataTs
+- representedPartyClass
+- representedPartyCode
+
+- requestAttachmentCount
+- requestInTs
+- requestMimeSize
+- requestOutTs
+- requestSoapSize
+
+- responseAttachmentCount
+- responseInTs
+- responseMimeSize
+- responseOutTs
+- responseSoapSize
+
+- securityServerInternalIp
+- securityServerType
+
+- serviceCode
+- serviceMemberClass
+- serviceMemberCode
+- serviceSecurityServerAddress
+- serviceSubsystemCode
+- serviceVersion
+- serviceXRoadInstance
+
+- soapFaultCode
+- soapFaultString
+- succeeded
 ```
 
 Before finding a match, a hash is calculated for the current document. The following fields are included:
 
-```
-'monitoringDataTs', 'securityServerInternalIp', 'securityServerType', 'requestInTs',
-‘requestOutTs', 'responseInTs', 'responseOutTs', 'clientXRoadInstance', 'clientMemberClass',
-'clientMemberCode', 'clientSubsystemCode', 'serviceXRoadInstance', 'serviceMemberClass',
-'serviceMemberCode', 'serviceSubsystemCode', 'serviceCode', 'serviceVersion',
-'representedPartyClass', 'representedPartyCode', 'messageId', 'messageUserId',
-'messageIssue', 'messageProtocolVersion', 'clientSecurityServerAddress',
-'serviceSecurityServerAddress', 'requestSoapSize', 'requestMimeSize',
-‘requestAttachmentCount', 'responseSoapSize', 'responseMimeSize', ‘responseAttachmentCount',
-'succeeded', 'soapFaultCode', 'soapFaultString'
+```yaml
+# sorted alphabetically
+- clientMemberClass
+- clientMemberCode
+- clientSecurityServerAddress
+- clientSubsystemCode
+- clientXRoadInstance
+
+- messageId
+- messageIssue
+- messageProtocolVersion
+- messageUserId
+- monitoringDataTs
+- representedPartyClass
+- representedPartyCode
+
+- requestAttachmentCount
+- requestInTs
+- requestMimeSize
+- requestOutTs
+- requestSoapSize
+
+- responseAttachmentCount
+- responseInTs
+- responseMimeSize
+- responseOutTs
+- responseSoapSize
+
+- securityServerInternalIp
+- securityServerType
+
+- serviceCode
+- serviceMemberClass
+- serviceMemberCode
+- serviceSecurityServerAddress
+- serviceSubsystemCode
+- serviceVersion
+- serviceXRoadInstance
+
+- soapFaultCode
+- soapFaultString
+- succeeded
 ```
 
 The fields excluded from the hash are the following:
 
-```
-'_id', 'insertTime' 'corrected'
+```yaml
+- _id
+- corrected
+- insertTime
 ```
 
-After calculating the hash it is checked that the hash doesn't already exist in the DB (clean_data).
+After calculating the hash it is checked that the hash doesn't already exist in the DB (`clean_data`).
 If it does exist, the document is skipped.
 
 If the hash doesn't exist, then possible matches are queried for the document.
 The possible matches are queried using the following rules:
-* 'messageId' == currentDocument's messageId'
-* 'correctorStatus' == 'processing'
-* (currentDoc's 'requestInTs' - 60s) <= 'requestInTs' <= (currentDoc's 'requestInTs' + 60s)
-* If the current document's 'securityServerType' == 'Client' then we query only the documents that have 'clientHash' == None
-* If the current document's 'securityServerType' == 'Producer' then we query only the documents that have 'producerHash' == None
+* `messageId` == currentDocument's messageId
+* `correctorStatus` == `processing`
+* (currentDoc's `requestInTs` - 60s) <= `requestInTs` <= (currentDoc's `requestInTs` + 60s)
+* If the current document's `securityServerType` == `Client` then we query only the documents that have `clientHash` == `None`
+If the current document's `securityServerType` == `Producer` then we query only the documents that have `producerHash` == `None`
 
 Then all the possible candidates will be first matched using regular match to make up the pair.
-The 'requestInTs' time difference must be <= 60 seconds for BOTH the regular and orphan match.
+The `requestInTs` time difference must be <= 60 seconds for BOTH the regular and orphan match.
 The fields that must be equal for regular match are the following:
 
-```
-'clientMemberClass', 'requestMimeSize', 'serviceSubsystemCode', 'requestAttachmentCount',
-'serviceSecurityServerAddress', 'messageProtocolVersion', 'responseSoapSize', 'succeeded',
-'clientSubsystemCode', 'responseAttachmentCount', 'serviceMemberClass', 'messageUserId',
-'serviceMemberCode', 'serviceXRoadInstance', 'clientSecurityServerAddress', 'clientMemberCode',
-'clientXRoadInstance', 'messageIssue', 'serviceVersion', 'requestSoapSize', 'serviceCode',
-'representedPartyClass', 'representedPartyCode', 'soapFaultCode', 'soapFaultString',
-'responseMimeSize', 'messageId'
+```yaml
+# sorted alphabetically
+- clientAttachmentCount
+- clientMemberClass
+- clientMemberCode
+- clientSecurityServerAddress
+- clientSubsystemCode
+- clientXRoadInstance
+
+- messageId
+- messageIssue
+- messageProtocolVersion
+- messageUserId
+- representedPartyClass
+- representedPartyCode
+
+- requestAttachmentCount
+- requestMimeSize
+- requestSoapSize
+
+- responseAttachmentCount
+- responseMimeSize
+- responseSoapSize
+
+- serviceCode
+- serviceMemberClass
+- serviceMemberCode
+- serviceSecurityServerAddress
+- serviceSubsystemCode
+- serviceVersion
+- serviceXRoadInstance
+
+- soapFaultCode
+- soapFaultString
+- succeeded
 ```
 
 If no match is found, then the orphan match will be used.
 The fields that must be equal for orphan match are the following:
 
-```
-'clientMemberClass', 'serviceSubsystemCode', 'serviceSecurityServerAddress', 'messageProtocolVersion', 'succeeded',
-'clientSubsystemCode', 'serviceMemberClass', 'messageUserId', 'serviceMemberCode', 'serviceXRoadInstance',
-'clientSecurityServerAddress', 'clientMemberCode', 'clientXRoadInstance', 'messageIssue', 'serviceVersion',
-'serviceCode', 'representedPartyClass', 'representedPartyCode', 'soapFaultCode', 'soapFaultString', 'messageId'
+```yaml
+# sorted alphabetically
+- clientMemberClass
+- clientMemberCode
+- clientSecurityServerAddress
+- clientSubsystemCode
+- clientXRoadInstance
+
+- messageId
+- messageIssue
+- messageProtocolVersion
+- messageUserId
+- representedPartyClass
+- representedPartyCode
+
+- serviceCode
+- serviceMemberClass
+- serviceMemberCode
+- serviceSecurityServerAddress
+- serviceSubsystemCode
+- serviceVersion
+- serviceXRoadInstance
+
+- soapFaultCode
+- soapFaultString
+- succeeded 
 ```
 
-If still no match found then the document will be added into the clean_data as "orphan".
-If the match was found then the documents will be paired and added into the clean_data as either "regular_pair" or "orphan_pair".
+If still no match found then the document will be added into the clean_data as `orphan`.
+
+If the match was found then the documents will be paired and added into the clean_data as either `regular_pair` or `orphan_pair`.
+
 
 ## Networking
 
@@ -147,7 +264,7 @@ sudo apt-get install xroad-metrics-corrector
 ```
 
 The installation package automatically installs following items:
- * xroad-metrics-correctord daemon
+ * `xroad-metrics-correctord` daemon
  * Linux user named _xroad-metrics_ and group _xroad-metrics_
  * settings file _/etc/xroad-metrics/corrector/settings.yaml_
  * systemd service unit configuration _/lib/systemd/system/xroad-metrics-corrector.service_
@@ -171,16 +288,31 @@ To use corrector you need to fill in your X-Road and MongoDB configuration into 
 ```bash
 sudo vi /etc/xroad-metrics/corrector/settings.yaml
 ```
+> [!TIP]  
+> For a complete list of available settings, please refer to this [settings.yaml](../corrector_module/etc/settings.yaml) template file.
 
 Settings that the user must fill in:
 * X-Road instance name
 * mongodb host
 * username and password for the corrector module MongoDB user
 
+### Settings Profiles
+To run corrector for multiple X-Road instances, a settings profile for each instance can be created.
+1. To have profiles `DEV`, `TEST`, and `PROD` create three copies of `setting.yaml`
+file named `settings_DEV.yaml`, `settings_TEST.yaml`, and `settings_PROD.yaml`.
+2. Fill the profile specific settings to each file 
+3. Use the `--profile` flag when running `xroad-metrics-correctord`.   
+   For example to run corrector manually using the TEST profile:
+   ```bash
+   xroad-metrics-correctord --profile TEST
+   ```
+> [!IMPORTANT]  
+> `xroad-metrics-corrector` command searches the settings file first in current working directory, then in
+`/etc/xroad-metrics/corrector/`
 
 ### Manual usage
 
-Corrector operation can be tested by running the corrector daemon manually. For production use it is recommended to set up a systemd service (see next chapter).
+Corrector operation can be tested by running the corrector daemon manually. For production use, it is recommended to set up a systemd service (see next chapter).
 
 Make sure the corrector is not running as a systemd service with:
 
@@ -195,56 +327,52 @@ To run corrector manually in the foreground as xroad-metrics user, just execute:
 xroad-metrics-correctord
 ```
 
-**Note**: Corrector module has a current limit of documents controlled by **CORRECTOR_DOCUMENTS_LIMIT** (by default set to CORRECTOR_DOCUMENTS_LIMIT = 20000) to ensure RAM and CPU is not overloaded during calculations. The CORRECTOR_DOCUMENTS_LIMIT defines the processing batch size, and is executed continuously until the total of documents left is smaller than **CORRECTOR_DOCUMENTS_MIN** documents (default set to CORRECTOR_DOCUMENTS_MIN = 1). The estimated amount of memory per processing batch is indicated at [System Architecture](system_architecture.md) documentation.
+> [!Note]
+> - Corrector module has a current limit of documents controlled by `CORRECTOR_DOCUMENTS_LIMIT` (by default set to `CORRECTOR_DOCUMENTS_LIMIT` = `20000`) to ensure RAM and CPU is not overloaded during calculations.
+> - The `CORRECTOR_DOCUMENTS_LIMIT` defines the processing batch size, and is executed continuously until the total of documents left is smaller than `CORRECTOR_DOCUMENTS_MIN` documents (default set to `CORRECTOR_DOCUMENTS_MIN` = `1`). 
+> - The estimated amount of memory per processing batch is indicated at [System Architecture](system_architecture.md) documentation.
 
-### sysetmd Service
+### systemd Service
+
+#### Default Settings Profile
+
 To run the corrector as a continuous background service under systemd execute the following commands:
-```
+```bash
 sudo systemctl enable xroad-metrics-corrector
 sudo systemctl start xroad-metrics-corrector
 ```
 
 To check the service status:
-```
+```bash
 systemctl status xroad-metrics-corrector
 ```
 
-### Settings Profiles
-To run corrector for multiple X-Road instances, a settings profile for each instance can be created. For example to have profiles DEV, TEST and PROD create three copies of `setting.yaml`
-file named `settings_DEV.yaml`, `settings_TEST.yaml` and `settings_PROD.yaml`.
-Then fill the profile specific settings to each file and use the --profile
-flag when running xroad-metrics-correctord. For example to run corrector manually using the TEST profile:
-```
-xroad-metrics-correctord --profile TEST
-```
-
-`xroad-metrics-corrector` command searches the settings file first in current working direcrtory, then in
-_/etc/xroad-metrics/corrector/_
+#### Multiples Settings Profiles
 
 To run corrector as a systemd service using a specific settings profile you need to create a service configuration.
-For example to create a service using "PROD" profile, the default service configuration can be used as a starting point:
-```
+For example to create a service using `PROD` profile, the default service configuration can be used as a starting point:
+```bash
 sudo cp  /lib/systemd/system/xroad-metrics-corrector.service /lib/systemd/system/xroad-metrics-corrector-PROD.service
 ```
 
 Then edit the config file e.g. with vi
-```
+```bash
 sudo vi /lib/systemd/system/xroad-metrics-corrector-PROD.service
 ```
 
-Modify the ExecStart line in the config file to use the wanted settings profile (PROD in this example):
-```
+Modify the `ExecStart` line in the config file to use the wanted settings profile (`PROD` in this example):
+```bash
 ExecStart=/usr/bin/xroad-metrics-correctord --profile PROD
 ```
 
 Enable and start the new service:
-```
+```bash
 sudo systemctl enable xroad-metrics-corrector-PROD
 sudo systemctl start xroad-metrics-corrector-PROD
 ```
 
 To check the service status:
-```
+```bash
 systemctl status xroad-metrics-corrector-PROD
 ```
 
@@ -289,7 +417,7 @@ Every log line includes:
 - **"local_timestamp"**: timestamp in local format '%Y-%m-%d %H:%M:%S %z'
 - **"module"**: "corrector"
 - **"version"**: in form of "v${MINOR}.${MAJOR}"
-- **"activity"**: possible valuse "corrector_main", "corrector_batch_run", "corrector_batch_start", "corrector_batch_raw", "DatabaseManager.get_raw_documents", "corrector_batch_update_timeout", "corrector_batch_update_old_to_done", "corrector_batch_remove_duplicates_from_raw", "corrector_batch_end"
+- **"activity"**: possible values "corrector_main", "corrector_batch_run", "corrector_batch_start", "corrector_batch_raw", "DatabaseManager.get_raw_documents", "corrector_batch_update_timeout", "corrector_batch_update_old_to_done", "corrector_batch_remove_duplicates_from_raw", "corrector_batch_end"
 - **level**: possible values "INFO", "WARNING", "ERROR"
 - **msg**: message
 
@@ -301,7 +429,7 @@ In case of "activity": "corrector_batch_end", the "msg" includes values separate
 
 The **corrector module** log handler is compatible with the logrotate utility. To configure log rotation for the example setup above, create the file:
 
-```
+```bash
 sudo vi /etc/logrotate.d/xroad-metrics-corrector
 ```
 
@@ -315,7 +443,7 @@ and add the following content :
 
 For further log rotation options, please refer to logrotate manual:
 
-```
+```bash
 man logrotate
 ```
 
@@ -335,7 +463,7 @@ logger:
 
 ```
 
-The heartbeat file is written to `heartbeat-path` and hearbeat file name contains the X-Road instance name.
+The heartbeat file is written to `heartbeat-path` and heartbeat file name contains the X-Road instance name.
 The above example configuration would write logs to `/var/log/xroad-metrics/corrector/heartbeat/heartbeat_corrector_EXAMPLE.json`.
 
 The heartbeat file consists last message of log file and status

@@ -25,17 +25,18 @@
 from setuptools import setup, find_packages
 
 requirements = [
-    'markupsafe==2.0.1',
-    'Jinja2==2.10.1',
-    'matplotlib==3.1.2',
+    'markupsafe==2.1.5',
+    'Jinja2==3.1.4',
+    'matplotlib==3.5.3',
     'pandas==2.0.3',
-    'weasyprint==51',
-    'Pillow==10.0.0',
-    'pymongo==3.10.1',
-    'pyyaml==5.4.1',
-    'requests==2.22.0',
+    'weasyprint==61.2',
+    'Pillow==10.3.0',
+    'pymongo==4.6.3',
+    'pyyaml==6.0.1',
+    'requests==2.32.3',
     'tinycss==0.4',
-    'jsonschema==3.2.0',
+    'jsonschema==4.22.0',
+    'numpy==1.24.4',
 ]
 
 classifiers = [

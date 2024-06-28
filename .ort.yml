@@ -1,0 +1,68 @@
+---
+excludes:
+  paths:
+  - pattern: "**/test_requirements.txt"
+    reason: "TEST_OF"
+    comment: "Requirements for testing."
+  - pattern: "3RD-PARTY-NOTICES.txt"
+    reason: "DOCUMENTATION_OF"
+    comment: "3rd party notices."
+
+  scopes:
+  - pattern: "checkstyle"
+    reason: "BUILD_DEPENDENCY_OF"
+    comment: "Packages for code styling checks (testing) only."
+
+  - pattern: "devDependencies"
+    reason: "DEV_DEPENDENCY_OF"
+    comment: "Packages for development only."
+
+  - pattern: "jacocoAgent"
+    reason: "TEST_DEPENDENCY_OF"
+    comment: "Packages for code coverage (testing) only."
+
+  - pattern: "jacocoAnt"
+    reason: "TEST_DEPENDENCY_OF"
+    comment: "Packages for code coverage (testing) only."
+
+  - pattern: "test.*"
+    reason: "TEST_DEPENDENCY_OF"
+    comment: "Packages for testing only."
+
+  - pattern: "annotationProcessor"
+    reason: "DEV_DEPENDENCY_OF"
+    comment: "Packages for development only."
+
+  - pattern: "compileClasspath"
+    reason: "DEV_DEPENDENCY_OF"
+    comment: "Packages for development only."
+
+  - pattern: "compileOnly"
+    reason: "DEV_DEPENDENCY_OF"
+    comment: "Packages for development only."
+
+resolutions:
+  rule_violations:
+    - message: "copyleft-strong license GPL-2.0-or-later in PyPI::jinja2:2.10.1."
+      reason: "LICENSE_ACQUIRED_EXCEPTION"
+      comment: "The files meant by this license hit are not in use in X-Road-Metrics."
+
+    - message: "copyleft-strong license GPL-3.0-or-later WITH GCC-exception-3.1 in PyPI::scipy:1.10.1."
+      reason: "LICENSE_ACQUIRED_EXCEPTION"
+      comment: "The exception applies, hence license acquired."
+
+    - message: "copyleft-strong license GPL-3.0-or-later WITH GCC-exception-3.1 in PyPI::numpy:1.24.4."
+      reason: "LICENSE_ACQUIRED_EXCEPTION"
+      comment: "The exception applies, hence license acquired."
+
+    - message: "copyleft-strong license GPL-3.0-only WITH GCC-exception-3.1 in PyPI::numpy:1.24.4."
+      reason: "LICENSE_ACQUIRED_EXCEPTION"
+      comment: "The exception applies, hence license acquired."
+
+    - message: "free-restricted license Bitstream-Vera in PyPI::matplotlib:3.1.2."
+      reason: "LICENSE_ACQUIRED_EXCEPTION"
+      comment: "Font files that are not modified, hence license acquired."
+
+    - message: "free-restricted license Bitstream-Vera in PyPI::matplotlib:3.1.2."
+      reason: "LICENSE_ACQUIRED_EXCEPTION"
+      comment: "Font files that are not modified, hence license acquired."
