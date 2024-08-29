@@ -25,12 +25,12 @@
 from setuptools import setup
 
 requirements = [
-    'setuptools==67.4.0',
+    'setuptools==74.0.0',
     'pymongo==4.6.3',
     'requests==2.32.3',
     'tqdm==4.66.4',
     'pyyaml==6.0.1',
-    'urllib3==1.26.18',
+    'urllib3==2.2.2',
 ]
 
 classifiers = [
