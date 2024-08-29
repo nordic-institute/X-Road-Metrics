@@ -27,15 +27,15 @@ from setuptools import setup, find_packages
 requirements = [
     'markupsafe==2.1.5',
     'Jinja2==3.1.4',
-    'matplotlib==3.5.3',
-    'pandas==2.0.3',
+    'matplotlib==3.9.2',
+    'pandas==2.2.2',
     'weasyprint==61.2',
-    'Pillow==10.3.0',
-    'pymongo==4.6.3',
-    'pyyaml==6.0.1',
+    'Pillow==10.4.0',
+    'pymongo==4.8.0',
+    'pyyaml==6.0.2',
     'requests==2.32.3',
     'tinycss==0.4',
-    'jsonschema==4.22.0',
+    'jsonschema==4.23.0',
     'numpy==1.24.4',
 ]
 
