@@ -28,8 +28,8 @@ requirements = [
     'setuptools==67.4.0',
     'dill==0.3.8',
     'django==3.2.20',
-    'pymongo==4.6.3',
-    'pyyaml==6.0.1',
+    'pymongo==4.9.1',
+    'pyyaml==6.0.2',
     'psycopg2==2.9.9',
     'python-dateutil==2.9.0.post0',
 ]

@@ -26,8 +26,8 @@ from setuptools import setup, find_packages
 
 requirements = [
     'setuptools==67.4.0',
-    'pymongo==4.6.3',
-    'pyyaml==6.0.1',
+    'pymongo==4.9.1',
+    'pyyaml==6.0.2',
     'psycopg2==2.9.9',
     'python-dateutil==2.9.0.post0',
 ]

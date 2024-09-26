@@ -26,10 +26,10 @@ from setuptools import setup
 
 requirements = [
     'setuptools==67.4.0',
-    'pymongo==4.6.3',
+    'pymongo==4.9.1',
     'requests==2.32.3',
-    'tqdm==4.66.4',
-    'pyyaml==6.0.1',
+    'tqdm==4.66.5',
+    'pyyaml==6.0.2',
     'urllib3==1.26.18',
 ]
 
