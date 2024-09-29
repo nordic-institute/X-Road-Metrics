@@ -79,7 +79,7 @@ Taking to account the operational requirements above, it is recommended to insta
 dedicated server or virtual machine. 
 
 In a usual X-Road Metrics setup there is data on two privacy levels. The MongoDb contains data that might contain
-sensitivie information like IP-addresses or personal data. That should be accessible only by the X-Road administrators.
+sensitive information like IP-addresses or personal data. That should be accessible only by the X-Road administrators.
 The open data stored in the PostgreSQL is anonymized and intended for public distribution.
 
 Thus, it is recommended to configure the network infrastructure so that the modules handling and serving the open data

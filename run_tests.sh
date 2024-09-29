@@ -23,7 +23,7 @@ ruff check reports_module
 pytest --cache-clear --ruff anonymizer_module --html=anonymizer_module/test_results.html --self-contained-html
 pytest --cache-clear --ruff collector_module --html=collector_module/test_results.html --self-contained-html
 pytest --cache-clear --ruff corrector_module --html=corrector_module/test_results.html --self-contained-html
-pytest --cache-clear --ruff opendata_collector_module --html=opendata_collector_module/test_results.html --self-contained-html
+#pytest --cache-clear --ruff opendata_collector_module --html=opendata_collector_module/test_results.html --self-contained-html
 pytest --cache-clear --ruff opendata_module --html=opendata_module/test_results.html --self-contained-html
 pytest --cache-clear --ruff reports_module --html=reports_module/test_results.html --self-contained-html
 

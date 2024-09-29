@@ -6,4 +6,4 @@ pytest-ruff
 pytest-html
 ruff
 mongomock
-freezegun==1.0.0
+freezegun==1.5.1

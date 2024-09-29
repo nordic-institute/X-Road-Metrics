@@ -16,6 +16,10 @@ def basic_args(mocker):
     args.start_date = "2017-01-01"
     args.end_date = "2017-01-01"
     args.language = "en"
+    args.settings = {
+        'reports': {
+        }
+    }
 
     return args
 

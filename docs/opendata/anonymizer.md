@@ -23,7 +23,7 @@ Anonymizer module is part of [X-Road Metrics](../../README.md), which includes t
 **Anonymizer** is a pipeline for making X-Road logs suitable for public use. 
 It is achieved by fetching still unprocessed - but corrected data - from the 
 [Corrector Module's](../corrector_module.md) output, applying the defined anonymization procedures, 
-and outputting the already anonymized data available through [Opendata module interfaces](interface_postgresql.md).
+and outputting the already anonymized data available through [Opendata module](../opendata_module.md).
 
 ### Anonymization process
 
@@ -78,7 +78,7 @@ No **incoming** connection is needed in the anonymizer module.
 
 ## Installation
 
-TODO: Update installattion instructions to use deb packages
+TODO: Update installation instructions to use deb packages
 
 This sections describes the necessary steps to install the **anonymizer module** in a Linux Ubuntu 16.04. 
 To a complete overview of different modules and machines, please refer to the [System Architecture](../system_architecture.md) and [Opendata module](../opendata_module.md) documentation.
@@ -229,7 +229,7 @@ or as an alternative, all stuff within one bash script (please edit variable INS
 Main attribute: CPUs (can anonymize in parallel, number of threads must be defined in the settings).
 
 Upscaling (more X-Road instances): additional CPUs and RAM to run Anonymizers in parallel.
-Upscaling (more services): additional CPUs and RAM to process logs faster, as evey thread gets a batch of logs
+Upscaling (more services): additional CPUs and RAM to process logs faster, as every thread gets a batch of logs
 to process.
 
 Benefits from: fast connection to MongoDB and/or PostgreSQL.
