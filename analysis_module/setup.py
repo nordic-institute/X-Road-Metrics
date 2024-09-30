@@ -24,10 +24,13 @@
 
 from setuptools import setup, find_packages
 
+# The following dependencies has newer versions, but require Python 3.9 or higher
+#   pandas, numpy, scipy
+
 requirements = [
-    'dill==0.3.8',
-    'pymongo==4.6.3',
-    'pyyaml==6.0.1',
+    'dill==0.3.9',
+    'pymongo==4.9.1',
+    'pyyaml==6.0.2',
     'numpy==1.24.4',
     'pandas==2.0.3',
     'scipy==1.10.1',

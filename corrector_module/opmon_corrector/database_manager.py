@@ -29,6 +29,8 @@ import urllib.parse
 import pymongo
 from typing import List, Optional
 
+from pymongo.database import Database
+
 from .logger_manager import LoggerManager
 from . import __version__
 
@@ -80,7 +82,7 @@ class DatabaseManager:
         host = settings['mongodb']['host']
         return f'mongodb://{user}:{password}@{host}/auth_db'
 
-    def get_query_db(self) -> pymongo.database.Database:
+    def get_query_db(self) -> Database:
         """
         Gets the specific (XRoadInstance) query database .
         :return: Returns the specific query database.
