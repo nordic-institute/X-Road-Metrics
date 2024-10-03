@@ -32,14 +32,14 @@ requirements = [
     'Jinja2==3.1.4',
     'matplotlib==3.7.5',
     'pandas==2.0.3',
-    'weasyprint==61.2',
+    'weasyprint==62.3',
     'Pillow==10.4.0',
     'pymongo==4.9.1',
     'pyyaml==6.0.2',
     'requests==2.32.3',
     'tinycss==0.4',
     'jsonschema==4.23.0',
-    'numpy==1.24.4',
+    'numpy==2.1.1',
     'contourpy==1.1.1',
 ]
 
