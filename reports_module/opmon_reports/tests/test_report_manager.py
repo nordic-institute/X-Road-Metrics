@@ -226,9 +226,9 @@ def test_get_succeeded_top(mocker, basic_args, target_subsystem):
     test_data = map_rows_to_producer_services(rows)
     succeeded_top = report_manager.get_succeeded_top(test_data, produced_service=True)
     assert succeeded_top == [
-        ('TEST_SUB: service_2', 12),
-        ('TEST_SUB: service_3', 14),
-        ('TEST_SUB: service_1', 15)
+        ('TEST_SUB: service_1', 32),
+        ('TEST_SUB: service_2', 32),
+        ('TEST_SUB: service_3', 35)
     ]
 
     test_data = map_rows_to_consumer_services(rows)
@@ -264,9 +264,9 @@ def test_get_duration(mocker, basic_args, target_subsystem):
     test_data = map_rows_to_producer_services(rows)
     duration_top = report_manager.get_duration_top(test_data, produced_service=True)
     assert duration_top == [
-        ('TEST_SUB: service_2', 90),
-        ('TEST_SUB: service_1', 100),
-        ('TEST_SUB: service_3', 110)
+        ('TEST_SUB: service_2', 39),
+        ('TEST_SUB: service_1', 43),
+        ('TEST_SUB: service_3', 47)
     ]
 
     test_data = map_rows_to_consumer_services(rows)
