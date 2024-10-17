@@ -28,18 +28,18 @@ from setuptools import setup, find_packages
 #   matplotlib, pandas, weasyprint, numpy, contourpy
 
 requirements = [
-    'markupsafe==2.1.5',
+    'markupsafe==3.0.1',
     'Jinja2==3.1.4',
     'matplotlib==3.7.5',
     'pandas==2.0.3',
-    'weasyprint==61.2',
-    'Pillow==10.4.0',
+    'weasyprint==62.3',
+    'Pillow==11.0.0',
     'pymongo==4.9.1',
     'pyyaml==6.0.2',
     'requests==2.32.3',
     'tinycss==0.4',
     'jsonschema==4.23.0',
-    'numpy==1.24.4',
+    'numpy==2.1.2',
     'contourpy==1.1.1',
 ]
 
