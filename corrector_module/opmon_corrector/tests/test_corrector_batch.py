@@ -205,7 +205,7 @@ def test_corrector_batch_timeout_documents(mongo, batch, caplog):
 
 
 @freeze_time("2022-12-24")
-def test_corrector_batch_update_after_timeout(mongo, batch):
+def test_corrector_batch_update_after_timeout(mongo):
     insert_fixture(mongo, 'raw_messages', read_fixture('raw_messages_batch_1_timeout'))
 
     settings = OpmonSettingsManager('UNITTEST').settings
