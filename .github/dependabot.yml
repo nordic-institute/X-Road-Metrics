@@ -40,6 +40,15 @@ updates:
       - dependency-name: "contourpy"
         versions:
           - ">= 1.2.0"
+      - dependency-name: "markupsafe"
+        versions:
+          - ">= 3.0.0"
+      - dependency-name: "Pillow"
+        versions:
+          - ">= 11.0"
+      - dependency-name: "django"
+        versions:
+          - ">= 5.0"
 
   - package-ecosystem: "github-actions"
     directory: "/.github/workflows"
