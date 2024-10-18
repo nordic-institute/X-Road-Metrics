@@ -399,8 +399,10 @@ class ReportManager:
                 if count <= 0:
                     continue
 
-                if name not in result_dict or result_dict[name] < count:
+                if name not in result_dict:
                     result_dict[name] = count
+                else:
+                    result_dict[name] += count
 
         sorted_pairs = sorted(result_dict.items(), key=operator.itemgetter(1))
         return sorted_pairs if len(sorted_pairs) < 6 else sorted_pairs[-5:]
@@ -421,16 +423,28 @@ class ReportManager:
         return self.create_plot(names, durations, translated_title, file_name)
 
     def get_duration_top(self, data, produced_service):
+        sum_dict = dict()
+        count_dict = dict()
         result_dict = dict()
         for key1 in data:
             for key2 in data[key1]:
-                duration = data[key1][key2].duration_avg.rounded_average
+                duration_sum = data[key1][key2].duration_avg.sum
+                query_count = data[key1][key2].duration_avg.count
+                duration_mean = data[key1][key2].duration_avg.rounded_average
                 name = f"{self.target.subsystem_code}: {key1}" if produced_service else f"{key1}: {key2}"
-                if duration is None:
+                if duration_mean is None:
                     continue
 
-                if name not in result_dict or result_dict[name] < duration:
-                    result_dict[name] = duration
+                if name not in result_dict:
+                    sum_dict[name] = duration_sum
+                    count_dict[name] = query_count
+                    result_dict[name] = duration_mean
+                else:
+                    # Calculating the average duration of a produced service by summing
+                    # the client report rows
+                    sum_dict[name] += duration_sum
+                    count_dict[name] += query_count
+                    result_dict[name] = round(sum_dict[name] / count_dict[name])
 
         sorted_pairs = sorted(result_dict.items(), key=operator.itemgetter(1))
         return sorted_pairs if len(sorted_pairs) < 6 else sorted_pairs[-5:]
