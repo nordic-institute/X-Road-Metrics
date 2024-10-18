@@ -121,7 +121,7 @@ class CorrectorWorker:
         # Let's find processing party in processing clean_data
         if len(matched_pair) == 1:
             doc = matched_pair.get('client') or matched_pair.get('producer')
-            clean_document = self.db_m.get_processing_document(doc)
+            clean_document = self.db_m.get_clean_document(doc)
 
             if clean_document:
                 if doc['securityServerType'].lower() == SECURITY_SERVER_TYPE_CLIENT:
@@ -131,7 +131,11 @@ class CorrectorWorker:
                     clean_document['producer'] = doc
                     clean_document = doc_m.apply_calculations(clean_document)
 
-                clean_document['correctorTime'] = database_manager.get_timestamp()
+                if clean_document['correctorStatus'] == 'processing':
+                    # Updating correctorTime value only when document is in 'processing' status
+                    # Updating correctorTime value when document is in 'done' status
+                    # may trigger anonymizer to insert duplicate value to opendata
+                    clean_document['correctorTime'] = database_manager.get_timestamp()
                 clean_document['correctorStatus'] = 'done'
                 clean_document['matchingType'] = 'regular_pair'
                 clean_document['xRequestId'] = x_request_id

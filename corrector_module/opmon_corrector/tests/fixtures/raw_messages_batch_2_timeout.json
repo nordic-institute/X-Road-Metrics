@@ -1,0 +1,31 @@
+[
+    {
+        "monitoringDataTs" : 1671025862,
+        "securityServerInternalIp" : "172.31.60.226",
+        "securityServerType" : "Producer",
+        "requestInTs" : 1671025861996,
+        "responseOutTs" : 1671025861999,
+        "clientXRoadInstance" : "LTT",
+        "clientMemberClass" : "TEST",
+        "clientMemberCode" : "TEST1",
+        "clientSubsystemCode" : "SUB1",
+        "serviceXRoadInstance" : "LTT",
+        "serviceMemberClass" : "TEST",
+        "serviceMemberCode" : "TEST2",
+        "serviceSubsystemCode" : "SUB2",
+        "serviceCode" : "doesnotexist",
+        "messageId" : "test",
+        "messageUserId" : "test",
+        "messageProtocolVersion" : "4.0",
+        "clientSecurityServerAddress" : "xroad-long-term-testing-ss1.i.x-road.rocks",
+        "serviceSecurityServerAddress" : "xroad-long-term-testing-rh1.i.x-road.rocks",
+        "requestSize" : 917,
+        "requestAttachmentCount" : 0,
+        "succeeded" : false,
+        "faultCode" : "Server.ServerProxy.UnknownService",
+        "faultString" : "Unknown service: SERVICE:LTT/TEST/TEST2/SUB2/doesnotexist",
+        "xRequestId" : "3d3969aa-e7a0-4c91-bcb5-bb86a3000a98",
+        "serviceType" : "WSDL",
+        "insertTime" : 1671090094.87872
+    }
+]

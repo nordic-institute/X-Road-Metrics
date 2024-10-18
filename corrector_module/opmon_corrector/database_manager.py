@@ -140,14 +140,13 @@ class DatabaseManager:
             self.logger_m.log_exception('DatabaseManager.get_raw_documents', repr(e))
             raise e
 
-    def get_processing_document(self, current_doc: dict) -> Optional[dict]:
+    def get_clean_document(self, current_doc: dict) -> Optional[dict]:
         """
-        Gets single processing document.
+        Gets single clean document.
         :param current_doc: The input document.
         :return: Returns document".
         """
         q = {
-            'correctorStatus': 'processing',
             'xRequestId': current_doc['xRequestId'],
         }
         try:
@@ -156,7 +155,7 @@ class DatabaseManager:
             document = clean_data.find_one(q)
             return document
         except Exception as e:
-            self.logger_m.log_exception('DatabaseManager.get_processing_documents', repr(e))
+            self.logger_m.log_exception('DatabaseManager.get_clean_document', repr(e))
             raise e
 
     def get_timeout_document_ids_client(self, timeout_days: int, limit: int = 1000) -> List[dict]:
