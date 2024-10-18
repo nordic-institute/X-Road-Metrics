@@ -24,6 +24,22 @@ updates:
         applies-to: version-updates
         update-types:
           - "major"
+    ignore: # ignoring the following packages as they require python >= 3.9
+      - dependency-name: "matplotlib"
+        versions:
+          - ">= 3.8.0"
+      - dependency-name: "pandas"
+        versions:
+          - ">= 2.1.0"
+      - dependency-name: "weasyprint"
+        versions:
+          - ">= 62.0"
+      - dependency-name: "numpy"
+        versions:
+          - ">= 1.25.0"
+      - dependency-name: "contourpy"
+        versions:
+          - ">= 1.2.0"
 
   - package-ecosystem: "github-actions"
     directory: "/.github/workflows"
