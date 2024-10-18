@@ -20,7 +20,7 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
 
-from django.urls import include, path
+from django.urls import include, path  # noqa: F401
 from . import views
 
 urlpatterns = [

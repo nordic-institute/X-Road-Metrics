@@ -75,19 +75,19 @@ def test_loading_settings_file_with_invalid_extension(set_dir):
     open(filename, 'a').close()
 
     with pytest.raises(FileNotFoundError):
-        settings = OpmonSettingsManager('EXTENSIONTEST').settings
+        settings = OpmonSettingsManager('EXTENSIONTEST').settings  # noqa F841
 
     os.remove(filename)
 
 
 def test_loading_non_existing_settings_file(set_dir):
     with pytest.raises(FileNotFoundError):
-        settings = OpmonSettingsManager('NOTFOUND').settings
+        settings = OpmonSettingsManager('NOTFOUND').settings  # noqa F841
 
 
 def test_loading_invalid_settings_file(set_dir):
     with pytest.raises(YAMLError):
-        settings = OpmonSettingsManager('INVALID').settings
+        settings = OpmonSettingsManager('INVALID').settings  # noqa F841
 
 
 def test_get_setting(set_dir):

@@ -21,7 +21,6 @@
 #  THE SOFTWARE.
 
 import os
-import traceback
 from typing import List, Optional
 
 from opmon_anonymizer.anonymizer import AnonymizationJob, Anonymizer

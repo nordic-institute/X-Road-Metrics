@@ -8,7 +8,6 @@ from analysis_module.opmon_analyzer.AnalyzerDatabaseManager import AnalyzerDatab
 
 import datetime
 from dateutil.relativedelta import relativedelta
-import time
 
 import pandas as pd
 

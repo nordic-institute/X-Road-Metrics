@@ -22,6 +22,7 @@
 
 import json
 from json import JSONDecodeError
+from typing import List
 
 import jsonschema
 from jsonschema import ValidationError
@@ -44,7 +45,7 @@ class OpmonXroadDescriptor:
         self.subsystem_from_arguments = reports_arguments.subsystem
         self.database = database
         self.logger = logger
-        self._data = []
+        self._data: List[dict] = []
 
         self._parse_descriptor_file()
         self._process_subsystem_from_arguments()

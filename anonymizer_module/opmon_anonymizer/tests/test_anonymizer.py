@@ -23,7 +23,7 @@
 import os
 
 import unittest
-from unittest.mock import MagicMock, Mock
+from unittest.mock import Mock
 
 from opmon_anonymizer.anonymizer import Anonymizer
 

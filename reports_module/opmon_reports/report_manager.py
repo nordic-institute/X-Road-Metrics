@@ -30,7 +30,7 @@ import matplotlib
 import numpy as np
 import pandas as pd
 from jinja2 import Environment, FileSystemLoader
-import weasyprint
+import weasyprint  # type: ignore
 
 from . import time_date_tools
 from . import tools
@@ -40,7 +40,7 @@ from .report_row import ReportRow
 from . import constants
 from .reports_arguments import OpmonReportsArguments
 from .translator import Translator
-from .xroad_descriptor import OpmonXroadDescriptor, OpmonXroadSubsystemDescriptor
+from .xroad_descriptor import OpmonXroadSubsystemDescriptor
 
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt

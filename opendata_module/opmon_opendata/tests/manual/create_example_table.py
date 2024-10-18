@@ -7,7 +7,7 @@ ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
 
 sys.path.append(os.path.join(ROOT_DIR, '../../interface/'))
 
-from settings import POSTGRES_CONFIG
+from settings import POSTGRES_CONFIG  # noqa E402
 
 
 def get_connection_string(

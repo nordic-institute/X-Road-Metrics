@@ -1,8 +1,9 @@
 coverage
 pytest
 pytest-mock
-pytest-pycodestyle
+pytest-ruff
 pytest-html
+ruff
 mongomock
 psycopg2-binary
 pytest-django
@@ -12,4 +13,3 @@ django-stubs
 pytz
 pyyaml
 pymongo-stubs
-freezegun

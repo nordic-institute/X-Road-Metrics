@@ -1,7 +1,9 @@
 coverage
 pytest
 pytest-mock
-pytest-pycodestyle
+pytest-ruff
 pytest-html
+ruff
 responses
 mongomock
+pymongo-stubs

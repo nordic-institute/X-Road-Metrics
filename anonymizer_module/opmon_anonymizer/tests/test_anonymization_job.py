@@ -24,7 +24,7 @@ import os
 import re
 
 import unittest
-from unittest.mock import Mock, MagicMock
+from unittest.mock import MagicMock
 
 from opmon_anonymizer.anonymizer import AnonymizationJob
 

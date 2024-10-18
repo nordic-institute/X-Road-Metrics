@@ -7,7 +7,6 @@ Usage example:
 
 """
 
-import os
 import locale
 import time
 from datetime import datetime
