@@ -49,6 +49,9 @@ updates:
       - dependency-name: "django"
         versions:
           - ">= 5.0"
+      - dependency-name: "pyparsing"
+        versions:
+          - ">= 3.2.0"
 
   - package-ecosystem: "github-actions"
     directory: "/.github/workflows"
