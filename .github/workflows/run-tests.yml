@@ -1,5 +1,5 @@
 name: X-Road Metrics Tests
-on: [pull_request]
+on: [workflow_dispatch, pull_request]
 jobs:
   Test-Anonymizer:
     name: Anonymizer Tests
