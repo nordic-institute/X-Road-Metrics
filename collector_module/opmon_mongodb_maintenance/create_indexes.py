@@ -22,77 +22,91 @@
 
 import logging
 
-from pymongo import ASCENDING as ASC
+from pymongo import IndexModel, ASCENDING as ASC
 from pymongo import MongoClient
+from typing import List
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__file__)
 
+class IndexRequest:
+    def __init__(self, db: str, collection: str, indexes: List[IndexModel]):
+        self.db = db
+        self.collection = collection
+        self.indexes = indexes
+
+    def get_db(self) -> str:
+        return self.db
+
+    def get_collection(self) -> str:
+        return self.collection
+
+    def get_indexes(self) -> List[IndexModel]:
+        return self.indexes
+
 indexRequests = [
-    {
-        'db': 'query_db',
-        'collection': 'raw_messages',
-        'indexes': [
-            [('requestInTs', ASC)],
-            [('corrected', ASC), ('requestInTs', ASC)]
-        ]
-    },
+    IndexRequest('query_db',
+                 'raw_messages',
+                 [
+                     IndexModel([('requestInTs', ASC)]),
+                     IndexModel([('corrected', ASC), ('requestInTs', ASC)])
+                 ]),
 
-    {
-        'db': 'query_db',
-        'collection': 'clean_data',
-        'indexes': [
-            [('xRequestId', ASC)],
-            [('correctorTime', ASC)],
-            [('correctorStatus', ASC), ('client.requestInTs', ASC)],
-            [('correctorStatus', ASC), ('producer.requestInTs', ASC)],
-            [('correctorStatus', ASC), ('xRequestId', ASC)],
-            [('client.xRequestId', ASC)],
-            [('client.requestInTs', ASC)],
-            [('client.serviceCode', ASC)],
-            [('producer.requestInTs', ASC)],
-            [('producer.serviceCode', ASC)],
-            [('producer.xRequestId', ASC)],
-            [('client.clientMemberCode', ASC), ('client.clientSubsystemCode', ASC), ('client.requestInTs', ASC)],
-            [('client.serviceMemberCode', ASC), ('client.serviceSubsystemCode', ASC), ('client.requestInTs', ASC)],
-            [('producer.clientMemberCode', ASC), ('producer.clientSubsystemCode', ASC), ('producer.requestInTs', ASC)],
-            [('producer.serviceMemberCode', ASC), ('producer.serviceSubsystemCode', ASC), ('producer.requestInTs', ASC)]
-        ]
-    },
+    IndexRequest('query_db',
+                 'clean_data',
+                 [
+                     IndexModel([('xRequestId', ASC)]),
+                     IndexModel([('correctorTime', ASC)]),
+                     IndexModel([('correctorStatus', ASC), ('client.requestInTs', ASC)]),
+                     IndexModel([('correctorStatus', ASC), ('producer.requestInTs', ASC)]),
+                     IndexModel([('correctorStatus', ASC), ('xRequestId', ASC)]),
+                     IndexModel([('client.xRequestId', ASC)]),
+                     IndexModel([('client.requestInTs', ASC)]),
+                     IndexModel([('client.serviceCode', ASC)]),
+                     IndexModel([('producer.requestInTs', ASC)]),
+                     IndexModel([('producer.serviceCode', ASC)]),
+                     IndexModel([('producer.xRequestId', ASC)]),
+                     IndexModel([('client.clientMemberCode', ASC), ('client.clientSubsystemCode', ASC),
+                                 ('client.requestInTs', ASC)]),
+                     IndexModel([('client.serviceMemberCode', ASC), ('client.serviceSubsystemCode', ASC),
+                                 ('client.requestInTs', ASC)]),
+                     IndexModel([('producer.clientMemberCode', ASC), ('producer.clientSubsystemCode', ASC),
+                                 ('producer.requestInTs', ASC)]),
+                     IndexModel([('producer.serviceMemberCode', ASC), ('producer.serviceSubsystemCode', ASC),
+                                 ('producer.requestInTs', ASC)])
+                 ]),
 
-    {
-        'db': 'collector_state',
-        'collection': 'server_list',
-        'indexes': [[('timestamp', ASC)]]
-    },
+    IndexRequest('collector_state',
+                 'server_list',
+                 [
+                     IndexModel([('timestamp', ASC)])
+                 ]),
 
-    {
-        'db': 'reports_state',
-        'collection': 'notification_queue',
-        'indexes': [
-            [('status', ASC), ('user_id', ASC)]
-        ]
-    },
+    IndexRequest('reports_state',
+                 'notification_queue',
+                 [
+                     IndexModel([('status', ASC), ('user_id', ASC)])
+                 ]),
 
-    {
-        'db': 'analyzer_database',
-        'collection': 'incident',
-        'indexes': [
-            [('incident_status', ASC), ('incident_creation_timestamp', ASC)]
-        ]
-    },
+    IndexRequest('analyzer_database',
+                 'incident',
+                 [
+                     IndexModel([('incident_status', ASC), ('incident_creation_timestamp', ASC)])
+                 ]),
 ]
 
 
 def create_indexes(xroad_instance: str, client: MongoClient):
     count = 0
     for request in indexRequests:
-        db = f"{request['db']}_{xroad_instance}"
-        collection = request['collection']
+        db = f"{request.get_db()}_{xroad_instance}"
+        collection = request.get_collection()
 
-        for index in request['indexes']:
+        for index in request.get_indexes():
             try:
-                client[db][collection].create_index(index)
+                indexes = [index]
+                cdb = client[db]
+                cdb[collection].create_indexes(indexes)
                 count += 1
             except Exception as e:
                 logger.exception('Failed to create index', str(e))
