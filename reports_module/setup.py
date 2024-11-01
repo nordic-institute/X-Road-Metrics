@@ -25,12 +25,12 @@
 from setuptools import setup, find_packages
 
 # The following dependencies has newer versions, but require Python 3.9 or higher
-#   matplotlib, pandas, weasyprint, numpy, contourpy
+#   matplotlib, pandas, weasyprint, numpy, contourpy, pyparsing
 
 requirements = [
     'markupsafe==2.1.5',
     'Jinja2==3.1.4',
-    'matplotlib==3.7.5',
+    'matplotlib==3.1.2',
     'pandas==2.0.3',
     'weasyprint==61.2',
     'Pillow==10.4.0',
@@ -41,6 +41,7 @@ requirements = [
     'jsonschema==4.23.0',
     'numpy==1.24.4',
     'contourpy==1.1.1',
+    'pyparsing==3.1.4',
 ]
 
 classifiers = [
