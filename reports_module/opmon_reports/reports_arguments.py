@@ -42,7 +42,7 @@ class OpmonReportsArguments:
         self.language = args.language
 
         if self.start_date > self.end_date:
-            raise ValueError(f"Start date cannot be after end date.")
+            raise ValueError("Start date cannot be after end date.")
 
     @property
     def start_time_milliseconds(self):

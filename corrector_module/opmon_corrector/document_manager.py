@@ -26,6 +26,7 @@
 from opmon_corrector import (SECURITY_SERVER_TYPE_CLIENT,
                              SECURITY_SERVER_TYPE_PRODUCER, __version__)
 from opmon_corrector.logger_manager import LoggerManager
+from typing import Dict, Union
 
 
 class DocumentManager:
@@ -313,7 +314,8 @@ class DocumentManager:
         :param value: The string to be escaped.
         :return: Returns escaped string.
         """
-        return value.translate(str.maketrans({'<': '&lt;', '>': '&gt;', '&': '&amp;'}))
+        translation_table: Dict[str, Union[str, int, None]] = {'<': '&lt;', '>': '&gt;', '&': '&amp;'}
+        return value.translate(str.maketrans(translation_table))
 
     @staticmethod
     def sanitize_document(document: dict) -> dict:

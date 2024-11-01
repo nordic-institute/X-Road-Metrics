@@ -31,6 +31,7 @@ import xml.etree.ElementTree as ET
 import zlib
 from enum import Enum
 from logging.handlers import RotatingFileHandler
+from xml.etree.ElementTree import Element  # noqa: F401
 from xml.etree.ElementTree import ParseError
 
 import requests
@@ -164,10 +165,13 @@ class CollectorWorker:
 
     def _process_soap_errors(self, metrics_response: str) -> None:
         try:
-            root = ET.fromstring(metrics_response)
-            fault_code = root.find('.//{http://schemas.xmlsoap.org/soap/envelope/}Fault/faultcode').text
-            fault_string = root.find('.//{http://schemas.xmlsoap.org/soap/envelope/}Fault/faultstring').text
-            fault_detail = root.find('.//{http://schemas.xmlsoap.org/soap/envelope/}Fault/detail/faultDetail').text
+            root = ET.fromstring(metrics_response)  # type: Element
+            fault_code_element = root.find('.//{http://schemas.xmlsoap.org/soap/envelope/}Fault/faultcode')
+            fault_string_element = root.find('.//{http://schemas.xmlsoap.org/soap/envelope/}Fault/faultstring')
+            fault_detail_element = root.find('.//{http://schemas.xmlsoap.org/soap/envelope/}Fault/detail/faultDetail')
+            fault_code = fault_code_element.text if fault_code_element is not None else None
+            fault_string = fault_string_element.text if fault_string_element is not None else None
+            fault_detail = fault_detail_element.text if fault_detail_element is not None else None
             if fault_code:
                 error_message = f'Message: {fault_string}. Code: {fault_code}. Detail: {fault_detail}'
                 if fault_code.startswith('Server.ClientProxy'):

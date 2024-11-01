@@ -24,9 +24,7 @@ import multiprocessing
 import time
 from collections import defaultdict
 
-from opmon_corrector import (SECURITY_SERVER_TYPE_CLIENT,
-                             SECURITY_SERVER_TYPE_PRODUCER, database_manager,
-                             document_manager)
+from opmon_corrector import database_manager, document_manager
 from opmon_corrector.corrector_worker import CorrectorWorker
 from opmon_corrector.logger_manager import LoggerManager
 

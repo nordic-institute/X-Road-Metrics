@@ -30,7 +30,6 @@ import pathlib
 import pytest
 
 import metrics_opendata_collector.main as main
-from metrics_opendata_collector.settings import MetricsSettingsManager
 
 SOURCES_SETTINGS = {
     'TEST-SOURCE1': {

@@ -72,12 +72,12 @@ def test_loading_settings_file_with_profile(set_dir):
 
 def test_loading_non_existing_settings_file(set_dir):
     with pytest.raises(FileNotFoundError):
-        settings = OpmonSettingsManager('NOTFOUND').settings
+        settings = OpmonSettingsManager('NOTFOUND').settings  #noqa F841
 
 
 def test_loading_invalid_settings_file(set_dir):
     with pytest.raises(YAMLError):
-        settings = OpmonSettingsManager('INVALID').settings
+        settings = OpmonSettingsManager('INVALID').settings  #noqa F841
 
 
 def test_get_setting(set_dir):
