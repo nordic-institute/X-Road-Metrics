@@ -209,7 +209,7 @@ class DatabaseManager:
             A dictionary containing the counts of requests for different time ranges.
             The keys in the dictionary represent the time ranges, and the values represent the corresponding request counts.
         """
-        client = MongoClient(self.mongo_uri, **dict(self.connect_args))
+        client: MongoClient = MongoClient(self.mongo_uri, **dict(self.connect_args))
         db = client[self.db_name]
         collection = db['clean_data']
 
@@ -273,7 +273,7 @@ class DatabaseManager:
         }
 
     def _get_db_service_request_counts(self, services: List[str]) -> CommandCursor:
-        client = MongoClient(self.mongo_uri, **dict(self.connect_args))
+        client: MongoClient = MongoClient(self.mongo_uri, **dict(self.connect_args))
         db = client[self.db_name]
         collection = db['clean_data']
         pipeline = self.generate_services_count_pipeline(services)
