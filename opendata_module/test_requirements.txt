@@ -12,4 +12,3 @@ freezegun
 django-stubs
 pytz
 pyyaml
-pymongo-stubs

@@ -92,61 +92,70 @@ def test_connect_postgres_with_password_prompt(mocker):
 
 
 def test_create_users(mocker):
+    cursor = mocker.Mock()
+    cursor.execute = mocker.Mock()
     postgres = mocker.Mock()
-    postgres.execute = mocker.Mock(return_value='passwords')
+    postgres.cursor.return_value = cursor
+    mocker.patch('opmon_postgresql_maintenance.create_users._generate_password', return_value='passwords')
 
     args = Namespace(xroad="foo", dummy_passwords=False)
     passwords = create_users._create_users(args, postgres)
 
-    assert postgres.execute.call_count == len(create_users.full_users) + len(create_users.read_only_users)
+    assert cursor.execute.call_count == len(create_users.full_users) + len(create_users.read_only_users)
 
     for user, pwd in passwords.items():
         assert user.endswith('_foo')
-        assert len(pwd) == 12
+        assert len(pwd) == 9
         quoted_password = QuotedString(pwd).getquoted().decode('utf-8')
         expected_call = call(f"CREATE USER {user} WITH PASSWORD {quoted_password};")
-        assert expected_call in postgres.execute.call_args_list
+        assert expected_call in cursor.execute.call_args_list
 
 
 def test_create_users_with_dummy_passwords(mocker):
+    cursor = mocker.Mock()
+    cursor.execute = mocker.Mock()
     postgres = mocker.Mock()
-    postgres.execute = mocker.Mock(return_value='passwords')
+    postgres.cursor.return_value = cursor
 
     args = Namespace(xroad="foo", dummy_passwords=True)
     passwords = create_users._create_users(args, postgres)
 
-    assert postgres.execute.call_count == len(create_users.full_users) + len(create_users.read_only_users)
+    assert cursor.execute.call_count == len(create_users.full_users) + len(create_users.read_only_users)
 
     for user, pwd in passwords.items():
         assert user.endswith('_foo')
         assert pwd == user
         quoted_password = QuotedString(pwd).getquoted().decode('utf-8')
         expected_call = call(f"CREATE USER {user} WITH PASSWORD {quoted_password};")
-        assert expected_call in postgres.execute.call_args_list
+        assert expected_call in cursor.execute.call_args_list
 
 
 def test_create_database(mocker):
+    cursor = mocker.Mock()
+    cursor.execute = mocker.Mock()
     postgres = mocker.Mock()
-    postgres.execute = mocker.Mock(return_value='passwords')
+    postgres.cursor.return_value = cursor
 
     args = Namespace(xroad="foo")
     create_users._create_database(args, postgres)
 
-    postgres.execute.assert_called_once()
-    pretty_args = ' '.join(postgres.execute.call_args[0][0].replace('\n', ' ').split())
+    cursor.execute.assert_called_once()
+    pretty_args = ' '.join(cursor.execute.call_args[0][0].replace('\n', ' ').split())
     assert pretty_args == "CREATE DATABASE opendata_foo WITH TEMPLATE template0 ENCODING 'utf8' " \
            + "LC_COLLATE 'en_US.utf8' LC_CTYPE 'en_US.utf8';"
 
 
 def test_grant_priviledges(mocker):
+    cursor = mocker.Mock()
+    cursor.execute = mocker.Mock()
     postgres = mocker.Mock()
-    postgres.execute = mocker.Mock(return_value='passwords')
+    postgres.cursor.return_value = cursor
 
     args = Namespace(xroad="foo", dummy_passwords=True)
     create_users._grant_privileges(args, postgres)
 
-    assert postgres.execute.call_count == len(create_users.full_users) + len(create_users.read_only_users)
-    for call_args_list in postgres.execute.call_args_list:
+    assert cursor.execute.call_count == len(create_users.full_users) + len(create_users.read_only_users)
+    for call_args_list in cursor.execute.call_args_list:
         assert call_args_list.args[0].startswith('GRANT')
 
 
