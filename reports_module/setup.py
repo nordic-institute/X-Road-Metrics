@@ -42,6 +42,7 @@ requirements = [
     'numpy==1.24.4',
     'contourpy==1.1.1',
     'pyparsing==3.1.4',
+    'pydyf==0.10.0',
 ]
 
 classifiers = [
