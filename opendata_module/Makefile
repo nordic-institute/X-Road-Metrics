@@ -9,3 +9,18 @@ clean:
 	@rm -rf *.egg-info/
 	@rm -rf ../htmlcov/opendata_module/
 	@echo "Project cleaned."
+
+license:
+	@echo "Checking if licenseheaders library is installed..."
+	@if pip show licenseheaders > /dev/null 2>&1; then \
+		echo "licenseheaders is installed."; \
+	else \
+		echo "licenseheaders is not installed. Installing it..."; \
+		pip install licenseheaders --no-input; \
+	fi
+	@echo "Adding license to opmon_opendata module..."
+	@licenseheaders -t ../LICENSE.MD -E py -d ./opmon_opendata
+	@echo "Adding license to opmon_postgresql_maintenance module..."
+	@licenseheaders -t ../LICENSE.MD -E py -d ./opmon_postgresql_maintenance
+	@echo "Note: bin directory is not updated by the tool. Make sure to update it manually."
+	@echo "License added."
