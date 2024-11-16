@@ -138,9 +138,9 @@ class MongoDbManager(BaseMongoDbManager):
         if not self.last_processed_timestamp:
             return
 
-        self.state_db.state.update(
+        self.state_db.state.update_one(
             {'key': 'last_mongodb_timestamp'},
-            {'key': 'last_mongodb_timestamp', 'value': str(self.last_processed_timestamp)},
+            {"$set": {'key': 'last_mongodb_timestamp', 'value': str(self.last_processed_timestamp)}},
             upsert=True
         )
 
@@ -219,8 +219,8 @@ class MongoDbOpenDataManager(BaseMongoDbManager):
         if not self.last_processed_timestamp:
             return
 
-        self.state_db.opendata_state.update(
+        self.state_db.opendata_state.update_one(
             {'key': 'last_mongodb_timestamp'},
-            {'key': 'last_mongodb_timestamp', 'value': str(self.last_processed_timestamp)},
+            {"$set": {'key': 'last_mongodb_timestamp', 'value': str(self.last_processed_timestamp)}},
             upsert=True
         )

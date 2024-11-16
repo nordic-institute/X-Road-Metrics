@@ -350,7 +350,7 @@ class DatabaseManager:
             db = self.mongodb_handler.get_reports_state_db()
             collection = db[NOTIFICATION_COLLECTION]
 
-            collection.update(
+            collection.update_one(
                 {
                     "_id": object_id
                 },
@@ -376,7 +376,7 @@ class DatabaseManager:
             db = self.mongodb_handler.get_reports_state_db()
             collection = db[NOTIFICATION_COLLECTION]
 
-            collection.update(
+            collection.update_one(
                 {
                     "_id": object_id
                 },
