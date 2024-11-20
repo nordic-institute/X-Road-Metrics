@@ -141,8 +141,9 @@ class CorrectorWorker:
                 clean_document['correctorStatus'] = 'done'
                 clean_document['matchingType'] = 'regular_pair'
                 clean_document['xRequestId'] = x_request_id
+                doc_m.correct_client_rest_path(clean_document['client'], clean_document['producer'])
                 self.db_m.update_document_clean_data(clean_document)
-                self.db_m.mark_as_corrected(doc)
+                self._post_consume_raw_document(matched_pair.get('client'), matched_pair.get('producer'))
                 return duplicates
 
         corrected_document = doc_m.create_json(
@@ -153,10 +154,9 @@ class CorrectorWorker:
         corrected_document['correctorStatus'] = 'done' if len(matched_pair) > 1 else 'processing'
         corrected_document['matchingType'] = 'regular_pair' if len(matched_pair) > 1 else 'orphan'
         corrected_document['messageId'] = message_id
+        doc_m.correct_client_rest_path(corrected_document['client'], corrected_document['producer'])
         self.db_m.add_to_clean_data(corrected_document)
-
-        for party in matched_pair:
-            self.db_m.mark_as_corrected(matched_pair[party])
+        self._post_consume_raw_document(matched_pair.get('client'), matched_pair.get('producer'))
 
         return duplicates
 
@@ -184,5 +184,23 @@ class CorrectorWorker:
         cleaned_document['xRequestId'] = ''
         cleaned_document['matchingType'] = 'orphan'
         cleaned_document['messageId'] = fixed_doc.get('message_id') or ''
+        doc_m.correct_client_rest_path(client, producer)
         self.db_m.add_to_clean_data(cleaned_document)
-        self.db_m.mark_as_corrected(fixed_doc)
+        self._post_consume_raw_document(client, producer)
+
+    def _post_consume_raw_document(self, client: dict, producer: dict):
+        """
+        Post consume raw document. If client has a restPath, correct it and mark client and producer as corrected.
+        Otherwise, just mark client and producer as corrected.
+        :param client: Client document.
+        :param producer: Producer document.
+        :return: None.
+        """
+        if client:
+            if client and client.get('restPath'):
+                rest_path = producer.get('restPath') if producer and producer.get('restPath') else "/*"
+                self.db_m.mark_as_corrected_and_correct_rest_path(client, rest_path)
+            else:
+                self.db_m.mark_as_corrected(client)
+        if producer:
+            self.db_m.mark_as_corrected(producer)
