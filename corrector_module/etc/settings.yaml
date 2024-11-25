@@ -73,6 +73,7 @@ corrector:
     - 'faultString'
     - 'responseMimeSize'
     - 'messageId'
+    - 'restMethod'
 
   # If no match is found for a record using the above criteria, it will be matched again as an "orphan".
   # Data fields that need to match in both a client record and a service record to mark the records as an orphan-match:
