@@ -23,6 +23,7 @@
 #
 
 from datetime import datetime
+from typing import List, Tuple
 
 import psycopg2 as pg
 
@@ -94,6 +95,10 @@ class PostgreSqlManager(object):
                 cursor = connection.cursor()
                 if not self._table_exists(cursor):
                     self._create_table(cursor, schema, index_columns)
+                else:
+                    missing_cols = self._get_missing_columns(cursor, schema)
+                    if missing_cols:
+                        self._add_columns(cursor, schema, missing_cols)
 
         except Exception as e:
             error = f'Failed to ensure postgres table {self._table_name} ' \
@@ -121,6 +126,24 @@ class PostgreSqlManager(object):
 
             for column_name in index_columns:
                 cursor.execute(f'CREATE INDEX {column_name}_idx ON {self._table_name} ({column_name});')
+
+    def _get_missing_columns(self, cursor: pg.extensions.cursor, schema: List[Tuple[str, str]]) -> List[str]:
+        required_cols: List[str] = [key for key, _ in schema]
+        cursor.execute("""
+            SELECT column_name FROM information_schema.columns
+            WHERE table_schema = 'public'
+            AND column_name <> 'id'
+            AND table_name = %s;
+        """, (self._table_name,))
+        existing_cols: List[str] = [row[0] for row in cursor.fetchall()]
+        missing_cols: List[str] = [col for col in required_cols if
+                                   col.lower() not in {ec.lower() for ec in existing_cols}]
+        return missing_cols
+
+    def _add_columns(self, cursor: pg.extensions.cursor, schema: List[Tuple[str, str]], cols_to_add: List[str]) -> None:
+        col_name_and_type = [(col_name, col_type) for col_name, col_type in schema if col_name in cols_to_add]
+        for col_name, col_type in col_name_and_type:
+            cursor.execute(f'ALTER TABLE {self._table_name} ADD {col_name} {col_type};')
 
     def _ensure_privileges(self):
         try:
