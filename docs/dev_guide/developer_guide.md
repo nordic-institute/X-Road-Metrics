@@ -188,19 +188,19 @@ _The `*` indicates which virtualenv is active._
 pyenv deactivate
 ```
 
-### Remove the virtual environment:
+### Remove the virtual environment
 
 ```bash
 pyenv virtualenv-delete collector
 ```
 
-### Display the list of installed Python versions:
+### Display the list of installed Python versions
 
 ```bash
 pyenv versions
 ```
 
-### Remove the Python version:
+### Remove the Python version
 
 ```bash
 pyenv uninstall 3.8.20
