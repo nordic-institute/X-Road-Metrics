@@ -51,8 +51,8 @@ sudo apt install make
 
 #### Install pyenv
 
-[!NOTE]
-For up-to-date installation instructions, please refer to [official website](https://github.com/pyenv/pyenv-installer)
+> [!NOTE]
+> For up-to-date installation instructions, please refer to [official website](https://github.com/pyenv/pyenv-installer)
 
 ```bash
 curl https://pyenv.run | bash
@@ -73,9 +73,9 @@ pyenv install 3.8.20
 
 #### Install tox
 
-[!NOTE]
-If tox is installed globally, it will be available for all virtual environments.  
-If it's not installed globally, you will need to install it for each virtual environment.
+> [!NOTE]
+> If tox is installed globally, it will be available for all virtual environments.  
+> If it's not installed globally, you will need to install it for each virtual environment.
 
 ```bash
 pip install tox
@@ -136,9 +136,9 @@ tox -e py38
 
 ### Prerequisites
 
-[!IMPORTANT]
-When opening a pull request, please provide a signed Contributor Licence Agreement (CLA). More information can be found
-[here](https://github.com/nordic-institute/X-Road/blob/develop/CONTRIBUTING.md#legal-notice).
+> [!IMPORTANT]
+> When opening a pull request, please provide a signed Contributor Licence Agreement (CLA). More information can be found
+> [here](https://github.com/nordic-institute/X-Road/blob/develop/CONTRIBUTING.md#legal-notice).
 
 For each module, run `tox` to make sure that the code is linted, typed, and tested.
 
