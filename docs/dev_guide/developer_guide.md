@@ -87,19 +87,21 @@ The following steps are required for each module when setting up the development
 
 #### Create a virtual environment
 
+> [!NOTE]
+> Replace `collector` with the module's name
+
 ```bash
 pyenv virtualenv collector
 ```
 
-_**Note:** replace `collector` with the module's name_
-
 #### Activate the virtual environment
+
+> [!NOTE]
+> Replace `collector` with the module's name
 
 ```bash
 pyenv activate collector
 ```
-
-_**Note:** replace `collector` with the module's name_
 
 ## Development Workflow
 
