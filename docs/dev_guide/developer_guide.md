@@ -10,6 +10,7 @@
       - [Install make](#install-make)
       - [Install pyenv](#install-pyenv)
       - [Install Python](#install-python)
+      - [Install setuptools](#install-setuptools)
       - [Install tox](#install-tox)
     - [Module Specific Steps](#module-specific-steps)
       - [Create a virtual environment](#create-a-virtual-environment)
@@ -69,6 +70,12 @@ Currently, the latest version is `3.8.20`. To install it:
 
 ```bash
 pyenv install 3.8.20
+```
+
+#### Install setuptools
+
+```bash
+pip install setuptools
 ```
 
 #### Install tox
