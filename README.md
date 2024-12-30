@@ -57,6 +57,8 @@ Networking module is written in [**R**](https://www.r-project.org/).
 get access to the
 [X-Road Metrics Backlog](https://nordic-institute.atlassian.net/jira/software/c/projects/OPMONDEV/boards/2/backlog).
 
+Follow the [developer's guide](./docs/dev_guide/developer_guide.md) to setup your local development environment
+
 Submit a pull request to
 [X-Road Metrics source code Github repository](https://github.com/nordic-institute/X-Road-Metrics)
 or an enhancement request to the
