@@ -77,7 +77,7 @@ Refer to section [Opendata Collector Configuration](#opendata-collector-configur
 ### Opendata Collector Configuration
 
 Before using the opendata collector module, make sure you have installed and configured the [Database_Module](database_module.md)
-and created the MongoDB credentials. For this module, specific MongoDB user `opendata_collector` has to be created. See [Database_Module](database_module.md#single-user-creation)
+and created the MongoDB credentials.
 
 To use opendata collector you need to fill in your X-Road and MongoDB configuration into the settings file.
 (here, **vi** is used):

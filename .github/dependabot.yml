@@ -8,7 +8,7 @@ updates:
       - "/anonymizer_module"
       - "/collector_module"
       - "/corrector_module"
-      #- "/opendata_collector_module"
+      - "/opendata_collector_module"
       - "/opendata_module"
       - "/reports_module"
     schedule:
