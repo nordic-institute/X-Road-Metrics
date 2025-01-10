@@ -47,7 +47,7 @@ class MongoDbManager:
             'tls': bool(settings['mongodb'].get('tls')),
             'tlsCAFile': settings['mongodb'].get('tls-ca-file'),
         }
-        self.client = MongoClient(self.get_mongo_uri(settings), **connect_args)
+        self.client: MongoClient = MongoClient(self.get_mongo_uri(settings), **connect_args)
         self.query_db = self.client[f'query_db_{xroad}']
         self.state_db = self.client[f'opendata_collector_state_{xroad}']
 
