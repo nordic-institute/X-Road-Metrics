@@ -4,4 +4,4 @@ pytest-mock
 pytest-ruff
 pytest-html
 ruff
-vcrpy==6.0.2
+vcrpy==1.5.2
