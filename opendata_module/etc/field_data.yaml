@@ -49,6 +49,12 @@ fields:
     serviceType:
         description: Type of service, possible values are WSDL, REST, OPENAPI3
         type: varchar(255)
+    restMethod:
+        description: REST method
+        type: varchar(255)
+    restPath:
+        description: REST path
+        type: varchar(255)
     messageProtocolVersion:
         description: X-Road message protocol version
         type: varchar(255)

@@ -55,6 +55,9 @@ updates:
       - dependency-name: "pydyf"
         versions:
           - ">= 0.11.0"
+      - dependency-name: "rpds-py"
+        versions:
+          - ">= 0.21.0"
 
   - package-ecosystem: "github-actions"
     directory: "/.github/workflows"
