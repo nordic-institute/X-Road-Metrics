@@ -36,6 +36,7 @@ import yaml
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__file__)
 
+explicit_roles = ['opendata_collector']
 user_roles = {
     'analyzer': {'query_db': 'read', 'analyzer_database': 'readWrite'},
     'analyzer_interface': {'query_db': 'read', 'analyzer_database': 'readWrite'},
@@ -77,8 +78,10 @@ def _create_admin_users(args, client, passwords):
 def _create_opmon_users(args, client, passwords):
     filtered_user_roles = {}
     for key, value in user_roles.items():
-        if not args.user_to_generate or key == args.user_to_generate:
+        if not args.user_to_generate and key not in explicit_roles:
             filtered_user_roles[key] = value
+        if args.user_to_generate and key == args.user_to_generate:
+            filtered_user_roles[args.user_to_generate] = value
 
     for user, roles in filtered_user_roles.items():
         user_name = f'{user}_{args.xroad}'
