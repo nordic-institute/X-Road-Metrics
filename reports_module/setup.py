@@ -29,8 +29,8 @@ from setuptools import setup, find_packages
 
 requirements = [
     'markupsafe==2.1.5',
-    'Jinja2==3.1.4',
-    'matplotlib==3.1.2',
+    'Jinja2==3.1.5',
+    'matplotlib==3.7.5',
     'pandas==2.0.3',
     'weasyprint==61.2',
     'Pillow==10.4.0',
