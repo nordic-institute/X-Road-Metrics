@@ -58,6 +58,15 @@ updates:
       - dependency-name: "rpds-py"
         versions:
           - ">= 0.21.0"
+      - dependency-name: "vcrpy"
+        versions:
+          - ">= 7.0.0"
+      - dependency-name: "setuptools"
+        versions:
+          - ">= 75.4.0"
+      - dependency-name: "urllib3"
+        versions:
+          - ">= 2.3.0"
 
   - package-ecosystem: "github-actions"
     directory: "/.github/workflows"
