@@ -22,7 +22,7 @@
 # THE SOFTWARE.
 #
 
-__version__ = '1.3.0'
+__version__ = '1.4.0'
 
 SECURITY_SERVER_TYPE_CLIENT = 'client'
 SECURITY_SERVER_TYPE_PRODUCER = 'producer'
