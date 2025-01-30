@@ -34,7 +34,7 @@ requirements = [
     'pandas==2.0.3',
     'weasyprint==61.2',
     'Pillow==10.4.0',
-    'pymongo==4.10.1',
+    'pymongo==4.11',
     'pyyaml==6.0.2',
     'requests==2.32.3',
     'tinycss==0.4',
