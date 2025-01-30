@@ -67,6 +67,9 @@ updates:
       - dependency-name: "urllib3"
         versions:
           - ">= 2.3.0"
+      - dependency-name: "pymongo"
+        versions:
+          - ">= 4.11.0"
 
   - package-ecosystem: "github-actions"
     directory: "/.github/workflows"
