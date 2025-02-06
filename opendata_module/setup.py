@@ -27,7 +27,7 @@ from setuptools import setup, find_packages
 requirements = [
     'setuptools==75.3.0',
     'dill==0.3.9',
-    'django==4.2.18',
+    'django==4.2.19',
     'pymongo==4.10.1',
     'pyyaml==6.0.2',
     'psycopg2==2.9.10',
