@@ -250,8 +250,10 @@ def _generate_password() -> str:
 
     Password contains lower-case, upper-case, numbers and special characters.
     Based on best-practice recipe from https://docs.python.org/3/library/secrets.html.
+    Some characters are avoided because they cause issues in a .yaml file, even after being escaped.
     """
-    alphabet = string.ascii_letters + string.digits + string.punctuation
+    avoid_chars = "\\"
+    alphabet = "".join(c for c in (string.ascii_letters + string.digits + string.punctuation) if c not in avoid_chars)
     while True:
         password = ''.join(secrets.choice(alphabet) for i in range(12))
         if (any(c.islower() for c in password)

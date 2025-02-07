@@ -160,6 +160,11 @@ def test_grant_priviledges(mocker):
     for call_args_list in cursor.execute.call_args_list:
         assert call_args_list.args[0].startswith('GRANT')
 
+def test_generated_password_has_no_backslashes():
+    backslash_char = "\\"
+    for _ in range(1000):
+        password = create_users._generate_password()
+        assert backslash_char not in password
 
 def test_password_escaping():
     password = """:/foo'"\\_*{}[]''"""
