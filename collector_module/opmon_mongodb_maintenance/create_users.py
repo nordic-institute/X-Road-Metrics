@@ -109,16 +109,26 @@ def _print_users(passwords: dict):
     [print(f'{user:<{width}}| {password} | {_escape_password(password)}') for user, password in passwords.items()]
 
 
+def _get_password_character_set():
+    """
+    Generate a set of characters from which to compose a password.
+    Some characters are avoided because they cause issues in a .yaml file, even after being escaped.
+    """
+    avoid_chars = "\\"
+    allowed_character_set = "".join(
+        c for c in (string.ascii_letters + string.digits + string.punctuation)
+        if c not in avoid_chars
+    )
+    return allowed_character_set
+
 def _generate_password():
     """
     Generate a random 12 character password.
 
     Password contains lower-case, upper-case, numbers and special characters.
     Based on best-practice recipe from https://docs.python.org/3/library/secrets.html.
-    Some characters are avoided because they cause issues in a .yaml file, even after being escaped.
     """
-    avoid_chars = "\\"
-    alphabet = "".join(c for c in (string.ascii_letters + string.digits + string.punctuation) if c not in avoid_chars)
+    alphabet = _get_password_character_set()
     while True:
         password = ''.join(secrets.choice(alphabet) for _ in range(12))
         if (any(c.islower() for c in password)

@@ -134,11 +134,10 @@ def test_opmon_user_generation_without_passwords(mocker):
         assert to_find in passwords.keys()
 
 
-def test_generated_password_has_no_backslashes():
+def test_password_character_set():
     backslash_char = "\\"
-    for _ in range(1000):
-        password = create_users._generate_password()
-        assert backslash_char not in password
+    allowed_chars = create_users._get_password_character_set()
+    assert backslash_char not in allowed_chars
 
 def test_password_escaping():
     password = """:/foo'"\\_*{}[]''"""
