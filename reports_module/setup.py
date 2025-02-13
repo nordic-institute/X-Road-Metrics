@@ -24,19 +24,26 @@
 
 from setuptools import setup, find_packages
 
+# The following dependencies has newer versions, but require Python 3.9 or higher
+#   matplotlib, pandas, weasyprint, numpy, contourpy, pyparsing, rpds-py
+
 requirements = [
     'markupsafe==2.1.5',
-    'Jinja2==3.1.4',
-    'matplotlib==3.5.3',
+    'Jinja2==3.1.5',
+    'matplotlib==3.7.5',
     'pandas==2.0.3',
     'weasyprint==61.2',
-    'Pillow==10.3.0',
-    'pymongo==4.6.3',
-    'pyyaml==6.0.1',
+    'Pillow==10.4.0',
+    'pymongo==4.10.1',
+    'pyyaml==6.0.2',
     'requests==2.32.3',
     'tinycss==0.4',
-    'jsonschema==4.22.0',
+    'jsonschema==4.23.0',
     'numpy==1.24.4',
+    'contourpy==1.1.1',
+    'pyparsing==3.1.4',
+    'pydyf==0.10.0',
+    "rpds-py==0.20.1"
 ]
 
 classifiers = [

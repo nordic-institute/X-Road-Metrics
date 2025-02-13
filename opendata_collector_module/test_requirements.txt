@@ -1,7 +1,7 @@
 coverage
 pytest
 pytest-mock
-pytest-pycodestyle
+pytest-ruff
 pytest-html
-vcrpy==1.5.2
-pymongo-stubs
+ruff
+vcrpy==6.0.2

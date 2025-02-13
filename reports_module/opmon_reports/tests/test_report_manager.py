@@ -1,3 +1,26 @@
+#
+# The MIT License 
+# Copyright (c) 2021- Nordic Institute for Interoperability Solutions (NIIS)
+# Copyright (c) 2017-2020 Estonian Information System Authority (RIA)
+#  
+# Permission is hereby granted, free of charge, to any person obtaining a copy 
+# of this software and associated documentation files (the "Software"), to deal 
+# in the Software without restriction, including without limitation the rights 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
+# copies of the Software, and to permit persons to whom the Software is 
+# furnished to do so, subject to the following conditions: 
+#  
+# The above copyright notice and this permission notice shall be included in 
+# all copies or substantial portions of the Software. 
+#  
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN 
+# THE SOFTWARE.
+#
 import os
 
 import pytest
@@ -226,9 +249,9 @@ def test_get_succeeded_top(mocker, basic_args, target_subsystem):
     test_data = map_rows_to_producer_services(rows)
     succeeded_top = report_manager.get_succeeded_top(test_data, produced_service=True)
     assert succeeded_top == [
-        ('TEST_SUB: service_2', 12),
-        ('TEST_SUB: service_3', 14),
-        ('TEST_SUB: service_1', 15)
+        ('TEST_SUB: service_1', 32),
+        ('TEST_SUB: service_2', 32),
+        ('TEST_SUB: service_3', 35)
     ]
 
     test_data = map_rows_to_consumer_services(rows)
@@ -264,9 +287,9 @@ def test_get_duration(mocker, basic_args, target_subsystem):
     test_data = map_rows_to_producer_services(rows)
     duration_top = report_manager.get_duration_top(test_data, produced_service=True)
     assert duration_top == [
-        ('TEST_SUB: service_2', 90),
-        ('TEST_SUB: service_1', 100),
-        ('TEST_SUB: service_3', 110)
+        ('TEST_SUB: service_2', 39),
+        ('TEST_SUB: service_1', 43),
+        ('TEST_SUB: service_3', 47)
     ]
 
     test_data = map_rows_to_consumer_services(rows)

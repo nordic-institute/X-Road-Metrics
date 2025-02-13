@@ -1,3 +1,26 @@
+#
+# The MIT License 
+# Copyright (c) 2021- Nordic Institute for Interoperability Solutions (NIIS)
+# Copyright (c) 2017-2020 Estonian Information System Authority (RIA)
+#  
+# Permission is hereby granted, free of charge, to any person obtaining a copy 
+# of this software and associated documentation files (the "Software"), to deal 
+# in the Software without restriction, including without limitation the rights 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
+# copies of the Software, and to permit persons to whom the Software is 
+# furnished to do so, subject to the following conditions: 
+#  
+# The above copyright notice and this permission notice shall be included in 
+# all copies or substantial portions of the Software. 
+#  
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN 
+# THE SOFTWARE.
+#
 import datetime
 import json
 
@@ -5,11 +28,11 @@ import pytest
 import pytz
 from freezegun import freeze_time
 
-from .test_utils import (COLUMNS, TEST_SETTINGS, db, http_client, log_factory,
-                         make_m_statistics, mock_logger_manager, mock_settings)
+from .test_utils import (COLUMNS, TEST_SETTINGS, log_factory, make_m_statistics,
+                         db, http_client, mock_settings, mock_logger_manager)  # noqa F401
 
 
-def test_get_harvest_empty_response(db, http_client):
+def test_get_harvest_empty_response(db, http_client):  # noqa F811
     data = {
         'from_dt': '2022-11-07T08:00:00+0000',
     }
@@ -25,7 +48,7 @@ def test_get_harvest_empty_response(db, http_client):
     }
 
 
-def test_get_harvest_from_tz_negative_offset(db, http_client):
+def test_get_harvest_from_tz_negative_offset(db, http_client):  # noqa F811
     data = {
         'from_dt': '2022-11-07T08:00:00-0500',
     }
@@ -33,7 +56,7 @@ def test_get_harvest_from_tz_negative_offset(db, http_client):
     assert response.status_code == 200
 
 
-def test_get_harvest_from(db, http_client, caplog):
+def test_get_harvest_from(db, http_client, caplog):  # noqa F811
     now = datetime.datetime.now()
 
     log_factory(db, request_in_dt='2022-11-07T07:50:00')
@@ -56,7 +79,7 @@ def test_get_harvest_from(db, http_client, caplog):
     assert response_data['row_range'] == '1-2'
 
 
-def test_get_harvest_from_row_id(db, http_client):
+def test_get_harvest_from_row_id(db, http_client):  # noqa F811
     log_factory(db, request_in_dt='2022-11-07T07:50:00', id=1)
     log_factory(db, request_in_dt='2022-11-07T08:00:00', id=2)
 
@@ -81,7 +104,7 @@ def test_get_harvest_from_row_id(db, http_client):
     ('2022-11-07T09:00:00+0200'),
     ('2022-11-07T09:00:00 0200')
 ])
-def test_get_harvest_timestamp_tz(db, http_client, from_dt):
+def test_get_harvest_timestamp_tz(db, http_client, from_dt):  # noqa F811
     tzinfo = pytz.timezone('Europe/Helsinki')
     log_factory(db, request_in_dt=datetime.datetime(2022, 11, 7, 7, tzinfo=tzinfo))
     log_factory(db, request_in_dt=datetime.datetime(2022, 11, 7, 8, tzinfo=tzinfo))
@@ -107,7 +130,7 @@ def test_get_harvest_timestamp_tz(db, http_client, from_dt):
     ('2011-11-07T08:00:00+0000', COLUMNS, True),
     ('2023-01-07T08:00:00+0000', [], False)
 ])
-def test_get_harvest_columns(db, http_client, from_dt, expected_columns, has_data):
+def test_get_harvest_columns(db, http_client, from_dt, expected_columns, has_data):  # noqa F811
     # Do not return columns for empty data
     log_factory(db, request_in_dt='2022-11-07T08:00:00')
     data = {
@@ -120,7 +143,7 @@ def test_get_harvest_columns(db, http_client, from_dt, expected_columns, has_dat
     assert response_data['columns'] == expected_columns
 
 
-def test_get_harvest_from_until(db, http_client):
+def test_get_harvest_from_until(db, http_client):  # noqa F811
     log_factory(db, request_in_dt='2022-11-07T07:50:00')
 
     # happy logs
@@ -143,7 +166,7 @@ def test_get_harvest_from_until(db, http_client):
     assert len(data) == 3
 
 
-def test_get_harvest_from_with_limit(db, http_client):
+def test_get_harvest_from_with_limit(db, http_client):  # noqa F811
     log_factory(db, request_in_dt='2022-11-10T08:00:00')
     log_factory(db, request_in_dt='2022-11-08T08:20:00')
     log_factory(db, request_in_dt='2022-11-05T08:47:00')
@@ -170,7 +193,7 @@ def test_get_harvest_from_with_limit(db, http_client):
     assert response_data['row_range'] == '1-4'
 
 
-def test_get_harvest_rows_less_than_limit(db, http_client):
+def test_get_harvest_rows_less_than_limit(db, http_client):  # noqa F811
     log_factory(db, request_in_dt='2022-11-07T10:34:00')
     log_factory(db, request_in_dt='2022-11-08T08:00:00')
 
@@ -192,7 +215,7 @@ def test_get_harvest_rows_less_than_limit(db, http_client):
     assert response_data['row_range'] == '1-2'
 
 
-def test_get_harvest_total_query_count(db, http_client):
+def test_get_harvest_total_query_count(db, http_client):  # noqa F811
     log_factory(db, request_in_dt='2022-11-10T08:00:00')
     log_factory(db, request_in_dt='2022-11-08T08:20:00')
     log_factory(db, request_in_dt='2022-11-05T08:47:00')
@@ -210,7 +233,7 @@ def test_get_harvest_total_query_count(db, http_client):
     assert response_data['row_range'] == '1-1'
 
 
-def test_get_harvest_from_with_limit_offset(db, http_client):
+def test_get_harvest_from_with_limit_offset(db, http_client):  # noqa F811
     log_factory(db, request_in_dt='2022-11-10T08:00:00')
     log_factory(db, request_in_dt='2022-11-08T08:20:00')
     log_factory(db, request_in_dt='2022-11-05T08:47:00')
@@ -236,7 +259,7 @@ def test_get_harvest_from_with_limit_offset(db, http_client):
     assert response_data['row_range'] == '3-6'
 
 
-def test_get_harvest_default_ordering(db, http_client):
+def test_get_harvest_default_ordering(db, http_client):  # noqa F811
     log_factory(db, request_in_dt='2022-11-15T10:34:00')
     log_factory(db, request_in_dt='2022-11-12T08:00:00')
     log_factory(db, request_in_dt='2022-11-07T09:30:00')
@@ -278,7 +301,7 @@ def test_get_harvest_default_ordering(db, http_client):
         ('2022-11-15', '5'),
     ])
 ])
-def test_get_harvest_ordering_requestinsize(db, http_client, ordering, expected_rows):
+def test_get_harvest_ordering_requestinsize(db, http_client, ordering, expected_rows):  # noqa F811
     log_factory(db, request_in_dt='2022-11-14T08:47:00', requestsize=100)
     log_factory(db, request_in_dt='2022-11-15T10:34:00', requestsize=5)
     log_factory(db, request_in_dt='2022-11-07T09:30:00', requestsize=60)
@@ -302,7 +325,7 @@ def test_get_harvest_ordering_requestinsize(db, http_client, ordering, expected_
     assert response_data['row_range'] == '1-5'
 
 
-def test_get_harvest_error_missing_from_dt(http_client, caplog):
+def test_get_harvest_error_missing_from_dt(http_client, caplog):  # noqa F811
     query = {}
     response = http_client.get('/api/harvest', query)
     assert response.status_code == 400
@@ -315,7 +338,7 @@ def test_get_harvest_error_missing_from_dt(http_client, caplog):
 
 
 @freeze_time('2022-12-10')
-def test_get_harvest_error_from_dt_later_now(http_client):
+def test_get_harvest_error_from_dt_later_now(http_client):  # noqa F811
     query = {
         'from_dt': '2022-12-11T07:00:00+0000',
     }
@@ -327,7 +350,7 @@ def test_get_harvest_error_from_dt_later_now(http_client):
     }
 
 
-def test_get_harvest_error_from_dt_format(http_client):
+def test_get_harvest_error_from_dt_format(http_client):  # noqa F811
     query = {
         'from_dt': '2022-12-11T07:00:00'
     }
@@ -339,7 +362,7 @@ def test_get_harvest_error_from_dt_format(http_client):
     }
 
 
-def test_get_harvest_error_from_dt_later_until_dt(http_client):
+def test_get_harvest_error_from_dt_later_until_dt(http_client):  # noqa F811
     query = {
         'from_dt': '2022-12-13T07:00:00+0000',
         'until_dt': '2022-12-11T07:00:00+0000',
@@ -353,7 +376,7 @@ def test_get_harvest_error_from_dt_later_until_dt(http_client):
     }
 
 
-def test_get_harvest_error_invalid_json(http_client):
+def test_get_harvest_error_invalid_json(http_client):  # noqa F811
     query = {
         'from_dt': '2022-12-13T07:00:00+0000',
         'order': 'not valid'
@@ -366,7 +389,7 @@ def test_get_harvest_error_invalid_json(http_client):
     }
 
 
-def test_get_harvest_error_order_keys(http_client):
+def test_get_harvest_error_order_keys(http_client):  # noqa F811
     query = {
         'from_dt': '2022-12-13T07:00:00+0000',
         'order': json.dumps({
@@ -382,7 +405,7 @@ def test_get_harvest_error_order_keys(http_client):
     }
 
 
-def test_get_harvest_error_order_order_values(http_client):
+def test_get_harvest_error_order_order_values(http_client):  # noqa F811
     query = {
         'from_dt': '2022-12-13T07:00:00+0000',
         'order': json.dumps({
@@ -398,7 +421,7 @@ def test_get_harvest_error_order_order_values(http_client):
     }
 
 
-def test_get_harvest_db_connection_error(http_client, caplog):
+def test_get_harvest_db_connection_error(http_client, caplog):  # noqa F811
     # test failed connection to db handled successfully
     query = {
         'from_dt': '2022-12-13T07:00:00+0000',
@@ -410,7 +433,7 @@ def test_get_harvest_db_connection_error(http_client, caplog):
     assert 'api_get_harvest_query_failed' in caplog.text
 
 
-def test_get_harvest_error_unsupported_method(http_client):
+def test_get_harvest_error_unsupported_method(http_client):  # noqa F811
     query = {
         'from_dt': '2022-12-13T07:00:00+0000',
     }
@@ -421,7 +444,7 @@ def test_get_harvest_error_unsupported_method(http_client):
 
 
 @freeze_time('2022-12-10')
-def test_get_statistics_data_success(db, http_client, caplog):
+def test_get_statistics_data_success(db, http_client, caplog):  # noqa F811
     test_member_count = [
         {'class_name': 'COM', 'description': 'Test companies', 'count': 2},
         {'class_name': 'GOV', 'description': 'Test govermental entities', 'count': 1},
@@ -455,14 +478,14 @@ def test_get_statistics_data_success(db, http_client, caplog):
     assert 'Statistics data fetched successfully' in caplog.text
 
 
-def test_get_statistics_data_error_not_found(db, http_client, caplog):
+def test_get_statistics_data_error_not_found(db, http_client, caplog):  # noqa F811
     response = http_client.get('/api/statistics')
     assert response.status_code == 404
     assert response.json() == {'error': 'Statistics data was not found!'}
     assert 'Metrics statistics data was not found in database' in caplog.text
 
 
-def test_get_statistics_data_error_server_failed(http_client, mocker, caplog):
+def test_get_statistics_data_error_server_failed(http_client, mocker, caplog):  # noqa F811
     mocker.patch(
         'opmon_opendata.api.postgresql_manager.PostgreSQL_StatisticsManager.get_latest_metrics_statistics',
         side_effect=KeyError('test')
@@ -473,7 +496,7 @@ def test_get_statistics_data_error_server_failed(http_client, mocker, caplog):
     assert 'KeyError' in caplog.text
 
 
-def test_get_settings(http_client, caplog):
+def test_get_settings(http_client, caplog):  # noqa F811
     response = http_client.get('/api/settings')
     assert response.status_code == 200
     assert response.json() == {
@@ -486,7 +509,7 @@ def test_get_settings(http_client, caplog):
     assert 'returning 5 settings' in caplog.text
 
 
-def test_get_constraints(db, http_client, caplog):
+def test_get_constraints(db, http_client, caplog):  # noqa F811
     log_factory(db, request_in_dt='2021-11-07T07:50:00')
     log_factory(db, request_in_dt='2021-11-08T07:50:00')
     log_factory(db, request_in_dt='2021-11-10T07:50:00')

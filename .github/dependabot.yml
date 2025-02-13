@@ -8,7 +8,7 @@ updates:
       - "/anonymizer_module"
       - "/collector_module"
       - "/corrector_module"
-      #- "/opendata_collector_module"
+      - "/opendata_collector_module"
       - "/opendata_module"
       - "/reports_module"
     schedule:
@@ -24,6 +24,52 @@ updates:
         applies-to: version-updates
         update-types:
           - "major"
+    ignore: # ignoring the following packages as they require python >= 3.9
+      - dependency-name: "matplotlib"
+        versions:
+          - ">= 3.8.0"
+      - dependency-name: "pandas"
+        versions:
+          - ">= 2.1.0"
+      - dependency-name: "weasyprint"
+        versions:
+          - ">= 62.0"
+      - dependency-name: "numpy"
+        versions:
+          - ">= 1.25.0"
+      - dependency-name: "contourpy"
+        versions:
+          - ">= 1.2.0"
+      - dependency-name: "markupsafe"
+        versions:
+          - ">= 3.0.0"
+      - dependency-name: "Pillow"
+        versions:
+          - ">= 11.0"
+      - dependency-name: "django"
+        versions:
+          - ">= 5.0"
+      - dependency-name: "pyparsing"
+        versions:
+          - ">= 3.2.0"
+      - dependency-name: "pydyf"
+        versions:
+          - ">= 0.11.0"
+      - dependency-name: "rpds-py"
+        versions:
+          - ">= 0.21.0"
+      - dependency-name: "vcrpy"
+        versions:
+          - ">= 7.0.0"
+      - dependency-name: "setuptools"
+        versions:
+          - ">= 75.4.0"
+      - dependency-name: "urllib3"
+        versions:
+          - ">= 2.3.0"
+      - dependency-name: "pymongo"
+        versions:
+          - ">= 4.11.0"
 
   - package-ecosystem: "github-actions"
     directory: "/.github/workflows"

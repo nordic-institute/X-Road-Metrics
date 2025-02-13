@@ -1,31 +1,34 @@
-""" Document Manager - Corrector Module
+#
+# The MIT License 
+# Copyright (c) 2021- Nordic Institute for Interoperability Solutions (NIIS)
+# Copyright (c) 2017-2020 Estonian Information System Authority (RIA)
+#  
+# Permission is hereby granted, free of charge, to any person obtaining a copy 
+# of this software and associated documentation files (the "Software"), to deal 
+# in the Software without restriction, including without limitation the rights 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
+# copies of the Software, and to permit persons to whom the Software is 
+# furnished to do so, subject to the following conditions: 
+#  
+# The above copyright notice and this permission notice shall be included in 
+# all copies or substantial portions of the Software. 
+#  
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN 
+# THE SOFTWARE.
+#
 """
-
-#  The MIT License
-#  Copyright (c) 2021- Nordic Institute for Interoperability Solutions (NIIS)
-#  Copyright (c) 2017-2020 Estonian Information System Authority (RIA)
-#
-#  Permission is hereby granted, free of charge, to any person obtaining a copy
-#  of this software and associated documentation files (the "Software"), to deal
-#  in the Software without restriction, including without limitation the rights
-#  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-#  copies of the Software, and to permit persons to whom the Software is
-#  furnished to do so, subject to the following conditions:
-#
-#  The above copyright notice and this permission notice shall be included in
-#  all copies or substantial portions of the Software.
-#
-#  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-#  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-#  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-#  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-#  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-#  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-#  THE SOFTWARE.
+Document Manager - Corrector Module
+"""
 
 from opmon_corrector import (SECURITY_SERVER_TYPE_CLIENT,
                              SECURITY_SERVER_TYPE_PRODUCER, __version__)
 from opmon_corrector.logger_manager import LoggerManager
+from typing import Dict, Union
 
 
 class DocumentManager:
@@ -313,7 +316,8 @@ class DocumentManager:
         :param value: The string to be escaped.
         :return: Returns escaped string.
         """
-        return value.translate(str.maketrans({'<': '&lt;', '>': '&gt;', '&': '&amp;'}))
+        translation_table: Dict[str, Union[str, int, None]] = {'<': '&lt;', '>': '&gt;', '&': '&amp;'}
+        return value.translate(str.maketrans(translation_table))
 
     @staticmethod
     def sanitize_document(document: dict) -> dict:
@@ -328,7 +332,7 @@ class DocumentManager:
         }
         return sanitized_document
 
-    def correct_structure(self, doc):
+    def correct_structure(self, doc: dict) -> dict:
         """
         Check that documents have all required fields.
         Try to fill in missing fields by heuristics or set them to None as last resort.
@@ -352,3 +356,11 @@ class DocumentManager:
             if f not in doc:
                 doc[f] = None
         return doc
+
+    @staticmethod
+    def correct_client_rest_path(client: dict, producer: dict):
+        if client and client.get('restPath'):
+            if producer and producer.get('restPath'):
+                client['restPath'] = producer.get('restPath')
+            else:
+                client['restPath'] = "/*"

@@ -1,24 +1,26 @@
-#  The MIT License
-#  Copyright (c) 2021- Nordic Institute for Interoperability Solutions (NIIS)
-#  Copyright (c) 2017-2020 Estonian Information System Authority (RIA)
 #
-#  Permission is hereby granted, free of charge, to any person obtaining a copy
-#  of this software and associated documentation files (the "Software"), to deal
-#  in the Software without restriction, including without limitation the rights
-#  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-#  copies of the Software, and to permit persons to whom the Software is
-#  furnished to do so, subject to the following conditions:
+# The MIT License 
+# Copyright (c) 2021- Nordic Institute for Interoperability Solutions (NIIS)
+# Copyright (c) 2017-2020 Estonian Information System Authority (RIA)
+#  
+# Permission is hereby granted, free of charge, to any person obtaining a copy 
+# of this software and associated documentation files (the "Software"), to deal 
+# in the Software without restriction, including without limitation the rights 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
+# copies of the Software, and to permit persons to whom the Software is 
+# furnished to do so, subject to the following conditions: 
+#  
+# The above copyright notice and this permission notice shall be included in 
+# all copies or substantial portions of the Software. 
+#  
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN 
+# THE SOFTWARE.
 #
-#  The above copyright notice and this permission notice shall be included in
-#  all copies or substantial portions of the Software.
-#
-#  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-#  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-#  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-#  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-#  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-#  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-#  THE SOFTWARE.
 
 import queue
 
@@ -121,7 +123,7 @@ class CorrectorWorker:
         # Let's find processing party in processing clean_data
         if len(matched_pair) == 1:
             doc = matched_pair.get('client') or matched_pair.get('producer')
-            clean_document = self.db_m.get_processing_document(doc)
+            clean_document = self.db_m.get_clean_document(doc)
 
             if clean_document:
                 if doc['securityServerType'].lower() == SECURITY_SERVER_TYPE_CLIENT:
@@ -131,12 +133,17 @@ class CorrectorWorker:
                     clean_document['producer'] = doc
                     clean_document = doc_m.apply_calculations(clean_document)
 
-                clean_document['correctorTime'] = database_manager.get_timestamp()
+                if clean_document['correctorStatus'] == 'processing':
+                    # Updating correctorTime value only when document is in 'processing' status
+                    # Updating correctorTime value when document is in 'done' status
+                    # may trigger anonymizer to insert duplicate value to opendata
+                    clean_document['correctorTime'] = database_manager.get_timestamp()
                 clean_document['correctorStatus'] = 'done'
                 clean_document['matchingType'] = 'regular_pair'
                 clean_document['xRequestId'] = x_request_id
+                doc_m.correct_client_rest_path(clean_document['client'], clean_document['producer'])
                 self.db_m.update_document_clean_data(clean_document)
-                self.db_m.mark_as_corrected(doc)
+                self._post_consume_raw_document(matched_pair.get('client'), matched_pair.get('producer'))
                 return duplicates
 
         corrected_document = doc_m.create_json(
@@ -147,10 +154,9 @@ class CorrectorWorker:
         corrected_document['correctorStatus'] = 'done' if len(matched_pair) > 1 else 'processing'
         corrected_document['matchingType'] = 'regular_pair' if len(matched_pair) > 1 else 'orphan'
         corrected_document['messageId'] = message_id
+        doc_m.correct_client_rest_path(corrected_document['client'], corrected_document['producer'])
         self.db_m.add_to_clean_data(corrected_document)
-
-        for party in matched_pair:
-            self.db_m.mark_as_corrected(matched_pair[party])
+        self._post_consume_raw_document(matched_pair.get('client'), matched_pair.get('producer'))
 
         return duplicates
 
@@ -178,5 +184,23 @@ class CorrectorWorker:
         cleaned_document['xRequestId'] = ''
         cleaned_document['matchingType'] = 'orphan'
         cleaned_document['messageId'] = fixed_doc.get('message_id') or ''
+        doc_m.correct_client_rest_path(client, producer)
         self.db_m.add_to_clean_data(cleaned_document)
-        self.db_m.mark_as_corrected(fixed_doc)
+        self._post_consume_raw_document(client, producer)
+
+    def _post_consume_raw_document(self, client: dict, producer: dict):
+        """
+        Post consume raw document. If client has a restPath, correct it and mark client and producer as corrected.
+        Otherwise, just mark client and producer as corrected.
+        :param client: Client document.
+        :param producer: Producer document.
+        :return: None.
+        """
+        if client:
+            if client and client.get('restPath'):
+                rest_path = producer.get('restPath') if producer and producer.get('restPath') else "/*"
+                self.db_m.mark_as_corrected_and_correct_rest_path(client, rest_path)
+            else:
+                self.db_m.mark_as_corrected(client)
+        if producer:
+            self.db_m.mark_as_corrected(producer)

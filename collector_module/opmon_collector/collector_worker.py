@@ -1,24 +1,26 @@
-#  The MIT License
-#  Copyright (c) 2021- Nordic Institute for Interoperability Solutions (NIIS)
-#  Copyright (c) 2017-2020 Estonian Information System Authority (RIA)
 #
-#  Permission is hereby granted, free of charge, to any person obtaining a copy
-#  of this software and associated documentation files (the "Software"), to deal
-#  in the Software without restriction, including without limitation the rights
-#  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-#  copies of the Software, and to permit persons to whom the Software is
-#  furnished to do so, subject to the following conditions:
+# The MIT License 
+# Copyright (c) 2021- Nordic Institute for Interoperability Solutions (NIIS)
+# Copyright (c) 2017-2020 Estonian Information System Authority (RIA)
+#  
+# Permission is hereby granted, free of charge, to any person obtaining a copy 
+# of this software and associated documentation files (the "Software"), to deal 
+# in the Software without restriction, including without limitation the rights 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
+# copies of the Software, and to permit persons to whom the Software is 
+# furnished to do so, subject to the following conditions: 
+#  
+# The above copyright notice and this permission notice shall be included in 
+# all copies or substantial portions of the Software. 
+#  
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN 
+# THE SOFTWARE.
 #
-#  The above copyright notice and this permission notice shall be included in
-#  all copies or substantial portions of the Software.
-#
-#  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-#  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-#  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-#  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-#  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-#  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-#  THE SOFTWARE.
 
 import datetime
 import json
@@ -31,6 +33,7 @@ import xml.etree.ElementTree as ET
 import zlib
 from enum import Enum
 from logging.handlers import RotatingFileHandler
+from xml.etree.ElementTree import Element  # noqa: F401
 from xml.etree.ElementTree import ParseError
 
 import requests
@@ -164,10 +167,13 @@ class CollectorWorker:
 
     def _process_soap_errors(self, metrics_response: str) -> None:
         try:
-            root = ET.fromstring(metrics_response)
-            fault_code = root.find('.//{http://schemas.xmlsoap.org/soap/envelope/}Fault/faultcode').text
-            fault_string = root.find('.//{http://schemas.xmlsoap.org/soap/envelope/}Fault/faultstring').text
-            fault_detail = root.find('.//{http://schemas.xmlsoap.org/soap/envelope/}Fault/detail/faultDetail').text
+            root = ET.fromstring(metrics_response)  # type: Element
+            fault_code_element = root.find('.//{http://schemas.xmlsoap.org/soap/envelope/}Fault/faultcode')
+            fault_string_element = root.find('.//{http://schemas.xmlsoap.org/soap/envelope/}Fault/faultstring')
+            fault_detail_element = root.find('.//{http://schemas.xmlsoap.org/soap/envelope/}Fault/detail/faultDetail')
+            fault_code = fault_code_element.text if fault_code_element is not None else None
+            fault_string = fault_string_element.text if fault_string_element is not None else None
+            fault_detail = fault_detail_element.text if fault_detail_element is not None else None
             if fault_code:
                 error_message = f'Message: {fault_string}. Code: {fault_code}. Detail: {fault_detail}'
                 if fault_code.startswith('Server.ClientProxy'):

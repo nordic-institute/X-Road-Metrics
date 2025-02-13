@@ -1,24 +1,26 @@
-#  The MIT License
-#  Copyright (c) 2021- Nordic Institute for Interoperability Solutions (NIIS)
-#  Copyright (c) 2017-2020 Estonian Information System Authority (RIA)
 #
-#  Permission is hereby granted, free of charge, to any person obtaining a copy
-#  of this software and associated documentation files (the "Software"), to deal
-#  in the Software without restriction, including without limitation the rights
-#  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-#  copies of the Software, and to permit persons to whom the Software is
-#  furnished to do so, subject to the following conditions:
+# The MIT License 
+# Copyright (c) 2021- Nordic Institute for Interoperability Solutions (NIIS)
+# Copyright (c) 2017-2020 Estonian Information System Authority (RIA)
+#  
+# Permission is hereby granted, free of charge, to any person obtaining a copy 
+# of this software and associated documentation files (the "Software"), to deal 
+# in the Software without restriction, including without limitation the rights 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
+# copies of the Software, and to permit persons to whom the Software is 
+# furnished to do so, subject to the following conditions: 
+#  
+# The above copyright notice and this permission notice shall be included in 
+# all copies or substantial portions of the Software. 
+#  
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN 
+# THE SOFTWARE.
 #
-#  The above copyright notice and this permission notice shall be included in
-#  all copies or substantial portions of the Software.
-#
-#  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-#  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-#  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-#  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-#  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-#  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-#  THE SOFTWARE.
 
 import operator
 import os
@@ -30,7 +32,7 @@ import matplotlib
 import numpy as np
 import pandas as pd
 from jinja2 import Environment, FileSystemLoader
-import weasyprint
+import weasyprint  # type: ignore
 
 from . import time_date_tools
 from . import tools
@@ -40,7 +42,7 @@ from .report_row import ReportRow
 from . import constants
 from .reports_arguments import OpmonReportsArguments
 from .translator import Translator
-from .xroad_descriptor import OpmonXroadDescriptor, OpmonXroadSubsystemDescriptor
+from .xroad_descriptor import OpmonXroadSubsystemDescriptor
 
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -399,8 +401,10 @@ class ReportManager:
                 if count <= 0:
                     continue
 
-                if name not in result_dict or result_dict[name] < count:
+                if name not in result_dict:
                     result_dict[name] = count
+                else:
+                    result_dict[name] += count
 
         sorted_pairs = sorted(result_dict.items(), key=operator.itemgetter(1))
         return sorted_pairs if len(sorted_pairs) < 6 else sorted_pairs[-5:]
@@ -421,16 +425,28 @@ class ReportManager:
         return self.create_plot(names, durations, translated_title, file_name)
 
     def get_duration_top(self, data, produced_service):
+        sum_dict = dict()
+        count_dict = dict()
         result_dict = dict()
         for key1 in data:
             for key2 in data[key1]:
-                duration = data[key1][key2].duration_avg.rounded_average
+                duration_sum = data[key1][key2].duration_avg.sum
+                query_count = data[key1][key2].duration_avg.count
+                duration_mean = data[key1][key2].duration_avg.rounded_average
                 name = f"{self.target.subsystem_code}: {key1}" if produced_service else f"{key1}: {key2}"
-                if duration is None:
+                if duration_mean is None:
                     continue
 
-                if name not in result_dict or result_dict[name] < duration:
-                    result_dict[name] = duration
+                if name not in result_dict:
+                    sum_dict[name] = duration_sum
+                    count_dict[name] = query_count
+                    result_dict[name] = duration_mean
+                else:
+                    # Calculating the average duration of a produced service by summing
+                    # the client report rows
+                    sum_dict[name] += duration_sum
+                    count_dict[name] += query_count
+                    result_dict[name] = round(sum_dict[name] / count_dict[name])
 
         sorted_pairs = sorted(result_dict.items(), key=operator.itemgetter(1))
         return sorted_pairs if len(sorted_pairs) < 6 else sorted_pairs[-5:]

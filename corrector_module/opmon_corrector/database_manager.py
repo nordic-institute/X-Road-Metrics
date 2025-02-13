@@ -1,33 +1,37 @@
-""" Database Manager - Corrector Module
+#
+# The MIT License 
+# Copyright (c) 2021- Nordic Institute for Interoperability Solutions (NIIS)
+# Copyright (c) 2017-2020 Estonian Information System Authority (RIA)
+#  
+# Permission is hereby granted, free of charge, to any person obtaining a copy 
+# of this software and associated documentation files (the "Software"), to deal 
+# in the Software without restriction, including without limitation the rights 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
+# copies of the Software, and to permit persons to whom the Software is 
+# furnished to do so, subject to the following conditions: 
+#  
+# The above copyright notice and this permission notice shall be included in 
+# all copies or substantial portions of the Software. 
+#  
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN 
+# THE SOFTWARE.
+#
 """
-
-#  The MIT License
-#  Copyright (c) 2021- Nordic Institute for Interoperability Solutions (NIIS)
-#  Copyright (c) 2017-2020 Estonian Information System Authority (RIA)
-#
-#  Permission is hereby granted, free of charge, to any person obtaining a copy
-#  of this software and associated documentation files (the "Software"), to deal
-#  in the Software without restriction, including without limitation the rights
-#  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-#  copies of the Software, and to permit persons to whom the Software is
-#  furnished to do so, subject to the following conditions:
-#
-#  The above copyright notice and this permission notice shall be included in
-#  all copies or substantial portions of the Software.
-#
-#  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-#  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-#  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-#  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-#  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-#  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-#  THE SOFTWARE.
+Database Manager - Corrector Module
+"""
 
 import time
 from datetime import datetime
 import urllib.parse
 import pymongo
 from typing import List, Optional
+
+from pymongo.database import Database
 
 from .logger_manager import LoggerManager
 from . import __version__
@@ -80,7 +84,7 @@ class DatabaseManager:
         host = settings['mongodb']['host']
         return f'mongodb://{user}:{password}@{host}/auth_db'
 
-    def get_query_db(self) -> pymongo.database.Database:
+    def get_query_db(self) -> Database:
         """
         Gets the specific (XRoadInstance) query database .
         :return: Returns the specific query database.
@@ -98,6 +102,18 @@ class DatabaseManager:
         db = self.get_query_db()
         raw_data = db[RAW_DATA_COLLECTION]
         raw_data.update_one({'_id': doc_id}, {'$set': {'corrected': True}})
+
+    def mark_as_corrected_and_correct_rest_path(self, document: dict, rest_path: str) -> None:
+        """
+        Marks a specific document's "corrected" status to "True" and update restPath value with the new one.
+        :param document: The input document.
+        :param rest_path: The input restPath to be used to override existing value.
+        :return: None
+        """
+        doc_id = document['_id']
+        db = self.get_query_db()
+        raw_data = db[RAW_DATA_COLLECTION]
+        raw_data.update_one({'_id': doc_id}, {'$set': {'corrected': True, 'restPath': rest_path}})
 
     def get_faulty_raw_documents(self, limit: int = 1000) -> List[dict]:
         """
@@ -138,14 +154,13 @@ class DatabaseManager:
             self.logger_m.log_exception('DatabaseManager.get_raw_documents', repr(e))
             raise e
 
-    def get_processing_document(self, current_doc: dict) -> Optional[dict]:
+    def get_clean_document(self, current_doc: dict) -> Optional[dict]:
         """
-        Gets single processing document.
+        Gets single clean document.
         :param current_doc: The input document.
         :return: Returns document".
         """
         q = {
-            'correctorStatus': 'processing',
             'xRequestId': current_doc['xRequestId'],
         }
         try:
@@ -154,7 +169,7 @@ class DatabaseManager:
             document = clean_data.find_one(q)
             return document
         except Exception as e:
-            self.logger_m.log_exception('DatabaseManager.get_processing_documents', repr(e))
+            self.logger_m.log_exception('DatabaseManager.get_clean_document', repr(e))
             raise e
 
     def get_timeout_document_ids_client(self, timeout_days: int, limit: int = 1000) -> List[dict]:
@@ -232,7 +247,7 @@ class DatabaseManager:
         try:
             db = self.get_query_db()
             clean_data = db[CLEAN_DATA_COLLECTION]
-            clean_data.replace_one({'_id': document['_id']}, document)
+            clean_data.update_one({'_id': document['_id']}, {"$set": document})
         except Exception as e:
             self.logger_m.log_exception('DatabaseManager.update_form_clean_data', repr(e))
             raise e

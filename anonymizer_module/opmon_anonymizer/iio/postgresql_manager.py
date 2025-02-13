@@ -1,26 +1,29 @@
-#  The MIT License
-#  Copyright (c) 2021- Nordic Institute for Interoperability Solutions (NIIS)
-#  Copyright (c) 2017-2020 Estonian Information System Authority (RIA)
 #
-#  Permission is hereby granted, free of charge, to any person obtaining a copy
-#  of this software and associated documentation files (the "Software"), to deal
-#  in the Software without restriction, including without limitation the rights
-#  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-#  copies of the Software, and to permit persons to whom the Software is
-#  furnished to do so, subject to the following conditions:
+# The MIT License 
+# Copyright (c) 2021- Nordic Institute for Interoperability Solutions (NIIS)
+# Copyright (c) 2017-2020 Estonian Information System Authority (RIA)
+#  
+# Permission is hereby granted, free of charge, to any person obtaining a copy 
+# of this software and associated documentation files (the "Software"), to deal 
+# in the Software without restriction, including without limitation the rights 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
+# copies of the Software, and to permit persons to whom the Software is 
+# furnished to do so, subject to the following conditions: 
+#  
+# The above copyright notice and this permission notice shall be included in 
+# all copies or substantial portions of the Software. 
+#  
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN 
+# THE SOFTWARE.
 #
-#  The above copyright notice and this permission notice shall be included in
-#  all copies or substantial portions of the Software.
-#
-#  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-#  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-#  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-#  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-#  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-#  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-#  THE SOFTWARE.
 
 from datetime import datetime
+from typing import List, Tuple
 
 import psycopg2 as pg
 
@@ -92,6 +95,10 @@ class PostgreSqlManager(object):
                 cursor = connection.cursor()
                 if not self._table_exists(cursor):
                     self._create_table(cursor, schema, index_columns)
+                else:
+                    missing_cols = self._get_missing_columns(cursor, schema)
+                    if missing_cols:
+                        self._add_columns(cursor, schema, missing_cols)
 
         except Exception as e:
             error = f'Failed to ensure postgres table {self._table_name} ' \
@@ -119,6 +126,24 @@ class PostgreSqlManager(object):
 
             for column_name in index_columns:
                 cursor.execute(f'CREATE INDEX {column_name}_idx ON {self._table_name} ({column_name});')
+
+    def _get_missing_columns(self, cursor: pg.extensions.cursor, schema: List[Tuple[str, str]]) -> List[str]:
+        required_cols: List[str] = [key for key, _ in schema]
+        cursor.execute("""
+            SELECT column_name FROM information_schema.columns
+            WHERE table_schema = 'public'
+            AND column_name <> 'id'
+            AND table_name = %s;
+        """, (self._table_name,))
+        existing_cols: List[str] = [row[0] for row in cursor.fetchall()]
+        missing_cols: List[str] = [col for col in required_cols if
+                                   col.lower() not in {ec.lower() for ec in existing_cols}]
+        return missing_cols
+
+    def _add_columns(self, cursor: pg.extensions.cursor, schema: List[Tuple[str, str]], cols_to_add: List[str]) -> None:
+        col_name_and_type = [(col_name, col_type) for col_name, col_type in schema if col_name in cols_to_add]
+        for col_name, col_type in col_name_and_type:
+            cursor.execute(f'ALTER TABLE {self._table_name} ADD {col_name} {col_type};')
 
     def _ensure_privileges(self):
         try:

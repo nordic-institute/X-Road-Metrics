@@ -1,0 +1,28 @@
+[
+    {
+        "monitoringDataTs" : 1671017183,
+        "securityServerType" : "Client",
+        "requestInTs" : 1671017180701,
+        "requestOutTs" : 1671017180702,
+        "responseOutTs" : 1671017183763,
+        "clientXRoadInstance" : "LTT",
+        "clientMemberClass" : "CS",
+        "clientMemberCode" : "CS1",
+        "clientSubsystemCode" : "MANAGEMENT",
+        "serviceXRoadInstance" : "LTT",
+        "serviceMemberClass" : "TEST",
+        "serviceMemberCode" : "TEST3",
+        "serviceCode" : "getSecurityServerOperationalData",
+        "messageId" : "2b16933c-c473-4a82-8265-7c11518e7f3b",
+        "messageProtocolVersion" : "4.0",
+        "clientSecurityServerAddress" : "xroad-long-term-testing-ss1.i.x-road.rocks",
+        "serviceSecurityServerAddress" : "xroad-long-term-testing-sidecar.i.x-road.rocks",
+        "requestSize" : 1989,
+        "succeeded" : false,
+        "faultCode" : "Server.ClientProxy.NetworkError",
+        "faultString" : "Could not connect to any target host ([https://xroad-long-term-testing-sidecar.i.x-road.rocks:5500/])",
+        "xRequestId" : "3d3969aa-e7a0-4c91-bcb5-bb86a3000a98",
+        "serviceType" : "WSDL",
+        "insertTime" : 1671023580.82181
+    }
+]

@@ -48,3 +48,7 @@ client.messageId -> messageId
 producer.messageId -> messageId
 client.serviceType -> serviceType
 producer.serviceType -> serviceType
+client.restMethod -> restMethod
+producer.restMethod -> restMethod
+client.restPath -> restPath
+producer.restPath -> restPath

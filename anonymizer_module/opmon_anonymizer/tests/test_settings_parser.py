@@ -1,4 +1,27 @@
 #!/usr/bin/env python3
+#
+# The MIT License 
+# Copyright (c) 2021- Nordic Institute for Interoperability Solutions (NIIS)
+# Copyright (c) 2017-2020 Estonian Information System Authority (RIA)
+#  
+# Permission is hereby granted, free of charge, to any person obtaining a copy 
+# of this software and associated documentation files (the "Software"), to deal 
+# in the Software without restriction, including without limitation the rights 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
+# copies of the Software, and to permit persons to whom the Software is 
+# furnished to do so, subject to the following conditions: 
+#  
+# The above copyright notice and this permission notice shall be included in 
+# all copies or substantial portions of the Software. 
+#  
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN 
+# THE SOFTWARE.
+#
 
 """
 Unit tests for collector settings.py
@@ -72,12 +95,12 @@ def test_loading_settings_file_with_profile(set_dir):
 
 def test_loading_non_existing_settings_file(set_dir):
     with pytest.raises(FileNotFoundError):
-        settings = OpmonSettingsManager('NOTFOUND').settings
+        settings = OpmonSettingsManager('NOTFOUND').settings  #noqa F841
 
 
 def test_loading_invalid_settings_file(set_dir):
     with pytest.raises(YAMLError):
-        settings = OpmonSettingsManager('INVALID').settings
+        settings = OpmonSettingsManager('INVALID').settings  #noqa F841
 
 
 def test_get_setting(set_dir):

@@ -1,13 +1,12 @@
 coverage
 pytest
 pytest-mock
-pytest-pycodestyle
+pytest-ruff
 pytest-html
+ruff
 mongomock
 psycopg2-binary
 mypy
-pymongo-stubs
 freezegun
 pyyaml
 requests
-

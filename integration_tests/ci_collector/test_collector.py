@@ -1,3 +1,26 @@
+#
+# The MIT License 
+# Copyright (c) 2021- Nordic Institute for Interoperability Solutions (NIIS)
+# Copyright (c) 2017-2020 Estonian Information System Authority (RIA)
+#  
+# Permission is hereby granted, free of charge, to any person obtaining a copy 
+# of this software and associated documentation files (the "Software"), to deal 
+# in the Software without restriction, including without limitation the rights 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
+# copies of the Software, and to permit persons to whom the Software is 
+# furnished to do so, subject to the following conditions: 
+#  
+# The above copyright notice and this permission notice shall be included in 
+# all copies or substantial portions of the Software. 
+#  
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN 
+# THE SOFTWARE.
+#
 import os
 import signal
 import subprocess
@@ -16,7 +39,7 @@ def test_update_server_list():
     _, timestamp_0 = data['server_list'], data['timestamp']
     assert timestamp_0 < time.time()
 
-    command = f"xroad-metrics-collector update".split(' ')
+    command = "xroad-metrics-collector update".split(' ')
     proc = subprocess.run(command, capture_output=True)
     assert proc.stderr == b''
     assert proc.returncode == 0
@@ -39,7 +62,7 @@ def test_collect():
 
     start_time = time.time()
 
-    command = f"xroad-metrics-collector collect".split(' ')
+    command = "xroad-metrics-collector collect".split(' ')
     proc = subprocess.run(command, capture_output=True)
     assert proc.stderr == b''
     assert proc.returncode == 0
@@ -74,7 +97,7 @@ def test_execution_is_blocked_by_pid_file():
     with open(pid_file, 'w') as f:
         f.write(str(os.getpid()))  # write test-executor's pid to collector pidfile
 
-    command = f"xroad-metrics-collector update".split(' ')
+    command = "xroad-metrics-collector update".split(' ')
     proc = subprocess.run(command, capture_output=True)
 
     message_to_find = "Another xroad-metrics-collector instance is already running."
@@ -82,7 +105,7 @@ def test_execution_is_blocked_by_pid_file():
     assert proc.stderr.decode('utf-8').find(message_to_find) > 0
     assert proc.returncode == 1
 
-    command = f"xroad-metrics-collector collect".split(' ')
+    command = "xroad-metrics-collector collect".split(' ')
     proc = subprocess.run(command, capture_output=True)
 
     assert proc.stderr.decode('utf-8').find(message_to_find) > 0
@@ -92,8 +115,8 @@ def test_execution_is_blocked_by_pid_file():
 
 
 def test_pid_file_creation_and_deletion():
-    assert_action_creates_and_deletes_pid_file(f"xroad-metrics-collector collect".split(' '))
-    assert_action_creates_and_deletes_pid_file(f"xroad-metrics-collector update".split(' '))
+    assert_action_creates_and_deletes_pid_file("xroad-metrics-collector collect".split(' '))
+    assert_action_creates_and_deletes_pid_file("xroad-metrics-collector update".split(' '))
 
 
 def assert_action_creates_and_deletes_pid_file(command):

@@ -24,11 +24,14 @@
 
 from setuptools import setup, find_packages
 
+# The following dependencies has newer versions, but require Python 3.9 or higher
+#   numpy
+
 requirements = [
-    'dill==0.3.8',
+    'dill==0.3.9',
     'django==2.2.28',
-    'pymongo==4.6.3',
-    'pyyaml==6.0.1',
+    'pymongo==4.9.1',
+    'pyyaml==6.0.2',
     'numpy==1.24.4'
 ]
 
