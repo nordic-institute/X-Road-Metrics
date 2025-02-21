@@ -195,6 +195,25 @@ def test_worker_status(mock_server_manager, basic_data):
     assert worker.status == CollectorWorker.Status.ALL_COLLECTED
 
 
+def test_sanitize_records(mock_server_manager, basic_data):
+    worker = CollectorWorker(basic_data)
+
+    records = [
+        {"id": 1, "foo": "valid_data_foo", "restPath": "some_path/*"},
+        {"id": 2, "bar": "valid_data_bar", "restPath": "some_path/*"},
+        {"id": 3, "data3": "valid_data", "restPath": "some_path/*"},
+        {"restPath": "some_path/*", "id": 4, "data4": "valid_data4"},
+        {"data5": "valid_data5", "restPath": "some_path/*", "id": 5}
+    ]
+
+    sanitized_records = worker._sanitize_records(records)
+
+    assert len(sanitized_records) == 5
+    for record in sanitized_records:
+        assert 'restPath' not in record
+        assert 'id' in record
+
+
 @responses.activate
 @pytest.mark.parametrize(
     'mock_response_contents', [('metrics_client_proxy_ssl_auth_failed.dat',)], indirect=True
