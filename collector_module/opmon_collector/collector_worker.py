@@ -70,7 +70,9 @@ class CollectorWorker:
         for _ in range(self.settings['collector']['repeat-limit']):
             try:
                 response = self._request_opmon_data()
-                self.records = self._parse_attachment(response)
+                records = self._parse_attachment(response)
+                sanitized_records = self._sanitize_records(records)
+                self.records = sanitized_records
                 if self.settings['collector'].get('documents-log-directory', ''):
                     self._store_records_to_file()
                 self._store_records_to_database()
@@ -195,6 +197,19 @@ class CollectorWorker:
         except Exception as e:
             self.log_exception('Cannot parse response attachment.', str(e))
             raise e
+
+    @staticmethod
+    def _sanitize_records(records):
+        """
+        Temporary solution to address a privacy concern - remove 'restPath' field from records.
+        To be removed after X-Road version 7.6.2 release.
+        """
+        sanitized_records = []
+        for record in records:
+            sanitized_record = record.copy()
+            sanitized_record.pop('restPath', None)
+            sanitized_records.append(sanitized_record)
+        return sanitized_records
 
     def _get_records_logger(self) -> logging.Logger:
         host_name = re.sub('[^0-9a-zA-Z.-]+', '.', self.server_data['server'])
