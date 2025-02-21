@@ -133,8 +133,13 @@ sudo apt install postgresql
 > For automatic users creation to work properly, PostgreSQL version must be 14 or less.  
 > Starting from PostgreSQL 15, ownership of `public` schema has changed to the new `pg_database_owner` role. 
 > Due to this change, the command will create users but without proper permissions to create tables in the database's
-> public schema. In this case, make sure to grant proper permissions to user `anonymizer_ex` manually.  
-> For more information, see [PostgreSQL 15 Release Notes - Migration](https://www.postgresql.org/docs/15/release-15.html#id-1.11.6.18.4). 
+> public schema. In this case, after creating users with the below script, connect to the database, and grant `create`
+> and `usage` permissions on `public` schema to user `anonymizer_ex` using the following SQL statement:
+> ```sql
+> GRANT CREATE, USAGE ON SCHEMA public TO anonymizer_ex;
+> ```
+> 
+> For more information, see [PostgreSQL 15 Release Notes - Migration](https://www.postgresql.org/docs/15/release-15.html#id-1.11.6.18.4).
 
 The X-Road Metrics Opendata package includes a command that creates the PostgreSQL users automatically.
 To create PostgreSQL users for X-Road instance *LTT* on `localhost` run the following commands:
