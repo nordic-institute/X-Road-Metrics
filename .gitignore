@@ -75,3 +75,6 @@ xroad_metrics*.pid
 .python-version
 tags
 venv
+
+# MacOS
+.DS_Store

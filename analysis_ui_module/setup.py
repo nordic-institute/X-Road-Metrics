@@ -29,8 +29,8 @@ from setuptools import setup, find_packages
 
 requirements = [
     'dill==0.3.9',
-    'django==2.2.28',
-    'pymongo==4.9.1',
+    'django==4.2.19',
+    'pymongo==4.10.1',
     'pyyaml==6.0.2',
     'numpy==1.24.4'
 ]
