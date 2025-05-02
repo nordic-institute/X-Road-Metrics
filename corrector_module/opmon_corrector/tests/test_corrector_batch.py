@@ -174,6 +174,17 @@ def test_corrector_batch_2(mongo, batch):
     actual_clean_data = get_documents(mongo, 'clean_data')
     compare_documents(actual_clean_data, expected_clean_data)
 
+@freeze_time("2022-12-10")
+def test_corrector_rest_path(mongo, batch):
+    insert_fixture(mongo, 'raw_messages', read_fixture('raw_messages_batch_3_before_run'))
+    batch.run({})
+
+    expected_clean_data = read_fixture('clean_data_batch_3')
+    actual_clean_data = get_documents(mongo, 'clean_data')
+    compare_documents(actual_clean_data, expected_clean_data)
+    expected_raw_data_after = read_fixture('raw_messages_batch_3_after_run')
+    actual_corrected_raw_documents = get_documents(mongo, 'raw_messages', {'corrected': True})
+    compare_documents(actual_corrected_raw_documents, expected_raw_data_after)
 
 @freeze_time("2022-12-10")
 def test_corrector_batch_duplicates(mongo, batch, caplog):

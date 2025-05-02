@@ -103,6 +103,18 @@ class DatabaseManager:
         raw_data = db[RAW_DATA_COLLECTION]
         raw_data.update_one({'_id': doc_id}, {'$set': {'corrected': True}})
 
+    def mark_as_corrected_and_correct_rest_path(self, document: dict, rest_path: str) -> None:
+        """
+        Marks a specific document's "corrected" status to "True" and update restPath value with the new one.
+        :param document: The input document.
+        :param rest_path: The input restPath to be used to override existing value.
+        :return: None
+        """
+        doc_id = document['_id']
+        db = self.get_query_db()
+        raw_data = db[RAW_DATA_COLLECTION]
+        raw_data.update_one({'_id': doc_id}, {'$set': {'corrected': True, 'restPath': rest_path}})
+
     def get_faulty_raw_documents(self, limit: int = 1000) -> List[dict]:
         """
         Gets number of documents specified by the limit that have not been corrected and has no xRequestId

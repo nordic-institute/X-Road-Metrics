@@ -332,7 +332,7 @@ class DocumentManager:
         }
         return sanitized_document
 
-    def correct_structure(self, doc):
+    def correct_structure(self, doc: dict) -> dict:
         """
         Check that documents have all required fields.
         Try to fill in missing fields by heuristics or set them to None as last resort.
@@ -356,3 +356,11 @@ class DocumentManager:
             if f not in doc:
                 doc[f] = None
         return doc
+
+    @staticmethod
+    def correct_client_rest_path(client: dict, producer: dict):
+        if client and client.get('restPath'):
+            if producer and producer.get('restPath'):
+                client['restPath'] = producer.get('restPath')
+            else:
+                client['restPath'] = "/*"
