@@ -7,6 +7,7 @@ updates:
       - "/collector_module"
       - "/corrector_module"
       - "/opendata_module"
+      - "/opendata_collector_module"
       - "/reports_module"
     schedule:
         interval: "weekly"
