@@ -48,7 +48,7 @@ class ConstraintMetaType(TypedDict):
     type: str
     valid_operators: List[str]
 
-
+# Generate a gzipped NDJSON (newline delimited JSON) file iterator suitable for StreamingHttpResponse.
 def generate_ndjson_stream(postgres: PostgreSQL_LogManager, date: datetime,
                            columns: List[str], constraints: List[dict],
                            order_clauses: List[dict], settings: dict) -> Generator[bytes, None, None]:
@@ -60,15 +60,13 @@ def generate_ndjson_stream(postgres: PostgreSQL_LogManager, date: datetime,
     with GzipFile(fileobj=gzip_buffer, mode='wb') as gzip_file:
         count = 0
         buffer_size = settings['opendata'].get('stream-buffer-lines', DEFAULT_STREAM_BUFFER_LINES)
-        gzip_file.write(b'[\n')
-        for idx, row in enumerate(data_cursor):
-            if idx > 0:
-                gzip_file.write(b',\n')
+        for row in data_cursor:
             json_obj = {column_name: row[column_idx] for column_idx, column_name in enumerate(column_names)}
             # Must manually convert Postgres dates to string to be compatible with JSON format
             for date_column in date_columns:
                 json_obj[date_column] = datetime.strftime(json_obj[date_column], '%Y-%m-%d')
             gzip_file.write(bytes(json.dumps(json_obj), 'utf-8'))
+            gzip_file.write(b'\n')
             count += 1
             if count == buffer_size:
                 count = 0
@@ -80,7 +78,6 @@ def generate_ndjson_stream(postgres: PostgreSQL_LogManager, date: datetime,
                     # Empty buffer to free memory
                     gzip_buffer.truncate(0)
                     gzip_buffer.seek(0)
-        gzip_file.write(b'\n]')
 
     # Final data gets written when GzipFile is closed
     yield gzip_buffer.getvalue()
