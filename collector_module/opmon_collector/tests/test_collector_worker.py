@@ -199,19 +199,23 @@ def test_sanitize_records(mock_server_manager, basic_data):
     worker = CollectorWorker(basic_data)
 
     records = [
-        {"id": 1, "foo": "valid_data_foo", "restPath": "some_path/*"},
-        {"id": 2, "bar": "valid_data_bar", "restPath": "some_path/*"},
-        {"id": 3, "data3": "valid_data", "restPath": "some_path/*"},
-        {"restPath": "some_path/*", "id": 4, "data4": "valid_data4"},
-        {"data5": "valid_data5", "restPath": "some_path/*", "id": 5}
+        {"id": 1, "foo": "valid_data_foo", "restPath": "some_path/*", "xRoadVersion": "7.6.2"},
+        {"id": 2, "bar": "valid_data_bar", "restPath": "some_path/*", "xRoadVersion": "7.6.1"},
+        {"id": 3, "data3": "valid_data", "restPath": "some_path/*", "xRoadVersion": "7.7.0"},
+        {"id": 4, "data4": "valid_data4", "restPath": "some_path/*"},
+        {"id": 5, "data5": "valid_data5", "restPath": "some_path/*", "xRoadVersion": "7.6.0"}
     ]
 
     sanitized_records = worker._sanitize_records(records)
 
     assert len(sanitized_records) == 5
-    for record in sanitized_records:
-        assert 'restPath' not in record
-        assert 'id' in record
+
+    # Check each record for expected behavior
+    assert 'restPath' in sanitized_records[0]  # xRoadVersion >= 7.6.2
+    assert 'restPath' not in sanitized_records[1]  # xRoadVersion < 7.6.2
+    assert 'restPath' in sanitized_records[2]  # xRoadVersion >= 7.6.2
+    assert 'restPath' not in sanitized_records[3]  # No xRoadVersion
+    assert 'restPath' not in sanitized_records[4]  # xRoadVersion < 7.6.2
 
 
 @responses.activate
@@ -265,3 +269,31 @@ def test_collector_worker_server_fault_response(basic_data, mock_response_conten
         'Code: Server.ServerProxy.AccessDenied. Detail: 132ff5d7-a6c7-4807-968e-430c515bf32a'
     )
     assert server_error_msg in caplog.text, 'Expected error message not found in caplog'
+
+
+def test_version_gte():
+    assert CollectorWorker._version_gte("7.6.2", "7.6.2") is True
+    assert CollectorWorker._version_gte("7.6.3", "7.6.2") is True
+    assert CollectorWorker._version_gte("7.7.0", "7.6.2") is True
+    assert CollectorWorker._version_gte("7.8.1", "7.6.2") is True
+    assert CollectorWorker._version_gte("8.0.0", "7.6.2") is True
+
+    assert CollectorWorker._version_gte("7.6.0", "7.6.2") is False
+    assert CollectorWorker._version_gte("7.6.1", "7.6.2") is False
+    assert CollectorWorker._version_gte("6.24.1", "7.6.2") is False
+
+    # Edge cases
+    assert CollectorWorker._version_gte("", "7.6.2") is False
+    assert CollectorWorker._version_gte(None, "7.6.2") is False
+    assert CollectorWorker._version_gte(" ", "7.6.2") is False
+    assert CollectorWorker._version_gte("762", "7.6.2") is True
+    assert CollectorWorker._version_gte("7.a.2", "7.6.2") is False
+    assert CollectorWorker._version_gte("7..2", "7.6.2") is False
+    assert CollectorWorker._version_gte(".7.6.2", "7.6.2") is False
+    assert CollectorWorker._version_gte("7.6.2.", "7.6.2") is False
+    assert CollectorWorker._version_gte("7.6", "7.6.2") is False
+    assert CollectorWorker._version_gte("7.6.2.1", "7.6.2") is True
+    assert CollectorWorker._version_gte("7.6.beta", "7.6.2") is False
+    assert CollectorWorker._version_gte("alpha.6.2", "7.6.2") is False
+    assert CollectorWorker._version_gte(" 7.6.2", "7.6.2") is True
+    assert CollectorWorker._version_gte("7.6.2 ", "7.6.2") is True
