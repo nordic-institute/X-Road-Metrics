@@ -1,0 +1,140 @@
+services:
+  collector_module:
+    image: xroad-metrics-collector-module
+    environment:
+      - setting_xroad.instance=DEV
+      - setting_xroad.central-server.host=cs
+      - setting_xroad.security-server.host=ss0:8080
+      - setting_xroad.monitoring-client.memberclass=COM
+      - setting_xroad.monitoring-client.membercode=1234
+      - setting_xroad.monitoring-client.subsystemcode=metrics
+      - setting_collector.records-from-offset=31536000
+      - setting_collector.records-to-offset=0
+      - setting_mongodb.user=collectordev
+      - setting_mongodb.password=collectordevpw
+      - setting_mongodb.host=mongodb
+    networks:
+      - xrd-metrics-network
+      - xroad-network
+
+  corrector_module:
+    image: xroad-metrics-corrector-module
+    environment:
+      - setting_mongodb.user=correctordev
+      - setting_mongodb.password=correctordevpw
+      - setting_mongodb.host=mongodb
+    networks:
+      - xrd-metrics-network
+
+  anonymizer_module:
+    image: xroad-metrics-anonymizer-module
+    environment:
+      - setting_xroad.instance=DEV
+      - setting_xroad.central-server.host=cs
+      - setting_mongodb.user=anonymizerdev
+      - setting_mongodb.password=anonymizerdevpw
+      - setting_mongodb.host=mongodb
+      - setting_postgres.user=xroadmetrics
+      - setting_postgres.password=metricssecret
+      - setting_postgres.host=postgresql
+    networks:
+      - xrd-metrics-network
+      - xroad-network
+
+  opendata_module:
+    image: xroad-metrics-opendata-module
+    environment:
+      - setting_xroad.instance=DEV
+      - setting_postgres.user=xroadmetrics
+      - setting_postgres.password=metricssecret
+      - setting_postgres.database-name=postgres
+      - setting_postgres.host=postgresql
+      - setting_django.secret-key=secret
+      - setting_mongodb.user=opendatadevn
+      - setting_mongodb.password=opendatadevpw
+      - setting_mongodb.host=mongodb
+    ports:
+      - "8000:80"
+    networks:
+      - xrd-metrics-network
+
+  opendata_collector_module:
+    image: xroad-metrics-opendata-collector-module
+    environment:
+      - setting_xroad.instance=DEV
+      - setting_mongodb.user=opendatacollectordev
+      - setting_mongodb.password=opendatacollectordevpw
+      - setting_mongodb.host=mongodb
+    networks:
+      - xrd-metrics-network
+
+  reports_module:
+    image: xroad-metrics-reports-module
+    environment:
+      - setting_xroad.instance=DEV
+      - setting_mongodb.user=reportsdev
+      - setting_mongodb.password=reportsdevpw
+      - setting_mongodb.host=mongodb
+      - setting_reports.email.sender=test@x-road.global
+      - setting_reports.email.smtp.host=localhost
+    networks:
+      - xrd-metrics-network
+
+  mongodb:
+    image: mongo:4.4
+    restart: unless-stopped
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=root_pw
+      - MONGO_INITDB_DATABASE=auth_db
+    volumes:
+      - ./mongodb-init/mongo-init-collector.js:/docker-entrypoint-initdb.d/mongo-init-collector.js:ro
+      - ./mongodb-init/mongo-init-corrector.js:/docker-entrypoint-initdb.d/mongo-init-corrector.js:ro
+      - ./mongodb-init/mongo-init-anonymizer.js:/docker-entrypoint-initdb.d/mongo-init-anonymizer.js:ro
+      - ./mongodb-init/mongo-init-opendata.js:/docker-entrypoint-initdb.d/mongo-init-opendata.js:ro
+      - ./mongodb-init/mongo-init-opendata-collector.js:/docker-entrypoint-initdb.d/mongo-init-opendata-collector.js:ro
+      - ./mongodb-init/mongo-init-reports.js:/docker-entrypoint-initdb.d/mongo-init-reports.js:ro
+    networks:
+      - xrd-metrics-network
+
+  postgresql:
+    image: postgres:13
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=xroadmetrics
+      - POSTGRES_PASSWORD=metricssecret
+    networks:
+      - xrd-metrics-network
+
+  mongo-express:
+    image: mongo-express:1.0.2-20
+    restart: unless-stopped
+    environment:
+      - ME_CONFIG_BASICAUTH_USERNAME=root
+      - ME_CONFIG_BASICAUTH_PASSWORD=secret 
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=root
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=root_pw
+      - ME_CONFIG_MONGODB_SERVER=mongodb
+      - ME_CONFIG_MONGODB_AUTH_DATABASE=admin
+    ports:
+      - "8081:8081"
+    networks:
+      - xrd-metrics-network
+
+  adminer:
+    image: adminer:4.8.1
+    restart: unless-stopped
+    environment:
+      ADMINER_DEFAULT_SERVER: postgresql
+    ports:
+      - "8082:8080"
+    networks:
+      - xrd-metrics-network
+
+networks:
+  xrd-metrics-network:
+    name: xrd-metrics-network
+    driver: bridge
+  xroad-network:
+    external: true
+

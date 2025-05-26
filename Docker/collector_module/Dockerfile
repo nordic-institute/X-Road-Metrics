@@ -9,5 +9,5 @@ RUN apt-get update && apt-get install -y wget && \
     chmod +x /usr/bin/yq
 RUN mkdir -p /var/log/xroad-metrics/collector/logs
 COPY Docker/docker-entrypoint.sh /entrypoint.sh
-RUN chmod +x /app/bin/xroad-metrics-anonymizer
+RUN chmod +x /app/bin/xroad-metrics-collector
 ENTRYPOINT ["/entrypoint.sh", "/app/bin/xroad-metrics-collector"]
