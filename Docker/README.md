@@ -24,6 +24,21 @@ has been set up and configured with the monitoring client (note that the subsyst
 
 The subsystem should have `HTTP` selected as the connection method.
 
+## Harware requirements
+
+This Docker setup is only intended for limited local testing. Most modules run only when explicitly ran. Only the following containers run
+continuously, with the `corrector` running in batches:
+
+- Corrector
+- Opendata
+- MongoDB
+- PostgreSQL
+- Mongo Express
+- Adminer
+
+These all have a relatively small footprint unless pushed - the more data you want to test with, the more database and corrector resource
+usage you will see. The setup itself can be ran with **1GB** of memory, potentially less if datasets are really small.
+
 ## Building All Containers
 
 To build all module containers, run the following script from the project root:
