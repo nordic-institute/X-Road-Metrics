@@ -39,6 +39,9 @@ from xml.etree.ElementTree import ParseError
 import requests
 from opmon_collector.security_server_client import SecurityServerClient
 
+# Constants
+MIN_REST_PATH_VERSION = '7.6.2'
+
 
 class ServerProxyError(Exception):
     pass
@@ -198,16 +201,30 @@ class CollectorWorker:
             self.log_exception('Cannot parse response attachment.', str(e))
             raise e
 
+    """
+    Check if the version is greater than or equal to the base version.
+    :param version: Version to check
+    :param base_version: Base version to compare with
+    :return: True if version is greater than or equal to base_version, False otherwise"""    
+    @staticmethod
+    def _version_gte(version, base_version):
+        if not isinstance(version, str) or not version.strip():
+            return False
+        try:
+            return tuple(map(int, version.split('.'))) >= tuple(map(int, base_version.split('.')))
+        except ValueError:
+            return False
+
     @staticmethod
     def _sanitize_records(records):
         """
-        Temporary solution to address a privacy concern - remove 'restPath' field from records.
-        To be removed after X-Road version 7.6.2 release.
+        Remove 'restPath' field from records if the xRoadVersion is not present or is less than 7.6.2.
         """
         sanitized_records = []
         for record in records:
             sanitized_record = record.copy()
-            sanitized_record.pop('restPath', None)
+            if 'xRoadVersion' not in record or not CollectorWorker._version_gte(record['xRoadVersion'], MIN_REST_PATH_VERSION):
+                sanitized_record.pop('restPath', None)
             sanitized_records.append(sanitized_record)
         return sanitized_records
 

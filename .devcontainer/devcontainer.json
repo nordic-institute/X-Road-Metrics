@@ -1,18 +1,28 @@
 {
-  "name": "X-Road Metrics Development Container",
-  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-22.04",
-  "features": {
-    "ghcr.io/devcontainers/features/python:1": {
-      "version": "3.8"
-    }
-  },
-  "customizations": {
-    "vscode": {
-      "settings": {},
-      "extensions": [
-        "ms-python.python"
-      ]
-    }
-  },
-  "postCreateCommand": "bash .devcontainer/install_requirements.sh"
+	"name": "X-Road Metrics Development Container",
+	"image": "mcr.microsoft.com/devcontainers/base:ubuntu-22.04",
+	"features": {
+		"ghcr.io/devcontainers/features/python:1": {
+			"version": "3.8"
+		},
+		"ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+			"version": "latest",
+			"enableNonRootDocker": "true",
+			"moby": "false"
+		}
+	},
+	"customizations": {
+		"vscode": {
+			"settings": {},
+			"extensions": [
+				"ms-python.python"
+			]
+		}
+	},
+	// Use this environment variable if you need to bind mount your local source code into a new container.
+	// E.g docker run -it --rm -v "${LOCAL_WORKSPACE_FOLDER//\\/\/}:/workspace" debian bash
+	"remoteEnv": {
+		"LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
+	},
+	"postCreateCommand": "bash .devcontainer/install_requirements.sh"
 }
