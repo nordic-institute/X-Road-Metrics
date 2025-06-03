@@ -29,7 +29,7 @@ from setuptools import setup, find_packages
 
 requirements = [
     'dill==0.3.9',
-    'pymongo==4.9.1',
+    'pymongo==4.10.1',
     'pyyaml==6.0.2',
     'numpy==1.24.4',
     'pandas==2.0.3',

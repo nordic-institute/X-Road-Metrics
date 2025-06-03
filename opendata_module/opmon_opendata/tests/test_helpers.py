@@ -22,7 +22,6 @@
 # THE SOFTWARE.
 #
 import gzip
-import json
 import io
 import pytest
 
@@ -45,16 +44,15 @@ def postgres(mocker):
     [
         # Test case: Multiple results
         (
-            [('foo', 'integer'), ('bar', 'character varying'), ('baz', 'date')],
-            [('1', 'aaa', date(2025, 1, 1)), ('2', 'bbb', date(2025, 2, 2))],
-            [{'foo': '1', 'bar': 'aaa', 'baz': '2025-01-01'},
-             {'foo': '2', 'bar': 'bbb', 'baz': '2025-02-02'}]
+            [("foo", "integer"), ("bar", "character varying"), ("baz", "date")],
+            [("1", "aaa", date(2025, 1, 1)), ("2", "bbb", date(2025, 2, 2))],
+            '{"foo": "1", "bar": "aaa", "baz": "2025-01-01"}\n{"foo": "2", "bar": "bbb", "baz": "2025-02-02"}\n'
         ),
         # Test case: No results
         (
-            [('foo', 'integer')],
+            [("foo", "integer")],
             [],
-            []
+            ""
         )
     ]
 )
@@ -62,11 +60,10 @@ def test_generate_ndjson_stream_creates_correct_json(postgres, column_types, dat
     postgres.get_column_names_and_types.return_value = column_types
     postgres.get_data_cursor.return_value = data_cursor
     gzipped_file_stream = helpers.generate_ndjson_stream(postgres, datetime.now(), [], [], [], SETTINGS)
-    decompressed_data = decompress_gzip(gzipped_file_stream)
-    assert json.loads(decompressed_data) == expected_output
+    decompressed_data = decompress_gzip_raw(gzipped_file_stream)
+    assert decompressed_data == expected_output
 
-def decompress_gzip(gzipped_file_stream):
+def decompress_gzip_raw(gzipped_file_stream):
     compressed_data = b"".join(gzipped_file_stream)
     with gzip.GzipFile(fileobj=io.BytesIO(compressed_data), mode="rb") as f:
-        decompressed_data = f.read().decode()
-        return decompressed_data
+        return f.read().decode()

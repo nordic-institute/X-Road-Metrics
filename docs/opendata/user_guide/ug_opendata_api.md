@@ -247,7 +247,7 @@ Identical to [logs' sample](#logs-sample).
 
 #### Returns
 
-Binary file with MIME type "application/gzip" containing gzipped NDJSON file.
+Binary file with MIME type "application/gzip" containing gzipped **NDJSON** file.
 
 #### Example query
 
