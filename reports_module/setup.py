@@ -29,7 +29,7 @@ from setuptools import setup, find_packages
 
 requirements = [
     'markupsafe==2.1.5',
-    'Jinja2==3.1.5',
+    'Jinja2==3.1.6',
     'matplotlib==3.7.5',
     'pandas==2.0.3',
     'weasyprint==61.2',
@@ -38,7 +38,7 @@ requirements = [
     'pyyaml==6.0.2',
     'requests==2.32.3',
     'tinycss==0.4',
-    'jsonschema==4.23.0',
+    'jsonschema==4.24.0',
     'numpy==1.24.4',
     'contourpy==1.1.1',
     'pyparsing==3.1.4',
