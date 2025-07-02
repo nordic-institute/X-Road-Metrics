@@ -20,6 +20,7 @@ services:
   corrector_module:
     image: xroad-metrics-corrector-module
     environment:
+      - setting_xroad.instance=DEV
       - setting_mongodb.user=correctordev
       - setting_mongodb.password=correctordevpw
       - setting_mongodb.host=mongodb
