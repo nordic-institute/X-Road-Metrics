@@ -115,6 +115,9 @@ docker compose run --rm collector_module collect
 There is a web based UI for both the MongoDB and PostgreSQL databases on ports `8081` and `8082` respectively. For passwords,
 review the `docker-compose.yaml` file.
 
+Instead, the Opendata module UI is accessible on port `8000` under the path `/static/gui/index_en.html`,
+e.g., `http://localhost:8000/static/gui/index_en.html`.
+
 ## Notes
 - The `prepare-containers.sh` script will build all modules in sequence.
 - For more details on module-specific configuration, see the documentation in `docs/` and the main project `README.md`.

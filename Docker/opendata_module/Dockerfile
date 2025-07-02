@@ -1,4 +1,4 @@
-FROM python:3.8-slim
+FROM python:3.11-slim
 WORKDIR /app
 RUN apt-get update && apt-get install -y build-essential libpq-dev wget apache2 libapache2-mod-wsgi-py3 && \
     wget -O /usr/bin/yq https://github.com/mikefarah/yq/releases/download/v4.43.1/yq_linux_amd64 && \
