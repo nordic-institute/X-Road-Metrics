@@ -98,10 +98,17 @@ For more details on the supported environment variable format and substitution l
 
 ## Running the environment
 
-The containers can be ran with `docker compose up -d` in the `Docker` directory. After this you can run specific commands such
+The containers can be run with `docker compose up -d` in the `Docker` directory. After this you can run specific commands such
 as collecting by running it on the container, for example:
 
 ```bash
+docker compose run --rm collector_module collect
+```
+
+**Note:** When you run the Collector for the very first time, first you must run `update` and then `collect`:
+
+```bash
+docker compose run --rm collector_module update
 docker compose run --rm collector_module collect
 ```
 
