@@ -1,0 +1,7 @@
+etc/cron.d
+etc/xroad-metrics/collector
+usr/lib/tmpfiles.d
+usr/share/xroad-metrics/collector/scripts/cron
+usr/share/xroad-metrics/collector/scripts/external_files
+var/log/xroad-metrics/collector/logs
+var/log/xroad-metrics/collector/heartbeat

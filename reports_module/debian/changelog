@@ -1,0 +1,64 @@
+xroad-metrics-reports (1.4.2) stable; urgency=low
+
+  * Updated Metrics package
+
+ -- NIIS <info@niis.org>  Mon, 02 Jun 2025 10:26:49 +0000
+
+
+xroad-metrics-reports (1.4.1) stable; urgency=low
+
+  * Updated Metrics package
+
+ -- NIIS <info@niis.org>  Tue, 25 Feb 2025 08:48:33 +0000
+
+
+xroad-metrics-reports (1.4.0) stable; urgency=low
+
+  * Fix top 5 charts values in reports by calculating the correct average query duration
+  * Update versions of dependencies
+
+ -- NIIS <info@niis.org>  Thu, 30 Jan 2025 14:01:59 +0000
+
+
+xroad-metrics-reports (1.3.0) stable; urgency=low
+
+  * Reports query optimization using index hints
+  * Adding support for CSV reports
+  * Fix duplicate logging
+  * Update vulnerable packages
+
+ -- NIIS <info@niis.org>  Tue, 18 Jun 2024 22:29:53 +0000
+
+
+xroad-metrics-reports (1.2.0) stable; urgency=low
+
+  * Include 3RD-PARTY-NOTICES.txt file in the package
+  * Fix issues reported by CodeQL in GitHub
+  * Update vulnerable packages
+
+ -- NIIS <info@niis.org>  Mon, 02 Oct 2023 09:15:00 +0000
+
+
+xroad-metrics-reports (1.1.1) stable; urgency=low
+
+  * Fix anonymizer_module failed connection to PostgreSQL
+  * Fix opendata_module failed connection to PostgreSQL
+  * Resolve package dependency issue for networking_module
+
+ -- NIIS <info@niis.org>  Fri, 13 Mar 2023 13:25:32 +0000
+
+
+xroad-metrics-reports (1.1.0) stable; urgency=low
+
+  * SMTP Client TLS Authentication support for Reports
+  * enable TLS connection to MongoDB
+
+ -- NIIS <info@niis.org>  Mon, 06 Mar 2023 18:25:32 +0000
+
+
+
+xroad-metrics-reports (1.0.0) stable; urgency=low
+
+  * Initial Release.
+
+ -- NIIS <info@niis.org>  Wed, 08 Feb 2012 09:59:32 +0000

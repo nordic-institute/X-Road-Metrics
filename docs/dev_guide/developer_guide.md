@@ -175,6 +175,20 @@ _`tox` command caches a lot of files that might be over 500MB._
 make clean
 ```
 
+## Packaging modules
+
+In order to create `.deb` packages for a module, you can build the package and related files and move them into the package's by running this command from the module's folder:
+
+```shell
+dpkg-buildpackage -us -uc -b && \
+  mv ../*.deb ../*.buildinfo ../*.changes .
+```
+
+Then you can check the created package for compliance with the Debian policy and for other common packaging errors using:
+```shell
+lintian *.deb
+```
+
 ## Useful commands
 
 ### Display list of installed virtual environments

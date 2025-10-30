@@ -1,0 +1,3 @@
+etc/xroad-metrics/corrector
+var/log/xroad-metrics/corrector/logs
+var/log/xroad-metrics/corrector/heartbeat

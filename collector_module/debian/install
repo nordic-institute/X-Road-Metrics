@@ -1,0 +1,5 @@
+etc/settings.yaml etc/xroad-metrics/collector/
+etc/xroad-metrics-collector-cron etc/cron.d
+usr/tmpfiles.d/xroad-metrics-collector.conf usr/lib/tmpfiles.d
+../3RD-PARTY-NOTICES.txt    usr/share/doc/xroad-metrics-collector
+

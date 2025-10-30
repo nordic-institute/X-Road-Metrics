@@ -1,0 +1,10 @@
+etc/settings.yaml                   etc/xroad-metrics/networking
+etc/cron.d/*                        etc/cron.d
+etc/shiny-server/*                  etc/shiny-server
+etc/apache2/conf-available/*        etc/apache2/conf-available
+prepare_data*.R                     usr/share/xroad-metrics/networking
+app.R                               usr/share/xroad-metrics/networking/shiny
+www/*                               usr/share/xroad-metrics/networking/shiny/www
+networking-cron-entrypoint.sh       usr/share/xroad-metrics/networking
+install-shiny-server.sh             usr/share/xroad-metrics/networking
+../3RD-PARTY-NOTICES.txt               usr/share/doc/xroad-metrics-networking

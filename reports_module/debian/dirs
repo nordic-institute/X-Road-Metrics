@@ -1,0 +1,8 @@
+etc/cron.d
+etc/xroad-metrics/reports/lang
+etc/xroad-metrics/reports/template/header_images
+
+var/lib/xroad-metrics/reports
+
+var/log/xroad-metrics/reports/logs
+var/log/xroad-metrics/reports/heartbeat

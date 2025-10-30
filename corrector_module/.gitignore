@@ -1,0 +1,6 @@
+# Ignore files related to packaging
+
+debian/files
+debian/xroad-metrics-corrector
+debian/xroad-metrics-corrector.service
+

@@ -12,6 +12,7 @@ __pycache__/
 
 # Distribution / packaging
 .Python
+*pybuild
 env/
 build/
 develop-eggs/
@@ -27,6 +28,14 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
+*.dsc
+*.tar.xz
+*.deb
+*.buildinfo
+*.changes
+*.debhelper
+*debhelper-build-stamp
+*.substvars
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -78,3 +87,4 @@ venv
 
 # MacOS
 .DS_Store
+

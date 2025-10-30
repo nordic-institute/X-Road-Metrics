@@ -1,0 +1,5 @@
+etc/settings.yaml                   etc/xroad-metrics/anonymizer/
+etc/field_data.yaml                 etc/xroad-metrics/anonymizer/
+etc/field_translations.list         etc/xroad-metrics/anonymizer/
+etc/xroad-metrics-anonymizer-cron   etc/cron.d
+../3RD-PARTY-NOTICES.txt               usr/share/doc/xroad-metrics-anonymizer
