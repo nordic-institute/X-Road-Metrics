@@ -16,7 +16,9 @@ RUN chown -R builderbob:root /workspace/
 
 USER builderbob
 
-RUN cd ./${MODULE_NAME} && dpkg-buildpackage -us -uc -b
+RUN cd ./${MODULE_NAME} && \
+    dpkg-buildpackage && \
+    lintian -v ../*.deb
 
 FROM scratch AS artifacts
 
