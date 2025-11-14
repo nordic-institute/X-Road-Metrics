@@ -1,0 +1,29 @@
+FROM ubuntu:focal AS build
+
+ARG MODULE_NAME
+
+ENV DEBIAN_FRONTEND noninteractive
+ENV TZ UTC
+
+WORKDIR /workspace/src/
+
+COPY ./${MODULE_NAME}/ /workspace/src/${MODULE_NAME}
+COPY ./3RD-PARTY-NOTICES.txt /workspace/src/3RD-PARTY-NOTICES.txt
+
+RUN apt-get update && apt-get install -y python3-all python3-setuptools dh-make dh-python lintian
+RUN useradd -r -s /bin/bash builderbob
+RUN chown -R builderbob:root /workspace/
+
+USER builderbob
+
+RUN cd ./${MODULE_NAME} && \
+    dpkg-buildpackage && \
+    lintian -v ../*.deb
+
+FROM scratch AS artifacts
+
+ARG MODULE_NAME
+
+COPY --from=build /workspace/src/*.deb /artifacts/
+
+

@@ -1,0 +1,26 @@
+xroad-metrics-opendata-collector (1.4.2) stable; urgency=low
+
+  * Updated Metrics package
+
+ -- NIIS <info@niis.org>  Mon, 02 Jun 2025 10:26:49 +0000
+
+
+xroad-metrics-opendata-collector (1.4.1) stable; urgency=low
+
+  * Updated Metrics package
+
+ -- NIIS <info@niis.org>  Tue, 25 Feb 2025 08:48:33 +0000
+
+
+xroad-metrics-opendata-collector (1.4.0) stable; urgency=low
+
+  * Update versions of dependencies
+
+ -- NIIS <info@niis.org>  Thu, 30 Jan 2025 14:01:59 +0000
+
+
+xroad-metrics-opendata-collector (1.2.0) stable; urgency=low
+
+  * Initial release
+
+ -- NIIS <info@niis.org>  Mon, 02 Oct 2023 09:41:02 +0000

@@ -1,0 +1,4 @@
+etc/cron.d
+etc/xroad-metrics/anonymizer
+var/log/xroad-metrics/anonymizer/logs
+var/log/xroad-metrics/anonymizer/heartbeat

@@ -1,0 +1,8 @@
+etc/xroad-metrics/opendata
+etc/apache2/sites-available
+etc/ssl/private
+etc/ssl/certs
+var/log/xroad-metrics/opendata/logs
+var/log/xroad-metrics/opendata/heartbeat
+usr/share/xroad-metrics/opendata/www/static
+var/lib/xroad-metrics/opendata/database

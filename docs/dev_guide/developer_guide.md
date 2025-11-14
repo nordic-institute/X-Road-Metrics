@@ -175,6 +175,23 @@ _`tox` command caches a lot of files that might be over 500MB._
 make clean
 ```
 
+## Packaging modules
+
+In order to create `.deb` packages for a module, each module is built inside a controlled Docker environment that reproduces the target Ubuntu release. The Dockerfile installs all required build tools and dependencies, compiles the module, and uses Debian’s packaging utilities such as dpkg-buildpackage to generate the .deb file. This ensures consistent, reproducible builds that match the expected distribution environment.
+
+Replace `<module_name>` with the actual name of your module and `<focal|jammy>` with the target Ubuntu version you want to build for.
+
+You can build a module package using:
+
+```shell
+docker buildx build --build-arg MODULE_NAME=<module_name>_module . --target=artifacts --output type=local,dest=./output -f Dockerfile_<focal|jammy>
+```
+
+Then you can check the created package for compliance with the Debian policy and for other common packaging errors using:
+```shell
+lintian *.deb
+```
+
 ## Useful commands
 
 ### Display list of installed virtual environments

@@ -1,0 +1,7 @@
+etc/apache2/conf-available
+etc/cron.d
+etc/xroad-metrics/networking
+usr/share/xroad-metrics/networking/shiny/www
+var/lib/xroad-metrics/networking/
+var/log/xroad-metrics/networking/logs
+var/log/xroad-metrics/networking/heartbeat

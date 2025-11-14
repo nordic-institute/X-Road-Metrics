@@ -1,0 +1,73 @@
+#! /bin/bash
+set -e
+
+# Add users and groups
+groupadd xroad-metrics || echo "Group 'xroad-metrics' not created as it already exists."
+useradd --create-home --system --shell /bin/bash --gid xroad-metrics xroad-metrics || echo "User 'xroad-metrics' not created as it already exists."
+
+# files owned by xroad-metrics group
+MODULE_PATHS="
+  /var/log/xroad-metrics/networking/logs
+  /var/log/xroad-metrics/networking/heartbeat
+  /etc/xroad-metrics/networking
+  /usr/share/xroad-metrics/networking
+  /usr/share/xroad-metrics/networking/shiny
+  /var/lib/xroad-metrics/networking
+  /usr/share/xroad-metrics/networking/prepare_data.R
+  /usr/share/xroad-metrics/networking/networking-cron-entrypoint.sh
+  /usr/share/xroad-metrics/networking/install-shiny-server.sh
+"
+
+MODULE_PATHS_NO_EXEC="
+  /etc/xroad-metrics/networking/settings.yaml
+  /usr/share/xroad-metrics/networking/prepare_data_settings.R
+  /usr/share/xroad-metrics/networking/shiny/app.R
+"
+
+chown root:xroad-metrics $MODULE_PATHS $MODULE_PATHS_NO_EXEC
+chmod 770 $MODULE_PATHS
+chmod 660 $MODULE_PATHS_NO_EXEC
+
+# Create self signed SSL certificate
+CERT_FILE=/etc/ssl/certs/xroad-metrics-selfsigned.crt
+KEY_FILE=/etc/ssl/private/xroad-metrics-selfsigned.key
+DH_GROUP_FILE=/etc/ssl/certs/xroad-metrics-dhparam.pem
+
+if [[ ! -f $CERT_FILE ]] || [[ ! -f $KEY_FILE ]]; then
+  openssl req -x509 -nodes -days 7300 -newkey rsa:2048 \
+    -subj "/CN=$(hostname --fqdn)/C=EU" \
+    -keyout $KEY_FILE \
+    -out $CERT_FILE
+fi
+
+if [[ ! -f $DH_GROUP_FILE ]]; then
+  openssl dhparam -out $DH_GROUP_FILE 2048
+fi
+
+# Create Apache virtual host config for networking module using the config macro XroadMetricsNetworkingVHost
+VHOST_FILE=/etc/apache2/sites-available/00-xroad-metrics-networking.conf
+if [[ ! -f $VHOST_FILE ]]; then
+  echo "Use XroadMetricsNetworkingVHost $(hostname --fqdn)" > ${VHOST_FILE}
+fi
+
+# Start serving xroad-metrics-networking
+. /usr/share/apache2/apache2-maintscript-helper
+apache2_invoke enmod ssl
+apache2_invoke enmod headers
+apache2_invoke enmod macro
+apache2_invoke enmod proxy_http
+apache2_invoke enmod rewrite
+apache2_invoke enmod proxy_wstunnel
+apache2_invoke enconf xroad-metrics-networking
+apache2_invoke ensite 00-xroad-metrics-networking
+
+
+echo "X-Road Metrics Networking Module installation finished."
+echo "To serve X-Road Metrics Networking UI you need to install Shiny Server by RStudio."
+echo "This X-Road Metrics Networking Module package includes a script which can be used to"
+echo "download and install the recommended Shiny Server version."
+echo "For more info about Shiny Server, please refer to RStudio website:"
+echo "  https://rstudio.com/products/shiny/shiny-server/"
+echo ""
+echo "To run the Shiny Server installation script use this command:"
+echo "  sudo /usr/share/xroad-metrics/networking/install-shiny-server.sh"

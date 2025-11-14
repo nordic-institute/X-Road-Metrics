@@ -1,0 +1,33 @@
+#! /bin/bash
+set -e
+
+# Add users and groups
+groupadd xroad-metrics || echo "Group 'xroad-metrics' not created as it already exists."
+useradd --create-home --system --shell /bin/bash --gid xroad-metrics xroad-metrics || echo "User 'xroad-metrics' not created as it already exists."
+
+# Set Python package permissions
+chown root:xroad-metrics /usr/lib/python3/dist-packages/opmon_collector
+chmod o-rwx /usr/lib/python3/dist-packages/opmon_collector
+
+# Set bin permissions
+chown root:xroad-metrics /usr/bin/xroad-metrics-collector
+chmod g-w,g+rx,o-rwx /usr/bin/xroad-metrics-collector
+
+chown root:xroad-metrics /usr/bin/xroad-metrics-init-mongo
+chmod g-w,g+rx,o-rwx /usr/bin/xroad-metrics-init-mongo
+
+# Set log permissions
+chown root:xroad-metrics /var/log/xroad-metrics/collector/logs /var/log/xroad-metrics/collector/heartbeat
+chmod g+rwx,o-rwx  /var/log/xroad-metrics/collector/logs /var/log/xroad-metrics/collector/heartbeat
+
+# Set settings file permissions
+chown  root:xroad-metrics /etc/xroad-metrics/collector
+chmod  g+rwx,o-rwx  /etc/xroad-metrics/collector
+chown  root:xroad-metrics /etc/xroad-metrics/collector/settings.yaml
+chmod  g+rwx,o-rwx  /etc/xroad-metrics/collector/settings.yaml
+
+# Set helper script permissions
+chown root:xroad-metrics /usr/share/xroad-metrics/collector
+chmod  g+rw,o-rwx /usr/share/xroad-metrics/collector
+
+systemd-tmpfiles --create

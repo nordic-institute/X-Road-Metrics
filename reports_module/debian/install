@@ -1,0 +1,5 @@
+etc/settings.yaml               etc/xroad-metrics/reports
+etc/lang/*                      etc/xroad-metrics/reports/lang
+etc/template/*                  etc/xroad-metrics/reports/template
+etc/xroad-metrics-reports-cron  etc/cron.d
+../3RD-PARTY-NOTICES.txt           usr/share/doc/xroad-metrics-reports
