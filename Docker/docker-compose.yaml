@@ -1,6 +1,7 @@
 services:
   collector_module:
     image: xroad-metrics-collector-module
+    container_name: collector_module
     environment:
       - setting_xroad.instance=DEV
       - setting_xroad.central-server.host=cs
@@ -16,9 +17,13 @@ services:
     networks:
       - xrd-metrics-network
       - xroad-network
+    depends_on:
+      mongodb:
+        condition: service_healthy
 
   corrector_module:
     image: xroad-metrics-corrector-module
+    container_name: corrector_module
     environment:
       - setting_xroad.instance=DEV
       - setting_mongodb.user=correctordev
@@ -26,9 +31,13 @@ services:
       - setting_mongodb.host=mongodb
     networks:
       - xrd-metrics-network
+    depends_on:
+      mongodb:
+        condition: service_healthy
 
   anonymizer_module:
     image: xroad-metrics-anonymizer-module
+    container_name: anonymizer_module
     environment:
       - setting_xroad.instance=DEV
       - setting_xroad.central-server.host=cs
@@ -42,9 +51,15 @@ services:
     networks:
       - xrd-metrics-network
       - xroad-network
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      postgresql:
+        condition: service_healthy
 
   opendata_module:
     image: xroad-metrics-opendata-module
+    container_name: opendata_module
     environment:
       - setting_xroad.instance=DEV
       - setting_postgres.user=opendata_dev
@@ -56,9 +71,19 @@ services:
       - "8000:80"
     networks:
       - xrd-metrics-network
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/api/heartbeat"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
   opendata_collector_module:
     image: xroad-metrics-opendata-collector-module
+    container_name: opendata_collector_module
     environment:
       - setting_xroad.instance=DEV
       - setting_mongodb.user=opendatacollectordev
@@ -66,9 +91,13 @@ services:
       - setting_mongodb.host=mongodb
     networks:
       - xrd-metrics-network
+    depends_on:
+      mongodb:
+        condition: service_healthy
 
   reports_module:
     image: xroad-metrics-reports-module
+    container_name: reports_module
     environment:
       - setting_xroad.instance=DEV
       - setting_mongodb.user=reportsdev
@@ -78,9 +107,13 @@ services:
       - setting_reports.email.smtp.host=localhost
     networks:
       - xrd-metrics-network
+    depends_on:
+      mongodb:
+        condition: service_healthy
 
   mongodb:
     image: mongo:4.4
+    container_name: mongodb
     restart: unless-stopped
     environment:
       - MONGO_INITDB_ROOT_USERNAME=root
@@ -92,26 +125,41 @@ services:
       - ./mongodb-init/mongo-init-anonymizer.js:/docker-entrypoint-initdb.d/mongo-init-anonymizer.js:ro
       - ./mongodb-init/mongo-init-opendata-collector.js:/docker-entrypoint-initdb.d/mongo-init-opendata-collector.js:ro
       - ./mongodb-init/mongo-init-reports.js:/docker-entrypoint-initdb.d/mongo-init-reports.js:ro
+      - mongodb-data:/data/db
     networks:
       - xrd-metrics-network
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   postgresql:
     image: postgres:13
+    container_name: postgresql
     restart: unless-stopped
     environment:
       - POSTGRES_USER=xroadmetrics
       - POSTGRES_PASSWORD=metricssecret
     volumes:
       - ./postgresql-init/init-opendata-db.sql:/docker-entrypoint-initdb.d/init-opendata-db.sql:ro
+      - postgresql-data:/var/lib/postgresql/data
     networks:
       - xrd-metrics-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U xroadmetrics"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   mongo-express:
     image: mongo-express:1.0.2-20
+    container_name: mongo-express
     restart: unless-stopped
     environment:
       - ME_CONFIG_BASICAUTH_USERNAME=root
-      - ME_CONFIG_BASICAUTH_PASSWORD=secret 
+      - ME_CONFIG_BASICAUTH_PASSWORD=secret
       - ME_CONFIG_MONGODB_ADMINUSERNAME=root
       - ME_CONFIG_MONGODB_ADMINPASSWORD=root_pw
       - ME_CONFIG_MONGODB_SERVER=mongodb
@@ -123,6 +171,7 @@ services:
 
   adminer:
     image: adminer:4.8.1
+    container_name: adminer
     restart: unless-stopped
     environment:
       ADMINER_DEFAULT_SERVER: postgresql
@@ -138,3 +187,6 @@ networks:
   xroad-network:
     external: true
 
+volumes:
+  mongodb-data:
+  postgresql-data:
