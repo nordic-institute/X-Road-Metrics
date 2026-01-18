@@ -48,6 +48,7 @@ services:
       - setting_postgres.password=anonymizer_devsecret
       - setting_postgres.host=postgresql
       - setting_postgres.database-name=opendata_dev
+      - setting_postgres.readonly-users=["opendata_dev", "networking_dev"]
     networks:
       - xrd-metrics-network
       - xroad-network

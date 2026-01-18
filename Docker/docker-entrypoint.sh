@@ -18,6 +18,11 @@ if [ -f "$METRICS_SETTINGS_FILE" ]; then
       if [[ "$VALUE" =~ ^([0-9]+(\.[0-9]+)?|true|false|null)$ ]]; then
         # No quotes for numbers, booleans, or null
         yq -i ".${YQ_PATH} = ${VALUE}" "$METRICS_SETTINGS_FILE"
+      elif [[ "$VALUE" =~ ^\[.*\]$ ]]; then
+        # JSON array - use env var to avoid shell quoting issues
+        export YQ_ARRAY_VALUE="$VALUE"
+        yq -i ".${YQ_PATH} = env(YQ_ARRAY_VALUE)" "$METRICS_SETTINGS_FILE"
+        unset YQ_ARRAY_VALUE
       else
         # Quote for strings
         yq -i ".${YQ_PATH} = \"${VALUE}\"" "$METRICS_SETTINGS_FILE"
