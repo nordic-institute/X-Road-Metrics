@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-MODULES=(collector_module corrector_module anonymizer_module opendata_module opendata_collector_module reports_module)
+MODULES=(collector_module corrector_module anonymizer_module opendata_module opendata_collector_module reports_module networking_module)
 
 usage() {
   echo "Usage: $0 [module]"

@@ -184,6 +184,24 @@ services:
     networks:
       - xrd-metrics-network
 
+  networking_module:
+    image: xroad-metrics-networking-module
+    container_name: networking_module
+    environment:
+      - setting_xroad.instance=DEV
+      - setting_postgres.host=postgresql
+      - setting_postgres.port=5432
+      - setting_postgres.username=networking_dev
+      - setting_postgres.password=networking_devsecret
+      - setting_networking.buffer=0
+    ports:
+      - "8001:3838"
+    networks:
+      - xrd-metrics-network
+    depends_on:
+      postgresql:
+        condition: service_healthy
+
 networks:
   xrd-metrics-network:
     name: xrd-metrics-network
