@@ -51,9 +51,6 @@ services:
       - setting_postgres.database-name=postgres
       - setting_postgres.host=postgresql
       - setting_django.secret-key=secret
-      - setting_mongodb.user=opendatadevn
-      - setting_mongodb.password=opendatadevpw
-      - setting_mongodb.host=mongodb
     ports:
       - "8000:80"
     networks:
@@ -92,7 +89,6 @@ services:
       - ./mongodb-init/mongo-init-collector.js:/docker-entrypoint-initdb.d/mongo-init-collector.js:ro
       - ./mongodb-init/mongo-init-corrector.js:/docker-entrypoint-initdb.d/mongo-init-corrector.js:ro
       - ./mongodb-init/mongo-init-anonymizer.js:/docker-entrypoint-initdb.d/mongo-init-anonymizer.js:ro
-      - ./mongodb-init/mongo-init-opendata.js:/docker-entrypoint-initdb.d/mongo-init-opendata.js:ro
       - ./mongodb-init/mongo-init-opendata-collector.js:/docker-entrypoint-initdb.d/mongo-init-opendata-collector.js:ro
       - ./mongodb-init/mongo-init-reports.js:/docker-entrypoint-initdb.d/mongo-init-reports.js:ro
     networks:
