@@ -29,6 +29,19 @@ if [ -f "$METRICS_SETTINGS_FILE" ]; then
       fi
     fi
   done
+
+  # Redirect log files to stdout by creating symlinks
+  # Skip if SKIP_LOG_REDIRECT is set (e.g., for Apache-based services where www-data can't write to /dev/stdout)
+  if [ -z "$SKIP_LOG_REDIRECT" ]; then
+    LOG_PATH=$(yq '.logger.log-path' "$METRICS_SETTINGS_FILE" 2>/dev/null)
+    INSTANCE=$(yq '.xroad.instance' "$METRICS_SETTINGS_FILE" 2>/dev/null)
+    LOGGER_NAME=$(yq '.logger.name' "$METRICS_SETTINGS_FILE" 2>/dev/null)
+
+    if [ -n "$LOG_PATH" ] && [ -n "$INSTANCE" ] && [ -n "$LOGGER_NAME" ]; then
+      LOG_FILE="${LOG_PATH}/log_${LOGGER_NAME}_${INSTANCE}.json"
+      ln -sf /dev/stdout "$LOG_FILE" 2>/dev/null || true
+    fi
+  fi
 fi
 
 exec "$@"
