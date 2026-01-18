@@ -35,9 +35,10 @@ services:
       - setting_mongodb.user=anonymizerdev
       - setting_mongodb.password=anonymizerdevpw
       - setting_mongodb.host=mongodb
-      - setting_postgres.user=xroadmetrics
-      - setting_postgres.password=metricssecret
+      - setting_postgres.user=anonymizer_dev
+      - setting_postgres.password=anonymizer_devsecret
       - setting_postgres.host=postgresql
+      - setting_postgres.database-name=opendata_dev
     networks:
       - xrd-metrics-network
       - xroad-network
@@ -46,9 +47,9 @@ services:
     image: xroad-metrics-opendata-module
     environment:
       - setting_xroad.instance=DEV
-      - setting_postgres.user=xroadmetrics
-      - setting_postgres.password=metricssecret
-      - setting_postgres.database-name=postgres
+      - setting_postgres.user=opendata_dev
+      - setting_postgres.password=opendata_devsecret
+      - setting_postgres.database-name=opendata_dev
       - setting_postgres.host=postgresql
       - setting_django.secret-key=secret
     ports:
@@ -100,6 +101,8 @@ services:
     environment:
       - POSTGRES_USER=xroadmetrics
       - POSTGRES_PASSWORD=metricssecret
+    volumes:
+      - ./postgresql-init/init-opendata-db.sql:/docker-entrypoint-initdb.d/init-opendata-db.sql:ro
     networks:
       - xrd-metrics-network
 
