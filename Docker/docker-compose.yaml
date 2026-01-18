@@ -107,6 +107,8 @@ services:
       - setting_mongodb.host=mongodb
       - setting_reports.email.sender=test@x-road.global
       - setting_reports.email.smtp.host=localhost
+    volumes:
+      - reports-data:/var/lib/xroad-metrics/reports
     networks:
       - xrd-metrics-network
     depends_on:
@@ -192,3 +194,4 @@ networks:
 volumes:
   mongodb-data:
   postgresql-data:
+  reports-data:
