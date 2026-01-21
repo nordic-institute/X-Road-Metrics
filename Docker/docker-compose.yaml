@@ -187,6 +187,7 @@ services:
   networking_module:
     image: xroad-metrics-networking-module
     container_name: networking_module
+    platform: linux/amd64
     environment:
       - setting_xroad.instance=DEV
       - setting_postgres.host=postgresql
