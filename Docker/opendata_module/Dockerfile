@@ -28,6 +28,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends wget \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+RUN adduser --system --group --no-create-home xroad-metrics
+
 COPY Docker/docker-entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
@@ -47,6 +49,9 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+# Add www-data to xroad-metrics group to access files through group membership
+RUN usermod -aG xroad-metrics www-data
+
 COPY --from=builder /wheels /wheels
 RUN pip install --no-cache-dir /wheels/* \
     && rm -rf /wheels \
@@ -65,7 +70,14 @@ RUN mkdir -p /var/log/xroad-metrics/opendata/logs /var/log/xroad-metrics/opendat
     && mkdir -p /etc/xroad-metrics/opendata \
     && cp /app/etc/field_data.yaml /etc/xroad-metrics/opendata/ \
     && ln -s /app/etc/settings.yaml /app/settings.yaml \
-    && chown -R www-data:www-data /var/log/xroad-metrics/opendata \
+    && chown -R xroad-metrics:xroad-metrics /var/log/xroad-metrics/opendata \
+                                            /var/run/xroad-metrics \
+                                            /app \
+                                            /etc/xroad-metrics/opendata \
+    && chmod -R g+rwx /var/log/xroad-metrics/opendata \
+                      /var/run/xroad-metrics \
+                      /app \
+                      /etc/xroad-metrics/opendata \
     && a2enmod wsgi
 
 ENV SKIP_LOG_REDIRECT=1
