@@ -7,6 +7,7 @@
 - [Building All Containers](#building-all-containers)
 - [Overriding `settings.yaml` Values](#overriding-settingsyaml-values)
 - [Overriding Settings with Environment Variables (Entrypoint Script)](#overriding-settings-with-environment-variables-entrypoint-script)
+- [Container Logging](#container-logging)
 - [Running the environment](#running-the-environment)
 - [Cleanup](#cleanup)
 
@@ -117,6 +118,20 @@ modifying the file directly. Note that this will also do substitutions in your `
 
 For more details on the supported environment variable format and substitution logic, see the comments in
 `Docker/docker-entrypoint.sh` and the main project documentation.
+
+## Container Logging
+
+By default, the [entrypoint script](./docker-entrypoint.sh) redirects module log files to stdout by creating symlinks. This allows viewing logs
+via `docker logs` or `docker compose logs` instead of accessing files inside the container.
+
+The following logs are redirected:
+
+- Main module log: `log_<logger-name>_<instance>.json`
+- Networking module's data preparation log: `prepare_data_log.json`
+
+> [!NOTE]
+> In case of Networking module, Shiny server will produce a warning about log file is created as a symlink. 
+> This warning can be ignored.
 
 ## Running the environment
 
