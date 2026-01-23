@@ -1,29 +1,9 @@
-# =============================================================================
-# Base Stage - Common setup for all X-Road Metrics modules
-# =============================================================================
-FROM python:3.8-slim AS metrics-base
-
-ARG YQ_VERSION=4.43.1
-
-RUN apt-get update && apt-get install -y --no-install-recommends wget \
-    && wget -qO /usr/bin/yq https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64 \
-    && chmod +x /usr/bin/yq \
-    && apt-get purge -y wget \
-    && apt-get autoremove -y \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN adduser --system --group --no-create-home xroad-metrics
-
-COPY Docker/docker-entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
-WORKDIR /app
+ARG BASE_IMAGE=set-via-prepare-containers.sh
 
 # =============================================================================
-# Runtime Stage
+# Corrector Module
 # =============================================================================
-FROM metrics-base AS runtime
+FROM ${BASE_IMAGE} AS runtime
 
 COPY corrector_module/ ./
 RUN pip install --no-cache-dir -r requirements.txt \

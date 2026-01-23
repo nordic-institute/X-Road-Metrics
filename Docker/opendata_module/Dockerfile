@@ -1,7 +1,9 @@
+ARG BASE_IMAGE=set-via-prepare-containers.sh
+
 # =============================================================================
 # Builder Stage - Compile Python dependencies
 # =============================================================================
-FROM python:3.11-slim-bookworm AS builder
+FROM ${BASE_IMAGE} AS builder
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -14,31 +16,9 @@ COPY opendata_module/ ./
 RUN pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt
 
 # =============================================================================
-# Base Stage - Common setup for all X-Road Metrics modules
+# OpenData Module
 # =============================================================================
-FROM python:3.11-slim-bookworm AS metrics-base
-
-ARG YQ_VERSION=4.43.1
-
-RUN apt-get update && apt-get install -y --no-install-recommends wget \
-    && wget -qO /usr/bin/yq https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64 \
-    && chmod +x /usr/bin/yq \
-    && apt-get purge -y wget \
-    && apt-get autoremove -y \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN adduser --system --group --no-create-home xroad-metrics
-
-COPY Docker/docker-entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
-WORKDIR /app
-
-# =============================================================================
-# Runtime Stage
-# =============================================================================
-FROM metrics-base AS runtime
+FROM ${BASE_IMAGE} AS runtime
 
 # Install runtime libraries for PostgreSQL and Apache
 RUN apt-get update \
@@ -80,6 +60,7 @@ RUN mkdir -p /var/log/xroad-metrics/opendata/logs /var/log/xroad-metrics/opendat
                       /etc/xroad-metrics/opendata \
     && a2enmod wsgi
 
+# Skip log redirect to stdout - Apache WSGI runs as www-data and can't write to /dev/stdout symlinks
 ENV SKIP_LOG_REDIRECT=1
 
 EXPOSE 80

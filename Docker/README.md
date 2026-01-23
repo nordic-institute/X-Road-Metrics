@@ -24,7 +24,7 @@ has been set up and configured with the monitoring client (note that the subsyst
 
 The subsystem should have `HTTP` selected as the connection method.
 
-## Harware requirements
+## Hardware requirements
 
 This Docker setup is only intended for limited local testing. Most modules run only when explicitly ran. Only the following containers run
 continuously, with the `corrector` running in batches:
@@ -41,11 +41,13 @@ usage you will see. The setup itself can be ran with **1GB** of memory, potentia
 
 ## Building All Containers
 
-To build all module containers, run the following script from the project root:
+To build all module containers, run the build script from the project root:
 
 ```bash
 bash Docker/prepare-containers.sh
 ```
+
+The script can also be run from any directory using an absolute path.
 
 This will build Docker images for:
 - xroad-metrics-collector-module
@@ -54,11 +56,13 @@ This will build Docker images for:
 - xroad-metrics-opendata-module
 - xroad-metrics-opendata-collector-module
 - xroad-metrics-reports-module
+- xroad-metrics-networking-module
 
-To build just one module, you can run the command with:
+To build specific modules, you can specify one or more module names:
 
 ```bash
-bash Docker/prepare-containers.sh [module_name]
+bash Docker/prepare-containers.sh collector_module
+bash Docker/prepare-containers.sh collector_module corrector_module
 ```
 
 ## Overriding `settings.yaml` Values
@@ -121,3 +125,11 @@ e.g., `http://localhost:8000/static/gui/index_en.html`.
 ## Notes
 - The `prepare-containers.sh` script will build all modules in sequence.
 - For more details on module-specific configuration, see the documentation in `docs/` and the main project `README.md`.
+
+## Cleanup
+
+To remove all X-Road Metrics images:
+
+```bash
+docker image rm $(docker images 'xroad-metrics-*' -q)
+```
