@@ -102,18 +102,21 @@ For more details on the supported environment variable format and substitution l
 
 ## Running the environment
 
-The containers can be run with `docker compose up -d` in the `Docker` directory. After this you can run specific commands such
-as collecting by running it on the container, for example:
+The containers can be run with the following command from the `Docker` directory:
 
 ```bash
-docker compose run --rm collector_module collect
+docker compose up -d
 ```
 
-**Note:** When you run the Collector for the very first time, first you must run `update` and then `collect`:
+After this you can run specific commands by running it on the container (other containers are up and running in the background):
 
 ```bash
 docker compose run --rm collector_module update
 docker compose run --rm collector_module collect
+docker compose run --rm anonymizer_module
+docker compose run --rm opendata_collector_module
+# generate reports for data up to today
+docker compose run --rm reports_module --end-date $(date +%Y-%m-%d) report
 ```
 
 There is a web based UI for both the MongoDB and PostgreSQL databases on ports `8081` and `8082` respectively. For passwords,
@@ -127,6 +130,12 @@ e.g., `http://localhost:8000/static/gui/index_en.html`.
 - For more details on module-specific configuration, see the documentation in `docs/` and the main project `README.md`.
 
 ## Cleanup
+
+To remove all X-Road Metrics containers, volumes, and networks created by Docker Compose:
+
+```bash
+docker compose down -v
+```
 
 To remove all X-Road Metrics images:
 
