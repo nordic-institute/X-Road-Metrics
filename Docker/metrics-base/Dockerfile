@@ -7,11 +7,12 @@ ARG PYTHON_VERSION=3.8-slim
 
 FROM python:${PYTHON_VERSION}
 
-ARG YQ_VERSION=4.43.1
+ARG YQ_VERSION=4.50.1
 
 # Install yq for YAML configuration manipulation
 RUN apt-get update && apt-get install -y --no-install-recommends wget \
-    && wget -qO /usr/bin/yq https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64 \
+    && ARCH=$(dpkg --print-architecture) \
+    && wget -qO /usr/bin/yq https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_${ARCH} \
     && chmod +x /usr/bin/yq \
     && apt-get purge -y wget \
     && apt-get autoremove -y \
