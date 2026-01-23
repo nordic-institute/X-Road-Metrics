@@ -204,6 +204,8 @@ services:
     depends_on:
       postgresql:
         condition: service_healthy
+      anonymizer_module:
+        condition: service_started
 
 networks:
   xrd-metrics-network:
