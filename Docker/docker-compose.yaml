@@ -29,6 +29,8 @@ services:
       - setting_mongodb.user=correctordev
       - setting_mongodb.password=correctordevpw
       - setting_mongodb.host=mongodb
+      - setting_corrector.wait-on-done=60
+      - setting_corrector.wait-on-error=60
     networks:
       - xrd-metrics-network
     depends_on:
