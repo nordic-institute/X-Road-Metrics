@@ -3,11 +3,37 @@ set -e
 
 # Change to project root directory.
 # Allows running by Docker/prepare-containers.sh or ./prepare-containers.sh
-SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
+SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd -P)
 cd "$SCRIPT_DIR/.."
 
 # =============================================================================
-# Output helpers (color output if terminal supports it)
+# Configuration
+# =============================================================================
+
+# All available modules
+MODULES=(
+  collector_module
+  corrector_module
+  anonymizer_module
+  opendata_collector_module
+  reports_module
+  opendata_module
+  networking_module
+)
+
+# Modules that require amd64 platform
+AMD64_ONLY_MODULES=(networking_module)
+
+get_base_image() {
+  case "$1" in
+    opendata_module)   echo "3.11-slim-bookworm" ;;
+    networking_module) ;;
+    *)                 echo "3.8-slim" ;;
+  esac
+}
+
+# =============================================================================
+# Loggers
 # =============================================================================
 IS_COLOR_ENABLED=$(command -v tput >/dev/null && tput setaf 1 &>/dev/null && echo true || echo false)
 
@@ -42,56 +68,27 @@ success() {
 }
 
 # =============================================================================
-# Configuration
-# =============================================================================
-
-# Base image variants -> Python versions
-declare -A BASE_IMAGES=(
-  ["default"]="3.8-slim"
-  ["py311"]="3.11-slim-bookworm"
-)
-
-# Module configuration: "base_variant:platform"
-# - base_variant: default, py311, or empty (no base image)
-# - platform: default or amd64
-declare -A MODULES=(
-  ["collector_module"]="default:default"
-  ["corrector_module"]="default:default"
-  ["anonymizer_module"]="default:default"
-  ["opendata_collector_module"]="default:default"
-  ["reports_module"]="default:default"
-  ["opendata_module"]="py311:default"
-  ["networking_module"]=":amd64"
-)
-
-# =============================================================================
-# Validation
+# Helpers
 # =============================================================================
 check_module_exists() {
   local module=$1
-  if [[ ! -v "MODULES[$module]" ]]; then
-    usage
-    errorExit "Unknown module: $module"
-  fi
-}
-
-# =============================================================================
-# Config parsing
-# =============================================================================
-parse_module_config() {
-  local module=$1
-  IFS=':' read -r BASE_VARIANT PLATFORM <<< "${MODULES[$module]}"
+  for valid_module in "${MODULES[@]}"; do
+    if [ "$module" == "$valid_module" ]; then
+      return 0
+    fi
+  done
+  usage
+  errorExit "Unknown module: $module"
 }
 
 get_required_base_versions() {
   REQUIRED_BASE_VERSIONS=()
   for module in "$@"; do
-    parse_module_config "$module"
-    if [[ -n "$BASE_VARIANT" ]]; then
-      local python_version="${BASE_IMAGES[$BASE_VARIANT]}"
+    local base_image=$(get_base_image "$module")
+    if [[ -n "$base_image" ]]; then
       # Check if already in array (simple approach, fine for 2-3 versions)
-      if [[ ! " ${REQUIRED_BASE_VERSIONS[*]} " =~ " ${python_version} " ]]; then
-        REQUIRED_BASE_VERSIONS+=("$python_version")
+      if [[ ! " ${REQUIRED_BASE_VERSIONS[*]} " =~ " ${base_image} " ]]; then
+        REQUIRED_BASE_VERSIONS+=("$base_image")
       fi
     fi
   done
@@ -133,16 +130,18 @@ build_module_image() {
     errorExit "Dockerfile not found: $dockerfile"
   fi
 
-  parse_module_config "$module"
-
   local build_args=()
 
-  if [[ "$PLATFORM" == "amd64" ]]; then
-    build_args+=(--platform=linux/amd64)
-  fi
+  for amd64_module in "${AMD64_ONLY_MODULES[@]}"; do
+    if [ "$module" == "$amd64_module" ]; then
+      build_args+=(--platform=linux/amd64)
+      break
+    fi
+  done
 
-  if [[ -n "$BASE_VARIANT" ]]; then
-    build_args+=(--build-arg "BASE_IMAGE=xroad-metrics-base:${BASE_IMAGES[$BASE_VARIANT]}")
+  local base_image=$(get_base_image "$module")
+  if [[ -n "$base_image" ]]; then
+    build_args+=(--build-arg "BASE_IMAGE=xroad-metrics-base:${base_image}")
   fi
 
   success "Building ${tag}..."
@@ -168,7 +167,7 @@ usage() {
   echo "Usage: $0 [module1 module2 ...]"
   echo "  If no module is specified, all containers will be built."
   echo "  Available modules:"
-  for m in "${!MODULES[@]}"; do
+  for m in "${MODULES[@]}"; do
     echo "    - $m"
   done
 }
@@ -188,7 +187,7 @@ done
 
 if [[ $# -eq 0 ]]; then
   # Building images of all modules
-  build_images "${!MODULES[@]}"
+  build_images "${MODULES[@]}"
 else
   # Building images of required modules only
   build_images "$@"
