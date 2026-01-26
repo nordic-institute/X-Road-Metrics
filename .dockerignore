@@ -1,0 +1,93 @@
+# =============================================================================
+# .dockerignore - Exclude files from Docker build context
+# =============================================================================
+
+# Git
+.git
+.gitignore
+.github
+
+# IDE and editor settings
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Python bytecode and cache
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+**/*.so
+**/.mypy_cache/
+**/.ruff_cache/
+**/.pytest_cache/
+.cache
+
+# Virtual environments
+venv/
+env/
+.venv/
+.Python
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+*.deb
+*.dsc
+*.tar.xz
+*.buildinfo
+*.changes
+sdist/
+wheels/
+
+# Test and coverage
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+coverage.xml
+nosetests.xml
+test_results.*
+.hypothesis/
+**/tests/
+integration_tests/
+
+# Documentation (not needed in containers)
+docs/
+*.md
+!README.md
+
+# Logs
+*.log
+logs/
+
+# Database files
+*.sqlite3
+
+# MacOS
+.DS_Store
+
+# Claude/AI assistant
+.claude/
+
+# Development files
+.devcontainer/
+.scannerwork/
+.ort.yml
+ruff.toml
+
+# Debian packaging files (not needed for Docker)
+Dockerfile_focal
+Dockerfile_jammy
+
+# Archive module (not containerized)
+archive_module/
+
+# Unreleased modules
+unreleased_modules/
+
+# Artifacts directory
+artifacts/

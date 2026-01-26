@@ -40,6 +40,8 @@ if [ -f "$METRICS_SETTINGS_FILE" ]; then
     if [ -n "$LOG_PATH" ] && [ -n "$INSTANCE" ] && [ -n "$LOGGER_NAME" ]; then
       LOG_FILE="${LOG_PATH}/log_${LOGGER_NAME}_${INSTANCE}.json"
       ln -sf /dev/stdout "$LOG_FILE" 2>/dev/null || true
+      # Also redirect networking module's prepare_data log if log path exists
+      ln -sf /dev/stdout "${LOG_PATH}/prepare_data_log.json" 2>/dev/null || true
     fi
   fi
 fi
