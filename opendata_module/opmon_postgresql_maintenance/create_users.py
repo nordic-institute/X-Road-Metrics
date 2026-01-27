@@ -76,6 +76,10 @@ def main():
     except psycopg2_errors.DuplicateObject as e:
         logger.info(str(e))
 
+    # Grant schema-level privileges after users are committed
+    # (required for PostgreSQL 15+ where public schema no longer grants CREATE to PUBLIC)
+    _grant_schema_privileges(args)
+
 
 def _remove_users(args: argparse.Namespace,
                   postgres_conn: psycopg2.extensions.connection) -> None:
@@ -112,15 +116,16 @@ def _remove_users(args: argparse.Namespace,
             logger.info(f'Trying to remove read only {user}: {str(e)}')
 
 
-def _connect_postgres(args: argparse.Namespace) -> psycopg2.extensions.connection:
+def _connect_postgres(args: argparse.Namespace, database: str = '') -> psycopg2.extensions.connection:
     """
     Establishes a connection to the PostgreSQL database.
 
     :param args: Arguments passed to the function.
+    :param database: Database name to connect to. Empty string for default.
     :return: A psycopg2 connection object.
     """
     connections_args = {
-        'database': '',
+        'database': database,
         'user': args.user,
     }
 
@@ -193,6 +198,29 @@ def _grant_privileges(args: argparse.Namespace,
     for user_prefix in read_only_users:
         user = f'{user_prefix}_{args.xroad}'
         postgres_conn.cursor().execute(f'GRANT CONNECT ON DATABASE {database} TO {user} WITH GRANT OPTION;')
+
+
+def _grant_schema_privileges(args: argparse.Namespace) -> None:
+    """
+    Grants schema-level privileges to full users.
+
+    In PostgreSQL 15+, the public schema no longer grants CREATE privilege to PUBLIC
+    by default. This function connects to the target database and grants the necessary
+    schema privileges to allow table creation.
+
+    :param args: Arguments passed to the function.
+    """
+    database = f'opendata_{args.xroad}'
+    db_conn = _connect_postgres(args, database)
+    db_conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+
+    try:
+        cursor = db_conn.cursor()
+        for user_prefix in full_users:
+            user = f'{user_prefix}_{args.xroad}'
+            cursor.execute(f'GRANT CREATE, USAGE ON SCHEMA public TO {user};')
+    finally:
+        db_conn.close()
 
 
 def _parse_args():
