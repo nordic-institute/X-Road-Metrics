@@ -68,7 +68,7 @@ def process_archive(total_to_archive, minimum_to_archive, mdb_database, mdb_user
         f.writelines(lines)
     # Remove saved documents from raw data
     for d_id in to_removal:
-        raw_messages.remove({"_id": d_id})
+        raw_messages.delete_one({"_id": d_id})
 
 
 def main():
@@ -105,8 +105,8 @@ def main():
     print('- Connecting to database: {0}'.format(db_name))
     client = pymongo.MongoClient(uri)
     db = client[db_name]
-    total_raw_docs = db.raw_messages.count()
-    total_processed_docs = db.raw_messages.find({'corrected': True}).count()
+    total_raw_docs = db.raw_messages.count_documents({})
+    total_processed_docs = db.raw_messages.count_documents({'corrected': True})
     print('- Total documents from raw collection: {0}'.format(total_raw_docs))
     print('- Total documents ready to archive: {0}'.format(total_processed_docs))
     print('- Total of (MAX:{0} MIN:{1}) will be archived in this batch.'.format(total_to_archive, minimum_to_archive))

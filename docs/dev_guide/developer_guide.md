@@ -63,13 +63,19 @@ curl https://pyenv.run | bash
 
 To get a list of latest Python versions available:
 ```bash
-pyenv install --list | grep 3.8
+pyenv install --list | grep 3.10
 ```
 
-Currently, the latest version is `3.8.20`. To install it:
+Currently, the latest version is `3.10.19`. To install it:
 
 ```bash
-pyenv install 3.8.20
+pyenv install 3.10.19
+```
+
+Set the global Python version to `3.10.19`:
+
+```bash
+pyenv global 3.10.19
 ```
 
 #### Install setuptools
@@ -138,7 +144,7 @@ tox -e type
 ### Run tests only
 
 ```bash
-tox -e py38
+tox -e py310
 ```
 
 ## Creating a pull request
@@ -168,23 +174,18 @@ as described in the [style guide](https://github.com/nordic-institute/X-Road/blo
 
 ## Building a docker image
 
-Before building a docker image, clean up the project to reduce image size.  
-_`tox` command caches a lot of files that might be over 500MB._
-
-```bash
-make clean
-```
+To build a docker image or run module(s) in docker, please refer to [Docker README](../../Docker/README.md).
 
 ## Packaging modules
 
 In order to create `.deb` packages for a module, each module is built inside a controlled Docker environment that reproduces the target Ubuntu release. The Dockerfile installs all required build tools and dependencies, compiles the module, and uses Debian’s packaging utilities such as dpkg-buildpackage to generate the .deb file. This ensures consistent, reproducible builds that match the expected distribution environment.
 
-Replace `<module_name>` with the actual name of your module and `<focal|jammy>` with the target Ubuntu version you want to build for.
+Replace `<module_name>` with the actual name of your module and `<jammy|noble>` with the target Ubuntu version you want to build for.
 
 You can build a module package using:
 
 ```shell
-docker buildx build --build-arg MODULE_NAME=<module_name>_module . --target=artifacts --output type=local,dest=./output -f Dockerfile_<focal|jammy>
+docker buildx build --build-arg MODULE_NAME=<module_name>_module . --target=artifacts --output type=local,dest=./output -f Dockerfile_<jammy|noble>
 ```
 
 Then you can check the created package for compliance with the Debian policy and for other common packaging errors using:
@@ -204,8 +205,8 @@ An example output:
 _The `*` indicates which virtualenv is active._
 
 ```bash
-  3.8.20/envs/collector (created from /home/xrduser/.pyenv/versions/3.8.20)
-* collector (created from /home/xrduser/.pyenv/versions/3.8.20)
+  3.10.16/envs/collector (created from /home/xrduser/.pyenv/versions/3.10.16)
+* collector (created from /home/xrduser/.pyenv/versions/3.10.16)
 ```
 
 ### Deactivate the virtual environment
@@ -229,5 +230,5 @@ pyenv versions
 ### Remove the Python version
 
 ```bash
-pyenv uninstall 3.8.20
+pyenv uninstall 3.10.19
 ```

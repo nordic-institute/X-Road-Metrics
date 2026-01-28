@@ -4,17 +4,13 @@ Priority: optional
 Maintainer: "NIIS" <info@niis.org>
 Build-Depends: debhelper (>=11~), dh-python, python3-all
 Standards-Version: 4.1.4
-X-Python3-Version: >= 3.6
+X-Python3-Version: >= 3.10
 
 Package: xroad-metrics-reports
 Architecture: all
 Multi-Arch: foreign
 Depends:
     cron,
-    libfreetype6-dev,
-    libjpeg8-dev,
-    libtiff5-dev,
-    zlib1g-dev,
     weasyprint,
     ${misc:Depends},
     ${python3:Depends}

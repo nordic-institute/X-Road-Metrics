@@ -35,7 +35,6 @@ class HarvestForm(forms.Form):
     offset = forms.IntegerField(required=False)
     limit = forms.IntegerField(required=False, min_value=0)
     from_row_id = forms.IntegerField(required=False)
-    # compatibility with Django 2.2
     order = forms.CharField(required=False)
 
     @staticmethod

@@ -1,9 +1,8 @@
 #!/bin/bash
 
-SHINY_VERSION=1.5.16.958
-PACKAGE_SHA=330e4e1c11251a2bd362de39063efaa3dbc87a6b06eced8472522147ad276ee4
+SHINY_VERSION=1.5.23.1030
+PACKAGE_SHA=4a3d063a06ccd1b6c53eb1d7f4fb59965bced10d1c5c87e8c476b58dd6fd35ee
 PACKAGE_NAME=shiny-server-${SHINY_VERSION}-amd64.deb
-TMP_DIR=$(mktemp --tmp  --directory "xroad-metrics-install-shiny-server-XXXXXXX")
 
 confirm_version_change() {
     echo "Another shiny-server version is already installed:"
@@ -45,12 +44,13 @@ verify_checksum() {
 }
 
 download_shiny_server_package() {
-  wget -P ${TMP_DIR} https://download3.rstudio.org/ubuntu-14.04/x86_64/${PACKAGE_NAME}
-
+  TMP_DIR=$(mktemp --tmp  --directory "xroad-metrics-install-shiny-server-XXXXXXX")
+  chmod 755 "$TMP_DIR"
+  wget -P ${TMP_DIR} https://download3.rstudio.org/ubuntu-20.04/x86_64/${PACKAGE_NAME}
 }
 
 install_shiny_server_package() {
-  gdebi ${TMP_DIR}/${PACKAGE_NAME}
+  apt install ${TMP_DIR}/${PACKAGE_NAME}
   rm -rf ${TMP_DIR}
 }
 

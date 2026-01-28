@@ -24,15 +24,13 @@
 
 from setuptools import setup, find_packages
 
-# The following dependencies has newer versions, but require Python 3.9 or higher
-#   numpy
-
 requirements = [
-    'dill==0.3.9',
-    'django==4.2.19',
-    'pymongo==4.10.1',
-    'pyyaml==6.0.2',
-    'numpy==1.24.4'
+    'setuptools==80.10.2',
+    'dill==0.4.1',
+    'django==5.2.10',
+    'pymongo==4.16.0',
+    'pyyaml==6.0.3',
+    'numpy==2.2.6',
 ]
 
 classifiers = [
@@ -43,6 +41,8 @@ classifiers = [
     'Natural Language :: English',
     'Operating System :: POSIX :: Linux',
     'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.12',
     'Topic :: Utilities',
 ]
 
@@ -57,5 +57,6 @@ setup(
     install_requires=requirements,
     classifiers=classifiers,
     platforms='POSIX',
-    license='MIT'
+    license='MIT',
+    python_requires='>=3.10',
 )

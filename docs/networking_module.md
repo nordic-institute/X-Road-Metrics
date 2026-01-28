@@ -38,7 +38,8 @@ The general scheme of processes in the Networkin module is as follows:
 
 ![networking module diagram](img/Networking_module_diagram.png "Networking module diagram")
 
-### Add X-Road Extensions Package Repository for Ubuntu 20.04 or Ubuntu 22.04
+### Add X-Road Extensions Package Repository for Ubuntu 22.04 (Jammy) or Ubuntu 24.04 (Noble)
+
 ````bash
 wget -qO - https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
 sudo add-apt-repository 'https://artifactory.niis.org/xroad-extensions-release-deb main'

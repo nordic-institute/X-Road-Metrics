@@ -47,8 +47,7 @@ The modules should be set up in the following order:
 
 ## Programming language
 
-All modules, except Networking, are written in [**Python**](https://www.python.org/)&trade; and tested with version 3.8
-Other 3.x versions are likely to be compatible, give or take some 3rd party library interfaces.
+All modules, except Networking, are written in [**Python**](https://www.python.org/)&trade; and require version 3.10 or higher.
 Networking module is written in [**R**](https://www.r-project.org/).
 
 ## How to contribute?

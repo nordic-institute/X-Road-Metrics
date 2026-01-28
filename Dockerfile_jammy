@@ -2,8 +2,8 @@ FROM ubuntu:jammy AS build
 
 ARG MODULE_NAME
 
-ENV DEBIAN_FRONTEND noninteractive
-ENV TZ UTC
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=UTC
 
 WORKDIR /workspace/src/
 
@@ -25,4 +25,3 @@ FROM scratch AS artifacts
 ARG MODULE_NAME
 
 COPY --from=build /workspace/src/*.deb /artifacts/
-
