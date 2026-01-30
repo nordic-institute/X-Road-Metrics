@@ -218,7 +218,11 @@ def _grant_schema_privileges(args: argparse.Namespace) -> None:
         cursor = db_conn.cursor()
         for user_prefix in full_users:
             user = f'{user_prefix}_{args.xroad}'
-            cursor.execute(f'GRANT CREATE, USAGE ON SCHEMA public TO {user};')
+            try:
+                cursor.execute(f'GRANT CREATE, USAGE ON SCHEMA public TO {user};')
+                logger.info(f'Schema privileges granted successfully to user {user}')
+            except psycopg2.Error as e:
+                logger.error(f'Failed to grant schema privileges to user {user}: {e}')
     finally:
         db_conn.close()
 
