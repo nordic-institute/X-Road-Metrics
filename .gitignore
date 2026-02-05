@@ -15,6 +15,7 @@ __pycache__/
 *pybuild
 env/
 build/
+output/
 develop-eggs/
 dist/
 downloads/

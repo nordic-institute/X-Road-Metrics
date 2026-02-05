@@ -23,5 +23,6 @@ RUN cd ./${MODULE_NAME} && \
 FROM scratch AS artifacts
 
 ARG MODULE_NAME
+ARG OUTPUT_PATH=/artifacts
 
-COPY --from=build /workspace/src/*.deb /artifacts/
+COPY --from=build /workspace/src/*.deb ${OUTPUT_PATH}/
