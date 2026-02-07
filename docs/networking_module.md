@@ -79,10 +79,15 @@ Shiny Server is developed and distributed by RStudio (https://rstudio.com/produc
 and currently they don't provide an Ubuntu repository for it. Therefore, Shiny Server is not included as a dependency
 of the xroad-metrics-networking package installed above.
 
-However,the xroad-metrics-networking package includes a utility script that can be used to download and install Shiny Server
+However, the xroad-metrics-networking package includes a utility script that can be used to download and install Shiny Server
 from the RStudio website. To install Shiny Server via this utility script, run:
 ```bash
 sudo /usr/share/xroad-metrics/networking/install-shiny-server.sh
+```
+
+For automated installations or upgrade, use the `--non-interactive` flag:
+```bash
+sudo /usr/share/xroad-metrics/networking/install-shiny-server.sh --non-interactive
 ```
 
 A default configuration file for Shiny Server is included in xroad-metrics-networking package and Shiny Server will

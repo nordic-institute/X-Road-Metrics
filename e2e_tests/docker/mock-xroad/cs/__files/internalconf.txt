@@ -1,0 +1,43 @@
+Content-Type: multipart/related; charset=UTF-8; boundary=7lshlCAZXm526BGWUS5c
+
+--7lshlCAZXm526BGWUS5c
+Content-Type: multipart/mixed; charset=UTF-8; boundary=hQ8Ih91ZowlDDsgUYaqb
+
+--hQ8Ih91ZowlDDsgUYaqb
+Expire-date: 2026-02-01T13:51:21Z
+Version: 2
+
+--hQ8Ih91ZowlDDsgUYaqb
+Content-type: application/octet-stream
+Content-transfer-encoding: base64
+Content-identifier: PRIVATE-PARAMETERS; instance='DEV'
+Content-location: /V2/20260201134121613368000/private-params.xml
+Hash-algorithm-id: http://www.w3.org/2001/04/xmlenc#sha512
+
+q/lC2zeQMU6Mufn3UFnRJ2ShFBY0hJw5LurgQ2SoDiqY3jSin9AxY0CVTo4LujOKePH262ywno/sD6CFm7zPNw==
+--hQ8Ih91ZowlDDsgUYaqb
+Content-type: application/octet-stream
+Content-transfer-encoding: base64
+Content-identifier: SHARED-PARAMETERS; instance='DEV'
+Content-location: /V2/20260201134121613368000/shared-params.xml
+Hash-algorithm-id: http://www.w3.org/2001/04/xmlenc#sha512
+
+unTcaikpH8xFQfHfSMB9xKR2oXIs5qLncAkQZ4hA4w6aI6KAZANiBKU1O09DAS79DzE+IrdySB7HTQSPpxEZKQ==
+--hQ8Ih91ZowlDDsgUYaqb
+Content-type: application/octet-stream
+Content-transfer-encoding: base64
+Content-identifier: MONITORING; instance='DEV'
+Content-location: /V2/20260201134121613368000/monitoring-params.xml
+Hash-algorithm-id: http://www.w3.org/2001/04/xmlenc#sha512
+
+NeISl196HGmfxBap4yVpm8GASFRZvleOukV0Vueomw755b8sY9Xf/dpkG03E2X2pLTORcdowyXxxIaJhUdoGaw==
+--hQ8Ih91ZowlDDsgUYaqb--
+
+--7lshlCAZXm526BGWUS5c
+Content-Type: application/octet-stream
+Content-Transfer-Encoding: base64
+Signature-Algorithm-Id: http://www.w3.org/2001/04/xmldsig-more#rsa-sha512
+Verification-certificate-hash: xPFMZkDKOqJggjvPpLv9VptvnOQz3PtEwcFn5l7RhepcSGhPCXaDZe3hJvaZuNpjuPPKArTOSNTeJGEyi5CB8Q==; hash-algorithm-id="http://www.w3.org/2001/04/xmlenc#sha512"
+
+NUwbeSHfJ+g496+w2bKqjFmRxkg9TdBByQIEjvtnGuSZwLgNB80ueqGh+44WZWeZ9PdEnc+/FeYKV3inVridKM109g5vRQ3GXQbrPRNrV4Nauca3vLaH9IJ/PoMmJR1bnBTDyKl2voAMBwVrpUgz/91OcO3GGo89G3LfhdSn2vUbfz+2ZzJHA71OhqzFubSF6nXWqnVdp1qlo5ZIieUb4sVO5TDIWrpCFb6gLWkpLG9cD7BKKXFHAi2b7vFSemWHWEbYLqk4SZfP71RNkgY0c32t8vkB4DPsxz96aW4/01hQUeShQNG9axWoaG8KFoRYE2xEG9Jee4RNcYNMdO1CUw==
+--7lshlCAZXm526BGWUS5c--

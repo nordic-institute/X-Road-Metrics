@@ -23,6 +23,7 @@
   - [Branch naming, PRs, and commit messages](#branch-naming-prs-and-commit-messages)
 - [Building a docker image](#building-a-docker-image)
 - [Packaging modules](#packaging-modules)
+- [End-to-End Testing](#end-to-end-testing)
 - [Useful commands](#useful-commands)
   - [Display list of installed virtual environments](#display-list-of-installed-virtual-environments)
   - [Deactivate the virtual environment](#deactivate-the-virtual-environment)
@@ -202,6 +203,22 @@ After building, you can check the created package for compliance with the Debian
 ```shell
 lintian output/<target>/*.deb
 ```
+
+## End-to-End Testing
+
+The `e2e_tests/` directory contains an automated test framework that validates the full X-Road Metrics pipeline (collector → corrector → reports → anonymizer → networking → opendata) in an isolated LXD container with Docker-based databases.
+
+For full documentation, see [e2e_tests/README.md](../../e2e_tests/README.md).
+
+Quick start:
+
+```bash
+cd e2e_tests
+./run.sh build                    # Build all packages
+./run.sh test-noble-latest-dbs    # Run full pipeline test
+```
+
+For iterating on a single module without re-running the entire pipeline, see the [Developer Iteration Workflow](../../e2e_tests/README.md#developer-iteration-workflow).
 
 ## Useful commands
 
