@@ -1,9 +1,10 @@
 [tox]
-env_list = lint, type, py311
+env_list = lint, type, py38
 
 [testenv]
 description = Run the tests with pytest and coverage
 deps = -r test_requirements.txt
+install_command=pip install --only-binary=numpy {opts} numpy {packages}
 commands =
     coverage run --source opmon_analyzer_ui -m pytest opmon_analyzer_ui/
     coverage report --include=opmon_analyzer_ui/* --fail-under=60
