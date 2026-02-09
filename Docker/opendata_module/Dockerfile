@@ -21,11 +21,24 @@ RUN pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt
 FROM ${BASE_IMAGE} AS runtime
 
 # Install runtime libraries for PostgreSQL and Apache
+# Note: mod_wsgi is compiled from source via pip to match the Python version
+# in the base image. The Debian-packaged libapache2-mod-wsgi-py3 is compiled
+# against the system Python (3.11 in Bookworm), which doesn't work with other versions.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         libpq5 \
         apache2 \
-        libapache2-mod-wsgi-py3 \
+        apache2-dev \
+        javascript-common \
+        libjs-bootstrap \
+        libjs-jquery \
+        libjs-jquery-datatables \
+        libjs-moment \
+        libjs-eonasdan-bootstrap-datetimepicker \
+    && pip install --no-cache-dir mod-wsgi \
+    && mod_wsgi-express install-module > /etc/apache2/mods-available/wsgi.load \
+    && apt-get purge -y apache2-dev \
+    && apt-get autoremove -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
