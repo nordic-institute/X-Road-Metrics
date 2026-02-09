@@ -88,8 +88,7 @@ logs/
 ruff.toml
 
 # Debian packaging files (not needed for Docker)
-Dockerfile_focal
-Dockerfile_jammy
+Dockerfile_*
 
 # Archive module (not containerized)
 archive_module/

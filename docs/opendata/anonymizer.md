@@ -80,7 +80,7 @@ No **incoming** connection is needed in the anonymizer module.
 
 TODO: Update installation instructions to use deb packages
 
-This sections describes the necessary steps to install the **anonymizer module** on a Linux Ubuntu system.
+This sections describes the necessary steps to install the **anonymizer module** on supported Ubuntu Linux system.
 To a complete overview of different modules and machines, please refer to the [System Architecture](../system_architecture.md) and [Opendata module](../opendata_module.md) documentation.
 
 ### Installing Python libraries

@@ -3,7 +3,7 @@
 # Common foundation for all Python-based X-Road Metrics modules
 # =============================================================================
 
-ARG PYTHON_VERSION=3.8-slim
+ARG PYTHON_VERSION=3.10-slim
 
 FROM python:${PYTHON_VERSION}
 

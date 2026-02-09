@@ -1,3 +1,4 @@
+name: xroad-metrics
 services:
   collector_module:
     image: xroad-metrics-collector-module
@@ -118,7 +119,7 @@ services:
         condition: service_healthy
 
   mongodb:
-    image: mongo:6.0
+    image: mongo:7
     container_name: mongodb
     restart: unless-stopped
     environment:
@@ -132,6 +133,7 @@ services:
       - ./mongodb-init/mongo-init-opendata-collector.js:/docker-entrypoint-initdb.d/mongo-init-opendata-collector.js:ro
       - ./mongodb-init/mongo-init-reports.js:/docker-entrypoint-initdb.d/mongo-init-reports.js:ro
       - mongodb-data:/data/db
+      - mongodb-config:/data/configdb
     networks:
       - xrd-metrics-network
     healthcheck:
@@ -142,7 +144,7 @@ services:
       start_period: 30s
 
   postgresql:
-    image: postgres:14
+    image: postgres:15
     container_name: postgresql
     restart: unless-stopped
     environment:
@@ -216,5 +218,6 @@ networks:
 
 volumes:
   mongodb-data:
+  mongodb-config:
   postgresql-data:
   reports-data:
