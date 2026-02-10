@@ -49,24 +49,24 @@ class MongoAnalyzerDBHandler:
         db = self.get_analyzer_db()
         collection = db[self.INCIDENT_COLLECTION]
         for doc in docs:
-            collection.insert(doc)
+            collection.insert_one(doc)
 
     def add_incident_model(self, model):
         db = self.get_analyzer_db()
         collection = db[self.INCIDENT_MODEL_COLLECTION]
-        collection.insert(model)
-        
+        collection.insert_one(model)
+
     def add_incident_timestamps(self, docs):
         db = self.get_analyzer_db()
         collection = db[self.INCIDENT_TIMESTAMPS_COLLECTION]
         for doc in docs:
-            collection.insert(doc)
-            
+            collection.insert_one(doc)
+
     def add_service_call_first_timestamps(self, docs):
         db = self.get_analyzer_db()
         collection = db[self.SERVICE_CALL_FIRST_TIMESTAMPS_COLLECTION]
         for doc in docs:
-            collection.insert(doc)
+            collection.insert_one(doc)
 
     def remove_incident_collection(self):
         db = self.get_analyzer_db()

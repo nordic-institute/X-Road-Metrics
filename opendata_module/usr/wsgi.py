@@ -1,10 +1,10 @@
 """
-WSGI config for interface project.
+WSGI config for opendata project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 
 For more information on this file, see
-https://docs.djangoproject.com/en/1.10/howto/deployment/wsgi/
+https://docs.djangoproject.com/en/5.2/howto/deployment/wsgi/
 """
 
 #  The MIT License

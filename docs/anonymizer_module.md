@@ -78,9 +78,8 @@ postgres:
 ## Installation
 
 This sections describes the necessary steps to install the **anonymizer module** on
-an Ubuntu 20.04 or Ubuntu 22.04 Linux host. For a complete overview of different modules and machines,
+Ubuntu 22.04 (Jammy) or Ubuntu 24.04 (Noble). For a complete overview of different modules and machines,
 please refer to the ==> [System Architecture](system_architecture.md) <== documentation.
-
 
 ### Add X-Road Extensions Package Repository for Ubuntu
 ````bash

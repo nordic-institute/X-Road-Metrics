@@ -38,6 +38,10 @@ Overall system, its users and rights, processes and directories are designed in 
 
 No incoming connection is needed in the Opendata collector module.
 
+## Installation
+
+This sections describes the necessary steps to install the **opendata collector module** on Ubuntu 22.04 (Jammy) or Ubuntu 24.04 (Noble).
+
 ### Add X-Road Extensions Package Repository for Ubuntu
 ````bash
 wget -qO - https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -

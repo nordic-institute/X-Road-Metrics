@@ -8,13 +8,14 @@ pip install tox
 
 # Install Python dependencies for all modules
 modules=(
-  "analysis_module"
-  "analysis_ui_module"
+  # "analysis_module"        # unreleased
+  # "analysis_ui_module"     # unreleased
   "anonymizer_module"
   "collector_module"
   "corrector_module"
   "opendata_collector_module"
   "opendata_module"
+  "reports_module"
 )
 
 for module in "${modules[@]}"; do

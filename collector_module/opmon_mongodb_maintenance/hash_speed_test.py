@@ -38,7 +38,7 @@ from tqdm import tqdm
 
 def hash_speed_test(db, collection_name):
     collection = db[collection_name]
-    col_docs = collection.count()
+    col_docs = collection.count_documents({})
     max_docs = min(100, col_docs)
     min_docs = 10
     if max_docs < min_docs:
@@ -91,8 +91,8 @@ def main():
     print('- Connecting to database: {0}'.format(db_name))
     client = pymongo.MongoClient(uri)
     db = client[db_name]
-    print('- Total documents raw collection: {0}'.format(db.raw_messages.count()))
-    print('- Total documents clean collection: {0}'.format(db.clean_data.count()))
+    print('- Total documents raw collection: {0}'.format(db.raw_messages.count_documents({})))
+    print('- Total documents clean collection: {0}'.format(db.clean_data.count_documents({})))
 
     print('* Hash Check Speed from Clean Data:')
     hash_speed_test(db, 'clean_data')

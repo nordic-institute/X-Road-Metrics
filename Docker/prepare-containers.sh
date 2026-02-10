@@ -26,9 +26,8 @@ AMD64_ONLY_MODULES=(networking_module)
 
 get_base_image() {
   case "$1" in
-    opendata_module)   echo "3.11-slim-bookworm" ;;
     networking_module) ;;
-    *)                 echo "3.8-slim" ;;
+    *)                 echo "3.10-slim" ;;
   esac
 }
 

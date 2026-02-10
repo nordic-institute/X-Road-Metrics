@@ -8,10 +8,10 @@
 .github
 
 # IDE and editor settings
-.vscode/
-.idea/
-*.swp
-*.swo
+**/.idea
+**/.vscode
+**/*.swp
+**/*.swo
 *~
 
 # Python bytecode and cache
@@ -45,7 +45,7 @@ wheels/
 
 # Test and coverage
 htmlcov/
-.tox/
+**/.tox
 .coverage
 .coverage.*
 coverage.xml
@@ -54,6 +54,13 @@ test_results.*
 .hypothesis/
 **/tests/
 integration_tests/
+**/.mypy_cache
+**/.pytest_cache
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/*.egg-info
+**/.eggs
 
 # Documentation (not needed in containers)
 docs/
@@ -68,7 +75,8 @@ logs/
 *.sqlite3
 
 # MacOS
-.DS_Store
+**/.DS_Store
+**/Thumbs.db
 
 # Claude/AI assistant
 .claude/
@@ -80,8 +88,7 @@ logs/
 ruff.toml
 
 # Debian packaging files (not needed for Docker)
-Dockerfile_focal
-Dockerfile_jammy
+Dockerfile_*
 
 # Archive module (not containerized)
 archive_module/
