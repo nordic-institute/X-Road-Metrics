@@ -2,5 +2,4 @@
 
 debian/files
 debian/xroad-metrics-corrector
-debian/xroad-metrics-corrector.service
 
