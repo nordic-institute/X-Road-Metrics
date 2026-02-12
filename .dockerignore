@@ -89,6 +89,7 @@ ruff.toml
 
 # Debian packaging files (not needed for Docker)
 Dockerfile_*
+**/debian/
 
 # Archive module (not containerized)
 archive_module/
