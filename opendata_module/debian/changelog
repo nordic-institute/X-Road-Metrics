@@ -1,3 +1,11 @@
+xroad-metrics-opendata (1.5.0) stable; urgency=low
+
+  * Update dependencies
+  * Bump minimum required Python version to 3.10
+
+ -- NIIS <info@niis.org>  Fri, 13 Feb 2026 10:10:33 +0000
+
+
 xroad-metrics-opendata (1.4.2) stable; urgency=low
 
   * Revert "Fix structure of JSON returned by 'daily_logs' endpoint" change,

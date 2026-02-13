@@ -1,3 +1,10 @@
+xroad-metrics-networking (1.5.0) stable; urgency=low
+
+  * Updated Metrics package
+
+ -- NIIS <info@niis.org>  Fri, 13 Feb 2026 10:10:33 +0000
+
+
 xroad-metrics-networking (1.4.2) stable; urgency=low
 
   * Updated Metrics package
