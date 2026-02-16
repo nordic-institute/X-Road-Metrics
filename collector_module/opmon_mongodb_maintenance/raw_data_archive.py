@@ -70,8 +70,7 @@ def process_archive(total_to_archive, minimum_to_archive, mdb_database, mdb_user
     for d_id in to_removal:
         raw_messages.delete_one({"_id": d_id})
 
-
-def main():
+def parse_args():
     # Get arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('MONGODB_DATABASE', metavar="MONGODB_DATABASE", type=str, help="MongoDB Database")
@@ -87,18 +86,23 @@ def main():
                         default=10000)
 
     args = parser.parse_args()
+    return args
+
+
+def main():
+    parsed = parse_args()
     # Get user password to access MongoDB
-    mdb_pwd = args.mdb_pwd
+    mdb_pwd = parsed.mdb_pwd
     if mdb_pwd is None:
         mdb_pwd = getpass.getpass('Password:')
 
-    total_to_archive = int(args.total)
-    minimum_to_archive = int(args.minimum)
+    total_to_archive = int(parsed.total)
+    minimum_to_archive = int(parsed.minimum)
 
-    mdb_database = args.MONGODB_DATABASE
-    mdb_user = args.MONGODB_USER
-    mdb_server = args.mdb_host
-    mdb_auth = args.auth_db
+    mdb_database = parsed.MONGODB_DATABASE
+    mdb_user = parsed.MONGODB_USER
+    mdb_server = parsed.mdb_host
+    mdb_auth = parsed.auth_db
     uri = "mongodb://{0}:{1}@{2}/{3}".format(mdb_user, mdb_pwd, mdb_server, mdb_auth)
     db_name = '{0}'.format(mdb_database)
 
@@ -111,7 +115,7 @@ def main():
     print('- Total documents ready to archive: {0}'.format(total_processed_docs))
     print('- Total of (MAX:{0} MIN:{1}) will be archived in this batch.'.format(total_to_archive, minimum_to_archive))
 
-    if args.confirmation.lower() == 'true':
+    if parsed.confirmation.lower() == 'true':
         choice = 'y'
     else:
         choice = input('- Proceed ? [y/n]: ')
