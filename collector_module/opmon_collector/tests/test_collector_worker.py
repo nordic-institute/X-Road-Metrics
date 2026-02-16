@@ -93,7 +93,7 @@ def mock_response_contents(request):
 @pytest.mark.parametrize(
     'mock_response_contents', [('metrics_response1.dat', 'metrics_response2.dat')], indirect=True
 )
-def test_collector_worker_work(mock_server_manager, basic_data, mock_response_contents):
+def test_collector_worker_work_success(mock_server_manager, basic_data, mock_response_contents):
     for content in mock_response_contents:
         responses.add(responses.POST, 'http://x-road-ss', body=content, status=200)
 
@@ -153,7 +153,7 @@ def test_collector_worker_work_max_repeats(mock_server_manager, basic_data, mock
 @pytest.mark.parametrize(
     'mock_response_contents', [('metrics_response1.dat',)], indirect=True
 )
-def test_collector_worker_logs_to_file(documents_log_dir, num_records_logged_to_file,
+def test_collector_worker_work_logs_to_file(documents_log_dir, num_records_logged_to_file,
                                        mock_server_manager, basic_data, mock_response_contents, caplog):
     responses.add(responses.POST, 'http://x-road-ss', body=mock_response_contents[0], status=200)
 
@@ -169,6 +169,59 @@ def test_collector_worker_logs_to_file(documents_log_dir, num_records_logged_to_
 
     assert len(records) == 5230
     assert len(caplog.records) == num_records_logged_to_file
+
+
+@responses.activate
+@pytest.mark.parametrize(
+    'mock_response_contents', [('metrics_client_proxy_ssl_auth_failed.dat',)], indirect=True
+)
+def test_collector_worker_work_client_fault_response(basic_data, mock_response_contents, basic_settings, caplog, mocker):
+
+    mocker.patch('opmon_collector.logger_manager.LoggerManager._create_file_handler', return_value=StreamHandler())
+    responses.add(responses.POST, 'http://x-road-ss', body=mock_response_contents[0], status=200)
+
+    settings = basic_settings
+    logger_m = LoggerManager(settings['logger'], settings['xroad']['instance'], 'v1')
+    basic_data['logger_manager'] = logger_m
+    worker = CollectorWorker(basic_data)
+    result, error = worker.work()
+    assert result is False
+    assert error
+    assert worker.status == CollectorWorker.Status.DATA_AVAILABLE
+    server_client_error_msg = (
+        'Collector caught exception. Server: --testservername-- Cause: '
+        'ServerClientProxyError(\'Message: Client (SUBSYSTEM:PLAYGROUND/COM/1234567-8/TestClient) '
+        'specifies HTTPS but did not supply TLS certificate. '
+        'Code: Server.ClientProxy.SslAuthenticationFailed. '
+        'Detail: b782c3a4-f279-43d1-8684-2af318ec2ca5\')')
+    assert server_client_error_msg in caplog.text, 'Expected error message not found in caplog'
+
+
+@responses.activate
+@pytest.mark.parametrize(
+    'mock_response_contents', [
+        ('metrics_server_proxy_access_denied_failed.dat',)],
+    indirect=True
+)
+def test_collector_worker_work_server_fault_response(basic_data, mock_response_contents, basic_settings, caplog, mocker):
+
+    mocker.patch('opmon_collector.logger_manager.LoggerManager._create_file_handler', return_value=StreamHandler())
+    responses.add(responses.POST, 'http://x-road-ss', body=mock_response_contents[0], status=200)
+
+    settings = basic_settings
+    logger_m = LoggerManager(settings['logger'], settings['xroad']['instance'], 'v1')
+    basic_data['logger_manager'] = logger_m
+    worker = CollectorWorker(basic_data)
+    result, error = worker.work()
+    assert result is False
+    assert error
+    assert worker.status == CollectorWorker.Status.DATA_AVAILABLE
+    server_error_msg = (
+        'Message: Request is not allowed: '
+        'SERVICE: instanceIdentifier/memberClass/memberCode/subsystemCode/serviceCode/serviceVersion. '
+        'Code: Server.ServerProxy.AccessDenied. Detail: 132ff5d7-a6c7-4807-968e-430c515bf32a'
+    )
+    assert server_error_msg in caplog.text, 'Expected error message not found in caplog'
 
 
 def test_worker_status(mock_server_manager, basic_data):
@@ -219,58 +272,6 @@ def test_sanitize_records(mock_server_manager, basic_data):
     assert 'restPath' not in sanitized_records[3]  # No xRoadVersion
     assert 'restPath' not in sanitized_records[4]  # xRoadVersion < 7.6.2
 
-
-@responses.activate
-@pytest.mark.parametrize(
-    'mock_response_contents', [('metrics_client_proxy_ssl_auth_failed.dat',)], indirect=True
-)
-def test_collector_worker_client_fault_response(basic_data, mock_response_contents, basic_settings, caplog, mocker):
-
-    mocker.patch('opmon_collector.logger_manager.LoggerManager._create_file_handler', return_value=StreamHandler())
-    responses.add(responses.POST, 'http://x-road-ss', body=mock_response_contents[0], status=200)
-
-    settings = basic_settings
-    logger_m = LoggerManager(settings['logger'], settings['xroad']['instance'], 'v1')
-    basic_data['logger_manager'] = logger_m
-    worker = CollectorWorker(basic_data)
-    result, error = worker.work()
-    assert result is False
-    assert error
-    assert worker.status == CollectorWorker.Status.DATA_AVAILABLE
-    server_client_error_msg = (
-        'Collector caught exception. Server: --testservername-- Cause: '
-        'ServerClientProxyError(\'Message: Client (SUBSYSTEM:PLAYGROUND/COM/1234567-8/TestClient) '
-        'specifies HTTPS but did not supply TLS certificate. '
-        'Code: Server.ClientProxy.SslAuthenticationFailed. '
-        'Detail: b782c3a4-f279-43d1-8684-2af318ec2ca5\')')
-    assert server_client_error_msg in caplog.text, 'Expected error message not found in caplog'
-
-
-@responses.activate
-@pytest.mark.parametrize(
-    'mock_response_contents', [
-        ('metrics_server_proxy_access_denied_failed.dat',)],
-    indirect=True
-)
-def test_collector_worker_server_fault_response(basic_data, mock_response_contents, basic_settings, caplog, mocker):
-
-    mocker.patch('opmon_collector.logger_manager.LoggerManager._create_file_handler', return_value=StreamHandler())
-    responses.add(responses.POST, 'http://x-road-ss', body=mock_response_contents[0], status=200)
-
-    settings = basic_settings
-    logger_m = LoggerManager(settings['logger'], settings['xroad']['instance'], 'v1')
-    basic_data['logger_manager'] = logger_m
-    worker = CollectorWorker(basic_data)
-    result, error = worker.work()
-    assert result is False
-    assert error
-    assert worker.status == CollectorWorker.Status.DATA_AVAILABLE
-    server_error_msg = (
-        'Message: Request is not allowed: '
-        'SERVICE: instanceIdentifier/memberClass/memberCode/subsystemCode/serviceCode/serviceVersion. '
-        'Code: Server.ServerProxy.AccessDenied. Detail: 132ff5d7-a6c7-4807-968e-430c515bf32a'
-    )
-    assert server_error_msg in caplog.text, 'Expected error message not found in caplog'
 
 
 def test_version_gte():
