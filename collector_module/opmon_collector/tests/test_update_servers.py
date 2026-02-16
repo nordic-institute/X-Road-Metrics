@@ -47,6 +47,14 @@ def basic_settings():
     os.chdir(pathlib.Path(__file__).parent.absolute())
     return OpmonSettingsManager().settings
 
+@pytest.fixture()
+def mock_clients_without_entries(mocker):
+    cs_client = mocker.Mock()
+    cs_client.get_security_servers = mocker.Mock(return_value=[])
+    db_client = mocker.Mock()
+    mocker.patch('opmon_collector.update_servers._init_clients', return_value=(cs_client, db_client))
+    mocker.patch('opmon_collector.update_servers.LoggerManager', return_value=(mocker.Mock()))
+    return cs_client, db_client
 
 @pytest.fixture(autouse=True)
 def cleanup_test_pid_files(basic_settings):
@@ -64,6 +72,11 @@ def test_update_database_server_list(mock_clients, basic_settings):
     cs_client.get_security_servers.assert_called_once_with()
     db_client.save_server_list_to_database.assert_called_once_with([1, 2, 3])
 
+def test_update_database_server_list_fail_no_entries(mock_clients_without_entries, basic_settings):
+    cs_client, db_client = mock_clients_without_entries
+    updater.update_database_server_list(basic_settings)
+
+    db_client.save_server_list_to_database.assert_not_called()
 
 def test_update_database_server_list_with_existing_pid_file(mock_clients, basic_settings):
     pid_file = OpmonPidFileHandler(basic_settings).pid_file
