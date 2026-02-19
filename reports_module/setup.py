@@ -28,7 +28,7 @@ from setuptools import setup, find_packages
 # pandas, numpy
 
 requirements = [
-    'setuptools==80.10.2',
+    'setuptools==82.0.0',
     'Jinja2==3.1.6',
     'matplotlib==3.10.8',
     'pandas==2.3.3',
