@@ -33,7 +33,7 @@ requirements = [
     'matplotlib==3.10.8',
     'pandas==2.3.3',
     'weasyprint==68.1',
-    'Pillow==12.1.0',
+    'Pillow==12.1.1',
     'pymongo==4.16.0',
     'pyyaml==6.0.3',
     'jsonschema==4.26.0',
