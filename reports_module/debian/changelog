@@ -2,6 +2,8 @@ xroad-metrics-reports (1.5.0) stable; urgency=low
 
   * Update dependencies
   * Bump minimum required Python version to 3.10
+  * Bump suggested MongoDB version to 7 and 8
+  * Add support for Ubuntu 24.04, drop support for Ubuntu 20.04
 
  -- NIIS <info@niis.org>  Fri, 13 Feb 2026 10:10:33 +0000
 
