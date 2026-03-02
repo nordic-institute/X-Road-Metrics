@@ -41,8 +41,8 @@ The general scheme of processes in the Networkin module is as follows:
 ### Add X-Road Extensions Package Repository for Ubuntu 22.04 (Jammy) or Ubuntu 24.04 (Noble)
 
 ````bash
-wget -qO - https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
-sudo add-apt-repository 'https://artifactory.niis.org/xroad-extensions-release-deb main'
+curl -fsSL https://x-road.eu/gpg/key/public/niis-artifactory-public.gpg | sudo tee /usr/share/keyrings/niis-artifactory-keyring.gpg > /dev/null
+echo "deb [signed-by=/usr/share/keyrings/niis-artifactory-keyring.gpg] https://artifactory.niis.org/xroad-extensions-release-deb $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/xroad-extensions.list > /dev/null
 ````
 
 The following information can be used to verify the key:
