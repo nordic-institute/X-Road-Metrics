@@ -4,9 +4,23 @@ SHINY_VERSION=1.5.23.1030
 PACKAGE_SHA=4a3d063a06ccd1b6c53eb1d7f4fb59965bced10d1c5c87e8c476b58dd6fd35ee
 PACKAGE_NAME=shiny-server-${SHINY_VERSION}-amd64.deb
 
+# Parse arguments
+NON_INTERACTIVE=false
+for arg in "$@"; do
+    case "$arg" in
+        --non-interactive)
+            NON_INTERACTIVE=true
+            ;;
+    esac
+done
+
 confirm_version_change() {
     echo "Another shiny-server version is already installed:"
     echo "shiny-server ${1}"
+    if [ "$NON_INTERACTIVE" = true ]; then
+        echo "Non-interactive mode: proceeding with replacement."
+        return
+    fi
     read -p "Replace the installed version with shiny-server ${SHINY_VERSION}? (y/N)" -n 1 -r
     echo ""
     if [[ ! $REPLY =~ ^[Yy]$ ]];
@@ -50,8 +64,12 @@ download_shiny_server_package() {
 }
 
 install_shiny_server_package() {
-  apt install ${TMP_DIR}/${PACKAGE_NAME}
-  rm -rf ${TMP_DIR}
+  if [ "$NON_INTERACTIVE" = true ]; then
+    DEBIAN_FRONTEND=noninteractive apt-get install -y "${TMP_DIR}/${PACKAGE_NAME}"
+  else
+    apt install "${TMP_DIR}/${PACKAGE_NAME}"
+  fi
+  rm -rf "${TMP_DIR}"
 }
 
 check_previous_installation

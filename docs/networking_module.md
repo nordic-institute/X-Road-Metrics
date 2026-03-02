@@ -85,6 +85,12 @@ from the RStudio website. To install Shiny Server via this utility script, run:
 sudo /usr/share/xroad-metrics/networking/install-shiny-server.sh
 ```
 
+For automated installations or upgrade, use the `--non-interactive` flag:
+
+```bash
+sudo /usr/share/xroad-metrics/networking/install-shiny-server.sh --non-interactive
+```
+
 A default configuration file for Shiny Server is included in xroad-metrics-networking package and Shiny Server will
 use it automatically.
 
