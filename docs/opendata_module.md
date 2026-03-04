@@ -165,7 +165,8 @@ We need to enable remote access to PostgreSQL since Anonymizer and Networking mo
 
 In this example we assume that Anonymizer host IP is 172.31.0.1 and Networking host IP is 172.31.0.2.
 
-Edit `/etc/postgresql/<postgres_version>/main/pg_hba.conf`
+Edit `/etc/postgresql/<postgres_version>/main/pg_hba.conf`, replacing `<postgres_version>` with the installed major
+PostgreSQL version (for example, `15`).
 
 Add the following lines to the config in order to
 enable password authentication (md5 hash comparison) from Anonymizer and Networking hosts:
@@ -191,7 +192,8 @@ host    all    all   0.0.0.0/0    reject
 
 **Note:** `host` type access can be substituted with `hostssl` if using SSL-encrypted connections.
 
-Then edit the `/etc/postgresql/<postgres_version>/main/postgresql.conf` and change the *listen_addresses* to
+Then edit the `/etc/postgresql/<postgres_version>/main/postgresql.conf`, replacing `<postgres_version>` with the
+installed major PostgreSQL version (for example, `15`), and change the *listen_addresses* to
 ```
 listen_addresses = '*'
 ```
