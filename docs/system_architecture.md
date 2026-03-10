@@ -107,7 +107,7 @@ In addition to the X-Road Metrics packages, following 3rd party software needs t
 >
 > - For existing environments using MongoDB 6.x, it is compatible but has reached EOL. Upgrade to 7.x or higher is highly recommended.
 > - MongoDB-compatible variants (e.g., Amazon DocumentDB, Azure CosmosDB) are not supported; only official MongoDB is supported
-> - If MongoD and PostgreSQL are installed on separate hosts, any officially supported OS version can be used for the database hosts depending on required database version.
+> - If MongoDB and PostgreSQL are installed on separate hosts, any officially supported OS version can be used for the database hosts depending on required database version.
 
 
 Please refer to the module specific documentation for detailed installation instructions.

@@ -90,8 +90,8 @@ Anonymizer requires Python 3.10 or higher.
 Get _pip3_ tool for downloading 3rd party Python libraries.
 
 ```bash
-sudo apt-get --yes upgrade
-sudo apt-get --yes install python3-pip
+sudo apt --yes upgrade
+sudo apt --yes install python3-pip
 ```
 
 Install dependencies:
