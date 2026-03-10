@@ -27,7 +27,8 @@
     "succeeded" : true,
     "xRequestId" : "19517616-253a-11ee-be56-0242ac120002",
     "serviceType" : "WSDL",
-    "insertTime" : 1670665587.68073
+    "insertTime" : 1670665587.68073,
+    "srcServer" : "DEV/ORG/NIIS/ss1/test-server"
 },
 {
     "monitoringDataTs" : 1670257877,
@@ -57,6 +58,7 @@
     "succeeded" : true,
     "xRequestId" : "19517616-253a-11ee-be56-0242ac120002",
     "serviceType" : "WSDL",
-    "insertTime" : 1670665587.68073
+    "insertTime" : 1670665587.68073,
+    "srcServer" : "DEV/ORG/NIIS/ss1/test-server"
 }
 ]
