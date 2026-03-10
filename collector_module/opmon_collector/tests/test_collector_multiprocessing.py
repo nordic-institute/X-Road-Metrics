@@ -58,7 +58,10 @@ def mock_thread_pool(mocker):
 
 @pytest.fixture(autouse=True)
 def cleanup_test_pid_files():
-    pid_file = './opmon_collector_DEFAULT.pid'
+    pid_file = './xroad_metrics_collector_DEFAULT.pid'
+    if os.path.isfile(pid_file):
+        os.remove(pid_file)
+    yield
     if os.path.isfile(pid_file):
         os.remove(pid_file)
 
@@ -86,7 +89,7 @@ def test_run_threaded_collector(mocker, mock_server_manager, mock_thread_pool, b
 
 
 def test_run_threaded_collector_with_existing_pid_file(mocker, mock_server_manager, mock_thread_pool, basic_settings):
-    pid_file = './opmon_collector_DEFAULT.pid'
+    pid_file = './xroad_metrics_collector_DEFAULT.pid'
     mock_logger = mocker.Mock()
 
     with open(pid_file, 'w') as f:
