@@ -82,10 +82,11 @@ The fields that MUST be there for each document are the following:
 - serviceVersion
 - serviceXRoadInstance
 
-- srcServer
-
 - soapFaultCode
 - soapFaultString
+
+- srcServer
+
 - succeeded
 ```
 

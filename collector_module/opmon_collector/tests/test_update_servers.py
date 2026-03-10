@@ -28,6 +28,7 @@ import pathlib
 import pytest
 import opmon_collector.update_servers as updater
 from opmon_collector.settings import OpmonSettingsManager
+from opmon_collector.pid_file_handler import OpmonPidFileHandler
 
 
 @pytest.fixture()
@@ -48,8 +49,11 @@ def basic_settings():
 
 
 @pytest.fixture(autouse=True)
-def cleanup_test_pid_files():
-    pid_file = './opmon_collector_DEFAULT.pid'
+def cleanup_test_pid_files(basic_settings):
+    pid_file = OpmonPidFileHandler(basic_settings).pid_file
+    if os.path.isfile(pid_file):
+        os.remove(pid_file)
+    yield
     if os.path.isfile(pid_file):
         os.remove(pid_file)
 
@@ -62,7 +66,7 @@ def test_update_database_server_list(mock_clients, basic_settings):
 
 
 def test_update_database_server_list_with_existing_pid_file(mock_clients, basic_settings):
-    pid_file = './opmon_collector_DEFAULT.pid'
+    pid_file = OpmonPidFileHandler(basic_settings).pid_file
     cs_client, db_client = mock_clients
 
     with open(pid_file, 'w') as f:
