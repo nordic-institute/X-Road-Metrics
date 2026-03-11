@@ -84,6 +84,9 @@ The fields that MUST be there for each document are the following:
 
 - soapFaultCode
 - soapFaultString
+
+- srcServer
+
 - succeeded
 ```
 
@@ -139,6 +142,7 @@ The fields excluded from the hash are the following:
 - _id
 - corrected
 - insertTime
+- srcServer
 ```
 
 After calculating the hash it is checked that the hash doesn't already exist in the DB (`clean_data`).

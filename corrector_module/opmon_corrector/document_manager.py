@@ -75,7 +75,8 @@ class DocumentManager:
             'succeeded',
             'faultCode',
             'faultString',
-            'serviceType'
+            'serviceType',
+            'srcServer'
         )
 
     @staticmethod

@@ -37,7 +37,8 @@
             "requestMimeSize" : null,
             "requestAttachmentCount" : null,
             "responseMimeSize" : null,
-            "responseAttachmentCount" : null
+            "responseAttachmentCount" : null,
+            "srcServer" : null
         },
         "producer" : {
             "monitoringDataTs" : 1671025862,
@@ -76,7 +77,8 @@
             "messageIssue" : null,
             "requestMimeSize" : null,
             "responseMimeSize" : null,
-            "responseAttachmentCount" : null
+            "responseAttachmentCount" : null,
+            "srcServer" : null
         },
         "xRequestId" : "3d3969aa-e7a0-4c91-bcb5-bb86a3000a98",
         "messageId" : "2b16933c-c473-4a82-8265-7c11518e7f3b",

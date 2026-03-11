@@ -40,7 +40,8 @@
       "requestMimeSize": null,
       "responseMimeSize": null,
       "faultCode": null,
-      "faultString": null
+      "faultString": null,
+      "srcServer": "DEV/ORG/NIIS/ss1/test-server"
     },
     "producer": {
       "monitoringDataTs": 1671066024,
@@ -82,7 +83,8 @@
       "requestMimeSize": null,
       "responseMimeSize": null,
       "faultCode": null,
-      "faultString": null
+      "faultString": null,
+      "srcServer": "DEV/ORG/NIIS/ss1/test-server"
     },
     "xRequestId": "171b7b78-e8f7-4b78-b486-601371ebe6af",
     "messageId": "LTT-7c237207-1ed4-43d9-9152-a8ba02a251ab",
@@ -145,7 +147,8 @@
       "requestMimeSize": null,
       "responseMimeSize": null,
       "faultCode": null,
-      "faultString": null
+      "faultString": null,
+      "srcServer": "DEV/ORG/NIIS/ss1/test-server"
     },
     "producer": null,
     "xRequestId": "3063ca6a-e389-4586-b4d1-7b4b284d2487",

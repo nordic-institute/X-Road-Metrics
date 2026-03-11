@@ -110,11 +110,13 @@ def test_collector_worker_work(mock_server_manager, basic_data, mock_response_co
     end_time = int(NOW) - basic_data['settings']['collector']['records-to-offset']
     mock_server_manager.set_next_records_timestamp.assert_any_call('--testservername--', end_time)
 
-    mock_server_manager.insert_data_to_raw_messages.assert_called_once()
-    records = mock_server_manager.insert_data_to_raw_messages.call_args_list[0][0][0]
     records_in_response1 = 5230
+    mock_server_manager.insert_data_to_raw_messages.assert_called_once()
+    args = mock_server_manager.insert_data_to_raw_messages.call_args_list[0][0]
+    records = args[0]
+    server_id = args[1]
     assert len(records) == records_in_response1
-
+    assert server_id == '--testservername--'
     assert worker.status == CollectorWorker.Status.ALL_COLLECTED
 
 
