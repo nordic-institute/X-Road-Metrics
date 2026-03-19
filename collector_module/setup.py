@@ -25,7 +25,7 @@
 from setuptools import setup
 
 requirements = [
-    'setuptools==82.0.0',
+    'setuptools==82.0.1',
     'pymongo==4.16.0',
     'requests==2.32.5',
     'tqdm==4.67.3',
