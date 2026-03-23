@@ -4,6 +4,8 @@ xroad-metrics-collector (1.5.0) stable; urgency=low
   * Bump minimum required Python version to 3.10
   * Bump suggested MongoDB versions to 7.0 (Ubuntu 22.04) / 8.0 (Ubuntu 24.04)
   * Add support for Ubuntu 24.04, drop support for Ubuntu 20.04
+  * Add "srcServer" field to raw messages collection to store message origin
+    Security Server
 
  -- NIIS <info@niis.org>  Fri, 13 Feb 2026 10:10:33 +0000
 
