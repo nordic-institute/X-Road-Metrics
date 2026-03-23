@@ -37,7 +37,8 @@
             "messageIssue" : null,
             "requestMimeSize" : null,
             "faultCode" : null,
-            "faultString" : null
+            "faultString" : null,
+            "srcServer" : null
         },
         "producer" : {
             "monitoringDataTs" : 1670257877,
@@ -76,7 +77,8 @@
             "messageIssue" : null,
             "requestMimeSize" : null,
             "faultCode" : null,
-            "faultString" : null
+            "faultString" : null,
+            "srcServer" : null
         },
 
         "xRequestId" : "91f47d62-6eb5-4391-aea6-5f92aaa4d464",
@@ -138,7 +140,8 @@
             "requestMimeSize" : null,
             "responseMimeSize" : null,
             "faultCode" : null,
-            "faultString" : null
+            "faultString" : null,
+            "srcServer" : null
         },
         "producer" : {
             "monitoringDataTs" : 1671066024,
@@ -178,7 +181,8 @@
             "requestMimeSize" : null,
             "responseMimeSize" : null,
             "faultCode" : null,
-            "faultString" : null
+            "faultString" : null,
+            "srcServer" : null
         },
         "xRequestId" : "2c2fd07d-146b-4cc9-8844-2e08d65d5879",
         "messageId" : "LTT-9f0bdaed-b024-4003-8a0d-baafedc88121",
@@ -239,7 +243,8 @@
             "requestMimeSize" : null,
             "responseMimeSize" : null,
             "faultCode" : null,
-            "faultString" : null
+            "faultString" : null,
+            "srcServer" : null
         },
         "producer" : {
             "monitoringDataTs" : 1671030116,
@@ -279,7 +284,8 @@
             "requestMimeSize" : null,
             "responseMimeSize" : null,
             "faultCode" : null,
-            "faultString" : null
+            "faultString" : null,
+            "srcServer" : null
         },
         "xRequestId" : "c17d7a71-97f0-4b2a-b1a3-5d0a74c1d5c7",
         "messageId" : "LTT-73cdf7f8-bc0e-4432-8e0b-0b334b9ddbae",
@@ -339,7 +345,8 @@
             "requestMimeSize" : null,
             "responseMimeSize" : null,
             "faultCode" : null,
-            "faultString" : null
+            "faultString" : null,
+            "srcServer" : null
         },
         "producer" : {
             "monitoringDataTs" : 1671024483,
@@ -378,7 +385,8 @@
             "requestMimeSize" : null,
             "responseMimeSize" : null,
             "faultCode" : null,
-            "faultString" : null
+            "faultString" : null,
+            "srcServer" : null
         },
         "xRequestId" : "f37b5fe9-6c32-4fcc-b289-52fdc4a8e2d1",
         "messageId" : "message-7a279e7b704901686cc554a1b8473f51",
@@ -438,7 +446,8 @@
             "requestMimeSize" : null,
             "requestAttachmentCount" : null,
             "responseMimeSize" : null,
-            "responseAttachmentCount" : null
+            "responseAttachmentCount" : null,
+            "srcServer" : null
         },
         "producer" : {
             "monitoringDataTs" : 1671025862,
@@ -477,7 +486,8 @@
             "messageIssue" : null,
             "requestMimeSize" : null,
             "responseMimeSize" : null,
-            "responseAttachmentCount" : null
+            "responseAttachmentCount" : null,
+            "srcServer" : null
         },
         "xRequestId" : "3d3969aa-e7a0-4c91-bcb5-bb86a3000a98",
         "messageId" : "2b16933c-c473-4a82-8265-7c11518e7f3b",
@@ -537,7 +547,8 @@
         "messageIssue" : null,
         "requestMimeSize" : null,
         "responseMimeSize" : null,
-        "responseAttachmentCount" : null
+        "responseAttachmentCount" : null,
+        "srcServer" : null
     },
     "producer" : {
         "monitoringDataTs" : 1671025862,
@@ -576,7 +587,8 @@
         "messageIssue" : null,
         "requestMimeSize" : null,
         "responseMimeSize" : null,
-        "responseAttachmentCount" : null
+        "responseAttachmentCount" : null,
+        "srcServer" : null
     },
     "xRequestId" : "a7351790-8fba-428d-852b-e4b6e8cbcca8",
     "messageId" : "test",
@@ -636,7 +648,8 @@
             "requestMimeSize" : null,
             "requestAttachmentCount" : null,
             "responseMimeSize" : null,
-            "responseAttachmentCount" : null
+            "responseAttachmentCount" : null,
+            "srcServer" : null
         },
         "producer" : null,
         "xRequestId" : "d7cc4838-57e5-417a-ad30-f97809bc162f",
@@ -698,7 +711,8 @@
             "requestMimeSize" : null,
             "responseMimeSize" : null,
             "faultCode" : null,
-            "faultString" : null
+            "faultString" : null,
+            "srcServer" : null
         },
         "xRequestId" : "91578433-64b7-4e2f-a2ab-1d8858ca04b7",
         "messageId" : "test",
@@ -757,7 +771,8 @@
             "requestAttachmentCount" : null,
             "responseMimeSize" : null,
             "responseAttachmentCount" : null,
-            "serviceType" : null
+            "serviceType" : null,
+            "srcServer" : null
         },
         "producer" : null,
         "xRequestId": "",
@@ -817,7 +832,8 @@
             "requestAttachmentCount" : null,
             "responseMimeSize" : null,
             "responseAttachmentCount" : null,
-            "serviceType" : null
+            "serviceType" : null,
+            "srcServer" : null
         },
         "producer" : null,
         "xRequestId": "",
@@ -880,7 +896,8 @@
             "requestMimeSize" : null,
             "responseMimeSize" : null,
             "faultCode" : null,
-            "faultString" : null
+            "faultString" : null,
+            "srcServer" : null
         },
         "xRequestId" : "c29a03c1-c9a8-48a2-9214-8e5fa54b615c",
         "messageId" : "LTT-ff629c5a-c032-437a-87c6-67eef199130c",
@@ -943,7 +960,8 @@
             "requestMimeSize": null,
             "responseMimeSize": null,
             "faultCode": null,
-            "faultString": null
+            "faultString": null,
+            "srcServer": null
         },
         "producer": {
             "monitoringDataTs": 1671066024,
@@ -985,7 +1003,8 @@
             "requestMimeSize": null,
             "responseMimeSize": null,
             "faultCode": null,
-            "faultString": null
+            "faultString": null,
+            "srcServer": null
         },
         "xRequestId": "171b7b78-e8f7-4b78-b486-601371ebe6af",
         "messageId": "LTT-7c237207-1ed4-43d9-9152-a8ba02a251ab",

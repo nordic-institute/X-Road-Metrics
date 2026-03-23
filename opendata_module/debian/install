@@ -1,0 +1,7 @@
+etc/settings.yaml               etc/xroad-metrics/opendata/
+etc/field_data.yaml             etc/xroad-metrics/opendata/
+etc/apache2/conf-available/*    etc/apache2/conf-available/
+usr/manage.py                   usr/share/xroad-metrics/opendata
+usr/wsgi.py                     usr/share/xroad-metrics/opendata
+../3RD-PARTY-NOTICES.txt           usr/share/doc/xroad-metrics-opendata
+

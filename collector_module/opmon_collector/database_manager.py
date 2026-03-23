@@ -128,15 +128,16 @@ class DatabaseManager:
             self.logger_m.log_exception('ServerManager.set_next_records_timestamp', repr(e))
             raise e
 
-    def insert_data_to_raw_messages(self, data_list):
+    def insert_data_to_raw_messages(self, data_list, server_id):
         try:
             client = pymongo.MongoClient(self.mongo_uri, **self.connect_args)
             db = client[self.db_name]
             raw_msg = db['raw_messages']
-            # Add timestamp to data list
+            # Add metadata to data list
             for data in data_list:
                 timestamp = self.get_timestamp()
                 data['insertTime'] = timestamp
+                data['srcServer'] = server_id
             # Save all
             raw_msg.insert_many(data_list)
         except Exception as e:

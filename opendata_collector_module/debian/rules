@@ -1,0 +1,10 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+export DH_VERBOSE = 1
+
+override_dh_installinit:
+	true
+
+%:
+	dh $@ --with python3 --buildsystem=pybuild

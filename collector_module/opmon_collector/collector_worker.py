@@ -269,7 +269,7 @@ class CollectorWorker:
         if len(self.records):
             self.log_info(f'Adding {len(self.records)} documents.')
             try:
-                self.server_m.insert_data_to_raw_messages(self.records)
+                self.server_m.insert_data_to_raw_messages(self.records, self.server_data['server'])
             except Exception as e:
                 self.log_exception('Failed to save records.', str(e))
                 raise e

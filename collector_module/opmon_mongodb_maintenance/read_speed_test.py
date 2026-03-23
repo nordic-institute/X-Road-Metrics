@@ -40,7 +40,7 @@ from tqdm import tqdm
 def speed_test(db, collection_name, q):
     collection = db[collection_name]
     tick = time.time()
-    col_docs = collection.find(q).count()
+    col_docs = collection.count_documents(q)
     tack = time.time()
     print('--- Total documents in {0}: {1} [count time: {2:.2f} sec.]'.format(collection_name, col_docs, tack - tick))
     max_docs = min(10000, col_docs)
@@ -89,8 +89,8 @@ def main():
 
     client = pymongo.MongoClient(uri)
     db = client[db_name]
-    print('- Total documents raw collection: {0}'.format(db.raw_messages.count()))
-    print('- Total documents clean collection: {0}'.format(db.clean_data.count()))
+    print('- Total documents raw collection: {0}'.format(db.raw_messages.count_documents({})))
+    print('- Total documents clean collection: {0}'.format(db.clean_data.count_documents({})))
     print('* Read Speed from Raw Data:')
     speed_test(db, 'raw_messages', db_raw_query)
 

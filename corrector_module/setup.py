@@ -25,9 +25,9 @@
 from setuptools import setup
 
 requirements = [
-    'setuptools==75.3.0',
-    'pymongo==4.10.1',
-    'pyyaml==6.0.2',
+    'setuptools==82.0.0',
+    'pymongo==4.16.0',
+    'pyyaml==6.0.3',
 ]
 
 classifiers = [
@@ -37,7 +37,8 @@ classifiers = [
     'License :: OSI Approved :: MIT License',
     'Natural Language :: English',
     'Operating System :: POSIX :: Linux',
-    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.12',
     'Topic :: Utilities',
 ]
 
@@ -53,5 +54,6 @@ setup(
     install_requires=requirements,
     classifiers=classifiers,
     platforms='POSIX',
-    license='MIT'
+    license='MIT',
+    python_requires='>=3.10',
 )

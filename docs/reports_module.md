@@ -50,13 +50,14 @@ Reports-module doesn't need any **incoming** connections.
 
 ## Installation
 
-This sections describes the necessary steps to install the **reports module** on an Ubuntu 20.04 or Ubuntu 22.04 Linux host.
+This sections describes the necessary steps to install the **reports module** on Ubuntu 22.04 (Jammy) or Ubuntu 24.04 (Noble).
 To a complete overview of different modules and machines, please refer to the ==> [System Architecture](system_architecture.md) <== documentation.
 
 ### Add X-Road Extensions Package Repository for Ubuntu
+
 ````bash
-wget -qO - https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
-sudo add-apt-repository 'https://artifactory.niis.org/xroad-extensions-release-deb main'
+curl -fsSL https://x-road.eu/gpg/key/public/niis-artifactory-public.gpg | sudo tee /usr/share/keyrings/niis-artifactory-keyring.gpg > /dev/null
+echo "deb [signed-by=/usr/share/keyrings/niis-artifactory-keyring.gpg] https://artifactory.niis.org/xroad-extensions-release-deb $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/xroad-extensions.list > /dev/null
 ````
 
 The following information can be used to verify the key:
@@ -64,13 +65,12 @@ The following information can be used to verify the key:
 - key fingerprint: `A01B FE41 B9D8 EAF4 872F A3F1 FB0D 532C 10F6 EC5B`
 - 3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index)
 
-
 ### Install Reports Package
 To install xroad-metrics-reports and all dependencies execute the commands below:
 
 ```bash
-sudo apt-get update
-sudo apt-get install xroad-metrics-reports
+sudo apt update
+sudo apt install xroad-metrics-reports
 ```
 
 The installation package automatically installs following items:

@@ -1,4 +1,17 @@
-# X-Road Metrics Docker Containers
+# X-Road Metrics Docker Containers <!-- omit in toc -->
+
+## Table of Contents <!-- omit in toc -->
+
+- [Introduction](#introduction)
+- [Hardware requirements](#hardware-requirements)
+- [Building All Containers](#building-all-containers)
+- [Overriding `settings.yaml` Values](#overriding-settingsyaml-values)
+- [Overriding Settings with Environment Variables (Entrypoint Script)](#overriding-settings-with-environment-variables-entrypoint-script)
+- [Container Logging](#container-logging)
+- [Running the environment](#running-the-environment)
+- [Cleanup](#cleanup)
+
+## Introduction
 
 This directory contains Dockerfiles and scripts for building the containers for each module in the X-Road Metrics project. And
 running them with Docker Compose.
@@ -24,7 +37,7 @@ has been set up and configured with the monitoring client (note that the subsyst
 
 The subsystem should have `HTTP` selected as the connection method.
 
-## Harware requirements
+## Hardware requirements
 
 This Docker setup is only intended for limited local testing. Most modules run only when explicitly ran. Only the following containers run
 continuously, with the `corrector` running in batches:
@@ -41,25 +54,35 @@ usage you will see. The setup itself can be ran with **1GB** of memory, potentia
 
 ## Building All Containers
 
-To build all module containers, run the following script from the project root:
+To build all module containers, run the build script from the project root:
 
 ```bash
 bash Docker/prepare-containers.sh
 ```
 
+The script can also be run from any directory using an absolute path.
+
 This will build Docker images for:
+
 - xroad-metrics-collector-module
 - xroad-metrics-corrector-module
 - xroad-metrics-anonymizer-module
 - xroad-metrics-opendata-module
 - xroad-metrics-opendata-collector-module
 - xroad-metrics-reports-module
+- xroad-metrics-networking-module
 
-To build just one module, you can run the command with:
+To build specific modules, you can specify one or more module names:
 
 ```bash
-bash Docker/prepare-containers.sh [module_name]
+bash Docker/prepare-containers.sh collector_module
+bash Docker/prepare-containers.sh collector_module corrector_module
 ```
+
+> [!NOTE]
+>
+> - The `prepare-containers.sh` script will build all modules in sequence.
+> - For more details on module-specific configuration, see the documentation in `docs/` and the main project `README.md`.
 
 ## Overriding `settings.yaml` Values
 
@@ -96,18 +119,101 @@ modifying the file directly. Note that this will also do substitutions in your `
 For more details on the supported environment variable format and substitution logic, see the comments in
 `Docker/docker-entrypoint.sh` and the main project documentation.
 
+## Container Logging
+
+By default, the [entrypoint script](./docker-entrypoint.sh) redirects module log files to stdout by creating symlinks. This allows viewing logs
+via `docker logs` or `docker compose logs` instead of accessing files inside the container.
+
+The following logs are redirected:
+
+- Main module log: `log_<logger-name>_<instance>.json`
+- Networking module's data preparation log: `prepare_data_log.json`
+
+> [!NOTE]
+> In case of Networking module, Shiny server will produce a warning about log file is created as a symlink. 
+> This warning can be ignored.
+
 ## Running the environment
 
-The containers can be ran with `docker compose up -d` in the `Docker` directory. After this you can run specific commands such
-as collecting by running it on the container, for example:
+From the `Docker` directory, follow these steps:
+
+- **Databases**
+
+```bash
+docker compose up -d mongodb postgresql
+```
+
+- **_(Optional)_ Run web UIs for databases**
+
+```bash
+docker compose up -d mongo-express adminer
+```
+
+UIs are accessible via http://localhost:8081 and http://localhost:8082 respectively.
+For passwords, review the [docker-compose.yaml](./docker-compose.yaml) file.
+
+- **Collector**
+
+```bash
+docker compose run --rm collector_module update
+```
+
+and then 
 
 ```bash
 docker compose run --rm collector_module collect
 ```
 
-There is a web based UI for both the MongoDB and PostgreSQL databases on ports `8081` and `8082` respectively. For passwords,
-review the `docker-compose.yaml` file.
+- **Corrector**
 
-## Notes
-- The `prepare-containers.sh` script will build all modules in sequence.
-- For more details on module-specific configuration, see the documentation in `docs/` and the main project `README.md`.
+```bash
+docker compose up -d corrector_module
+```
+
+- **Reports** for data up to today's date:
+
+```bash
+docker compose run --rm reports_module --end-date $(date +%Y-%m-%d) report
+```
+
+- **Anonymizer**
+
+```bash
+docker compose run --rm anonymizer_module
+```
+
+- **Opendata**
+
+```bash
+docker compose up -d opendata_module
+```
+
+UI is accessible on port `8000` via http://localhost:8000.
+
+- **Networking**
+
+```bash
+docker compose up -d networking_module
+```
+
+UI is accessible on port `8001` via http://localhost:8001.
+
+- **Opendata Collector**, if needed:
+
+```bash
+docker compose run --rm opendata_collector_module
+```
+
+## Cleanup
+
+To remove all X-Road Metrics containers, volumes, and networks created by Docker Compose:
+
+```bash
+docker compose down -v
+```
+
+To remove all X-Road Metrics images:
+
+```bash
+docker image rm $(docker images 'xroad-metrics-*' -q)
+```

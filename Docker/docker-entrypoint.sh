@@ -18,12 +18,32 @@ if [ -f "$METRICS_SETTINGS_FILE" ]; then
       if [[ "$VALUE" =~ ^([0-9]+(\.[0-9]+)?|true|false|null)$ ]]; then
         # No quotes for numbers, booleans, or null
         yq -i ".${YQ_PATH} = ${VALUE}" "$METRICS_SETTINGS_FILE"
+      elif [[ "$VALUE" =~ ^\[.*\]$ ]]; then
+        # JSON array - use env var to avoid shell quoting issues
+        export YQ_ARRAY_VALUE="$VALUE"
+        yq -i ".${YQ_PATH} = env(YQ_ARRAY_VALUE)" "$METRICS_SETTINGS_FILE"
+        unset YQ_ARRAY_VALUE
       else
         # Quote for strings
         yq -i ".${YQ_PATH} = \"${VALUE}\"" "$METRICS_SETTINGS_FILE"
       fi
     fi
   done
+
+  # Redirect log files to stdout by creating symlinks
+  # Skip if SKIP_LOG_REDIRECT is set (e.g., for Apache-based services where www-data can't write to /dev/stdout)
+  if [ -z "$SKIP_LOG_REDIRECT" ]; then
+    LOG_PATH=$(yq '.logger.log-path' "$METRICS_SETTINGS_FILE" 2>/dev/null)
+    INSTANCE=$(yq '.xroad.instance' "$METRICS_SETTINGS_FILE" 2>/dev/null)
+    LOGGER_NAME=$(yq '.logger.name' "$METRICS_SETTINGS_FILE" 2>/dev/null)
+
+    if [ -n "$LOG_PATH" ] && [ -n "$INSTANCE" ] && [ -n "$LOGGER_NAME" ]; then
+      LOG_FILE="${LOG_PATH}/log_${LOGGER_NAME}_${INSTANCE}.json"
+      ln -sf /dev/stdout "$LOG_FILE" 2>/dev/null || true
+      # Also redirect networking module's prepare_data log if log path exists
+      ln -sf /dev/stdout "${LOG_PATH}/prepare_data_log.json" 2>/dev/null || true
+    fi
+  fi
 fi
 
 exec "$@"

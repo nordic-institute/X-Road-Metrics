@@ -1,0 +1,28 @@
+#! /bin/bash
+set -e
+
+# Add users and groups
+groupadd xroad-metrics || echo "Group 'xroad-metrics' not created as it already exists."
+useradd --create-home --system --shell /bin/bash --gid xroad-metrics xroad-metrics || echo "User 'xroad-metrics' not created as it already exists."
+
+# Set Python package permissions
+chown root:xroad-metrics /usr/lib/python3/dist-packages/opmon_reports
+chmod o-rwx /usr/lib/python3/dist-packages/opmon_reports
+
+# Set bin permissions
+chown root:xroad-metrics /usr/bin/xroad-metrics-reports
+chmod g-w,g+rx,o-rwx /usr/bin/xroad-metrics-reports
+
+# Set log permissions
+chown root:xroad-metrics /var/log/xroad-metrics/reports/logs /var/log/xroad-metrics/reports/heartbeat
+chmod g+rwx,o-rwx  /var/log/xroad-metrics/reports/logs /var/log/xroad-metrics/reports/heartbeat
+
+# Set settings file permissions
+chown  root:xroad-metrics /etc/xroad-metrics/reports
+chmod  g+rwx,o-rwx  /etc/xroad-metrics/reports
+chown  root:xroad-metrics /etc/xroad-metrics/reports/settings.yaml
+chmod  g+rwx,o-rwx  /etc/xroad-metrics/reports/settings.yaml
+
+#set report output directory permissions
+chown root:xroad-metrics /var/lib/xroad-metrics/reports
+chmod g+rwx,o-rwx /var/lib/xroad-metrics/reports

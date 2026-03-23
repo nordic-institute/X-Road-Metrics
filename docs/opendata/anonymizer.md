@@ -80,18 +80,18 @@ No **incoming** connection is needed in the anonymizer module.
 
 TODO: Update installation instructions to use deb packages
 
-This sections describes the necessary steps to install the **anonymizer module** in a Linux Ubuntu 16.04. 
+This sections describes the necessary steps to install the **anonymizer module** on supported Ubuntu Linux system.
 To a complete overview of different modules and machines, please refer to the [System Architecture](../system_architecture.md) and [Opendata module](../opendata_module.md) documentation.
 
 ### Installing Python libraries
 
-Anonymizer has been written with Python 3.5.2 in mind, which is the default preinstalled _python3_ version for Ubuntu 16.04.3 LTS.
+Anonymizer requires Python 3.10 or higher.
 
 Get _pip3_ tool for downloading 3rd party Python libraries.
 
 ```bash
-sudo apt-get --yes upgrade
-sudo apt-get --yes install python3-pip
+sudo apt --yes upgrade
+sudo apt --yes install python3-pip
 ```
 
 Install dependencies:

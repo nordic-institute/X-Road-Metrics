@@ -121,11 +121,13 @@ class TestAnonymizationJob(unittest.TestCase):
             {
                 'client': {
                     'requestInTs': 'requestInTs_client_value',
-                    'securityServerType': 'securityServerType_client_value'
+                    'securityServerType': 'securityServerType_client_value',
+                    'srcServer': 'DEV/ORG/NIIS/ss1/test-server',
                 },
                 'producer': {
                     'requestInTs': 'requestInTs_producer_value',
-                    'securityServerType': 'securityServerType_producer_value'
+                    'securityServerType': 'securityServerType_producer_value',
+                    'srcServer': 'DEV/ORG/NIIS/ss1/test-server',
                 },
                 'totalDuration': 'totalDuration_value'
             }

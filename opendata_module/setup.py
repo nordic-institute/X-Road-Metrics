@@ -25,12 +25,12 @@
 from setuptools import setup, find_packages
 
 requirements = [
-    'setuptools==75.3.0',
-    'dill==0.3.9',
-    'django==4.2.19',
-    'pymongo==4.10.1',
-    'pyyaml==6.0.2',
-    'psycopg2==2.9.10',
+    'setuptools==82.0.0',
+    'dill==0.4.1',
+    'django==5.2.12',
+    'pymongo==4.16.0',
+    'pyyaml==6.0.3',
+    'psycopg2==2.9.11',
     'python-dateutil==2.9.0.post0',
 ]
 
@@ -41,7 +41,8 @@ classifiers = [
     'License :: OSI Approved :: MIT License',
     'Natural Language :: English',
     'Operating System :: POSIX :: Linux',
-    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.12',
     'Topic :: Utilities',
 ]
 
@@ -57,5 +58,6 @@ setup(
     install_requires=requirements,
     classifiers=classifiers,
     platforms='POSIX',
-    license='MIT'
+    license='MIT',
+    python_requires='>=3.10',
 )

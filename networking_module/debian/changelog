@@ -1,0 +1,67 @@
+xroad-metrics-networking (1.5.0) stable; urgency=low
+
+  * Updated Metrics package
+  * Add support for Ubuntu 24.04, drop support for Ubuntu 20.04
+
+ -- NIIS <info@niis.org>  Fri, 13 Feb 2026 10:10:33 +0000
+
+
+xroad-metrics-networking (1.4.2) stable; urgency=low
+
+  * Updated Metrics package
+
+ -- NIIS <info@niis.org>  Mon, 02 Jun 2025 10:26:49 +0000
+
+
+xroad-metrics-networking (1.4.1) stable; urgency=low
+
+  * Updated Metrics package
+
+ -- NIIS <info@niis.org>  Tue, 25 Feb 2025 08:48:33 +0000
+
+
+xroad-metrics-networking (1.4.0) stable; urgency=low
+
+  * Updated Metrics package
+
+ -- NIIS <info@niis.org>  Thu, 30 Jan 2025 14:01:59 +0000
+
+
+xroad-metrics-networking (1.3.0) stable; urgency=low
+
+  * Updated Metrics package
+
+ -- NIIS <info@niis.org>  Thu, 27 Jun 2024 11:02:30 +0000
+
+
+xroad-metrics-networking (1.2.0) stable; urgency=low
+
+  * Include 3RD-PARTY-NOTICES.txt in the package
+  * Fix mTLS connection to Postgres issues in configuration
+
+ -- NIIS <info@niis.org>  Mon, 02 Oct 2023 09:15:00 +0000
+
+
+xroad-metrics-networking (1.1.1) stable; urgency=low
+
+  * Fix anonymizer_module failed connection to PostgreSQL
+  * Fix opendata_module failed connection to PostgreSQL
+  * Resolve package dependency issue for networking_module
+
+ -- NIIS <info@niis.org>  Fri, 13 Mar 2023 13:25:32 +0000
+
+
+xroad-metrics-networking (1.1.0) stable; urgency=low
+
+  * Networking memory usage optimization
+  * use secure DB client connection to PostgreSQL
+
+ -- NIIS <info@niis.org>  Mon, 06 Mar 2023 18:25:32 +0000
+
+
+
+xroad-metrics-networking (1.0.0) stable; urgency=low
+
+  * Initial Release.
+
+ -- NIIS <info@niis.org>  Wed, 08 Feb 2012 09:59:32 +0000

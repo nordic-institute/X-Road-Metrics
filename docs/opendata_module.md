@@ -56,28 +56,28 @@ The Opendata module installation has three main parts:
 3) Configure the Opendata UI
 
 This sections describes the necessary steps to install the **opendata module** on
-an Ubuntu 20.04 or Ubuntu 22.04 Linux host. For a complete overview of different modules and machines,
+an Ubuntu 22.04 or Ubuntu 24.04 Linux host. For a complete overview of different modules and machines,
 please refer to the ==> [System Architecture](system_architecture.md) <== documentation.
 
 
 ### Add X-Road Extensions Package Repository for Ubuntu
+
 ````bash
-wget -qO - https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
-sudo add-apt-repository 'https://artifactory.niis.org/xroad-extensions-release-deb main'
+curl -fsSL https://x-road.eu/gpg/key/public/niis-artifactory-public.gpg | sudo tee /usr/share/keyrings/niis-artifactory-keyring.gpg > /dev/null
+echo "deb [signed-by=/usr/share/keyrings/niis-artifactory-keyring.gpg] https://artifactory.niis.org/xroad-extensions-release-deb $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/xroad-extensions.list > /dev/null
 ````
 
 The following information can be used to verify the key:
-- key hash: 935CC5E7FA5397B171749F80D6E3973B
-- key fingerprint: A01B FE41 B9D8 EAF4 872F A3F1 FB0D 532C 10F6 EC5B
+- key hash: `935CC5E7FA5397B171749F80D6E3973B`
+- key fingerprint: `A01B FE41 B9D8 EAF4 872F A3F1 FB0D 532C 10F6 EC5B`
 - 3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index)
-
 
 ### Install the Opendata Package
 To install xroad-metrics-opendata and all dependencies execute the commands below:
 
 ```bash
-sudo apt-get update
-sudo apt-get install xroad-metrics-opendata
+sudo apt update
+sudo apt install xroad-metrics-opendata
 ```
 
 The installation package automatically installs following items:
@@ -112,7 +112,7 @@ LC_ALL=en_US.UTF-8
 * Ensure that the package `locales` is present.
 
 ```bash
-sudo apt-get install locales
+sudo apt install locales
 ```
 
 * Ensure that the locale is available.
@@ -128,18 +128,6 @@ sudo apt install postgresql
 ```
 
 ### Automatic PostgreSQL User Creation
-
-> [!IMPORTANT]
-> For automatic users creation to work properly, PostgreSQL version must be 14 or less.  
-> Starting from PostgreSQL 15, ownership of `public` schema has changed to the new `pg_database_owner` role. 
-> Due to this change, the command will create users but without proper permissions to create tables in the database's
-> public schema. In this case, after creating users with the below script, connect to the database, and grant `create`
-> and `usage` permissions on `public` schema to user `anonymizer_ex` using the following SQL statement:
-> ```sql
-> GRANT CREATE, USAGE ON SCHEMA public TO anonymizer_ex;
-> ```
-> 
-> For more information, see [PostgreSQL 15 Release Notes - Migration](https://www.postgresql.org/docs/15/release-15.html#id-1.11.6.18.4).
 
 The X-Road Metrics Opendata package includes a command that creates the PostgreSQL users automatically.
 To create PostgreSQL users for X-Road instance *LTT* on `localhost` run the following commands:
@@ -182,13 +170,8 @@ We need to enable remote access to PostgreSQL since Anonymizer and Networking mo
 
 In this example we assume that Anonymizer host IP is 172.31.0.1 and Networking host IP is 172.31.0.2.
 
-#### For PostgreSQL 12 on Ubuntu 20.04
-
-Edit `/etc/postgresql/12/main/pg_hba.conf`
-
-#### For PostgreSQL 14 on Ubuntu 22.04
-
-Edit `/etc/postgresql/14/main/pg_hba.conf`
+Edit `/etc/postgresql/<postgres_version>/main/pg_hba.conf`, replacing `<postgres_version>` with the installed major
+PostgreSQL version (for example, `15`).
 
 Add the following lines to the config in order to
 enable password authentication (md5 hash comparison) from Anonymizer and Networking hosts:
@@ -214,7 +197,8 @@ host    all    all   0.0.0.0/0    reject
 
 **Note:** `host` type access can be substituted with `hostssl` if using SSL-encrypted connections.
 
-Then edit the `/etc/postgresql/12/main/postgresql.conf` or `/etc/postgresql/14/main/postgresql.conf` and change the *listen_addresses* to
+Then edit the `/etc/postgresql/<postgres_version>/main/postgresql.conf`, replacing `<postgres_version>` with the
+installed major PostgreSQL version (for example, `15`), and change the *listen_addresses* to
 ```
 listen_addresses = '*'
 ```

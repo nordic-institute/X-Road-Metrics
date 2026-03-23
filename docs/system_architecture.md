@@ -96,12 +96,19 @@ The diagram includes also the experimental Analyzer module that has not been pub
 Specifications for each host in the example setup is in the following chapters.
 
 ### Software Specifications
-Ubuntu Server 20.04 and 22.04 are currently the supported operating systems to run X-Road Metrics.
+Ubuntu Server 22.04 (Jammy) and 24.04 (Noble) are the supported operating systems to run X-Road Metrics.
 
 In addition to the X-Road Metrics packages, following 3rd party software needs to be installed:
- - MongoDb 4.4
- - PostgreSQL 12.6
- - RStudio Shiny Server 1.5.16
+ - MongoDb 7.x or 8.x
+ - PostgreSQL - any version between 14.x and 18.x
+ - RStudio Shiny Server 1.5.23
+
+> [!NOTE]
+>
+> - For existing environments using MongoDB 6.x, it is compatible but has reached EOL. Upgrade to 7.x or higher is highly recommended.
+> - MongoDB-compatible variants (e.g., Amazon DocumentDB, Azure CosmosDB) are not supported; only official MongoDB is supported
+> - If MongoDB and PostgreSQL are installed on separate hosts, any officially supported OS version can be used for the database hosts depending on required database version.
+
 
 Please refer to the module specific documentation for detailed installation instructions.
 
@@ -109,16 +116,16 @@ Please refer to the module specific documentation for detailed installation inst
 ### Network Ports
 Table below shows the network connections in the X-Road Metrics system and can be used as a reference for firewall configurations:
 
-| Server                   | Client(s)                                           | Port       | Description                                     |
-|--------------------------|-----------------------------------------------------|------------|-------------------------------------------------|
-| centraldb                | collector, corrector, reports, anonymizer           | 27017      | MongoDb                                         |
-| opendata                 | 0.0.0.0/0                                           | 443        | HTTPS to Opendata web UI (Apache)               |
-| opendata                 | anonymizer, networking                              | 5432       | PostgreSQL                                      |
-| networking               | 0.0.0.0/0                                           | 443        | HTTPS to Networking Visualizer UI (Apache)      |
-| X-Road Central Server    | collector                                           | 80         | internalconf API to list Security Servers       |
-| X-Road Monitoring Client | collector                                           | 80/443     | getSecurityServerOperationalData X-Road service |
-| SMTP server              | reports                                             | 25/465/587 | (Optional) SMTP server to send report e-mail notifications |
-| Reports file server      | reports                                             | e.g. 22    | (Optional) Sync report files to some public file server using e.g. scp or rsync |
+| Server                   | Client(s)                                 | Port       | Description                                                                     |
+|--------------------------|-------------------------------------------|------------|---------------------------------------------------------------------------------|
+| centraldb                | collector, corrector, reports, anonymizer | 27017      | MongoDb                                                                         |
+| opendata                 | 0.0.0.0/0                                 | 443        | HTTPS to Opendata web UI (Apache)                                               |
+| opendata                 | anonymizer, networking                    | 5432       | PostgreSQL                                                                      |
+| networking               | 0.0.0.0/0                                 | 443        | HTTPS to Networking Visualizer UI (Apache)                                      |
+| X-Road Central Server    | collector                                 | 80         | internalconf API to list Security Servers                                       |
+| X-Road Monitoring Client | collector                                 | 80/443     | getSecurityServerOperationalData X-Road service                                 |
+| SMTP server              | reports                                   | 25/465/587 | (Optional) SMTP server to send report e-mail notifications                      |
+| Reports file server      | reports                                   | e.g. 22    | (Optional) Sync report files to some public file server using e.g. scp or rsync |
 
 
 ### HTTPS Configuration
@@ -133,16 +140,16 @@ instructions.
 Table below lists the recommended hardware specifications for the hosts in the
 example setup.
 
-| Host/Module      | CPU cores | RAM     | Storage                  | Notes                                                                    |
-|------------------|-----------|---------|--------------------------|--------------------------------------------------------------------------|
-| centraldb        |  4        | 32 GB   | 5 TB (XFS recommended)   | It is recommended to set up minimum 3 MongoDb replication nodes and to use RAID-0 or RAID-10 storage setup for redundancy. |
-| collector        |  2        | 2 GB    | 10 GB                    | |
-| corrector        |  4        | 8 GB    | 10 GB                    | |
-| reports          |  2        | 16 GB   | 10 GB                    | |
-| analyzer         |  4        | 32 GB   | 10 GB                    | |
-| anonymizer       |  2        | 4 GB    | 10 GB                    | |
-| opendata         |  4        | 32 GB   | 5 TB                     | |
-| networking       |  2        | 8 GB    | 10 GB                    | |
+| Host/Module | CPU cores | RAM   | Storage                | Notes                                                                                                                      |
+|-------------|-----------|-------|------------------------|----------------------------------------------------------------------------------------------------------------------------|
+| centraldb   | 4         | 32 GB | 5 TB (XFS recommended) | It is recommended to set up minimum 3 MongoDb replication nodes and to use RAID-0 or RAID-10 storage setup for redundancy. |
+| collector   | 2         | 2 GB  | 10 GB                  |                                                                                                                            |
+| corrector   | 4         | 8 GB  | 10 GB                  |                                                                                                                            |
+| reports     | 2         | 16 GB | 10 GB                  |                                                                                                                            |
+| analyzer    | 4         | 32 GB | 10 GB                  |                                                                                                                            |
+| anonymizer  | 2         | 4 GB  | 10 GB                  |                                                                                                                            |
+| opendata    | 4         | 32 GB | 5 TB                   |                                                                                                                            |
+| networking  | 2         | 8 GB  | 10 GB                  |                                                                                                                            |
 
 Disk size estimates for the databases are based on 
 estimated size for 1 year of documents (1 billion X-Road service calls (queries)):

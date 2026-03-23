@@ -1,0 +1,4 @@
+etc/settings.yaml                           etc/xroad-metrics/opendata_collector/
+etc/opendata_sources_settings.yaml          etc/xroad-metrics/opendata_collector/
+etc/xroad-metrics-opendata-collector-cron   etc/cron.d
+../3RD-PARTY-NOTICES.txt                       usr/share/doc/xroad-metrics-opendata-collector

@@ -65,7 +65,7 @@ class MongoDBHandler:
         collection = db[self.RAW_DATA_COLLECTION]
         for doc in docs:
             doc['insertTime'] = float(time.time())
-            collection.insert(doc)
+            collection.insert_one(doc)
 
     def get_raw_documents(self):
         db = self.get_query_db()
@@ -77,12 +77,12 @@ class MongoDBHandler:
         db = self.get_query_db()
         collection = db[self.CLEAN_DATA_COLLECTION]
         for doc in docs:
-            collection.insert(doc)
+            collection.insert_one(doc)
 
     def add_clean_document(self, doc):
         db = self.get_query_db()
         collection = db[self.CLEAN_DATA_COLLECTION]
-        collection.insert(doc)
+        collection.insert_one(doc)
 
     def get_clean_documents(self):
         db = self.get_query_db()

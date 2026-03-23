@@ -25,12 +25,12 @@
 from setuptools import setup
 
 requirements = [
-    'setuptools==75.3.0',
-    'pymongo==4.10.1',
-    'requests==2.32.3',
-    'tqdm==4.67.1',
-    'pyyaml==6.0.2',
-    'urllib3==2.2.3',
+    'setuptools==82.0.0',
+    'pymongo==4.16.0',
+    'requests==2.32.5',
+    'tqdm==4.67.3',
+    'pyyaml==6.0.3',
+    'urllib3==2.6.3',
 ]
 
 classifiers = [
@@ -40,7 +40,8 @@ classifiers = [
     'License :: OSI Approved :: MIT License',
     'Natural Language :: English',
     'Operating System :: POSIX :: Linux',
-    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.12',
     'Topic :: Utilities',
 ]
 
@@ -54,6 +55,7 @@ setup(name='xroad-metrics-collector',
       package_dir={'opmon_collector': 'opmon_collector', 'opmon_mongodb_maintenance': 'opmon_mongodb_maintenance'},
       scripts=['bin/xroad-metrics-collector', 'bin/xroad-metrics-init-mongo'],
       install_requires=requirements,
+      python_requires='>=3.10',
       classifiers=classifiers,
       platforms='POSIX',
       license='MIT'

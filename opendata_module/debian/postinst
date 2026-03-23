@@ -1,0 +1,61 @@
+#! /bin/bash
+set -e
+
+# Add users and groups
+groupadd xroad-metrics || echo "Group 'xroad-metrics' not created as it already exists."
+useradd --create-home --system --shell /bin/bash --gid xroad-metrics xroad-metrics || echo "User 'xroad-metrics' not created as it already exists."
+
+# www-data user needs access to xroad-metrics group
+usermod -a -G xroad-metrics www-data
+
+OPEN_DATA_FILES="
+  /usr/lib/python3/dist-packages/opmon_opendata
+  /etc/xroad-metrics/opendata
+  /etc/xroad-metrics/opendata/settings.yaml
+  /etc/xroad-metrics/opendata/field_data.yaml
+  /usr/share/xroad-metrics/opendata/manage.py
+  /usr/share/xroad-metrics/opendata/wsgi.py
+  /usr/share/xroad-metrics/opendata/www/static
+  /var/lib/xroad-metrics/opendata/database
+  /var/log/xroad-metrics/opendata/heartbeat
+  /var/log/xroad-metrics/opendata/logs
+"
+
+chown root:xroad-metrics $OPEN_DATA_FILES
+chmod g+rwx,o-rwx $OPEN_DATA_FILES
+
+# Django setup:
+sudo --user www-data  python3 /usr/share/xroad-metrics/opendata/manage.py makemigrations
+sudo --user www-data  python3 /usr/share/xroad-metrics/opendata/manage.py migrate
+sudo --user www-data  python3 /usr/share/xroad-metrics/opendata/manage.py collectstatic --no-input
+
+# Create self signed SSL certificate
+CERT_FILE=/etc/ssl/certs/xroad-metrics-selfsigned.crt
+KEY_FILE=/etc/ssl/private/xroad-metrics-selfsigned.key
+DH_GROUP_FILE=/etc/ssl/certs/xroad-metrics-dhparam.pem
+
+if [[ ! -f $CERT_FILE ]] || [[ ! -f $KEY_FILE ]]; then
+  openssl req -x509 -nodes -days 7300 -newkey rsa:2048 \
+    -subj "/CN=$(hostname --fqdn)/C=EU" \
+    -keyout $KEY_FILE \
+    -out $CERT_FILE
+fi
+
+if [[ ! -f $DH_GROUP_FILE ]]; then
+  openssl dhparam -out $DH_GROUP_FILE 2048
+fi
+
+# Create Apache virtual host config for opendata UI using the config macro XRoadMetricsOpendataVHost
+VHOST_FILE=/etc/apache2/sites-available/00-xroad-metrics-opendata.conf
+if [[ ! -f $VHOST_FILE ]]; then
+  echo "Use XRoadMetricsOpendataVHost $(hostname --fqdn)" > ${VHOST_FILE}
+fi
+
+. /usr/share/apache2/apache2-maintscript-helper
+set -e
+apache2_invoke enmod ssl
+apache2_invoke enmod headers
+apache2_invoke enmod macro
+apache2_invoke enconf xroad-metrics-opendata
+apache2_invoke enconf javascript-common
+apache2_invoke ensite 00-xroad-metrics-opendata
