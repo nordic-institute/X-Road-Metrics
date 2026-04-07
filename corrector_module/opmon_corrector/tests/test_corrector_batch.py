@@ -196,6 +196,7 @@ def test_corrector_batch_duplicates(mongo, batch, caplog):
 
     batch.run({})
     # duplicates must be removed from raw_messages
+    assert len(get_documents(mongo, 'raw_messages')) == len(raw_messages)
     assert len(get_documents(mongo, 'raw_messages', {'corrected': True})) == len(raw_messages)
     assert f"Number of duplicates: {len(duplicates)}" in caplog.text
     assert f"Total of {len(duplicates)} duplicate documents removed from raw messages"
