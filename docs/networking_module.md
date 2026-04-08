@@ -41,13 +41,13 @@ The general scheme of processes in the Networkin module is as follows:
 ### Add X-Road Extensions Package Repository for Ubuntu 22.04 (Jammy) or Ubuntu 24.04 (Noble)
 
 ````bash
-wget -qO - https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
-sudo add-apt-repository 'https://artifactory.niis.org/xroad-extensions-release-deb main'
+curl -fsSL https://x-road.eu/gpg/key/public/niis-artifactory-public.gpg | sudo tee /usr/share/keyrings/niis-artifactory-keyring.gpg > /dev/null
+echo "deb [signed-by=/usr/share/keyrings/niis-artifactory-keyring.gpg] https://artifactory.niis.org/xroad-extensions-release-deb $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/xroad-extensions.list > /dev/null
 ````
 
 The following information can be used to verify the key:
-- key hash: 935CC5E7FA5397B171749F80D6E3973B
-- key fingerprint: A01B FE41 B9D8 EAF4 872F A3F1 FB0D 532C 10F6 EC5B
+- key hash: `935CC5E7FA5397B171749F80D6E3973B`
+- key fingerprint: `A01B FE41 B9D8 EAF4 872F A3F1 FB0D 532C 10F6 EC5B`
 - 3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index)
 
 ### Install xroad-metrics-networking package

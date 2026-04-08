@@ -36,7 +36,8 @@
               "messageIssue": null,
               "requestMimeSize": null,
               "faultCode": null,
-              "faultString": null
+              "faultString": null,
+              "srcServer": "DEV/ORG/NIIS/ss1/test-server"
     },
         "producer": {
             "monitoringDataTs": 1670257877,
@@ -75,7 +76,8 @@
             "messageIssue": null,
             "requestMimeSize": null,
             "faultCode": null,
-            "faultString": null},
+            "faultString": null,
+            "srcServer": "DEV/ORG/NIIS/ss1/test-server"},
             "xRequestId": "19517616-253a-11ee-be56-0242ac120002",
             "totalDuration": 398,
             "clientSsRequestDuration": 176,

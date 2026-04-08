@@ -110,12 +110,14 @@ def test_insert_data_to_raw_messages(basic_settings, mocker):
 
     d = DatabaseManager(mongo_settings, xroad_instance, mocker.Mock())
     test_data = [{'test': 1}, {'data': 2}]
-    d.insert_data_to_raw_messages(test_data)
+    server_id = 'DEV/ORG/NIIS/ss1/test-server'
+    d.insert_data_to_raw_messages(test_data, server_id)
 
     client = pymongo.MongoClient(d.mongo_uri)
     items = list(client['query_db_DEFAULT']['raw_messages'].find())
     for item in items:
         assert item['insertTime'] == pytest.approx(float(time.time()), abs=1)
+        assert item['srcServer'] == server_id
 
     assert test_data == items
     assert test_data is not items

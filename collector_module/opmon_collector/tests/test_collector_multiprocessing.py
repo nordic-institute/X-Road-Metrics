@@ -29,6 +29,7 @@ import pathlib
 from opmon_collector.settings import OpmonSettingsManager
 from opmon_collector.collector_multiprocessing import run_threaded_collector
 from opmon_collector.collector_multiprocessing import process_thread_pool
+from opmon_collector.pid_file_handler import OpmonPidFileHandler
 import opmon_collector
 
 TEST_SERVERS = [1, 2, 3]
@@ -57,8 +58,11 @@ def mock_thread_pool(mocker):
 
 
 @pytest.fixture(autouse=True)
-def cleanup_test_pid_files():
-    pid_file = './opmon_collector_DEFAULT.pid'
+def cleanup_test_pid_files(basic_settings):
+    pid_file = OpmonPidFileHandler(basic_settings).pid_file
+    if os.path.isfile(pid_file):
+        os.remove(pid_file)
+    yield
     if os.path.isfile(pid_file):
         os.remove(pid_file)
 
@@ -86,7 +90,7 @@ def test_run_threaded_collector(mocker, mock_server_manager, mock_thread_pool, b
 
 
 def test_run_threaded_collector_with_existing_pid_file(mocker, mock_server_manager, mock_thread_pool, basic_settings):
-    pid_file = './opmon_collector_DEFAULT.pid'
+    pid_file = OpmonPidFileHandler(basic_settings).pid_file
     mock_logger = mocker.Mock()
 
     with open(pid_file, 'w') as f:

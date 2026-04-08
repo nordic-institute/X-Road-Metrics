@@ -41,25 +41,23 @@ Refer to official [MongoDB installation instructions](https://docs.mongodb.com/m
 ## Add the MongoDB APT repository and signing key for Ubuntu 22.04 (Jammy)
 
 ```bash
-# Key rsa4096/39bd841e4be5fb195a65400e6a26b1ae64c3c388 [expires: 2027-02-22]
-sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 6a26b1ae64c3c388
-sudo apt-add-repository "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse"
+curl -fsSL https://pgp.mongodb.com/server-7.0.asc | sudo gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg --dearmor
+echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
 ```
 
 ## Add the MongoDB APT repository and signing key for Ubuntu 24.04 (Noble)
 
 ```bash
-# Key rsa4096/39bd841e4be5fb195a65400e6a26b1ae64c3c388 [expires: 2027-02-22]
-sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 6a26b1ae64c3c388
-sudo apt-add-repository "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse"
+curl -fsSL https://pgp.mongodb.com/server-8.0.asc | sudo gpg -o /usr/share/keyrings/mongodb-server-8.0.gpg --dearmor
+echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg ] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-8.0.list
 ```
 
 
 Install MongoDB server and client tools (shell)
 
 ```bash
-sudo apt-get update
-sudo apt-get install --yes mongodb-org
+sudo apt update
+sudo apt install --yes mongodb-org
 ```
 
 Most libraries follow the "MAJOR.MINOR.PATCH" schema, so the guideline is to review and update PATCH versions always (they mostly contain bug fixes). MINOR updates can be applied,  as they should keep compatibility, but there is no guarantee for some libraries. A suggestion would be to check if tests are working after MINOR updates and rollback if they stop working. MAJOR updates should not be applied.
@@ -108,7 +106,7 @@ exit
 
 Store the MongoDB root user password to a secure place, e.g. your password manager.
 
-Edit the MongoDB config file with your favorite editor (vi used here). Add the following lines:
+Edit the MongoDB config file (`/etc/mongod.conf`) with your favorite editor. Add the following lines:
 ```yaml
 security:
   authorization: enabled

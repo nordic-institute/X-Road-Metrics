@@ -30,7 +30,8 @@
     "xRequestId": "171b7b78-e8f7-4b78-b486-601371ebe6af",
     "statusCode": 200,
     "serviceType": "OPENAPI3",
-    "insertTime": 1671090130.54086
+    "insertTime": 1671090130.54086,
+    "srcServer": "DEV/ORG/NIIS/ss1/test-server"
   },
   {
     "monitoringDataTs": 1671066024,
@@ -63,7 +64,8 @@
     "xRequestId": "171b7b78-e8f7-4b78-b486-601371ebe6af",
     "statusCode": 200,
     "serviceType": "REST",
-    "insertTime": 1671090130.61985
+    "insertTime": 1671090130.61985,
+    "srcServer": "DEV/ORG/NIIS/ss1/test-server"
   },
   {
     "monitoringDataTs": 1671066024,
@@ -96,6 +98,7 @@
     "xRequestId": "3063ca6a-e389-4586-b4d1-7b4b284d2487",
     "statusCode": 200,
     "serviceType": "REST",
-    "insertTime": 1671090130.61985
+    "insertTime": 1671090130.61985,
+    "srcServer": "DEV/ORG/NIIS/ss1/test-server"
   }
 ]
