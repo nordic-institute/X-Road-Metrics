@@ -1,0 +1,25 @@
+{
+  "scenarioName": "opmon-ss1",
+  "requiredScenarioState": "Started",
+  "newScenarioState": "batch2",
+  "priority": 1,
+  "request": {
+    "method": "POST",
+    "urlPattern": "/.*",
+    "bodyPatterns": [
+      {
+        "contains": "getSecurityServerOperationalData"
+      },
+      {
+        "contains": "<id:serverCode>SS1</id:serverCode>"
+      }
+    ]
+  },
+  "response": {
+    "status": 200,
+    "bodyFileName": "ss1-response-batch1.mime",
+    "headers": {
+      "Content-Type": "multipart/related; charset=UTF-8; boundary=xroad"
+    }
+  }
+}

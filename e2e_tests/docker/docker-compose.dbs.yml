@@ -1,0 +1,48 @@
+name: metrics-e2e-dbs
+services:
+  mongodb:
+    image: mongo:${MONGO_VERSION:-8}
+    container_name: xroad-metrics-e2e-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: e2e_test_password
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - metrics-e2e-dbs-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  postgres:
+    image: postgres:${PG_VERSION:-18}
+    container_name: xroad-metrics-e2e-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: e2e_test_password
+      POSTGRES_DB: opendata
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    networks:
+      - metrics-e2e-dbs-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  mongodb_data:
+  postgres_data:
+
+networks:
+  metrics-e2e-dbs-network:
+    driver: bridge

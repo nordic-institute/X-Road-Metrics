@@ -1,0 +1,13 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/V2/\\d+/shared-params\\.xml"
+  },
+  "response": {
+    "status": 200,
+    "bodyFileName": "shared-params.xml",
+    "headers": {
+      "Content-Type": "application/xml; charset=UTF-8"
+    }
+  }
+}
