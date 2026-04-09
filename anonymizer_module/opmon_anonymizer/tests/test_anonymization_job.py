@@ -28,9 +28,12 @@ import re
 import unittest
 from unittest.mock import MagicMock
 
+import yaml
+
 from opmon_anonymizer.anonymizer import AnonymizationJob
 
 ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
+
 
 
 class TestAnonymizationJob(unittest.TestCase):
@@ -162,6 +165,82 @@ class TestAnonymizationJob(unittest.TestCase):
 
         self.assertCountEqual(expected_individual_records, individual_records)
 
+    def test_anonymize_rolls_back_timestamp_on_batch_failure(self):
+        """When batch processing fails, reader timestamp should be rolled back."""
+        from opmon_anonymizer.anonymizer import Anonymizer
+
+        mock_reader = MagicMock()
+        mock_reader.last_processed_timestamp = 100
+        mock_reader.get_records.return_value = [
+            {'client': {'data': 'test1'}, 'producer': {}},
+            {'client': {'data': 'test2'}, 'producer': {}},
+        ]
+
+        mock_writer = MagicMock()
+
+        settings = yaml.safe_load("""
+        anonymizer:
+          hiding-rules: []
+          substitution-rules: []
+          transformers:
+            reduce-request-in-ts-precision: false
+            force-durations-to-integer-range: false
+          field-translations-file: "./opmon_anonymizer/tests/data/test_field_translations.list"
+          field-data-file: "./opmon_anonymizer/tests/data/test_field_data.yaml"
+
+        postgres:
+          buffer-size: 1
+        """)
+
+        logger = MagicMock()
+
+        mock_writer.write_records.side_effect = Exception("Writer failed")
+
+        anonymizer = Anonymizer(mock_reader, mock_writer, settings, logger)
+
+        # Set initial timestamp
+        mock_reader.last_processed_timestamp = 100
+
+        # Run anonymize - should fail and rollback
+        result = anonymizer.anonymize()
+
+        mock_reader.update_last_processed_timestamp.assert_called_with(100)
+
+        self.assertEqual(result, 0)
+
+    def test_anonymize_handles_log_limit(self):
+        """Should stop processing when log_limit is reached. This is currently only as precise as the postgres_buffer-size is."""
+        from opmon_anonymizer.anonymizer import Anonymizer
+
+        mock_reader = MagicMock()
+        mock_reader.last_processed_timestamp = 100
+        mock_reader.get_records.return_value = [
+            {'client': {}, 'producer': {}} for _ in range(20)
+        ]
+
+        mock_writer = MagicMock()
+        settings = yaml.safe_load("""
+        anonymizer:
+          hiding-rules: []
+          substitution-rules: []
+          transformers:
+            reduce-request-in-ts-precision: false
+            force-durations-to-integer-range: false
+          field-translations-file: "./opmon_anonymizer/tests/data/test_field_translations.list"
+          field-data-file: "./opmon_anonymizer/tests/data/test_field_data.yaml"
+
+        postgres:
+          buffer-size: 2
+        """)
+
+        logger = MagicMock()
+
+        anonymizer = Anonymizer(mock_reader, mock_writer, settings, logger)
+        mock_reader.last_processed_timestamp = 100
+
+        result = anonymizer.anonymize(log_limit=5)
+
+        self.assertEqual(result, 6)
 
 class MockAnonymizationJob(object):
     pass
