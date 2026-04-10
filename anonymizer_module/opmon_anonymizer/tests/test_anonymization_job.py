@@ -242,5 +242,84 @@ class TestAnonymizationJob(unittest.TestCase):
 
         self.assertEqual(result, 6)
 
+    def test_anonymizationjob_run_normal_flow(self):
+        """Test AnonymizationJob.run processes and writes records as expected, including hiding, substitution, and transformers."""
+        mock_writer = MagicMock()
+        mock_logger = MagicMock()
+        # Transformer that adds a field
+        def transformer(record):
+            record['transformed'] = True
+            return record
+        # Hiding rule: hide if foo == 'hide'
+        hiding_rules = [[('foo', re.compile('hide'))]]
+        # Substitution rule: if bar == 'sub', set baz = 'substituted'
+        substitution_rules = [{
+            'conditions': [('bar', re.compile('sub'))],
+            'substitutes': [{'feature': 'baz', 'value': 'substituted'}]
+        }]
+        transformers = [transformer]
+        field_translations = {'client': {'foo': 'foo'}, 'producer': {'bar': 'bar'}, 'baz': 'baz'}
+        field_value_masks = {'client': set(), 'producer': set()}
+        job = AnonymizationJob(
+            writer=mock_writer,
+            hiding_rules=hiding_rules,
+            substitution_rules=substitution_rules,
+            transformers=transformers,
+            field_translations=field_translations,
+            field_value_masks=field_value_masks,
+            logger_manager=mock_logger
+        )
+        dual_records = [
+            {'client': {'foo': 'abc'}, 'producer': {'bar': 'sub'}, 'baz': 'bazval', 'qux': 'quxval'},  # triggers substitution
+            {'client': {'foo': 'hide'}, 'producer': {'bar': 'xyz'}, 'baz': 'bazval', 'qux': 'quxval'}, # triggers hiding
+        ]
+        job.run(dual_records)
+
+        args, _ = mock_writer.write_records.call_args
+        written = args[0]
+        # Check the hidden record (client with foo=='hide') should not be present
+        self.assertEqual(len(written), 3)
+        # Check transforming
+        for rec in written:
+            self.assertTrue(rec['transformed'])
+        # Check field translations
+        for rec in written:
+            self.assertNotIn('qux', rec)
+        for rec in written:
+            self.assertIn('baz', rec)
+        # Check substitution
+        baz_values = [rec.get('baz') for rec in written]
+        self.assertIn('substituted', baz_values)
+
+        mock_logger.log_info.assert_called()
+
+    def test_anonymizationjob_run_exception_logging(self):
+        """Test AnonymizationJob.run logs and raises on exception in transformer."""
+        mock_writer = MagicMock()
+        mock_logger = MagicMock()
+        def bad_transformer(record):
+            raise ValueError('fail')
+        hiding_rules = []
+        substitution_rules = []
+        transformers = [bad_transformer]
+        field_translations = {'client': {}, 'producer': {}}
+        field_value_masks = {'client': set(), 'producer': set()}
+        job = AnonymizationJob(
+            writer=mock_writer,
+            hiding_rules=hiding_rules,
+            substitution_rules=substitution_rules,
+            transformers=transformers,
+            field_translations=field_translations,
+            field_value_masks=field_value_masks,
+            logger_manager=mock_logger
+        )
+        dual_records = [
+            {'client': {'foo': 'abc'}, 'producer': {'bar': 'xyz'}, 'baz': 'bazval'}
+        ]
+        with self.assertRaises(ValueError):
+            job.run(dual_records)
+        mock_logger.log_exception.assert_called()
+
+
 class MockAnonymizationJob(object):
     pass

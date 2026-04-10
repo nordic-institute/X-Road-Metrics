@@ -26,7 +26,7 @@ import os
 import re
 
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, MagicMock
 
 import yaml
 
@@ -318,4 +318,40 @@ class TestAnonymizer(unittest.TestCase):
 
         with self.assertRaises(KeyError):
             Anonymizer._get_transformers(anonymizer_instance)
+
+
+    def test_anonymizer_anonymize_normal_batch(self):
+        """Test Anonymizer.anonymize processes and writes all records in normal operation."""
+        from opmon_anonymizer.anonymizer import Anonymizer
+        mock_reader = MagicMock()
+        mock_writer = MagicMock()
+        # 5 records, buffer size 2, so 2 batches + 1 final batch
+        mock_reader.get_records.return_value = [
+            {'client': {'foo': 'a'}, 'producer': {'bar': 'b'}},
+            {'client': {'foo': 'c'}, 'producer': {'bar': 'd'}},
+            {'client': {'foo': 'e'}, 'producer': {'bar': 'f'}},
+            {'client': {'foo': 'g'}, 'producer': {'bar': 'h'}},
+            {'client': {'foo': 'i'}, 'producer': {'bar': 'j'}},
+        ]
+        mock_reader.last_processed_timestamp = 0
+        settings = yaml.safe_load("""
+           anonymizer:
+             hiding-rules: []
+             substitution-rules: []
+             transformers:
+               reduce-request-in-ts-precision: false
+               force-durations-to-integer-range: false
+             field-translations-file: "./opmon_anonymizer/tests/data/test_field_translations.list"
+             field-data-file: "./opmon_anonymizer/tests/data/test_field_data.yaml"
+           postgres:
+             buffer-size: 2
+           """)
+        logger = MagicMock()
+        anonymizer = Anonymizer(mock_reader, mock_writer, settings, logger)
+        result = anonymizer.anonymize()
+        # Should process all 5 records
+        self.assertEqual(result, 5)
+        # Should process 3 batches
+        self.assertEqual(mock_writer.write_records.call_count, 3)
+        logger.log_info.assert_called()
 
