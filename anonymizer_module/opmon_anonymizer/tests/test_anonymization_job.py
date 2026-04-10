@@ -26,6 +26,7 @@ import os
 import re
 
 import unittest
+from pathlib import Path
 from unittest.mock import MagicMock
 
 import yaml
@@ -33,7 +34,6 @@ import yaml
 from opmon_anonymizer.anonymizer import AnonymizationJob
 
 ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
-
 
 
 class TestAnonymizationJob(unittest.TestCase):
@@ -218,6 +218,8 @@ class TestAnonymizationJob(unittest.TestCase):
             {'client': {}, 'producer': {}} for _ in range(20)
         ]
 
+        print("PD:::")
+        print(os.getcwd())
         mock_writer = MagicMock()
         settings = yaml.safe_load("""
         anonymizer:
@@ -320,6 +322,44 @@ class TestAnonymizationJob(unittest.TestCase):
             job.run(dual_records)
         mock_logger.log_exception.assert_called()
 
+    def test_anonymizer_anonymize_normal_batch(self):
+        """Test Anonymizer.anonymize processes and writes all records in normal operation."""
+        from opmon_anonymizer.anonymizer import Anonymizer
+        mock_reader = MagicMock()
+        mock_writer = MagicMock()
+        # 5 records, buffer size 2, so 2 batches + 1 final batch
+        mock_reader.get_records.return_value = [
+            {'client': {'foo': 'a'}, 'producer': {'bar': 'b'}},
+            {'client': {'foo': 'c'}, 'producer': {'bar': 'd'}},
+            {'client': {'foo': 'e'}, 'producer': {'bar': 'f'}},
+            {'client': {'foo': 'g'}, 'producer': {'bar': 'h'}},
+            {'client': {'foo': 'i'}, 'producer': {'bar': 'j'}},
+        ]
+        print("PD:::")
+        print("CWD: " + str(Path.cwd()))
+        mock_reader.last_processed_timestamp = 0
+        settings = yaml.safe_load("""
+            anonymizer:
+              hiding-rules: []
+              substitution-rules: []
+              transformers:
+                reduce-request-in-ts-precision: false
+                force-durations-to-integer-range: false
+              field-translations-file: "./opmon_anonymizer/tests/data/test_field_translations.list"
+              field-data-file: "./opmon_anonymizer/tests/data/test_field_data.yaml"
+            postgres:
+              buffer-size: 2
+            """)
+        logger = MagicMock()
+        anonymizer = Anonymizer(mock_reader, mock_writer, settings, logger)
+        result = anonymizer.anonymize()
+        # Should process all 5 records
+        self.assertEqual(result, 5)
+        # Should process 3 batches
+        self.assertEqual(mock_writer.write_records.call_count, 3)
+        logger.log_info.assert_called()
+
+        self.assertFalse(True)
 
 class MockAnonymizationJob(object):
     pass

@@ -26,6 +26,7 @@ import os
 import re
 
 import unittest
+from pathlib import Path
 from unittest.mock import Mock, MagicMock
 
 import yaml
@@ -333,6 +334,8 @@ class TestAnonymizer(unittest.TestCase):
             {'client': {'foo': 'g'}, 'producer': {'bar': 'h'}},
             {'client': {'foo': 'i'}, 'producer': {'bar': 'j'}},
         ]
+        print("PD:::")
+        print("CWD: " + str(Path.cwd()))
         mock_reader.last_processed_timestamp = 0
         settings = yaml.safe_load("""
            anonymizer:
@@ -354,4 +357,3 @@ class TestAnonymizer(unittest.TestCase):
         # Should process 3 batches
         self.assertEqual(mock_writer.write_records.call_count, 3)
         logger.log_info.assert_called()
-
