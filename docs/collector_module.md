@@ -98,6 +98,9 @@ sudo vi /etc/xroad-metrics/collector/settings.yaml
 Settings that the user must fill in:
 * X-Road instance name
 * Central and Security Server hosts
+  * The Security Server `host` must include the port unless the Security Server listens on the default port of the
+    `protocol`, for example `ss.example.org:8080`. Security Servers installed from the default packages listen for
+    client information systems on ports 8080 (HTTP) and 8443 (HTTPS); the EE package uses ports 80 and 443.
 * X-Road client used to collect the monitoring data
 * username and password for the collector module MongoDB user
 
@@ -128,7 +131,7 @@ Example of configuration:
 ```yaml
 security-server:
     protocol: https://
-    host: example.host
+    host: example.host:8443 # port of the Security Server's HTTPS listener for client information systems
     timeout: 60.0
     tls-client-certificate: /path/to/client.crt # path to client's certificate
     tls-client-key: /path/to/client.key # path to client's private key

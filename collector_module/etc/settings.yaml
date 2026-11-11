@@ -77,6 +77,10 @@ xroad:
   # Security server used to contact
   security-server:
     protocol: http://
+    # Host name and port, for example ss.example.org:8080. The port is required unless the
+    # Security Server listens on the default port of the protocol. Security Servers installed
+    # from the default packages listen for client information systems on 8080 (HTTP) and
+    # 8443 (HTTPS); the EE package uses 80 and 443.
     host: <FILL>
     timeout: 60.0
     # path to client's certificate
